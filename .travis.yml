@@ -1,0 +1,19 @@
+language: php
+
+sudo: false
+
+# Test main supported versions of PHP and HHVM against latest WP. 5.2 is min supported version.
+php:
+  - 5.6
+  - 7.0
+  - 7.1
+
+env:
+  - WP_VERSION=latest WP_MULTISITE=0
+
+before_script:
+  - export PATH="$HOME/.composer/vendor/bin:$PATH"
+  - phpenv config-rm xdebug.ini
+  - bash tests/bin/install-phpunit-tests-dependencies.sh wc_apa_test root '' localhost $WP_VERSION
+
+script: phpunit -c phpunit.xml

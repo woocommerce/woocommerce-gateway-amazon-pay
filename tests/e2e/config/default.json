@@ -1,0 +1,39 @@
+{
+	"url": "https://local.wordpress.dev",
+	"products": {
+		"onePayment": "/product/t-shirt",
+		"billingAgreement": "/product/cheap-subs"
+	},
+	"users": {
+		"shopmanager": {
+			"username": "admin",
+			"password": "password"
+		},
+		"customer": {
+			"username": "admin",
+			"password": "password"
+		}
+	},
+	"amazon": [
+		{
+			"country": "Germany",
+			"currency": "Euro (€)",
+			"sellerId": "",
+			"mwsAccessKey": "",
+			"mwsSecretKey": "",
+			"paymentRegion": "Euro Region",
+			"useLoginWithAmazonApp": true,
+			"appClientId": "",
+			"appClientSecret": "",
+			"useSandbox": true,
+			"buttonType": "Button",
+			"buttonLanguage": "UK English",
+			"buyer": {
+				"username": "",
+				"password": ""
+			}
+		}
+	],
+	"startBrowserTimeoutMs": 30000,
+	"mochaTimeoutMs": 120000
+}

@@ -1,0 +1,51 @@
+#pay_with_amazon {
+	margin: 0;
+	line-height: 1em;
+	display: block;
+	border: 0;
+	text-align: right;
+}
+#pay_with_amazon img {
+	width: auto !important;
+	vertical-align: middle;
+	cursor: pointer;
+	box-shadow: none;
+	border: 0;
+	padding:0;
+	margin:0;
+	display: inline-block;
+}
+#amazon_addressbook_widget div, #amazon_wallet_widget div {
+	min-width: 300px;
+	min-height: 300px;
+	margin: 0 auto !important;
+}
+.woocommerce-info #pay_with_amazon {
+	float: right;
+}
+#amazon_customer_details.wc-amazon-payments-advanced-populated + #customer_details {
+	display: none;
+}
+#amazon_consent_widget {
+	width: 100%;
+	height: 120px;
+}
+.wc-amazon-payments-advanced-order-day-widgets {
+	min-height: 300px;
+	width: 100%;
+}
+.wc-amazon-payments-advanced-order-day-widget {
+	width: 49%;
+	min-width: 275px;
+	float: left;
+}
+.wc-amazon-payments-advanced-order-day-widget:first-child {
+	margin-right: 10px;
+	margin-bottom: 10px;
+}
+#payment .payment_methods li #pay_with_amazon img {
+	max-height: 100%;
+}
+form.checkout .hidden {
+	display: none !important;
+}
