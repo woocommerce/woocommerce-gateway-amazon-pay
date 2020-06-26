@@ -922,6 +922,7 @@ class WC_Amazon_Payments_Advanced_API {
 	 */
 	public static function get_authorize_recurring_request_args( WC_Order $order, $args ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
+		$order_shippable = self::maybe_subscription_is_shippable( $order );
 
 		return array(
 			'Action'                              => 'AuthorizeOnBillingAgreement',
@@ -933,6 +934,7 @@ class WC_Amazon_Payments_Advanced_API {
 			'TransactionTimeout'                  => 0,
 			'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
 			'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
+			'InheritShippingAddress'              => $order_shippable,
 		);
 	}
 
@@ -1114,7 +1116,7 @@ class WC_Amazon_Payments_Advanced_API {
 
 	/**
 	 * Handle the result of an sync authorization request.
-	 * 
+	 *
 	 *
 	 * @param object       $result         IPN payload.
 	 * @param int|WC_Order $order          Order object.
@@ -1959,4 +1961,35 @@ class WC_Amazon_Payments_Advanced_API {
 		$mailer->send( $recipient, strip_tags( $subject ), $message );
 	}
 
+	/**
+	 * Return if subscription is shippable
+	 *
+	 * @param WC_Order $order Order object.
+	 *
+	 * @return boolean
+	 */
+	public function maybe_subscription_is_shippable( WC_Order $order ) {
+
+		if ( ! class_exists( 'WC_Subscriptions_Product' ) ) {
+			return;
+		}
+
+		$items = $order->get_items();
+		if ( empty( $items ) ) {
+			return;
+		}
+
+		$order_shippable = false;
+		foreach ( $items as $item ) {
+			if ( $item instanceof \WC_Order_Item_Product ) {
+				$product = $item->get_product();
+				if ( $product && WC_Subscriptions_Product::is_subscription( $product ) && $product->needs_shipping() ) {
+					$order_shippable = true;
+					break;
+				}
+			}
+		}
+
+		return $order_shippable;
+	}
 }
