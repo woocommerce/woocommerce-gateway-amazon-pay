@@ -16,6 +16,7 @@ env:
 before_script:
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
   - phpenv config-rm xdebug.ini
+  - composer install
   - bash tests/bin/install-phpunit-tests-dependencies.sh wc_apa_test root '' localhost $WP_VERSION
 
-script: phpunit -c phpunit.xml
+script: ./vendor/bin/phpunit -c phpunit.xml
