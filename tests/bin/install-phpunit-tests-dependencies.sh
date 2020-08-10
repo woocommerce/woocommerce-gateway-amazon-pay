@@ -12,8 +12,10 @@ DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
 
-WP_TESTS_DIR=${WP_TESTS_DIR-/tmp/wordpress-tests-lib}
-WP_CORE_DIR=${WP_CORE_DIR-/tmp/wordpress/}
+TMPDIR=${TMPDIR-/tmp}
+TMPDIR=$(echo $TMPDIR | sed -e "s/\/$//")
+WP_TESTS_DIR=${WP_TESTS_DIR-$TMPDIR/wordpress-tests-lib}
+WP_CORE_DIR=${WP_CORE_DIR-$TMPDIR/wordpress/}
 
 download() {
 	if [ `which curl` ]; then
