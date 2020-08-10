@@ -43,4 +43,4 @@ require $_tests_dir . '/includes/bootstrap.php';
 
 // Require the WooCommerce tests bootstrap so that we can use WooCommerce's testing resources as well.
 $plugins_dir = dirname( dirname( dirname( dirname( __FILE__ ) ) ) );
-require_once $plugins_dir . '/woocommerce/tests/bootstrap.php';
+require_once $plugins_dir . '/woocommerce/tests/legacy/bootstrap.php';
