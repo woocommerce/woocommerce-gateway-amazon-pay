@@ -62,12 +62,15 @@ install_wp() {
 }
 
 install_woocommerce() {
-    cd $TRAVIS_BUILD_DIR
-    cd ..
-    download https://codeload.github.com/woocommerce/woocommerce/tar.gz/3.2.5 woocommerce.tar.gz
-    mkdir woocommerce
-    tar --strip-components=1 -zxmf woocommerce.tar.gz -C woocommerce
-    cd -
+	cd $TRAVIS_BUILD_DIR
+	cd ..
+	git clone https://github.com/woocommerce/woocommerce.git
+	cd woocommerce
+
+	git fetch && git fetch --tags
+	git checkout 4.3.1
+	composer install
+	cd -
 }
 
 install_test_suite() {
