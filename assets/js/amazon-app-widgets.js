@@ -304,6 +304,17 @@ jQuery( function( $ ) {
 		return window.innerWidth <= 800;
 	}
 
+	function toggleFieldVisibility( type, key ) {
+		var fieldWrapper = $( '#' + type + '_' + key + '_field' ),
+			fieldValue   = $( '#' + type + '_' + key ).val();
+		fieldWrapper.addClass( 'hidden' );
+		$( '.woocommerce-' + type + '-fields' ).addClass( 'hidden' );
+		if ( fieldValue == null || fieldValue == '' ) {
+			fieldWrapper.removeClass( 'hidden' );
+			$( '.woocommerce-' + type + '-fields' ).removeClass( 'hidden' );
+		}
+	}
+
 	function toggleDetailsVisibility( detailsListName ) {
 		if ( $( '.' + detailsListName + '__field-wrapper' ).children( ':not(.hidden)' ).length === 0 ) {
 			$( '.' + detailsListName ).addClass( 'hidden' );
@@ -672,6 +683,7 @@ jQuery( function( $ ) {
 	}
 
 	$( 'body' ).on( 'updated_checkout', function() {
+		toggleFieldVisibility( 'shipping', 'state' );
 		if( ! isAmazonCheckout() ) {
 			return;
 		}

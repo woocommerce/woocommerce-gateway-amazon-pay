@@ -1277,6 +1277,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$shipping_info = WC_Amazon_Payments_Advanced_API::format_address( $destination );
 		// @codingStandardsIgnoreEnd
 
+		// Override Shipping State if Destination State doesn't exists in the country's states list.
+		$order_current_state = $order->get_shipping_state();
+		if ( ! empty( $order_current_state ) && $order_current_state !== $shipping_info['state'] ) {
+			$states = WC()->countries->get_states( $shipping_info['country'] );
+			if ( empty( $states ) || empty( $states[ $shipping_info['state'] ] ) ) {
+				$shipping_info['state'] = $order_current_state;
+			}
+		}
+
 		$order->set_address( $shipping_info, 'shipping' );
 
 		// Some market API endpoint return billing address information, parse it if present.
