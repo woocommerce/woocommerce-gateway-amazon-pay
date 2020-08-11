@@ -20,3 +20,7 @@ before_script:
   - bash tests/bin/install-phpunit-tests-dependencies.sh wc_apa_test root '' localhost $WP_VERSION
 
 script: ./vendor/bin/phpunit -c phpunit.xml
+
+branches:
+  only:
+    - main
