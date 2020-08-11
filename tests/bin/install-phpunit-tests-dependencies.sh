@@ -12,8 +12,10 @@ DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
 
-WP_TESTS_DIR=${WP_TESTS_DIR-/tmp/wordpress-tests-lib}
-WP_CORE_DIR=${WP_CORE_DIR-/tmp/wordpress/}
+TMPDIR=${TMPDIR-/tmp}
+TMPDIR=$(echo $TMPDIR | sed -e "s/\/$//")
+WP_TESTS_DIR=${WP_TESTS_DIR-$TMPDIR/wordpress-tests-lib}
+WP_CORE_DIR=${WP_CORE_DIR-$TMPDIR/wordpress/}
 
 download() {
 	if [ `which curl` ]; then
@@ -60,12 +62,13 @@ install_wp() {
 }
 
 install_woocommerce() {
-    cd $TRAVIS_BUILD_DIR
-    cd ..
-    download https://codeload.github.com/woocommerce/woocommerce/tar.gz/3.2.5 woocommerce.tar.gz
-    mkdir woocommerce
-    tar --strip-components=1 -zxmf woocommerce.tar.gz -C woocommerce
-    cd -
+	cd $TRAVIS_BUILD_DIR
+	cd ..
+
+	git clone --depth=1 --branch 4.3.1 https://github.com/woocommerce/woocommerce.git
+	cd woocommerce
+	composer install
+	cd -
 }
 
 install_test_suite() {

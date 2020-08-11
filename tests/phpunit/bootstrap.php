@@ -1,15 +1,15 @@
 <?php
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
 if ( ! $_tests_dir ) {
-	$_tests_dir = '/tmp/wordpress-tests-lib';
+	$_tests_dir = sys_get_temp_dir() . '/wordpress-tests-lib';
 }
 
 require_once $_tests_dir . '/includes/functions.php';
 
 function _manually_load_plugin() {
-	$plugins_dir = dirname( dirname( dirname( dirname( __FILE__ ) ) ) );
-	require $plugins_dir . '/woocommerce-gateway-amazon-payments-advanced/woocommerce-gateway-amazon-payments-advanced.php';
-	require $plugins_dir . '/woocommerce/woocommerce.php';
+	$base_dir = dirname( dirname( dirname( __FILE__ ) ) );
+	require $base_dir . '/woocommerce-gateway-amazon-payments-advanced.php';
+	require $base_dir . '/../woocommerce/woocommerce.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
@@ -43,4 +43,4 @@ require $_tests_dir . '/includes/bootstrap.php';
 
 // Require the WooCommerce tests bootstrap so that we can use WooCommerce's testing resources as well.
 $plugins_dir = dirname( dirname( dirname( dirname( __FILE__ ) ) ) );
-require_once $plugins_dir . '/woocommerce/tests/bootstrap.php';
+require_once $plugins_dir . '/woocommerce/tests/legacy/bootstrap.php';
