@@ -64,11 +64,9 @@ install_wp() {
 install_woocommerce() {
 	cd $TRAVIS_BUILD_DIR
 	cd ..
-	git clone https://github.com/woocommerce/woocommerce.git
-	cd woocommerce
 
-	git fetch && git fetch --tags
-	git checkout 4.3.1
+	git clone --depth=1 --branch 4.3.1 https://github.com/woocommerce/woocommerce.git
+	cd woocommerce
 	composer install
 	cd -
 }
