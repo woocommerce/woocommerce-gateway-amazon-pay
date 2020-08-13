@@ -2,7 +2,7 @@
 Contributors: automattic, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
-Tested up to: 5.4
+Tested up to: 5.5
 Stable tag: 1.12.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
