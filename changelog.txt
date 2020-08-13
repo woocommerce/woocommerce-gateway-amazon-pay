@@ -1,5 +1,11 @@
 *** Amazon Pay Changelog ***
 
+= 1.12.3 - 2020-08-13 =
+* Update - WP tested up to 5.5.
+* Update - WC tested up to 4.4.
+* Fix - Fatal checkout error when changing subscription's payment method if user is logged out of Amazon account.
+* Fix - Checkout error when address book state does not match WooCommerce state data.
+
 = 1.12.2 - 2020-05-05 =
 * Fix - Fatal checkout error when submitting orders that do not need shipping.
 

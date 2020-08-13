@@ -3,7 +3,7 @@ Contributors: automattic, woothemes, akeda, jeffstieler, mikejolley, bor0, claud
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 5.4
-Stable tag: 1.12.2
+Stable tag: 1.12.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -60,6 +60,12 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 2. Picking billing and shipping addresses on the checkout page.
 
 == Changelog ==
+
+= 1.12.3 - 2020-08-13 =
+* Update - WP tested up to 5.5.
+* Update - WC tested up to 4.4.
+* Fix - Fatal checkout error when changing subscription's payment method if user is logged out of Amazon account.
+* Fix - Checkout error when address book state does not match WooCommerce state data.
 
 = 1.12.2 - 2020-05-05 =
 * Fix - Fatal checkout error when submitting orders that do not need shipping.
