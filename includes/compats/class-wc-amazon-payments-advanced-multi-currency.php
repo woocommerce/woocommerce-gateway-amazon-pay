@@ -20,8 +20,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 */
 	const COMPATIBLE_PLUGINS = array(
 		'global_WOOCS'                         => 'WOOCS – Currency Switcher for WooCommerce',
-		'global_woocommerce_wpml'              => 'WPML WooCommerce Multilingual',
 		'class_WC_Product_Price_Based_Country' => 'Price Based on Country for WooCommerce',
+		'global_woocommerce_wpml'              => 'WPML WooCommerce Multilingual',
 		'class_WC_Currency_Converter'          => 'Currency Converter Widget',
 	);
 
