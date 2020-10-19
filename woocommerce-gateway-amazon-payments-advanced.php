@@ -146,6 +146,14 @@ class WC_Amazon_Payments_Advanced {
 	public $api_migration;
 
 	/**
+	 * SDK config.
+	 *
+	 * @since 2.0.0
+	 * @var array
+	 */
+	public $amazonpay_sdk_config;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -336,7 +344,14 @@ class WC_Amazon_Payments_Advanced {
 		$this->settings     = WC_Amazon_Payments_Advanced_API::get_settings();
 		$this->reference_id = WC_Amazon_Payments_Advanced_API::get_reference_id();
 		$this->access_token = WC_Amazon_Payments_Advanced_API::get_access_token();
-
+		if ( $this->api_migration ) {
+			$this->amazonpay_sdk_config = array(
+				'public_key_id' => $this->settings['public_key_id'],
+				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),
+				'sandbox'       => $this->settings['sandbox'],
+				'region'        => $this->settings['payment_region'],
+			);
+		}
 		$this->maybe_display_declined_notice();
 		$this->maybe_attempt_to_logout();
 
