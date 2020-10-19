@@ -33,6 +33,7 @@
 		action_url : '#',
 		spId : '',
 		register_now_link : $( 'a.register_now' ),
+		onboarding_version: amazon_admin_params.onboarding_version,
 		locale: amazon_admin_params.locale,
 		home_url: amazon_admin_params.home_url,
 		merchant_unique_id: amazon_admin_params.merchant_unique_id,
@@ -178,6 +179,14 @@
 							type: 'hidden',
 							name: 'spId',
 							value: wc_simple_path_form.spId
+						}
+					),
+					$(
+						"<input/>",
+						{
+							type: 'hidden',
+							name: 'onboardingVersion',
+							value: wc_simple_path_form.onboarding_version
 						}
 					),
 					$(
