@@ -1640,6 +1640,18 @@ class WC_Amazon_Payments_Advanced {
 				'is_dismissable' => $is_dismissable,
 			);
 		}
+		if ( ! $this->api_migration ) {
+			$notices[] = array(
+				'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
+				'class'          => 'notice notice-error',
+				'text'           => sprintf(
+					/* translators: 1) The URL to the Amazon Pay settings screen. */
+					__( '<p>Amazon Pay API V2 Migration is needed, please go to settings and reconfigure merchant account: <a href="%1$s">Amazon Pay & Login with Amazon Settings</a></p>', 'woocommerce-gateway-amazon-payments-advanced' ),
+					esc_url( $this->get_settings_url() )
+				),
+				'is_dismissable' => false,
+			);
+		}
 
 		return $notices;
 	}
