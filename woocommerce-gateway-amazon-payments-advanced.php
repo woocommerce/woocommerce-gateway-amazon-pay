@@ -132,12 +132,21 @@ class WC_Amazon_Payments_Advanced {
 	public $simple_path_handler;
 
 	/**
+	 * API migration Status.
+	 *
+	 * @since 2.0.0
+	 * @var bool
+	 */
+	public $api_migration;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->version    = WC_AMAZON_PAY_VERSION;
-		$this->path       = untrailingslashit( plugin_dir_path( __FILE__ ) );
-		$this->plugin_url = untrailingslashit( plugins_url( '/', __FILE__ ) );
+		$this->version       = WC_AMAZON_PAY_VERSION;
+		$this->path          = untrailingslashit( plugin_dir_path( __FILE__ ) );
+		$this->plugin_url    = untrailingslashit( plugins_url( '/', __FILE__ ) );
+		$this->api_migration = $this->get_migration_status();
 
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-api.php' );
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-compat.php' );
@@ -188,6 +197,15 @@ class WC_Amazon_Payments_Advanced {
 
 		// WC Subscription Hook
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
+	}
+
+	/**
+	 * Get API Migration status.
+	 */
+	private function get_migration_status() {
+		// TODO: store this when the migration is complete.
+		$status = get_option( 'amazon_api_version' );
+		return 'V2' === $status ? true : false;
 	}
 
 	/**
