@@ -42,6 +42,8 @@
 		privacy_url: amazon_admin_params.privacy_url,
 		site_description: amazon_admin_params.description,
 		login_redirect_url: amazon_admin_params.login_redirect_url,
+		woo_version: amazon_admin_params.woo_version,
+		plugin_version: amazon_admin_params.plugin_version,
 		poll_timer: false,
 		poll_interval: 3000,
 		init: function() {
@@ -219,6 +221,22 @@
 							type: 'hidden',
 							name: 'merchantLoginDomains[]',
 							value: wc_simple_path_form.home_url
+						}
+					),
+					$(
+						"<input/>",
+						{
+							type: 'hidden',
+							name: 'spSoftwareVersion',
+							value: wc_simple_path_form.woo_version
+						}
+					),
+					$(
+						"<input/>",
+						{
+							type: 'hidden',
+							name: 'spAmazonPluginVersion',
+							value: wc_simple_path_form.plugin_version
 						}
 					),
 					$(
