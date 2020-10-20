@@ -46,6 +46,7 @@
 		plugin_version: amazon_admin_params.plugin_version,
 		poll_timer: false,
 		poll_interval: 3000,
+		main_setting_form: $( '#mainform' ),
 		init: function() {
 			// Init values if region is already selected
 			wc_simple_path_form.payment_region_on_change();
@@ -160,6 +161,13 @@
 			// Trigger simple path form on all regions except JP.
 			if ( 'jp' !== wc_simple_path_form.get_region_selected() ) {
 				document.getElementById( wc_simple_path_form.simple_path_form_id ).submit.click();
+				wc_simple_path_form.main_setting_form.block({
+					message: "Waiting for Credentials From Amazon Seller Central",
+					overlayCSS: {
+						background: "#f1f1f1",
+						opacity: .5
+					}
+				});
 				wc_simple_path_form.poll_timer = setTimeout( wc_simple_path_form.poll_for_keys, wc_simple_path_form.poll_interval );
 			}
 			$( '#woocommerce_amazon_payments_advanced_redirect_authentication' ).val( 'optimal' );
@@ -319,6 +327,7 @@
 								result.data.app_client_id,
 								result.data.app_client_secret
 							)
+							wc_simple_path_form.main_setting_form.unblock();
 						} else {
 							// Halt Polling.
 							if (false === wc_simple_path_form.poll_timer) {
