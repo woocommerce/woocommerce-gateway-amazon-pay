@@ -1,18 +1,18 @@
 <?php
 /**
- * Amazon Pay Simple path registration flow handler.
+ * Amazon Pay Merchant Onboarding flow handler.
  * Will handle automatic key exchange from registration process.
  *
  * @package WC_Gateway_Amazon_Pay
  */
 
 /**
- * Amazon Pay Simple path registration flow handler.
- * https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/files/537729/PWA.Merchant.Registration.Integration.Guide_Version.1.0.pdf
+ * Amazon Pay Merchant Onboarding flow handler.
+ * https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/files/537729/PWA.Merchant.Registration.Integration.Guide_Version.1.0.pdf TODO: Edit this file.
  *
- * Class WC_Amazon_Payments_Advanced_Simple_Path_Handler
+ * Class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler
  */
-class WC_Amazon_Payments_Advanced_Simple_Path_Handler {
+class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 
 	/**
 	 * Our enpoint to receive encrypted keys

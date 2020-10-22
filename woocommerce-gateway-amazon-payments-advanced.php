@@ -48,6 +48,12 @@ class WC_Amazon_Payments_Advanced {
 	public $path;
 
 	/**
+	 * Plugin's includes path.
+	 *
+	 * @var string
+	 */
+	public $includes_path;
+	/**
 	 * Plugin's URL.
 	 *
 	 * @since 1.6.0
@@ -127,9 +133,9 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Simple Path handler.
 	 *
-	 * @var WC_Amazon_Payments_Advanced_Simple_Path_Handler
+	 * @var WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler
 	 */
-	public $simple_path_handler;
+	public $onboarding_handler;
 
 	/**
 	 * API migration Status.
@@ -147,12 +153,18 @@ class WC_Amazon_Payments_Advanced {
 		$this->path          = untrailingslashit( plugin_dir_path( __FILE__ ) );
 		$this->plugin_url    = untrailingslashit( plugins_url( '/', __FILE__ ) );
 		$this->api_migration = $this->get_migration_status();
+		$this->includes_path = $this->path . '/includes/';
+
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-merchant-onboarding-handler.php';
+
+		if ( ! $this->api_migration ) {
+			$this->includes_path .= '/legacy/';
+		}
 
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-api.php' );
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-compat.php' );
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-ipn-handler.php' );
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-synchronous-handler.php' );
-		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-simple-path-handler.php' );
 
 		// On install hook.
 		include_once( $this->path . '/includes/class-wc-amazon-payments-install.php' );
@@ -176,7 +188,7 @@ class WC_Amazon_Payments_Advanced {
 		// Synchronous handler.
 		$this->synchro_handler = new WC_Amazon_Payments_Advanced_Synchronous_Handler();
 		// Simple path registration endpoint.
-		$this->simple_path_handler = new WC_Amazon_Payments_Advanced_Simple_Path_Handler();
+		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
 
 		// Admin notices.
 		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
@@ -865,8 +877,8 @@ class WC_Amazon_Payments_Advanced {
 			'onboarding_version'    => WC_Amazon_Payments_Advanced_API::$onboarding_version,
 			'locale'                => get_locale(),
 			'home_url'              => home_url(),
-			'simple_path_url'       => wc_apa()->simple_path_handler->get_simple_path_registration_url(),
-			'public_key'            => wc_apa()->simple_path_handler->get_public_key(),
+			'simple_path_url'       => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
+			'public_key'            => wc_apa()->onboarding_handler->get_public_key(),
 			'privacy_url'           => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
 			'description'           => self::get_site_description(),
 			'keys_already_set'      => $this->amazon_keys_already_set(),
