@@ -247,28 +247,28 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			'keys_json' => array(
 				'title'       => __( 'Paste your keys into the box', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'textarea',
-				'description' => __( 'JSON format, retrieve the JSON clicking the "Copy your Keys" button in Seller Central under "INTEGRATION- MWS Access Key"', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'JSON format, retrieve the JSON clicking the "Download JSON file" button in Seller Central under "INTEGRATION- Central - Existing API keys', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'seller_id' => array(
-				'title'       => __( 'Seller ID', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'merchant_id' => array(
+				'title'       => __( 'Merchant ID', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'text',
-				'description' => __( 'Obtained from your Amazon account. Also known as the "Merchant ID". Usually found under Settings > Integrations after logging into your merchant account.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'Obtained from your Amazon account. Usually found on Integration central after logging into your merchant account.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'mws_access_key' => array(
-				'title'       => __( 'MWS Access Key', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'store_id' => array(
+				'title'       => __( 'Store ID', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'text',
-				'description' => __( 'Obtained from your Amazon account. You can get these keys by logging into Seller Central and viewing the MWS Access Key section under the Integration tab.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'Obtained from your Amazon account. Usually found on Integration central after logging into your merchant account.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'secret_key' => array(
-				'title'       => __( 'MWS Secret Key', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'type'        => 'password',
-				'description' => __( 'Obtained from your Amazon account. You can get these keys by logging into Seller Central and viewing the MWS Access Key section under the Integration tab.', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'public_key_id' => array(
+				'title'       => __( 'Public Key Id', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'text',
+				'description' => __( 'Obtained from your Amazon account. You can get these keys by logging into Seller Central and clicking the "See Details" button under "INTEGRATION- Central - Existing API keys.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
@@ -282,22 +282,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'data-dependent-selector'       => '.show-if-app-is-enabled',
 					'data-dependent-show-condition' => ':checked',
 				),
-			),
-			'app_client_id' => array(
-				'title'       => __( 'App Client ID', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'type'        => 'text',
-				'class'       => 'show-if-app-is-enabled',
-				'description' => '',
-				'default'     => '',
-				'desc_tip'    => true,
-			),
-			'app_client_secret' => array(
-				'title'       => __( 'App Client Secret', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'type'        => 'password',
-				'class'       => 'show-if-app-is-enabled',
-				'description' => '',
-				'default'     => '',
-				'desc_tip'    => true,
 			),
 			'sandbox' => array(
 				'title'       => __( 'Use Sandbox', 'woocommerce-gateway-amazon-payments-advanced' ),
