@@ -348,7 +348,7 @@ class WC_Amazon_Payments_Advanced {
 			$this->amazonpay_sdk_config = array(
 				'public_key_id' => $this->settings['public_key_id'],
 				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),
-				'sandbox'       => $this->settings['sandbox'],
+				'sandbox'       => 'yes' === $this->settings['sandbox'] ? true : false,
 				'region'        => $this->settings['payment_region'],
 			);
 		}
