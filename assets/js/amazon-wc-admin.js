@@ -311,8 +311,14 @@
 					},
 					type:    'GET',
 					success: function( result ) {
-						if ( '1' === result ) {
-							location.reload();
+						if ( -1 !== result.data ) {	
+							wc_simple_path_form.set_credentials_values(
+								result.data.seller_id,
+								result.data.mws_access_key,
+								result.data.secret_key,
+								result.data.app_client_id,
+								result.data.app_client_secret
+							)
 						} else {
 							// Halt Polling.
 							if (false === wc_simple_path_form.poll_timer) {

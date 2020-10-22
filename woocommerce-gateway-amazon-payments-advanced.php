@@ -1578,17 +1578,26 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function ajax_check_credentials() {
 		check_ajax_referer( 'amazon_pay_check_credentials', 'nonce' );
-		$result   = -1;
-		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
+		$result        = -1;
+		$settings      = WC_Amazon_Payments_Advanced_API::get_settings();
+		$saved_payload = get_option( 'woocommerce_amazon_payments_advanced_saved_payload' );
 		if ( ! empty( $settings['seller_id'] )
-			 && ! empty( $settings['mws_access_key'] )
-			 && ! empty( $settings['secret_key'] )
-			 && ! empty( $settings['app_client_id'] )
-			 && ! empty( $settings['app_client_secret'] )
+			&& ! empty( $settings['mws_access_key'] )
+			&& ! empty( $settings['secret_key'] )
+			&& ! empty( $settings['app_client_id'] )
+			&& ! empty( $settings['app_client_secret'] )
+			&& $saved_payload
 		) {
-			$result = 1;
+			$result = array(
+				'seller_id'         => $settings['seller_id'],
+				'mws_access_key'    => $settings['mws_access_key'],
+				'secret_key'        => $settings['secret_key'],
+				'app_client_id'     => $settings['app_client_id'],
+				'app_client_secret' => $settings['app_client_secret'],
+			);
+			delete_option( 'woocommerce_amazon_payments_advanced_saved_payload' );
 		}
-		wp_die( $result );
+		wp_send_json_success( $result );
 	}
 
 	/**
