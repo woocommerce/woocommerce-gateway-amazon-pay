@@ -176,7 +176,13 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$default  = array(
 			'enabled'                         => 'yes',
 			'title'                           => __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'merchant_id'                     => '',
+			'store_id'                        => '',
+			'public_key_id'                   => '',
 			'seller_id'                       => '',
+			'merchant_id'                     => '',
+			'store_id'                        => '',
+			'public_key_id'                   => '',
 			'mws_access_key'                  => '',
 			'secret_key'                      => '',
 			'payment_region'                  => self::get_payment_region_from_country( WC()->countries->get_base_country() ),
