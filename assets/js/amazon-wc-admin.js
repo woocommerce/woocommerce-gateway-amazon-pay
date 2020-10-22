@@ -145,17 +145,13 @@
 				}
 			);
 		},
-		set_credentials_values: function(merchant_id, access_key, secret_key, client_id, client_secret) {
+		set_credentials_values: function( merchant_id, store_id, public_key_id ) {
 			//Seller Id
-			$( '#woocommerce_amazon_payments_advanced_seller_id' ).val( merchant_id );
+			$( '#woocommerce_amazon_payments_advanced_merchant_id' ).val( merchant_id );
 			//MWS Access Key
-			$( '#woocommerce_amazon_payments_advanced_mws_access_key' ).val( access_key );
+			$( '#woocommerce_amazon_payments_advanced_store_id' ).val( store_id );
 			//MWS Secret Key
-			$( '#woocommerce_amazon_payments_advanced_secret_key' ).val( secret_key );
-			// App Client Id
-			$( '#woocommerce_amazon_payments_advanced_app_client_id' ).val( client_id );
-			// App Client Secret
-			$( '#woocommerce_amazon_payments_advanced_app_client_secret' ).val( client_secret );
+			$( '#woocommerce_amazon_payments_advanced_public_key_id' ).val( public_key_id );
 		},
 		register_link_on_click: function() {
 			// Trigger simple path form on all regions except JP.
@@ -321,11 +317,9 @@
 					success: function( result ) {
 						if ( -1 !== result.data ) {	
 							wc_simple_path_form.set_credentials_values(
-								result.data.seller_id,
-								result.data.mws_access_key,
-								result.data.secret_key,
-								result.data.app_client_id,
-								result.data.app_client_secret
+								result.data.merchant_id,
+								result.data.store_id,
+								result.data.public_key_id
 							)
 							wc_simple_path_form.main_setting_form.unblock();
 						} else {

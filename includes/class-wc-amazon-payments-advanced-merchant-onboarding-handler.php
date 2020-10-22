@@ -246,15 +246,14 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Gets amazon gateway settings and update them with the new credentials from exchange.
 	 *
-	 * @param array $payload
+	 * @param obj $payload
 	 */
 	protected function save_payload( $payload ) {
-		$values = json_decode( $payload, true );
-
 		$settings                                    = WC_Amazon_Payments_Advanced_API::get_settings();
-		$settings['merchant_id']                     = $values['merchantId'];
-		$settings['store_id']                        = $values['storeId'];
-		$settings['public_key_id']                   = $values['publicKeyId'];
+
+		$settings['merchant_id']                     = $payload->merchantId;
+		$settings['store_id']                        = $payload->storeId;
+		$settings['public_key_id']                   = $payload->publicKeyId;
 		$settings['amazon_keys_setup_and_validated'] = 1;
 
 		update_option( 'woocommerce_amazon_payments_advanced_settings_v2', $settings );

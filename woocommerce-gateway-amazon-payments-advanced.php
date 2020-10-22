@@ -1581,19 +1581,16 @@ class WC_Amazon_Payments_Advanced {
 		$result        = -1;
 		$settings      = WC_Amazon_Payments_Advanced_API::get_settings();
 		$saved_payload = get_option( 'woocommerce_amazon_payments_advanced_saved_payload' );
-		if ( ! empty( $settings['seller_id'] )
-			&& ! empty( $settings['mws_access_key'] )
-			&& ! empty( $settings['secret_key'] )
-			&& ! empty( $settings['app_client_id'] )
-			&& ! empty( $settings['app_client_secret'] )
+		if ( ! empty( $settings['merchant_id'] )
+			&& ! empty( $settings['store_id'] )
+			&& ! empty( $settings['public_key_id'] )
 			&& $saved_payload
 		) {
 			$result = array(
-				'seller_id'         => $settings['seller_id'],
-				'mws_access_key'    => $settings['mws_access_key'],
-				'secret_key'        => $settings['secret_key'],
-				'app_client_id'     => $settings['app_client_id'],
-				'app_client_secret' => $settings['app_client_secret'],
+				'merchant_id'   => $settings['merchant_id'],
+				'store_id'      => $settings['store_id'],
+				'public_key_id' => $settings['public_key_id'],
+
 			);
 			delete_option( 'woocommerce_amazon_payments_advanced_saved_payload' );
 		}
