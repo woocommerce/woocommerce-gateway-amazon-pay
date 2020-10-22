@@ -221,6 +221,13 @@ class WC_Amazon_Payments_Advanced {
 	}
 
 	/**
+	 * Update migration status update
+	 */
+	public function update_migration_status() {
+		update_option( 'amazon_api_version', 'V2' );
+	}
+
+	/**
 	 * Ajax handler for fetching order reference
 	 */
 	public function ajax_get_order_reference() {
