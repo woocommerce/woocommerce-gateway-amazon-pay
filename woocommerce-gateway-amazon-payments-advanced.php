@@ -156,12 +156,14 @@ class WC_Amazon_Payments_Advanced {
 		$this->includes_path = $this->path . '/includes/';
 
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-merchant-onboarding-handler.php';
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api-abstract.php';
 
 		if ( ! $this->api_migration ) {
 			$this->includes_path .= '/legacy/';
 		}
 
-		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-api.php' );
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
+
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-compat.php' );
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-ipn-handler.php' );
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-synchronous-handler.php' );
