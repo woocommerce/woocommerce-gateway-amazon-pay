@@ -68,7 +68,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			}
 		}
 
-		// filter order received text for timedout transactions
+		// Filter order received text for timedout transactions.
 		add_filter( 'woocommerce_thankyou_order_received_text', array( $this, 'maybe_render_timeout_transaction_order_received_text' ), 10, 2 );
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -79,6 +79,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		// Add SCA processing and redirect.
 		add_action( 'template_redirect', array( $this, 'handle_sca_url_processing' ), 10, 2 );
+	}
+
+	/**
+	 * Return the name of the option in the WP DB.
+	 *
+	 * @since 2.6.0
+	 * @return string
+	 */
+	public function get_option_key() {
+		$settings_options_name = $this->plugin_id . $this->id . '_settings';
+		if ( wc_apa()->api_migration ) {
+			$settings_options_name .= '_v2';
+		}
+		return $settings_options_name;
 	}
 
 	/**
