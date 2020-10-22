@@ -82,7 +82,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 			wc_apa()->log( __METHOD__, 'Failed to handle automatic key exchange request: ' . $e->getMessage() );
 			wp_send_json(
 				array(
-					'result' => 'error',
+					'result'  => 'error',
 					'message' => esc_html__( 'Bad request.', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(),
 				),
 				400
@@ -101,46 +101,32 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 			if ( isset( $_POST['data'] ) ) {
 				$payload = $_POST['data'];
 			}
-			$payload = (object) filter_var_array(
+			$payload        = (object) filter_var_array(
 				$payload,
 				array(
-					'encryptedKey' => FILTER_SANITIZE_STRING,
-					'encryptedPayload' => FILTER_SANITIZE_STRING,
-					'iv' => FILTER_SANITIZE_STRING,
-					'sigKeyID' => FILTER_SANITIZE_STRING,
-					'signature' => FILTER_SANITIZE_STRING,
+					array(
+						'merchantId'  => FILTER_SANITIZE_STRING,
+						'storeId'     => FILTER_SANITIZE_STRING,
+						'publicKeyId' => FILTER_SANITIZE_STRING,
+					),
 				),
 				true
 			);
 			$payment_region = isset( $_POST['region'] ) ? filter_input( INPUT_POST, 'region', FILTER_SANITIZE_STRING ) : 'us';
 
-			// Validate payload
-			if ( ! isset( $payload->encryptedKey, $payload->encryptedPayload, $payload->iv, $payload->sigKeyID, $payload->signature ) ) {
+			// Validate payload.
+			if ( ! isset( $payload->merchantId, $payload->storeId, $payload->publicKeyId ) ) {  // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				throw new Exception( esc_html__( 'Incomplete payload.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 
-			$payload_verify = ( $payload ) ? clone $payload : false;
-			// URL decode values
+			// URL decode values.
 			foreach ( $payload as $key => $value ) {
 				$payload->$key = rawurldecode( $value );
 			}
 
-			if ( $this->validate_public_key_from_payload( $payload, $payload_verify, $payment_region ) ) {
-				$decrypted_key = $this->decrypt_encrypted_key_from_payload( $payload );
-				$final_payload = $this->mcrypt_decrypt_alternative( $payload, $decrypted_key );
+			$this->save_payload( $payload );
+			wc_apa()->update_migration_status();
 
-				if ( ! empty( $final_payload ) ) {
-					$this->save_payload( $final_payload );
-					$this->destroy_keys();
-					wp_send_json_success( $final_payload, 200 );
-				} else {
-					wc_apa()->log( __METHOD__, 'Failed to handle manual key exchange request: Empty message after decrypt' );
-					wp_send_json_error(
-						new WP_Error( 'invalid_payload', esc_html__( 'Bad request. Invalid Payload.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
-						400
-					);
-				}
-			}
 		} catch ( Exception $e ) {
 			wc_apa()->log( __METHOD__, 'Failed to handle manual key exchange request: ' . $e->getMessage() );
 			wp_send_json_error(
@@ -148,7 +134,6 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 				400
 			);
 		}
-
 	}
 
 	/**

@@ -89,10 +89,8 @@
 				// Setting Values
 				wc_simple_path_form.set_credentials_values(
 					json_value.merchant_id,
-					json_value.access_key,
-					json_value.secret_key,
-					json_value.client_id,
-					json_value.client_secret
+					json_value.store_id,
+					json_value.public_key_id
 				);
 				wc_simple_path_form.json_key_input.addClass( 'json_key_valid' );
 

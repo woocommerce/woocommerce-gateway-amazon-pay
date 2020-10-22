@@ -536,11 +536,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		$ret = false;
 		if ( empty( $this->mws_access_key ) ) {
+			$this->update_option( 'amazon_keys_setup_and_validated', 0 );
 			return $ret;
 		}
 
 		try {
-
+			//V2 TODO: Make this verification with the new API  
 			if ( empty( $this->secret_key ) ) {
 				throw new Exception( __( 'Error: You must enter MWS Secret Key.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
