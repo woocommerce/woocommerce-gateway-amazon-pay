@@ -185,8 +185,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 */
 	public function admin_options() {
 		?>
-		<h3><?php echo $this->method_title; ?></h3>
-
+		<h2>
+			<?php
+			echo esc_html( $this->get_method_title() );
+			wc_back_link( __( 'Return to payments', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) );
+			?>
+		</h2>
 		<table class="form-table">
 			<?php $this->generate_settings_html(); ?>
 		</table><!--/.form-table-->
