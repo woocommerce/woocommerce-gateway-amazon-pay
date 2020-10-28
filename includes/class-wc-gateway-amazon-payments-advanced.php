@@ -227,71 +227,87 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 */
 	public function init_form_fields() {
 
-		$login_app_setup_url    = WC_Amazon_Payments_Advanced_API::get_client_id_instructions_url();
+		$login_app_setup_url = WC_Amazon_Payments_Advanced_API::get_client_id_instructions_url();
+		/* translators: Login URL */
 		$label_format           = __( 'This option makes the plugin to work with the latest API from Amazon, this will enable support for Subscriptions and make transactions more securely. <a href="%s" target="_blank">You must create a Login with Amazon App to be able to use this option.</a>', 'woocommerce-gateway-amazon-payments-advanced' );
-		$label_format           = wp_kses( $label_format, array( 'a' => array( 'href' => array(), 'target' => array() ) ) );
+		$label_format           = wp_kses(
+			$label_format,
+			array(
+				'a' => array(
+					'href'   => array(),
+					'target' => array(),
+				),
+			)
+		);
 		$enable_login_app_label = sprintf( $label_format, $login_app_setup_url );
 		$redirect_url           = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
 
 		$this->form_fields = array(
-			'important_note' => array(
+			'important_note'                => array(
 				'title'       => __( 'Important note, before you sign up:', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
 				'description' => __( 'Before you start the registration, make sure you sign out of all Amazon accounts you might have. Use an email address that you have never used for any Amazon account.   If you have an Amazon Seller account (Selling on Amazon), sign out and use a different address to register your Amazon Payments account.', 'woocommerce-gateway-amazon-payments-advanced' ),
 			),
-			'payment_region' => array(
+			'payment_region'                => array(
 				'title'       => __( 'Payment Region', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'select',
 				'description' => '',
 				'default'     => WC_Amazon_Payments_Advanced_API::get_payment_region_from_country( WC()->countries->get_base_country() ),
 				'options'     => WC_Amazon_Payments_Advanced_API::get_payment_regions(),
 			),
-			'register_now' => array(
+			'register_now'                  => array(
 				'title'       => __( 'Connect your Amazon Pay merchant account', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
 				'description' => __( '<a class="register_now button-primary" href="#">CONFIGURE/REGISTER NOW</a>', 'woocommerce-gateway-amazon-payments-advanced' ),
 			),
-			'enabled' => array(
+			'enabled'                       => array(
 				'title'       => __( 'Enable/Disable', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable Amazon Pay &amp; Login with Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'checkbox',
 				'description' => '',
 				'default'     => 'yes',
 			),
-			'account_details' => array(
+			'account_details'               => array(
 				'title'       => __( 'Amazon account details', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
 				'description' => '',
 			),
-			'keys_json' => array(
+			'keys_json'                     => array(
 				'title'       => __( 'Paste your keys into the box', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'textarea',
 				'description' => __( 'JSON format, retrieve the JSON clicking the "Download JSON file" button in Seller Central under "INTEGRATION- Central - Existing API keys', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'merchant_id' => array(
+			'merchant_id'                   => array(
 				'title'       => __( 'Merchant ID', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'text',
 				'description' => __( 'Obtained from your Amazon account. Usually found on Integration central after logging into your merchant account.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'store_id' => array(
+			'store_id'                      => array(
 				'title'       => __( 'Store ID', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'text',
 				'description' => __( 'Obtained from your Amazon account. Usually found on Integration central after logging into your merchant account.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'public_key_id' => array(
+			'public_key_id'                 => array(
 				'title'       => __( 'Public Key Id', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'text',
-				'description' => __( 'Obtained from your Amazon account. You can get these keys by logging into Seller Central and clicking the "See Details" button under "INTEGRATION- Central - Existing API keys.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'Obtained from your Amazon account. You can get these keys by logging into Seller Central and clicking the "See Details" button under INTEGRATION - Central - Existing API keys.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'enable_login_app' => array(
+			'private_key'                   => array(
+				'title'       => __( 'Private Key File', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Add .pem file with the private key generated in the Amazon seller Central', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'file',
+				'description' => __( 'This key is created automatically when you Connect your Amazon Pay merchant account form the Configure button, but can be created by logging into Seller Central and create keys in INTEGRATION - Central', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+			),
+			'enable_login_app'              => array(
 				'title'             => __( 'Use Login with Amazon App', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'             => $enable_login_app_label,
 				'type'              => 'checkbox',
@@ -302,40 +318,52 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'data-dependent-show-condition' => ':checked',
 				),
 			),
-			'sandbox' => array(
+			'sandbox'                       => array(
 				'title'       => __( 'Use Sandbox', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable sandbox mode during testing and development - live payments will not be taken if enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'select',
 				'description' => '',
 				'default'     => 'no',
-				'options'     => array('yes' => __('Yes', 'woocommerce-gateway-amazon-payments-advanced'), 'no' => __('No', 'woocommerce-gateway-amazon-payments-advanced')),
+				'options'     => array(
+					'yes' => __( 'Yes', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'no'  => __( 'No', 'woocommerce-gateway-amazon-payments-advanced' ),
+				),
 			),
-			'subscriptions_enabled' => array(
+			'subscriptions_enabled'         => array(
 				'title'       => __( 'Subscriptions support', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable Subscriptions for carts that contain Subscription items (requires WooCommerce Subscriptions to be installed)', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'select',
-				'description' => __('This will enable support for Subscriptions and make transactions more securely', 'woocommerce-gateway-amazon-payments-advanced'),
+				'description' => __( 'This will enable support for Subscriptions and make transactions more securely', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => 'yes',
-				'options'     => array('yes' => __('Yes', 'woocommerce-gateway-amazon-payments-advanced'), 'no' => __('No', 'woocommerce-gateway-amazon-payments-advanced')),
+				'options'     => array(
+					'yes' => __( 'Yes', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'no'  => __( 'No', 'woocommerce-gateway-amazon-payments-advanced' ),
+				),
 			),
-			'advanced_configuration' => array(
+			'advanced_configuration'        => array(
 				'title'       => __( 'Advanced configurations', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
-				'description' => sprintf( __( 'To process payment the Optimal way complete your Seller Central configuration on plugin setup. From your seller Central home page, go to “Settings – Integration Settings”. In this page, please paste the URL below to the “Merchant URL” input field. <br />
-				 	<code>%2$s</code>', 'woocommerce-gateway-amazon-payments-advanced' ), esc_url( 'http://php.net/manual/en/book.openssl.php' ), wc_apa()->ipn_handler->get_notify_url() ),
+				'description' => sprintf(
+					/* translators: Merchant URL to copy and paste */
+					__( 'To process payment the Optimal way complete your Seller Central configuration on plugin setup. From your seller Central home page, go to “Settings – Integration Settings”. In this page, please paste the URL below to the “Merchant URL” input field. <br /><code>%1$s</code>', 'woocommerce-gateway-amazon-payments-advanced' ),
+					wc_apa()->ipn_handler->get_notify_url()
+				),
 			),
-			'redirect_authentication' => array(
+			'redirect_authentication'       => array(
 				'title'       => __( 'Login Authorization Mode', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'select',
-				/* translators: Redirect URL to copy and paste */
-				'description' =>  sprintf( __( 'Optimal mode requires setting the Allowed Return URLs and Allowed Javascript Origins in Amazon Seller Central. Click the Configure/Register Now button and sign in with your existing account to update the configuration and automatically set these values. If the URL is not added automatically to the Allowed Return URLs field in Amazon Seller Central, please copy and paste the one below manually. <br> <code>%1$s</code>' ), $redirect_url ),
+				'description' => sprintf(
+					/* translators: Redirect URL to copy and paste */
+					__( 'Optimal mode requires setting the Allowed Return URLs and Allowed Javascript Origins in Amazon Seller Central. Click the Configure/Register Now button and sign in with your existing account to update the configuration and automatically set these values. If the URL is not added automatically to the Allowed Return URLs field in Amazon Seller Central, please copy and paste the one below manually. <br> <code>%1$s</code>' ),
+					$redirect_url
+				),
 				'default'     => 'popup',
 				'options'     => array(
 					'optimal' => __( 'Optimal', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'popup'   => __( 'Popup', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
-			'payment_capture' => array(
+			'payment_capture'               => array(
 				'title'       => __( 'Payment Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'select',
 				'description' => '',
@@ -346,7 +374,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'manual'    => __( 'Don’t Authorize the payment when the order is placed (i.e. for pre-orders).', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
-			'authorization_mode' => array(
+			'authorization_mode'            => array(
 				'title'       => __( 'Authorization processing mode', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'select',
 				'description' => '',
@@ -356,12 +384,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'sync'  => __( 'Synchronous', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
-			'display_options' => array(
+			'display_options'               => array(
 				'title'       => __( 'Display options', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'description' => __( 'Customize the appearance of Amazon widgets.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
 			),
-			'cart_button_display_mode' => array(
+			'cart_button_display_mode'      => array(
 				'title'       => __( 'Cart login button display', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'description' => __( 'How the login with Amazon button gets displayed on the cart page. This requires cart page served via HTTPS. If HTTPS is not available in cart page, please select disabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'select',
@@ -373,7 +401,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'default'     => 'button',
 				'desc_tip'    => true,
 			),
-			'button_type' => array(
+			'button_type'                   => array(
 				'title'       => __( 'Button type', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'description' => __( 'Type of button image to display on cart and checkout pages. Only used when Amazon Login App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
@@ -388,7 +416,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'A'     => __( 'Button with Amazon Pay logo', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
-			'button_size' => array(
+			'button_size'                   => array(
 				'title'       => __( 'Button size', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'description' => __( 'Button size to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
@@ -402,7 +430,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'x-large' => __( 'X-Large', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
-			'button_color' => array(
+			'button_color'                  => array(
 				'title'       => __( 'Button color', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'description' => __( 'Button color to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
@@ -415,7 +443,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'DarkGray'  => __( 'Dark gray', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
-			'button_language' => array(
+			'button_language'               => array(
 				'title'       => __( 'Button language', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'description' => __( 'Language to use in Login with Amazon or a Amazon Pay button. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
@@ -437,11 +465,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'label'   => __( 'Hide standard checkout button on cart page', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default' => 'no',
 			),
-			'misc_options' => array(
+			'misc_options'                  => array(
 				'title' => __( 'Miscellaneous', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'  => 'title',
 			),
-			'debug' => array(
+			'debug'                         => array(
 				'title'       => __( 'Debug', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable debugging messages', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'checkbox',
@@ -449,7 +477,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'desc_tip'    => true,
 				'default'     => 'yes',
 			),
-			'hide_button_mode' => array(
+			'hide_button_mode'              => array(
 				'title'       => __( 'Hide Button Mode', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable hide button mode', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'description' => __( 'This will hides Amazon buttons on cart and checkout pages so the gateway looks not available to the customers. The buttons are hidden via CSS. Only enable this when troubleshooting your integration.', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -462,6 +490,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		/**
 		 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
 		 * For old merchants, keep "Use Login with Amazon App" checkbox, as they can fallback to APA (no client id)
+		 *
 		 * @since 1.9.0
 		 */
 		if ( WC_Amazon_Payments_Advanced_API::is_new_installation() ) {
@@ -478,6 +507,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$this->form_fields['multicurrency_options'] = array(
 			'title'       => __( 'Multi-Currency', 'woocommerce-gateway-amazon-payments-advanced' ),
 			'type'        => 'title',
+			/* translators: Compatible plugin */
 			'description' => sprintf( __( 'Multi-currency compatibility detected with <strong>%s</strong>', 'woocommerce-gateway-amazon-payments-advanced' ), $compatible_plugin ),
 		);
 
@@ -526,10 +556,27 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 * @return bool|void
 	 */
 	public function process_admin_options() {
-		if ( isset( $_POST['woocommerce_amazon_payments_advanced_keys_json'] ) ) {
-			unset( $_POST['woocommerce_amazon_payments_advanced_keys_json'] );
+		if ( check_admin_referer( 'woocommerce-settings' ) ) {
+			if ( isset( $_POST['woocommerce_amazon_payments_advanced_keys_json'] ) ) {
+				unset( $_POST['woocommerce_amazon_payments_advanced_keys_json'] );
+			}
+			if ( isset( $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) && 0 < $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				$pem_file = $_FILES['woocommerce_amazon_payments_advanced_private_key'];
+
+				$finfo = new finfo( FILEINFO_MIME_TYPE );
+				$ext   = $finfo->file( $pem_file['tmp_name'] );
+				if ( 'text/plain' === $ext && isset( $pem_file['tmp_name'] ) ) {
+					// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+					$private_key          = file_get_contents( $pem_file['tmp_name'] );
+					$validate_private_key = openssl_pkey_get_private( $private_key );
+					if ( $validate_private_key ) {
+						update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
+					}
+				}
+			}
+			parent::process_admin_options();
 		}
-		parent::process_admin_options();
 	}
 
 	/**
