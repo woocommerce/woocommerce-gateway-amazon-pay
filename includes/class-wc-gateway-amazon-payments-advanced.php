@@ -77,6 +77,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		add_action( 'woocommerce_checkout_update_order_review', array( $this, 'store_shipping_info_in_session' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'check_customer_coupons' ) );
 		add_action( 'wc_amazon_async_authorize', array( $this, 'process_payment_with_async_authorize' ), 10, 2 );
+		add_action( 'woocommerce_after_settings_checkout', array( $this, 'import_export_fields_output' ) );
+		add_action( 'admin_init', array( $this, 'process_settings_export' ) );
+		add_action( 'admin_init', array( $this, 'process_settings_import' ) );
 
 		// Add SCA processing and redirect.
 		add_action( 'template_redirect', array( $this, 'handle_sca_url_processing' ), 10, 2 );
@@ -1546,4 +1549,112 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		return $text;
 	}
 
+	/**
+	 * Print the forms to import and export the settings.
+	 *
+	 * @since 2.0.0
+	 * @return void
+	 */
+	public function import_export_fields_output() {
+		if ( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) { //  phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+			?>
+			<div class="wrap">
+				<div class="metabox-holder">
+					<div class="postbox">
+						<h3><span><?php esc_html_e( 'Export Settings', 'woocommerce-gateway-amazon-payments-advanced' ); ?></span></h3>
+						<div class="inside">
+							<p><?php esc_html_e( 'Export the plugin settings for this site as a .json file. This allows you to easily import the configuration into another site.' ); ?></p>
+							<form method="post">
+								<p><input type="hidden" name="amazon_pay_action" value="export_settings" /></p>
+								<p>
+									<?php wp_nonce_field( 'amazon_pay_export_nonce', 'amazon_pay_export_nonce' ); ?>
+									<?php submit_button( __( 'Export', 'woocommerce-gateway-amazon-payments-advanced' ), 'secondary', 'submit', false ); ?>
+								</p>
+							</form>
+						</div><!-- .inside -->
+						<h3><span><?php esc_html_e( 'Import Settings', 'woocommerce-gateway-amazon-payments-advanced' ); ?></span></h3>
+						<div class="inside">
+							<p><?php esc_html_e( 'Import the plugin settings from a .json file. This file can be obtained by exporting the settings on another site using the form above.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
+							<form method="post" enctype="multipart/form-data">
+								<p>
+									<input type="file" name="import_file"/>
+								</p>
+								<p>
+									<input type="hidden" name="amazon_pay_action" value="import_settings" />
+									<?php wp_nonce_field( 'amazon_pay_import_nonce', 'amazon_pay_import_nonce' ); ?>
+									<?php submit_button( esc_html__( 'Import', 'woocommerce-gateway-amazon-payments-advanced' ), 'secondary', 'submit', false ); ?>
+								</p>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+			<?php
+		}
+	}
+
+	/**
+	 * Process a settings export that generates a .json file 
+	 */
+	public function process_settings_export() {
+
+		if ( empty( $_POST['amazon_pay_action'] ) || 'export_settings' !== $_POST['amazon_pay_action'] ) {
+			return;
+		}
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( isset( $_POST['amazon_pay_export_nonce'] ) && ! wp_verify_nonce( $_POST['amazon_pay_export_nonce'], 'amazon_pay_export_nonce' ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		$settings = get_option( $this->get_option_key() );
+
+		ignore_user_abort( true );
+
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename=wc-amazon-pay-settings-export-' . date( 'm-d-Y' ) . '.json' );
+		header( 'Expires: 0' );
+
+		echo wp_json_encode( $settings );
+		exit;
+	}
+
+	/**
+	 * Process a settings import from a json file.
+	 */
+	public function process_settings_import() {
+
+		if ( empty( $_POST['amazon_pay_action'] ) || 'import_settings' !== $_POST['amazon_pay_action'] ) {
+			return;
+		}
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( isset( $_POST['amazon_pay_import_nonce'] ) && ! wp_verify_nonce( $_POST['amazon_pay_import_nonce'], 'amazon_pay_import_nonce' ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		if ( empty( $_FILES['import_file']['tmp_name'] ) ) {
+			wp_die( esc_html__( 'Please upload a file to import', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$import_file = $_FILES['import_file'];
+
+		$extension = end( explode( '.', $import_file['name'] ) );
+
+		if ( 'json' !== $extension ) {
+			wp_die( esc_html__( 'Please upload a valid .json file', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
+
+		update_option( $this->get_option_key(), $settings );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) );
+		exit;
+	}
 }
