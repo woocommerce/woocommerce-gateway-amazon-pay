@@ -1640,7 +1640,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		$settings = get_option( $this->get_option_key() );
+		$settings    = get_option( $this->get_option_key() );
+		$private_key = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
+
+		$settings['v2_private_key'] = $private_key;
 
 		ignore_user_abort( true );
 
@@ -1683,9 +1686,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
-
+		if ( isset( $settings['v2_private_key'] ) ) {
+			$private_key = $settings['v2_private_key'];
+			unset( $settings['v2_private_key'] );
+		}
 		update_option( $this->get_option_key(), $settings );
-
+		update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
 		wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) );
 		exit;
 	}
