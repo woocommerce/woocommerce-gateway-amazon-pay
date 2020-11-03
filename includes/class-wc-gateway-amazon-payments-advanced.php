@@ -310,6 +310,33 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'description' => __( 'This key is created automatically when you Connect your Amazon Pay merchant account form the Configure button, but can be created by logging into Seller Central and create keys in INTEGRATION - Central', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 			),
+			'account_details_v1'            => array(
+				'title'       => __( 'Amazon account details API V1', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'title',
+				'description' => 'This Credentials aree shown as reference. Can not be edited. Any change on settings requires to generate the Amazon API V2 credentials.',
+			),
+			'seller_id' => array(
+				'title'       => __( 'Seller ID', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'Obtained from your Amazon account. Also known as the "Merchant ID". Usually found under Settings > Integrations after logging into your merchant account.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'default'     => '',
+				'desc_tip'    => true,
+				'disabled'    => true,
+			),
+			'mws_access_key' => array(
+				'title'       => __( 'MWS Access Key', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'Obtained from your Amazon account. You can get these keys by logging into Seller Central and viewing the MWS Access Key section under the Integration tab.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'default'     => '',
+				'desc_tip'    => true,
+				'disabled'    => true,
+			),
+			'secret_key' => array(
+				'title'       => __( 'MWS Secret Key', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'password',
+				'description' => __( 'Obtained from your Amazon account. You can get these keys by logging into Seller Central and viewing the MWS Access Key section under the Integration tab.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'default'     => '',
+				'desc_tip'    => true,
+				'disabled'    => true,
+			),
 			'enable_login_app'              => array(
 				'title'             => __( 'Use Login with Amazon App', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'             => $enable_login_app_label,
@@ -365,6 +392,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'optimal' => __( 'Optimal', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'popup'   => __( 'Popup', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
+				'disabled'    => true,
 			),
 			'payment_capture'               => array(
 				'title'       => __( 'Payment Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -403,6 +431,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				),
 				'default'     => 'button',
 				'desc_tip'    => true,
+				'disabled'    => true,
 			),
 			'button_type'                   => array(
 				'title'       => __( 'Button type', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -418,6 +447,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'Pay'   => __( 'Button with text Pay', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'A'     => __( 'Button with Amazon Pay logo', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
+				'disabled'    => true,
 			),
 			'button_size'                   => array(
 				'title'       => __( 'Button size', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -432,6 +462,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'large'   => __( 'Large', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'x-large' => __( 'X-Large', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
+				'disabled'    => true,	
 			),
 			'button_color'                  => array(
 				'title'       => __( 'Button color', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -445,6 +476,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'LightGray' => __( 'Light gray', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'DarkGray'  => __( 'Dark gray', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
+				'disabled'    => true,
 			),
 			'button_language'               => array(
 				'title'       => __( 'Button language', 'woocommerce-gateway-amazon-payments-advanced' ),
