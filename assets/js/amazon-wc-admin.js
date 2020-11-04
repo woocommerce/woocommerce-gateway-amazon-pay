@@ -32,7 +32,8 @@
 		json_key_input : $( '#woocommerce_amazon_payments_advanced_keys_json' ),
 		action_url : '#',
 		spId : '',
-		register_now_link : $( 'a.register_now' ),
+		register_now_link : $( 'button.register_now' ),
+		delete_settings_link: $('button.delete-settings'),
 		onboarding_version: amazon_admin_params.onboarding_version,
 		locale: amazon_admin_params.locale,
 		home_url: amazon_admin_params.home_url,
@@ -55,6 +56,7 @@
 			wc_simple_path_form.payment_region_input.on( 'change', this.payment_region_on_change );
 			wc_simple_path_form.json_key_input.on( 'change', this.json_key_on_change );
 			wc_simple_path_form.register_now_link.on( 'click', this.register_link_on_click );
+			wc_simple_path_form.delete_settings_link.on( 'click', this.delete_settings_on_click );
 		},
 		payment_region_on_change: function() {
 			if ( 'jp' === wc_simple_path_form.get_region_selected() ) {
@@ -151,9 +153,10 @@
 			//MWS Secret Key
 			$( '#woocommerce_amazon_payments_advanced_public_key_id' ).val( public_key_id );
 		},
-		register_link_on_click: function() {
+		register_link_on_click: function( e ) {
 			// Trigger simple path form on all regions except JP.
 			if ( 'jp' !== wc_simple_path_form.get_region_selected() ) {
+				e.preventDefault();
 				document.getElementById( wc_simple_path_form.simple_path_form_id ).submit.click();
 				wc_simple_path_form.main_setting_form.block({
 					message: "Waiting for Credentials From Amazon Seller Central",
@@ -165,6 +168,24 @@
 				wc_simple_path_form.poll_timer = setTimeout( wc_simple_path_form.poll_for_keys, wc_simple_path_form.poll_interval );
 			}
 			$( '#woocommerce_amazon_payments_advanced_redirect_authentication' ).val( 'optimal' );
+		},
+		delete_settings_on_click: function( e ){
+			e.preventDefault();
+			if ( confirm( 'Are you sure you want to delete your settings?' ) ) {
+				$.ajax(
+					{
+						url:     amazon_admin_params.ajax_url,
+						data:    {
+							'action' : 'amazon_delete_credentials',
+							'nonce' : amazon_admin_params.credentials_nonce
+						},
+						type:    'POST',
+						success: function( result ) {
+
+						}
+					}
+				)
+			}
 		},
 		create_form : function() {
 			$( ".wrap.woocommerce" ).append(

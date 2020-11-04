@@ -25,6 +25,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	protected $access_token;
 
 	/**
+	 * Amazon Private Key
+	 *
+	 * @var string
+	 */
+	protected $private_key;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -40,6 +47,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			'products',
 			'refunds',
 		);
+		$this->private_key = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 
 		// Load the form fields.
 		$this->init_form_fields();
@@ -244,6 +252,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		);
 		$enable_login_app_label = sprintf( $label_format, $login_app_setup_url );
 		$redirect_url           = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
+		$valid                  = $this->settings['amazon_keys_setup_and_validated'];
 
 		$this->form_fields = array(
 			'important_note'                => array(
@@ -261,7 +270,25 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			'register_now'                  => array(
 				'title'       => __( 'Connect your Amazon Pay merchant account', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
-				'description' => __( '<a class="register_now button-primary" href="#">CONFIGURE/REGISTER NOW</a>', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => sprintf(
+					/* translators: maybe disabled attribute */
+					__( '<button class="register_now button-primary" %1$s>CONFIGURE/REGISTER NOW</button>', 'woocommerce-gateway-amazon-payments-advanced' ),
+					$valid && $this->public_key_id ? 'disabled' : ''
+				),
+			),
+			'disconect_text'                => array(
+				'title'       => '',
+				'type'        => 'title',
+				'description' => __( 'In order to connect to a different account you need to disconect first, this will delete current Account Settings, you will need to go throught all the configuration process again', 'woocommerce-gateway-amazon-payments-advanced' ),
+			),
+			'disconect'                     => array(
+				'title'       => '',
+				'type'        => 'title',
+				'description' => sprintf(
+					/* translators: maybe disabled attribute */
+					__( '<button class="delete-settings button-primary" %1$s>DISCONECT</button>', 'woocommerce-gateway-amazon-payments-advanced' ),
+					! $this->private_key || ! $this->public_key_id ? 'disabled' : ''
+				),
 			),
 			'enabled'                       => array(
 				'title'       => __( 'Enable/Disable', 'woocommerce-gateway-amazon-payments-advanced' ),

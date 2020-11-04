@@ -223,7 +223,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Destroy public/private key generated for keys exchange.
 	 */
-	protected function destroy_keys() {
+	public static function destroy_keys() {
 		delete_option( self::KEYS_OPTION_PUBLIC_KEY );
 		delete_option( self::KEYS_OPTION_PRIVATE_KEY );
 	}
