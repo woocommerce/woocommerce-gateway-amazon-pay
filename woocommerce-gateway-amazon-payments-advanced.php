@@ -241,6 +241,14 @@ class WC_Amazon_Payments_Advanced {
 	}
 
 	/**
+	 * Downgrade migration status update
+	 */
+	public function delete_migration_status() {
+		delete_option( 'amazon_api_version' );
+	}
+
+
+	/**
 	 * Ajax handler for fetching order reference
 	 */
 	public function ajax_get_order_reference() {
@@ -347,14 +355,7 @@ class WC_Amazon_Payments_Advanced {
 		$this->settings     = WC_Amazon_Payments_Advanced_API::get_settings();
 		$this->reference_id = WC_Amazon_Payments_Advanced_API::get_reference_id();
 		$this->access_token = WC_Amazon_Payments_Advanced_API::get_access_token();
-		if ( $this->api_migration ) {
-			$this->amazonpay_sdk_config = array(
-				'public_key_id' => $this->settings['public_key_id'],
-				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),
-				'sandbox'       => 'yes' === $this->settings['sandbox'] ? true : false,
-				'region'        => $this->settings['payment_region'],
-			);
-		}
+
 		$this->maybe_display_declined_notice();
 		$this->maybe_attempt_to_logout();
 
@@ -365,6 +366,22 @@ class WC_Amazon_Payments_Advanced {
 		$this->init_order_admin();
 		$this->init_gateway();
 	}
+
+	/**
+	 * Set up API V2 SDK.
+	 */
+	public function get_amazonpay_sdk_config() {
+		if ( empty( $this->amazonpay_sdk_config ) ) {
+			$this->amazonpay_sdk_config = array(
+				'public_key_id' => $this->settings['public_key_id'],
+				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),
+				'sandbox'       => 'yes' === $this->settings['sandbox'] ? true : false,
+				'region'        => $this->settings['payment_region'],
+			);
+		}
+		return $this->amazonpay_sdk_config;
+	}
+
 
 	/**
 	 * Multi-currency Init.
