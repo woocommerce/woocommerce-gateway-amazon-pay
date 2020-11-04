@@ -181,7 +181,7 @@
 						},
 						type:    'POST',
 						success: function( result ) {
-
+							location.reload();
 						}
 					}
 				)
