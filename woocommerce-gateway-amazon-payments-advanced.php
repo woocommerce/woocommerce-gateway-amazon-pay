@@ -160,7 +160,7 @@ class WC_Amazon_Payments_Advanced {
 		$this->version       = WC_AMAZON_PAY_VERSION;
 		$this->path          = untrailingslashit( plugin_dir_path( __FILE__ ) );
 		$this->plugin_url    = untrailingslashit( plugins_url( '/', __FILE__ ) );
-		$this->api_migration = $this->get_migration_status();
+		$this->get_migration_status();
 		$this->includes_path = $this->path . '/includes/';
 
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-merchant-onboarding-handler.php';
@@ -227,10 +227,12 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Get API Migration status.
 	 */
-	private function get_migration_status() {
-		// TODO: store this when the migration is complete.
-		$status = get_option( 'amazon_api_version' );
-		return 'V2' === $status ? true : false;
+	public function get_migration_status() {
+		if ( empty( $this->api_migration ) ) {
+			$status              = get_option( 'amazon_api_version' );
+			$this->api_migration = 'V2' === $status ? true : false;
+		}
+		return $this->api_migration;
 	}
 
 	/**
@@ -1738,7 +1740,7 @@ class WC_Amazon_Payments_Advanced {
 				'is_dismissable' => $is_dismissable,
 			);
 		}
-		if ( ! $this->api_migration ) {
+		if ( ! $this->get_migration_status() ) {
 			$notices[] = array(
 				'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
 				'class'          => 'notice notice-error',

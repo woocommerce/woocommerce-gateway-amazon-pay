@@ -28,8 +28,7 @@ class WC_Amazon_Payments_Advanced_Install {
 	 */
 	protected static function log_when_fresh_install() {
 		$settings    = get_option( 'woocommerce_amazon_payments_advanced_settings' );
-		$settings_v2 = get_option( 'woocommerce_amazon_payments_advanced_settings_v2' );
-		if ( ! $settings && ! $settings_v2 ) {
+		if ( ! $settings ) {
 			update_option( self::APA_NEW_INSTALL_OPTION, wc_apa()->version );
 		}
 	}

@@ -169,9 +169,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 */
 	public static function get_settings() {
 		$settings_options_name = 'woocommerce_amazon_payments_advanced_settings';
-		if ( wc_apa()->api_migration ) {
-			$settings_options_name .= '_v2';
-		}
+
 		$settings = (array) get_option( $settings_options_name, array() );
 		$default  = array(
 			'enabled'                         => 'yes',

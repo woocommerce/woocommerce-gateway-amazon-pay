@@ -241,7 +241,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 		$settings['public_key_id']                   = $payload->publicKeyId;
 		$settings['amazon_keys_setup_and_validated'] = 1;
 
-		update_option( 'woocommerce_amazon_payments_advanced_settings_v2', $settings );
+		update_option( 'woocommerce_amazon_payments_advanced_settings', $settings );
 		update_option( 'woocommerce_amazon_payments_advanced_saved_payload', true );
 	}
 

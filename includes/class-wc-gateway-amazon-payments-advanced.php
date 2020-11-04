@@ -32,13 +32,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	protected $private_key;
 
 	/**
-	 * API V1 Settings
-	 *
-	 * @var string
-	 */
-	protected $settings_v1;
-
-	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -47,16 +40,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$this->id                   = 'amazon_payments_advanced';
 		$this->icon                 = apply_filters( 'woocommerce_amazon_pa_logo', plugins_url( 'assets/images/amazon-payments.png', plugin_dir_path( __FILE__ ) ) );
 		$this->debug                = ( 'yes' === $this->get_option( 'debug' ) );
-		$this->settings_v1          = get_option( $this->plugin_id . $this->id . '_settings' );
 		$this->view_transaction_url = $this->get_transaction_url_format();
 		$this->supports             = array(
 			'products',
 			'refunds',
 		);
 		$this->private_key          = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
-
-		// Load the form fields.
-		$this->init_form_fields();
 
 		// Load multicurrency fields if compatibility. (Only on settings admin)
 		if ( is_admin() ) {
@@ -71,6 +60,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		// Load saved settings.
 		$this->load_settings();
+
+		// Load the form fields.
+		$this->init_form_fields();
 
 		// Get Order Refererence ID and/or Access Token.
 		$this->reference_id = WC_Amazon_Payments_Advanced_API::get_reference_id();
@@ -97,20 +89,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		// Add SCA processing and redirect.
 		add_action( 'template_redirect', array( $this, 'handle_sca_url_processing' ), 10, 2 );
-	}
-
-	/**
-	 * Return the name of the option in the WP DB.
-	 *
-	 * @since 2.6.0
-	 * @return string
-	 */
-	public function get_option_key( $force_v2 = false ) {
-		$settings_options_name = $this->plugin_id . $this->id . '_settings';
-		if ( wc_apa()->api_migration || $force_v2 ) {
-			$settings_options_name .= '_v2';
-		}
-		return $settings_options_name;
 	}
 
 	/**
@@ -147,14 +125,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 *
 	 * @return bool
 	 */
-	function is_available() {
+	public function is_available() {
 		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
 			return parent::is_available();
 		}
 
-		$login_app_enabled  = ( 'yes' === $this->enable_login_app );
-		$standard_mode_ok   = ( ! $login_app_enabled && ! empty( $this->reference_id ) );
-		$login_app_mode_ok  = ( $login_app_enabled && ! empty( $this->access_token ) );
+		$login_app_enabled = ( 'yes' === $this->enable_login_app );
+		$standard_mode_ok  = ( ! $login_app_enabled && ! empty( $this->reference_id ) );
+		$login_app_mode_ok = ( $login_app_enabled && ! empty( $this->access_token ) );
 
 		return ( parent::is_available() && ( $standard_mode_ok || $login_app_mode_ok ) );
 	}
@@ -279,7 +257,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'description' => sprintf(
 					/* translators: maybe disabled attribute */
 					__( '<button class="register_now button-primary" %1$s>CONFIGURE/REGISTER NOW</button>', 'woocommerce-gateway-amazon-payments-advanced' ),
-					$valid && $this->public_key_id ? 'disabled' : ''
+					$valid && $this->settings['public_key_id'] ? 'disabled' : ''
 				),
 			),
 			'disconect_text'                => array(
@@ -292,8 +270,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'type'        => 'title',
 				'description' => sprintf(
 					/* translators: maybe disabled attribute */
-					__( '<button class="delete-settings button-primary" %1$s>DISCONECT</button>', 'woocommerce-gateway-amazon-payments-advanced' ),
-					! $this->private_key || ! $this->public_key_id ? 'disabled' : ''
+					__( '<button class="delete-settings button-primary" %1$s>DISCONECT/REFRESH PRIVATE KEY</button>', 'woocommerce-gateway-amazon-payments-advanced' ),
+					! $this->private_key && ! $this->settings['public_key_id'] ? 'disabled' : ''
 				),
 			),
 			'enabled'                       => array(
@@ -375,7 +353,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'yes' => __( 'Yes', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'no'  => __( 'No', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
-			),	
+			),
 			'advanced_configuration'        => array(
 				'title'       => __( 'Advanced configurations', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
@@ -455,7 +433,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			),
 		);
 
-		if ( $this->settings_v1 ) {
+		if ( ! empty( $this->settings['seller_id'] ) ) {
 			$this->form_fields = array_merge(
 				$this->form_fields,
 				array(
@@ -568,6 +546,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		$this->title                   = $settings['title'];
+		$this->payment_region          = $settings['payment_region'];
 		$this->merchant_id             = $settings['merchant_id'];
 		$this->store_id                = $settings['store_id'];
 		$this->public_key_id           = $settings['public_key_id'];
@@ -1613,7 +1592,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 								<p>
 									<input type="hidden" name="amazon_pay_action" value="import_settings" />
 									<?php wp_nonce_field( 'amazon_pay_import_nonce', 'amazon_pay_import_nonce' ); ?>
-									<?php submit_button( esc_html__( 'Import', 'woocommerce-gateway-amazon-payments-advanced' ), 'secondary', 'submit', false ); ?>
+									<?php submit_button( esc_html__( 'Import', 'woocommerce-gateway-amazon-payments-advanced' ), 'secondary', 'import_submit', false ); ?>
 								</p>
 							</form>
 						</div>
@@ -1684,15 +1663,29 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
-		if ( isset( $settings['v2_private_key'] ) ) {
-			$private_key = $settings['v2_private_key'];
-			unset( $settings['v2_private_key'] );
+		$json_settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
+		if ( isset( $json_settings['v2_private_key'] ) ) {
+			$private_key = $json_settings['v2_private_key'];
+			unset( $json_settings['v2_private_key'] );
+			update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
 		}
-		update_option( $this->get_option_key( true ), $settings );
-		update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
+
+		foreach ( $this->get_form_fields() as $key => $field ) {
+			if ( 'title' !== $this->get_field_type( $field ) ) {
+				try {
+					$this->settings[ $key ] = isset( $json_settings[ $key ] ) ? $json_settings[ $key ] : $this->settings[ $key ];
+				} catch ( Exception $e ) {
+					$this->add_error( $e->getMessage() );
+				}
+			}
+		}
+
+		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
+
 		if ( $this->validate_api_keys_V2() ) {
 			wc_apa()->update_migration_status();
+		} else {
+			wc_apa()->delete_migration_status();
 		}
 		wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) );
 		exit;
