@@ -358,4 +358,8 @@
 	};
 	wc_simple_path_form.init();
 
+	$('#import_submit').click(function(e) {
+		window.onbeforeunload = null;
+	});
+
 })( jQuery );
