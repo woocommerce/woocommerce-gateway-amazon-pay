@@ -105,9 +105,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 * @since 2.6.0
 	 * @return string
 	 */
-	public function get_option_key() {
+	public function get_option_key( $force_v2 = false ) {
 		$settings_options_name = $this->plugin_id . $this->id . '_settings';
-		if ( wc_apa()->api_migration ) {
+		if ( wc_apa()->api_migration || $force_v2 ) {
 			$settings_options_name .= '_v2';
 		}
 		return $settings_options_name;
@@ -670,7 +670,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 */
 	public function validate_api_keys_V2() {
 		$this->load_settings();
-
+		wc_apa()->update_migration_status();
 		$ret = false;
 		if ( empty( $this->merchant_id ) ) {
 			$this->update_option( 'amazon_keys_setup_and_validated', 0 );
@@ -690,7 +690,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				throw new Exception( __( 'Error: You must add the private key file.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 			include_once wc_apa()->path . '/vendor/autoload.php';
-			$client       = new Amazon\Pay\API\Client( wc_apa()->amazonpay_sdk_config );
+			$client       = new Amazon\Pay\API\Client( wc_apa()->get_amazonpay_sdk_config() );
 			$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
 			$payload      = array(
 				'storeId'            => $this->settings['store_id'],
@@ -712,6 +712,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		} catch ( Exception $e ) {
 			$this->update_option( 'amazon_keys_setup_and_validated', 0 );
+			wc_apa()->delete_migration_status();
 			WC_Admin_Settings::add_error( $e->getMessage() );
 		}
 		return $ret;
@@ -1688,8 +1689,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			$private_key = $settings['v2_private_key'];
 			unset( $settings['v2_private_key'] );
 		}
-		update_option( $this->get_option_key(), $settings );
+		update_option( $this->get_option_key( true ), $settings );
 		update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
+		if ( $this->validate_api_keys_V2() ) {
+			wc_apa()->update_migration_status();
+		}
 		wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) );
 		exit;
 	}
