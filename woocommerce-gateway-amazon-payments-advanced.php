@@ -230,7 +230,8 @@ class WC_Amazon_Payments_Advanced {
 	public function get_migration_status() {
 		if ( empty( $this->api_migration ) ) {
 			$status              = get_option( 'amazon_api_version' );
-			$this->api_migration = 'V2' === $status ? true : false;
+			$old_install         = version_compare( get_option( 'woocommerce_amazon_payments_new_install' ), '2.0.0', '>=' );
+			$this->api_migration = 'V2' === $status || $old_install ? true : false;
 		}
 		return $this->api_migration;
 	}
@@ -922,7 +923,7 @@ class WC_Amazon_Payments_Advanced {
 			'spids'                 => WC_Amazon_Payments_Advanced_API::$sp_ids,
 			'onboarding_version'    => WC_Amazon_Payments_Advanced_API::$onboarding_version,
 			'locale'                => get_locale(),
-			'home_url'              => home_url(),
+			'home_url'              => home_url( null, '', 'https' ),
 			'simple_path_url'       => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
 			'public_key'            => wc_apa()->onboarding_handler->get_public_key(),
 			'privacy_url'           => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
@@ -1698,7 +1699,11 @@ class WC_Amazon_Payments_Advanced {
 			$notices[] = array(
 				'dismiss_action' => 'amazon_pay_dismiss_enable_notice',
 				'class'          => 'amazon-pay-enable-notice',
-				'text'           => __( 'Amazon Pay is now enabled for WooCommerce and ready to accept live payments. Please check the configuration to make sure everything is set correctly.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'text'           => sprintf(
+					// translators: 1) The URL to the Amazon Pay settings screen.
+					__( 'Amazon Pay is now enabled for WooCommerce and ready to accept live payments. Please check the <a href="%1$s">configuration</a>. to make sure everything is set correctly.', 'woocommerce-gateway-amazon-payments-advanced' ),
+					esc_url( $this->get_settings_url() )
+				),
 				'is_dismissable' => true,
 			);
 		}
@@ -1748,6 +1753,18 @@ class WC_Amazon_Payments_Advanced {
 					/* translators: 1) The URL to the Amazon Pay settings screen. */
 					__( '<p>Amazon Pay API V2 Migration is needed, please go to settings and reconfigure merchant account: <a href="%1$s">Amazon Pay & Login with Amazon Settings</a></p>', 'woocommerce-gateway-amazon-payments-advanced' ),
 					esc_url( $this->get_settings_url() )
+				),
+				'is_dismissable' => false,
+			);
+		}
+		if ( ! wc_checkout_is_https() ) {
+			$notices[] = array(
+				'dismiss_action' => 'amazon_pay_dismiss_ssl_notice',
+				'class'          => 'notice notice-error',
+				'text'           => sprintf(
+					/* translators: 1) The URL to the Amazon Pay settings screen. */
+					__( '<p>Amazon Pay is enabled but a SSL certificate is not detected. Please ensure your server has a valid <a href="%1$s" target="_blank">SSL certificate</a> to get the plugin working properly.', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'https://en.wikipedia.org/wiki/Transport_Layer_Security'
 				),
 				'is_dismissable' => false,
 			);
