@@ -341,7 +341,7 @@
 								result.data.public_key_id
 							)
 							wc_simple_path_form.main_setting_form.unblock();
-							$('#mainform .notice .notice-error').remove();
+							$('#mainform .notice-error').remove();
 							wc_simple_path_form.register_now_link.prop('disabled', true);
 							wc_simple_path_form.delete_settings_link.prop('disabled', false);
 						} else {
