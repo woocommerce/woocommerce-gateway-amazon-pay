@@ -236,7 +236,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		);
 		$enable_login_app_label = sprintf( $label_format, $login_app_setup_url );
 		$redirect_url           = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
-		$valid                  = $this->settings['amazon_keys_setup_and_validated'];
+		$valid                  = isset( $this->settings['amazon_keys_setup_and_validated'] ) ? $this->settings['amazon_keys_setup_and_validated'] : false;
 
 		$this->form_fields = array(
 			'important_note'                => array(
