@@ -360,10 +360,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'title'       => __( 'Authorization processing mode', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'select',
 				'description' => '',
-				'default'     => 'async',
+				'default'     => 'sync',
 				'options'     => array(
-					'async' => __( 'Optimal (fallback asynchronous attempt after synchronous failure)', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'sync'  => __( 'Synchronous', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'async' => __( 'Asynchronous', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
 			'display_options'               => array(
@@ -385,6 +385,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'fr-FR' => __( 'France\'s French', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'it-IT' => __( 'Italy\'s Italian', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'es-ES' => __( 'Spain\'s Spanish', 'woocommerce-gateway-amazon-payments-advanced' ),
+				),
+			),
+			'button_color'                  => array(
+				'title'       => __( 'Button color', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'Button color to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'select',
+				'class'       => 'show-if-app-is-enabled',
+				'default'     => 'Gold',
+				'options'     => array(
+					'Gold'      => __( 'Gold', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'LightGray' => __( 'Light gray', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'DarkGray'  => __( 'Dark gray', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
 			'hide_standard_checkout_button' => array(
@@ -468,13 +481,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 						'description' => '<strong>' . $this->settings['button_size'] . '</strong><br>' . __( 'Button size to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
 						'class'       => 'show-if-app-is-enabled',
-					),
-					'button_color'             => array(
-						'title'       => __( 'Button color', 'woocommerce-gateway-amazon-payments-advanced' ),
-						'description' => '<strong>' . $this->settings['button_color'] . '</strong><br>' . __( 'Button color to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
-						'type'        => 'hidden',
-						'class'       => 'show-if-app-is-enabled',
-						'default'     => 'Gold',
 					),
 				)
 			);
