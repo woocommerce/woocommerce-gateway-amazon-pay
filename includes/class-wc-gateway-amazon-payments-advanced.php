@@ -1644,7 +1644,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$import_file = $_FILES['import_file'];
 
-		$extension = end( explode( '.', $import_file['name'] ) );
+		$fn_parts = explode( '.', $import_file['name'] );
+		$extension = end( $fn_parts );
 
 		if ( 'json' !== $extension ) {
 			wp_die( esc_html__( 'Please upload a valid .json file', 'woocommerce-gateway-amazon-payments-advanced' ) );
