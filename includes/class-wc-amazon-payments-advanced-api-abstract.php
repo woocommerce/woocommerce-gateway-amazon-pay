@@ -642,7 +642,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 * @see http://docs.developer.amazonservices.com/en_UK/apa_guide/APAGuide_GetAuthorizationStatus.html
 	 *
 	 * @param int   $order_id Order ID.
-	 * @param array $result   Result from API response.
+	 * @param object $result   Result from API response.
 	 *
 	 * @deprecated
 	 */
@@ -1914,7 +1914,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @see https://payments.amazon.com/documentation/apireference/201752430
 	 *
-	 * @param array $address Address object from Amazon Pay API.
+	 * @param object $address Address object from Amazon Pay API.
 	 *
 	 * @return array Address formatted for WooCommerce.
 	 */
