@@ -455,6 +455,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'default'     => '',
 					),
+					'app_client_id' => array(
+						'title'       => __( 'App Client ID', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'type'        => 'hidden',
+						'description' => $this->settings['app_client_id'],
+						'default'     => '',
+					),
+					'app_client_secret' => array(
+						'title'       => __( 'App Client Secret', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'type'        => 'hidden',
+						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'default'     => '',
+					),
 					'redirect_authentication'  => array(
 						'title'       => __( 'Login Authorization Mode', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
