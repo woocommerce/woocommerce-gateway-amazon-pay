@@ -9,7 +9,7 @@
  * Plugin Name: WooCommerce Amazon Pay
  * Plugin URI: https://woocommerce.com/products/pay-with-amazon/
  * Description: Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.
- * Version: 1.12.2
+ * Version: 2.0.0
  * Author: WooCommerce
  * Author URI: https://woocommerce.com
  *
@@ -24,7 +24,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'WC_AMAZON_PAY_VERSION', '1.12.2' );
+define( 'WC_AMAZON_PAY_VERSION', '2.0.0' );
 
 /**
  * Amazon Pay main class
@@ -47,6 +47,12 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public $path;
 
+	/**
+	 * Plugin's includes path.
+	 *
+	 * @var string
+	 */
+	public $includes_path;
 	/**
 	 * Plugin's URL.
 	 *
@@ -127,23 +133,48 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Simple Path handler.
 	 *
-	 * @var WC_Amazon_Payments_Advanced_Simple_Path_Handler
+	 * @var WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler
 	 */
-	public $simple_path_handler;
+	public $onboarding_handler;
+
+	/**
+	 * API migration Status.
+	 *
+	 * @since 2.0.0
+	 * @var bool
+	 */
+	public $api_migration;
+
+	/**
+	 * SDK config.
+	 *
+	 * @since 2.0.0
+	 * @var array
+	 */
+	public $amazonpay_sdk_config;
 
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->version    = WC_AMAZON_PAY_VERSION;
-		$this->path       = untrailingslashit( plugin_dir_path( __FILE__ ) );
-		$this->plugin_url = untrailingslashit( plugins_url( '/', __FILE__ ) );
+		$this->version       = WC_AMAZON_PAY_VERSION;
+		$this->path          = untrailingslashit( plugin_dir_path( __FILE__ ) );
+		$this->plugin_url    = untrailingslashit( plugins_url( '/', __FILE__ ) );
+		$this->get_migration_status();
+		$this->includes_path = $this->path . '/includes/';
 
-		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-api.php' );
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-merchant-onboarding-handler.php';
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api-abstract.php';
+
+		if ( ! $this->api_migration ) {
+			$this->includes_path .= '/legacy/';
+		}
+
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
+
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-compat.php' );
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-ipn-handler.php' );
 		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-synchronous-handler.php' );
-		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-simple-path-handler.php' );
 
 		// On install hook.
 		include_once( $this->path . '/includes/class-wc-amazon-payments-install.php' );
@@ -167,7 +198,7 @@ class WC_Amazon_Payments_Advanced {
 		// Synchronous handler.
 		$this->synchro_handler = new WC_Amazon_Payments_Advanced_Synchronous_Handler();
 		// Simple path registration endpoint.
-		$this->simple_path_handler = new WC_Amazon_Payments_Advanced_Simple_Path_Handler();
+		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
 
 		// Admin notices.
 		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
@@ -177,6 +208,9 @@ class WC_Amazon_Payments_Advanced {
 
 		// Check for credentials AJAX
 		add_action( 'wp_ajax_amazon_check_credentials', array( $this, 'ajax_check_credentials' ) );
+
+		// Delete credentials AJAX
+		add_action( 'wp_ajax_amazon_delete_credentials', array( $this, 'ajax_delete_credentials' ) );
 
 		// SCA Strong Customer Authentication Upgrade.
 		add_action( 'wp_ajax_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
@@ -189,6 +223,33 @@ class WC_Amazon_Payments_Advanced {
 		// WC Subscription Hook
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
 	}
+
+	/**
+	 * Get API Migration status.
+	 */
+	public function get_migration_status() {
+		if ( empty( $this->api_migration ) ) {
+			$status              = get_option( 'amazon_api_version' );
+			$old_install         = version_compare( get_option( 'woocommerce_amazon_payments_new_install' ), '2.0.0', '>=' );
+			$this->api_migration = 'V2' === $status || $old_install ? true : false;
+		}
+		return $this->api_migration;
+	}
+
+	/**
+	 * Update migration status update
+	 */
+	public function update_migration_status() {
+		update_option( 'amazon_api_version', 'V2' );
+	}
+
+	/**
+	 * Downgrade migration status update
+	 */
+	public function delete_migration_status() {
+		delete_option( 'amazon_api_version' );
+	}
+
 
 	/**
 	 * Ajax handler for fetching order reference
@@ -308,6 +369,22 @@ class WC_Amazon_Payments_Advanced {
 		$this->init_order_admin();
 		$this->init_gateway();
 	}
+
+	/**
+	 * Set up API V2 SDK.
+	 */
+	public function get_amazonpay_sdk_config() {
+		if ( empty( $this->amazonpay_sdk_config ) ) {
+			$this->amazonpay_sdk_config = array(
+				'public_key_id' => $this->settings['public_key_id'],
+				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),
+				'sandbox'       => 'yes' === $this->settings['sandbox'] ? true : false,
+				'region'        => $this->settings['payment_region'],
+			);
+		}
+		return $this->amazonpay_sdk_config;
+	}
+
 
 	/**
 	 * Multi-currency Init.
@@ -843,11 +920,12 @@ class WC_Amazon_Payments_Advanced {
 
 		$params = array(
 			'simple_path_urls'      => WC_Amazon_Payments_Advanced_API::$registration_urls,
-			'spids'                 => WC_Amazon_Payments_Advanced_API::$spIds,
+			'spids'                 => WC_Amazon_Payments_Advanced_API::$sp_ids,
+			'onboarding_version'    => WC_Amazon_Payments_Advanced_API::$onboarding_version,
 			'locale'                => get_locale(),
-			'home_url'              => home_url(),
-			'simple_path_url'       => wc_apa()->simple_path_handler->get_simple_path_registration_url(),
-			'public_key'            => wc_apa()->simple_path_handler->get_public_key(),
+			'home_url'              => home_url( null, '', 'https' ),
+			'simple_path_url'       => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
+			'public_key'            => wc_apa()->onboarding_handler->get_public_key(),
 			'privacy_url'           => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
 			'description'           => self::get_site_description(),
 			'keys_already_set'      => $this->amazon_keys_already_set(),
@@ -855,6 +933,8 @@ class WC_Amazon_Payments_Advanced {
 			'credentials_nonce'     => wp_create_nonce( 'amazon_pay_check_credentials' ),
 			'manual_exchange_nonce' => wp_create_nonce( 'amazon_pay_manual_exchange' ),
 			'login_redirect_url'    => add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ),
+			'woo_version'           => 'WooCommerce: ' . WC()->version,
+			'plugin_version'        => 'WooCommerce Amazon Pay: ' . $this->version,
 		);
 
 		wp_register_script( 'amazon_payments_admin', plugins_url( 'assets/js/amazon-wc-admin' . $js_suffix, __FILE__ ), array(), $this->version, true );
@@ -1536,17 +1616,39 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function ajax_check_credentials() {
 		check_ajax_referer( 'amazon_pay_check_credentials', 'nonce' );
-		$result   = -1;
-		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
-		if ( ! empty( $settings['seller_id'] )
-			 && ! empty( $settings['mws_access_key'] )
-			 && ! empty( $settings['secret_key'] )
-			 && ! empty( $settings['app_client_id'] )
-			 && ! empty( $settings['app_client_secret'] )
+		$result        = -1;
+		$settings      = WC_Amazon_Payments_Advanced_API::get_settings();
+		$saved_payload = get_option( 'woocommerce_amazon_payments_advanced_saved_payload' );
+		if ( ! empty( $settings['merchant_id'] )
+			&& ! empty( $settings['store_id'] )
+			&& ! empty( $settings['public_key_id'] )
+			&& $saved_payload
 		) {
-			$result = 1;
+			$result = array(
+				'merchant_id'   => $settings['merchant_id'],
+				'store_id'      => $settings['store_id'],
+				'public_key_id' => $settings['public_key_id'],
+
+			);
+			delete_option( 'woocommerce_amazon_payments_advanced_saved_payload' );
 		}
-		wp_die( $result );
+		wp_send_json_success( $result );
+	}
+
+	/**
+	 *  AJAX handler to delete credentials have been set on settings page.
+	 */
+	public function ajax_delete_credentials() {
+		check_ajax_referer( 'amazon_pay_check_credentials', 'nonce' );
+		if ( current_user_can( 'manage_options' ) ) {
+			WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::destroy_keys();
+			$this->gateway->update_option( 'amazon_keys_setup_and_validated', 0 );
+			$this->gateway->update_option( 'public_key_id', '' );
+			wp_send_json_success();
+			wp_die();
+		}
+		wp_send_json_error();
+		wp_die();
 	}
 
 	/**
@@ -1597,7 +1699,11 @@ class WC_Amazon_Payments_Advanced {
 			$notices[] = array(
 				'dismiss_action' => 'amazon_pay_dismiss_enable_notice',
 				'class'          => 'amazon-pay-enable-notice',
-				'text'           => __( 'Amazon Pay is now enabled for WooCommerce and ready to accept live payments. Please check the configuration to make sure everything is set correctly.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'text'           => sprintf(
+					// translators: 1) The URL to the Amazon Pay settings screen.
+					__( 'Amazon Pay is now enabled for WooCommerce and ready to accept live payments. Please check the <a href="%1$s">configuration</a>. to make sure everything is set correctly.', 'woocommerce-gateway-amazon-payments-advanced' ),
+					esc_url( $this->get_settings_url() )
+				),
 				'is_dismissable' => true,
 			);
 		}
@@ -1637,6 +1743,30 @@ class WC_Amazon_Payments_Advanced {
 					WC_Amazon_Payments_Advanced_API::get_client_id_instructions_url()
 				),
 				'is_dismissable' => $is_dismissable,
+			);
+		}
+		if ( ! $this->get_migration_status() ) {
+			$notices[] = array(
+				'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
+				'class'          => 'notice notice-error',
+				'text'           => sprintf(
+					/* translators: 1) The URL to the Amazon Pay settings screen. */
+					__( '<p>Amazon Pay API V2 Migration is needed, please go to settings and reconfigure merchant account: <a href="%1$s">Amazon Pay & Login with Amazon Settings</a></p>', 'woocommerce-gateway-amazon-payments-advanced' ),
+					esc_url( $this->get_settings_url() )
+				),
+				'is_dismissable' => false,
+			);
+		}
+		if ( ! wc_checkout_is_https() ) {
+			$notices[] = array(
+				'dismiss_action' => 'amazon_pay_dismiss_ssl_notice',
+				'class'          => 'notice notice-error',
+				'text'           => sprintf(
+					/* translators: 1) The URL to the Amazon Pay settings screen. */
+					__( '<p>Amazon Pay is enabled but a SSL certificate is not detected. Please ensure your server has a valid <a href="%1$s" target="_blank">SSL certificate</a> to get the plugin working properly.', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'https://en.wikipedia.org/wiki/Transport_Layer_Security'
+				),
+				'is_dismissable' => false,
 			);
 		}
 

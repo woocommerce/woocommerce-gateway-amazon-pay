@@ -32,7 +32,9 @@
 		json_key_input : $( '#woocommerce_amazon_payments_advanced_keys_json' ),
 		action_url : '#',
 		spId : '',
-		register_now_link : $( 'a.register_now' ),
+		register_now_link : $( 'button.register_now' ),
+		delete_settings_link: $('button.delete-settings'),
+		onboarding_version: amazon_admin_params.onboarding_version,
 		locale: amazon_admin_params.locale,
 		home_url: amazon_admin_params.home_url,
 		merchant_unique_id: amazon_admin_params.merchant_unique_id,
@@ -41,8 +43,11 @@
 		privacy_url: amazon_admin_params.privacy_url,
 		site_description: amazon_admin_params.description,
 		login_redirect_url: amazon_admin_params.login_redirect_url,
+		woo_version: amazon_admin_params.woo_version,
+		plugin_version: amazon_admin_params.plugin_version,
 		poll_timer: false,
 		poll_interval: 3000,
+		main_setting_form: $( '#mainform' ),
 		init: function() {
 			// Init values if region is already selected
 			wc_simple_path_form.payment_region_on_change();
@@ -51,6 +56,7 @@
 			wc_simple_path_form.payment_region_input.on( 'change', this.payment_region_on_change );
 			wc_simple_path_form.json_key_input.on( 'change', this.json_key_on_change );
 			wc_simple_path_form.register_now_link.on( 'click', this.register_link_on_click );
+			wc_simple_path_form.delete_settings_link.on( 'click', this.delete_settings_on_click );
 		},
 		payment_region_on_change: function() {
 			if ( 'jp' === wc_simple_path_form.get_region_selected() ) {
@@ -85,10 +91,8 @@
 				// Setting Values
 				wc_simple_path_form.set_credentials_values(
 					json_value.merchant_id,
-					json_value.access_key,
-					json_value.secret_key,
-					json_value.client_id,
-					json_value.client_secret
+					json_value.store_id,
+					json_value.public_key_id
 				);
 				wc_simple_path_form.json_key_input.addClass( 'json_key_valid' );
 
@@ -141,25 +145,47 @@
 				}
 			);
 		},
-		set_credentials_values: function(merchant_id, access_key, secret_key, client_id, client_secret) {
+		set_credentials_values: function( merchant_id, store_id, public_key_id ) {
 			//Seller Id
-			$( '#woocommerce_amazon_payments_advanced_seller_id' ).val( merchant_id );
+			$( '#woocommerce_amazon_payments_advanced_merchant_id' ).val( merchant_id );
 			//MWS Access Key
-			$( '#woocommerce_amazon_payments_advanced_mws_access_key' ).val( access_key );
+			$( '#woocommerce_amazon_payments_advanced_store_id' ).val( store_id );
 			//MWS Secret Key
-			$( '#woocommerce_amazon_payments_advanced_secret_key' ).val( secret_key );
-			// App Client Id
-			$( '#woocommerce_amazon_payments_advanced_app_client_id' ).val( client_id );
-			// App Client Secret
-			$( '#woocommerce_amazon_payments_advanced_app_client_secret' ).val( client_secret );
+			$( '#woocommerce_amazon_payments_advanced_public_key_id' ).val( public_key_id );
 		},
-		register_link_on_click: function() {
+		register_link_on_click: function( e ) {
 			// Trigger simple path form on all regions except JP.
 			if ( 'jp' !== wc_simple_path_form.get_region_selected() ) {
+				e.preventDefault();
 				document.getElementById( wc_simple_path_form.simple_path_form_id ).submit.click();
+				wc_simple_path_form.main_setting_form.block({
+					message: "Waiting for Credentials From Amazon Seller Central",
+					overlayCSS: {
+						background: "#f1f1f1",
+						opacity: .5
+					}
+				});
 				wc_simple_path_form.poll_timer = setTimeout( wc_simple_path_form.poll_for_keys, wc_simple_path_form.poll_interval );
 			}
 			$( '#woocommerce_amazon_payments_advanced_redirect_authentication' ).val( 'optimal' );
+		},
+		delete_settings_on_click: function( e ){
+			e.preventDefault();
+			if ( confirm( 'Are you sure you want to delete your settings?' ) ) {
+				$.ajax(
+					{
+						url:     amazon_admin_params.ajax_url,
+						data:    {
+							'action' : 'amazon_delete_credentials',
+							'nonce' : amazon_admin_params.credentials_nonce
+						},
+						type:    'POST',
+						success: function( result ) {
+							location.reload();
+						}
+					}
+				)
+			}
 		},
 		create_form : function() {
 			$( ".wrap.woocommerce" ).append(
@@ -178,6 +204,14 @@
 							type: 'hidden',
 							name: 'spId',
 							value: wc_simple_path_form.spId
+						}
+					),
+					$(
+						"<input/>",
+						{
+							type: 'hidden',
+							name: 'onboardingVersion',
+							value: wc_simple_path_form.onboarding_version
 						}
 					),
 					$(
@@ -210,6 +244,22 @@
 							type: 'hidden',
 							name: 'merchantLoginDomains[]',
 							value: wc_simple_path_form.home_url
+						}
+					),
+					$(
+						"<input/>",
+						{
+							type: 'hidden',
+							name: 'spSoftwareVersion',
+							value: wc_simple_path_form.woo_version
+						}
+					),
+					$(
+						"<input/>",
+						{
+							type: 'hidden',
+							name: 'spAmazonPluginVersion',
+							value: wc_simple_path_form.plugin_version
 						}
 					),
 					$(
@@ -284,8 +334,16 @@
 					},
 					type:    'GET',
 					success: function( result ) {
-						if ( '1' === result ) {
-							location.reload();
+						if ( -1 !== result.data ) {	
+							wc_simple_path_form.set_credentials_values(
+								result.data.merchant_id,
+								result.data.store_id,
+								result.data.public_key_id
+							)
+							wc_simple_path_form.main_setting_form.unblock();
+							$('#mainform .notice-error').remove();
+							wc_simple_path_form.register_now_link.prop('disabled', true);
+							wc_simple_path_form.delete_settings_link.prop('disabled', false);
 						} else {
 							// Halt Polling.
 							if (false === wc_simple_path_form.poll_timer) {
@@ -299,5 +357,9 @@
 		}
 	};
 	wc_simple_path_form.init();
+
+	$('#import_submit').click(function(e) {
+		window.onbeforeunload = null;
+	});
 
 })( jQuery );
