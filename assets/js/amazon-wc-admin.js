@@ -171,7 +171,7 @@
 		},
 		delete_settings_on_click: function( e ){
 			e.preventDefault();
-			if ( confirm( 'Are you sure you want to delete your settings?' ) ) {
+			if ( confirm( 'Disconnecting will clear your saved merchant credentials -- you will need to reconnect and sign into Amazon Pay in order to activate Amazon Pay again.' ) ) {
 				$.ajax(
 					{
 						url:     amazon_admin_params.ajax_url,
