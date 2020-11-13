@@ -1751,7 +1751,7 @@ class WC_Amazon_Payments_Advanced {
 				'class'          => 'notice notice-error',
 				'text'           => sprintf(
 					/* translators: 1) The URL to the Amazon Pay settings screen. */
-					__( '<p>Amazon Pay API V2 Migration is needed, please go to settings and reconfigure merchant account: <a href="%1$s">Amazon Pay & Login with Amazon Settings</a></p>', 'woocommerce-gateway-amazon-payments-advanced' ),
+					__( '<p>Amazon Pay V2 is now available and migration is required. Please go to your <a href="%1$s">Amazon Pay settings</a> to configure your merchant account</p>', 'woocommerce-gateway-amazon-payments-advanced' ),
 					esc_url( $this->get_settings_url() )
 				),
 				'is_dismissable' => false,

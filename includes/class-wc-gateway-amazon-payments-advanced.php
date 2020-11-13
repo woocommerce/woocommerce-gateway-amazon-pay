@@ -35,7 +35,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->method_title         = __( 'Amazon Pay &amp; Login with Amazon', 'woocommerce-gateway-amazon-payments-advanced' );
+		$this->method_title         = __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' );
 		$this->method_description   = __( 'Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.', 'woocommerce-gateway-amazon-payments-advanced' );
 		$this->id                   = 'amazon_payments_advanced';
 		$this->icon                 = apply_filters( 'woocommerce_amazon_pa_logo', plugins_url( 'assets/images/amazon-payments.png', plugin_dir_path( __FILE__ ) ) );
@@ -264,7 +264,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'default'     => 'yes',
 			),
 			'account_details'               => array(
-				'title'       => __( 'Amazon account details', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'title'       => __( 'Amazon Pay Merchant account details', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
 				'description' => '',
 			),
@@ -433,9 +433,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				$this->form_fields,
 				array(
 					'account_details_v1'       => array(
-						'title'       => __( 'Amazon account details API V1', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'title'       => __( 'Previous Version Configuration Details', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'title',
-						'description' => 'This Credentials and settings are shown as reference. Can not be edited. Any change on settings requires to generate the Amazon API V2 credentials.',
+						'description' => 'These credentials and settings are read-only and cannot be modified. You must complete the plugin upgrade as instructed at the top of the page in order to make any changes.',
 					),
 					'seller_id'                => array(
 						'title'       => __( 'Seller ID', 'woocommerce-gateway-amazon-payments-advanced' ),
