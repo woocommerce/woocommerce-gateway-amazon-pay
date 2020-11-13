@@ -2006,4 +2006,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$mailer->send( $recipient, strip_tags( $subject ), $message );
 	}
 
+	public static function validate_api_keys() {
+		return false;
+	}
+
 }

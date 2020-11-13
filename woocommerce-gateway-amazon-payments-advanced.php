@@ -1805,6 +1805,10 @@ class WC_Amazon_Payments_Advanced {
 		}
 		return $result;
 	}
+
+	public function get_gateway() {
+		return $this->gateway;
+	}
 }
 
 /**
