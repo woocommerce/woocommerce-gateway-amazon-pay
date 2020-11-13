@@ -440,7 +440,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'account_details_v1'       => array(
 						'title'       => __( 'Previous Version Configuration Details', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'title',
-						'description' => 'These credentials and settings are read-only and cannot be modified. You must complete the plugin upgrade as instructed at the top of the page in order to make any changes.',
+						'description' => 'These credentials and settings are read-only and cannot be modified. You must complete the plugin upgrade as instructed at the top of the page in order to make any changes. <a href="#" class="toggle-v1-settings">Toggle visibility</a>.',
+					),
+					'container_start'       => array(
+						'type'        => 'custom',
+						'html'        => '<div id="v1-settings-container" class="hidden">'
 					),
 					'seller_id'                => array(
 						'title'       => __( 'Seller ID', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -486,6 +490,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 						'description' => '<strong>' . $this->settings['button_size'] . '</strong><br>' . __( 'Button size to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
 						'class'       => 'show-if-app-is-enabled',
+					),
+					'container_end'       => array(
+						'type'        => 'custom',
+						'html'        => '</div>'
 					),
 				)
 			);
@@ -1682,5 +1690,21 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 		wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) );
 		exit;
+	}
+
+	public function generate_custom_html( $id, $conf ) {
+		$html = isset( $conf['html'] ) ? wp_kses_post( $conf['html'] ) : "";
+
+		if( $html ) {
+			ob_start();
+			?>
+			</table>
+			<?php echo $html; ?>
+			<table class="form-table">
+			<?php
+			$html = ob_get_clean();
+		}
+
+		return $html;
 	}
 }
