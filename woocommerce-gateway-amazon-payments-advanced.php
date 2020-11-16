@@ -167,17 +167,17 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api-abstract.php';
 
 		if ( ! $this->api_migration ) {
-			$this->includes_path .= '/legacy/';
+			include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-api.php';
+		} else {
+			include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
 		}
 
-		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
-
-		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-compat.php' );
-		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-ipn-handler.php' );
-		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-synchronous-handler.php' );
+		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-compat.php' );
+		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler.php' );
+		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-synchronous-handler.php' );
 
 		// On install hook.
-		include_once( $this->path . '/includes/class-wc-amazon-payments-install.php' );
+		include_once( $this->includes_path . 'class-wc-amazon-payments-install.php' );
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
 
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_links' ) );
@@ -458,7 +458,7 @@ class WC_Amazon_Payments_Advanced {
 	 * @since 1.6.0
 	 */
 	public function init_order_admin() {
-		include_once( $this->path . '/includes/class-wc-amazon-payments-advanced-order-admin.php' );
+		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-order-admin.php' );
 
 		$this->order_admin = new WC_Amazon_Payments_Advanced_Order_Admin();
 		$this->order_admin->add_meta_box();
@@ -474,8 +474,8 @@ class WC_Amazon_Payments_Advanced {
 			return;
 		}
 
-		include_once( $this->path . '/includes/class-wc-gateway-amazon-payments-advanced.php' );
-		include_once( $this->path . '/includes/class-wc-gateway-amazon-payments-advanced-privacy.php' );
+		include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php' );
+		include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-privacy.php' );
 
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
 		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' == $this->settings['subscriptions_enabled'];
@@ -483,7 +483,7 @@ class WC_Amazon_Payments_Advanced {
 		// Check for Subscriptions 2.0, and load support if found.
 		if ( $subscriptions_installed && $subscriptions_enabled ) {
 
-			include_once( $this->path . '/includes/class-wc-gateway-amazon-payments-advanced-subscriptions.php' );
+			include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-subscriptions.php' );
 
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Subscriptions();
 
@@ -1462,7 +1462,7 @@ class WC_Amazon_Payments_Advanced {
 			return;
 		}
 
-		require_once( $this->path . '/includes/class-wc-amazon-payments-advanced-rest-api-controller.php' );
+		require_once( $this->includes_path . 'class-wc-amazon-payments-advanced-rest-api-controller.php' );
 
 		WC()->api->WC_Amazon_Payments_Advanced_REST_API_Controller = new WC_Amazon_Payments_Advanced_REST_API_Controller();
 		WC()->api->WC_Amazon_Payments_Advanced_REST_API_Controller->register_routes();
@@ -1804,6 +1804,10 @@ class WC_Amazon_Payments_Advanced {
 			$result['redirect'] = $subscription->get_view_order_url();
 		}
 		return $result;
+	}
+
+	public function get_gateway() {
+		return $this->gateway;
 	}
 }
 
