@@ -1751,7 +1751,7 @@ class WC_Amazon_Payments_Advanced {
 				'class'          => 'notice notice-error',
 				'text'           => sprintf(
 					/* translators: 1) The URL to the Amazon Pay settings screen. */
-					__( '<p>Amazon Pay API V2 Migration is needed, please go to settings and reconfigure merchant account: <a href="%1$s">Amazon Pay & Login with Amazon Settings</a></p>', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'<p>' . __( 'Amazon Pay V2 is now available and migration is required. Please go to your <a href="%1$s">Amazon Pay settings</a> to configure your merchant account', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
 					esc_url( $this->get_settings_url() )
 				),
 				'is_dismissable' => false,
@@ -1763,7 +1763,7 @@ class WC_Amazon_Payments_Advanced {
 				'class'          => 'notice notice-error',
 				'text'           => sprintf(
 					/* translators: 1) The URL to the Amazon Pay settings screen. */
-					__( '<p>Amazon Pay is enabled but a SSL certificate is not detected. Please ensure your server has a valid <a href="%1$s" target="_blank">SSL certificate</a> to get the plugin working properly.', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'<p>' . __( 'Amazon Pay is enabled but a SSL certificate is not detected. Please ensure your server has a valid <a href="%1$s" target="_blank">SSL certificate</a> to get the plugin working properly.', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
 					'https://en.wikipedia.org/wiki/Transport_Layer_Security'
 				),
 				'is_dismissable' => false,

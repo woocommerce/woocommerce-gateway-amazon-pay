@@ -34,6 +34,7 @@
 		spId : '',
 		register_now_link : $( 'button.register_now' ),
 		delete_settings_link: $('button.delete-settings'),
+		toggle_v1_visibility_link: $('a.toggle-v1-settings'),
 		onboarding_version: amazon_admin_params.onboarding_version,
 		locale: amazon_admin_params.locale,
 		home_url: amazon_admin_params.home_url,
@@ -57,6 +58,7 @@
 			wc_simple_path_form.json_key_input.on( 'change', this.json_key_on_change );
 			wc_simple_path_form.register_now_link.on( 'click', this.register_link_on_click );
 			wc_simple_path_form.delete_settings_link.on( 'click', this.delete_settings_on_click );
+			wc_simple_path_form.toggle_v1_visibility_link.on( 'click', this.toggle_v1_visibility );
 		},
 		payment_region_on_change: function() {
 			if ( 'jp' === wc_simple_path_form.get_region_selected() ) {
@@ -171,7 +173,7 @@
 		},
 		delete_settings_on_click: function( e ){
 			e.preventDefault();
-			if ( confirm( 'Are you sure you want to delete your settings?' ) ) {
+			if ( confirm( 'Disconnecting will clear your saved merchant credentials -- you will need to reconnect and sign into Amazon Pay in order to activate Amazon Pay again.' ) ) {
 				$.ajax(
 					{
 						url:     amazon_admin_params.ajax_url,
@@ -354,6 +356,10 @@
 					}
 				}
 			);
+		},
+		toggle_v1_visibility: function( e ) {
+			e.preventDefault();
+			$("#v1-settings-container").toggleClass('hidden');
 		}
 	};
 	wc_simple_path_form.init();

@@ -35,7 +35,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->method_title         = __( 'Amazon Pay &amp; Login with Amazon', 'woocommerce-gateway-amazon-payments-advanced' );
+		$this->method_title         = __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' );
 		$this->method_description   = __( 'Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.', 'woocommerce-gateway-amazon-payments-advanced' );
 		$this->id                   = 'amazon_payments_advanced';
 		$this->icon                 = apply_filters( 'woocommerce_amazon_pa_logo', plugins_url( 'assets/images/amazon-payments.png', plugin_dir_path( __FILE__ ) ) );
@@ -238,6 +238,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$redirect_url           = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
 		$valid                  = isset( $this->settings['amazon_keys_setup_and_validated'] ) ? $this->settings['amazon_keys_setup_and_validated'] : false;
 
+		$connect_desc    = __( 'Register for a new Amazon Pay merchant account, or sign in with your existing Amazon Pay Seller Central credentials to complete the plugin upgrade and configuration', 'woocommerce-gateway-amazon-payments-advanced' );
+		$connect_btn     = '<button class="register_now button-primary">' . __( 'Connect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</button>';
+		$disconnect_desc = __( 'In order to connect to a different account you need to disconect first, this will delete current Account Settings, you will need to go throught all the configuration process again', 'woocommerce-gateway-amazon-payments-advanced' );
+		$disconnect_btn  = '<button class="delete-settings button-primary">' . __( 'Disconnect Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</button>';
+
 		$this->form_fields = array(
 			'important_note'                => array(
 				'title'       => __( 'Important note, before you sign up:', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -254,7 +259,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			'register_now'                  => array(
 				'title'       => __( 'Connect your Amazon Pay merchant account', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
-				'description' => $this->private_key ? __( 'In order to connect to a different account you need to disconect first, this will delete current Account Settings, you will need to go throught all the configuration process again <br><br><button class="delete-settings button-primary">DISCONECT/REFRESH PRIVATE KEY</button>', 'woocommerce-gateway-amazon-payments-advanced' ) : __( '<button class="register_now button-primary" %1$s>CONFIGURE/REGISTER NOW</button>', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => $this->private_key ? $disconnect_desc . '<br/><br/>' . $disconnect_btn : $connect_desc . '<br/><br/>' . $connect_btn,
 			),
 			'enabled'                       => array(
 				'title'       => __( 'Enable/Disable', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -264,7 +269,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'default'     => 'yes',
 			),
 			'account_details'               => array(
-				'title'       => __( 'Amazon account details', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'title'       => __( 'Amazon Pay Merchant account details', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
 				'description' => '',
 			),
@@ -433,9 +438,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				$this->form_fields,
 				array(
 					'account_details_v1'       => array(
-						'title'       => __( 'Amazon account details API V1', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'title'       => __( 'Previous Version Configuration Details', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'title',
-						'description' => 'This Credentials and settings are shown as reference. Can not be edited. Any change on settings requires to generate the Amazon API V2 credentials.',
+						'description' => 'These credentials and settings are read-only and cannot be modified. You must complete the plugin upgrade as instructed at the top of the page in order to make any changes. <a href="#" class="toggle-v1-settings">Toggle visibility</a>.',
+					),
+					'container_start'       => array(
+						'type'        => 'custom',
+						'html'        => '<div id="v1-settings-container" class="hidden">'
 					),
 					'seller_id'                => array(
 						'title'       => __( 'Seller ID', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -493,6 +502,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 						'description' => '<strong>' . $this->settings['button_size'] . '</strong><br>' . __( 'Button size to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
 						'class'       => 'show-if-app-is-enabled',
+					),
+					'container_end'       => array(
+						'type'        => 'custom',
+						'html'        => '</div>'
 					),
 				)
 			);
@@ -1585,5 +1598,21 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 		wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) );
 		exit;
+	}
+
+	public function generate_custom_html( $id, $conf ) {
+		$html = isset( $conf['html'] ) ? wp_kses_post( $conf['html'] ) : "";
+
+		if( $html ) {
+			ob_start();
+			?>
+			</table>
+			<?php echo $html; ?>
+			<table class="form-table">
+			<?php
+			$html = ob_get_clean();
+		}
+
+		return $html;
 	}
 }
