@@ -455,13 +455,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'default'     => '',
 					),
-					'app_client_id' => array(
+					'app_client_id'            => array(
 						'title'       => __( 'App Client ID', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
 						'description' => $this->settings['app_client_id'],
 						'default'     => '',
 					),
-					'app_client_secret' => array(
+					'app_client_secret'        => array(
 						'title'       => __( 'App Client Secret', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
 						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -1550,7 +1550,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$import_file = $_FILES['import_file'];
 
-		$fn_parts = explode( '.', $import_file['name'] );
+		$fn_parts  = explode( '.', $import_file['name'] );
 		$extension = end( $fn_parts );
 
 		if ( 'json' !== $extension ) {
@@ -1580,7 +1580,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
 
-		if( empty( $this->settings['merchant_id'] ) ) {
+		if ( empty( $this->settings['merchant_id'] ) ) {
 			wc_apa()->delete_migration_status();
 		}
 		wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) );
