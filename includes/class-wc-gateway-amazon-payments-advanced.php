@@ -1604,6 +1604,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 
 		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
+
+		if ( empty( $this->settings['merchant_id'] ) ) {
+			wc_apa()->delete_migration_status();
+		} else {
+			wc_apa()->update_migration_status();
+		}
 	}
 
 	/**
@@ -1629,10 +1635,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$import_file = $_FILES['import_file'];
 
 		$this->process_settings_from_file( $import_file );
-
-		if ( empty( $this->settings['merchant_id'] ) ) {
-			wc_apa()->delete_migration_status();
-		}
 		wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) );
 		exit;
 	}
