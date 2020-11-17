@@ -613,11 +613,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				$ext   = $finfo->file( $pem_file['tmp_name'] );
 				if ( 'text/plain' === $ext && isset( $pem_file['tmp_name'] ) ) {
 					// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-					$private_key          = file_get_contents( $pem_file['tmp_name'] );
-					$validate_private_key = openssl_pkey_get_private( $private_key );
-					if ( $validate_private_key ) {
-						update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
-					}
+					$private_key = file_get_contents( $pem_file['tmp_name'] );
+					$this->save_private_key( $private_key );
 				}
 			}
 			parent::process_admin_options();
@@ -1595,7 +1592,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		if ( isset( $json_settings['v2_private_key'] ) ) {
 			$private_key = $json_settings['v2_private_key'];
 			unset( $json_settings['v2_private_key'] );
-			update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
+			$this->save_private_key( $private_key );
 		}
 
 		foreach ( $this->get_form_fields() as $key => $field ) {
@@ -1634,5 +1631,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 
 		return $html;
+	}
+
+	/**
+	 * Save private key
+	 *
+	 * @param string $private_key Private key PEM string.
+	 */
+	private function save_private_key( $private_key ) {
+		$validate_private_key = openssl_pkey_get_private( $private_key );
+		if ( $validate_private_key ) {
+			update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
+			return true;
+		}
+
+		return false;
 	}
 }
