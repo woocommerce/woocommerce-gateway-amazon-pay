@@ -227,8 +227,8 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Get API Migration status.
 	 */
-	public function get_migration_status() {
-		if ( empty( $this->api_migration ) ) {
+	public function get_migration_status( $fresh = false ) {
+		if ( $fresh || empty( $this->api_migration ) ) {
 			$status              = get_option( 'amazon_api_version' );
 			$old_install         = version_compare( get_option( 'woocommerce_amazon_payments_new_install' ), '2.0.0', '>=' );
 			$this->api_migration = 'V2' === $status || $old_install ? true : false;
