@@ -166,11 +166,8 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-merchant-onboarding-handler.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api-abstract.php';
 
-		if ( ! $this->api_migration ) {
-			include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-api.php';
-		} else {
-			include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
-		}
+		include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-api-legacy.php';
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
 
 		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-compat.php' );
 		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler.php' );
@@ -227,8 +224,8 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Get API Migration status.
 	 */
-	public function get_migration_status() {
-		if ( empty( $this->api_migration ) ) {
+	public function get_migration_status( $fresh = false ) {
+		if ( $fresh || empty( $this->api_migration ) ) {
 			$status              = get_option( 'amazon_api_version' );
 			$old_install         = version_compare( get_option( 'woocommerce_amazon_payments_new_install' ), '2.0.0', '>=' );
 			$this->api_migration = 'V2' === $status || $old_install ? true : false;
@@ -373,8 +370,9 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Set up API V2 SDK.
 	 */
-	public function get_amazonpay_sdk_config() {
-		if ( empty( $this->amazonpay_sdk_config ) ) {
+	public function get_amazonpay_sdk_config( $fresh = false ) {
+		if ( $fresh || empty( $this->amazonpay_sdk_config ) ) {
+			$this->settings             = WC_Amazon_Payments_Advanced_API::get_settings();
 			$this->amazonpay_sdk_config = array(
 				'public_key_id' => $this->settings['public_key_id'],
 				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),

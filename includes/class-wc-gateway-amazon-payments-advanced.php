@@ -79,7 +79,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		add_filter( 'woocommerce_thankyou_order_received_text', array( $this, 'maybe_render_timeout_transaction_order_received_text' ), 10, 2 );
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
-		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( 'WC_Amazon_Payments_Advanced_API', 'validate_api_keys' ) );
+		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'validate_api_keys' ) );
 		add_action( 'woocommerce_checkout_update_order_review', array( $this, 'store_shipping_info_in_session' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'check_customer_coupons' ) );
 		add_action( 'wc_amazon_async_authorize', array( $this, 'process_payment_with_async_authorize' ), 10, 2 );
@@ -273,12 +273,35 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'type'        => 'title',
 				'description' => '',
 			),
+			'manual_notice'                 => array(
+				'type'        => 'custom',
+				'html'        => '<p>Problems with automatic setup? <a href="#" class="wcapa-toggle-section" data-toggle="#manual-settings-container, #automatic-settings-container">Click here</a> to manually enter your keys.</p>',
+			),
+			'manual_container_start'        => array(
+				'type'        => 'custom',
+				'html'        => '<div id="manual-settings-container" class="hidden">',
+			),
 			'keys_json'                     => array(
-				'title'       => __( 'Paste your keys into the box', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'type'        => 'textarea',
+				'title'       => __( 'Manual Keys JSON', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'file',
 				'description' => __( 'JSON format, retrieve the JSON clicking the "Download JSON file" button in Seller Central under "INTEGRATION- Central - Existing API keys', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
+			),
+			'private_key'                   => array(
+				'title'       => __( 'Private Key File', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Add .pem file with the private key generated in the Amazon seller Central', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'file',
+				'description' => __( 'This key is created automatically when you Connect your Amazon Pay merchant account form the Configure button, but can be created by logging into Seller Central and create keys in INTEGRATION - Central', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+			),
+			'manual_container_end'          => array(
+				'type'        => 'custom',
+				'html'        => '</div>',
+			),
+			'default_container_start'        => array(
+				'type'        => 'custom',
+				'html'        => '<div id="automatic-settings-container">',
 			),
 			'merchant_id'                   => array(
 				'title'       => __( 'Merchant ID', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -301,12 +324,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'private_key'                   => array(
-				'title'       => __( 'Private Key File', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'label'       => __( 'Add .pem file with the private key generated in the Amazon seller Central', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'type'        => 'file',
-				'description' => __( 'This key is created automatically when you Connect your Amazon Pay merchant account form the Configure button, but can be created by logging into Seller Central and create keys in INTEGRATION - Central', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'desc_tip'    => true,
+			'default_container_end'          => array(
+				'type'        => 'custom',
+				'html'        => '</div>',
 			),
 			'enable_login_app'              => array(
 				'title'             => __( 'Use Login with Amazon App', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -440,7 +460,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'account_details_v1'       => array(
 						'title'       => __( 'Previous Version Configuration Details', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'title',
-						'description' => 'These credentials and settings are read-only and cannot be modified. You must complete the plugin upgrade as instructed at the top of the page in order to make any changes. <a href="#" class="toggle-v1-settings">Toggle visibility</a>.',
+						'description' => 'These credentials and settings are read-only and cannot be modified. You must complete the plugin upgrade as instructed at the top of the page in order to make any changes. <a href="#" class="wcapa-toggle-section"  data-toggle="#v1-settings-container">Toggle visibility</a>.',
 					),
 					'container_start'       => array(
 						'type'        => 'custom',
@@ -582,10 +602,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 */
 	public function process_admin_options() {
 		if ( check_admin_referer( 'woocommerce-settings' ) ) {
-			if ( isset( $_POST['woocommerce_amazon_payments_advanced_keys_json'] ) ) {
-				unset( $_POST['woocommerce_amazon_payments_advanced_keys_json'] );
+			if ( isset( $_FILES['woocommerce_amazon_payments_advanced_keys_json'] ) && isset( $_FILES['woocommerce_amazon_payments_advanced_keys_json']['size'] ) && 0 < $_FILES['woocommerce_amazon_payments_advanced_keys_json']['size'] ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				$json_file = $_FILES['woocommerce_amazon_payments_advanced_keys_json'];
+				$this->process_settings_from_file( $json_file, true );
 			}
-			if ( isset( $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) && 0 < $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) {
+			if ( isset( $_FILES['woocommerce_amazon_payments_advanced_private_key'] ) && isset( $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) && 0 < $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) {
 				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 				$pem_file = $_FILES['woocommerce_amazon_payments_advanced_private_key'];
 
@@ -593,11 +615,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				$ext   = $finfo->file( $pem_file['tmp_name'] );
 				if ( 'text/plain' === $ext && isset( $pem_file['tmp_name'] ) ) {
 					// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-					$private_key          = file_get_contents( $pem_file['tmp_name'] );
-					$validate_private_key = openssl_pkey_get_private( $private_key );
-					if ( $validate_private_key ) {
-						update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
-					}
+					$private_key = file_get_contents( $pem_file['tmp_name'] );
+					$this->save_private_key( $private_key );
 				}
 			}
 			parent::process_admin_options();
@@ -1542,6 +1561,58 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Process settings in a file
+	 *
+	 * @param array $import_file PHP $_FILES (or similar) entry.
+	 */
+	private function process_settings_from_file( $import_file, $clean_post = false ) {
+		$fn_parts  = explode( '.', $import_file['name'] );
+		$extension = end( $fn_parts );
+
+		if ( 'json' !== $extension ) {
+			wp_die( esc_html__( 'Please upload a valid .json file', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$json_settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
+		if ( isset( $json_settings['v2_private_key'] ) ) {
+			$private_key = $json_settings['v2_private_key'];
+			unset( $json_settings['v2_private_key'] );
+			$this->save_private_key( $private_key );
+		}
+
+		foreach ( $this->get_form_fields() as $key => $field ) {
+			if ( 'title' !== $this->get_field_type( $field ) ) {
+				try {
+					if ( isset( $json_settings[ $key ] ) ) {
+						$this->settings[ $key ] = $json_settings[ $key ];
+						if ( $clean_post ) {
+							$post_key = 'woocommerce_amazon_payments_advanced_' . $key;
+							if ( isset( $this->data ) && is_array( $this->data ) && isset( $this->data[ $post_key ] ) ) {
+								$this->data[ $post_key ] = $this->settings[ $key ];
+							}
+							if ( isset( $_POST[ $post_key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+								$_POST[ $post_key ] = $this->settings[ $key ];
+							}
+						}
+						unset( $json_settings[ $key ] );
+					}
+				} catch ( Exception $e ) {
+					$this->add_error( $e->getMessage() );
+				}
+			}
+		}
+
+		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
+
+		if ( empty( $this->settings['merchant_id'] ) ) {
+			wc_apa()->delete_migration_status();
+		} else {
+			wc_apa()->update_migration_status();
+		}
+	}
+
+	/**
 	 * Process a settings import from a json file.
 	 */
 	public function process_settings_import() {
@@ -1563,39 +1634,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$import_file = $_FILES['import_file'];
 
-		$fn_parts  = explode( '.', $import_file['name'] );
-		$extension = end( $fn_parts );
-
-		if ( 'json' !== $extension ) {
-			wp_die( esc_html__( 'Please upload a valid .json file', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$json_settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
-		if ( isset( $json_settings['v2_private_key'] ) ) {
-			$private_key = $json_settings['v2_private_key'];
-			unset( $json_settings['v2_private_key'] );
-			update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
-		}
-
-		foreach ( $this->get_form_fields() as $key => $field ) {
-			if ( 'title' !== $this->get_field_type( $field ) ) {
-				try {
-					if( isset( $this->settings[ $key ] ) ) {
-						$this->settings[ $key ] = isset( $json_settings[ $key ] ) ? $json_settings[ $key ] : $this->settings[ $key ];
-						unset( $json_settings[ $key ] );
-					}
-				} catch ( Exception $e ) {
-					$this->add_error( $e->getMessage() );
-				}
-			}
-		}
-
-		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
-
-		if ( empty( $this->settings['merchant_id'] ) ) {
-			wc_apa()->delete_migration_status();
-		}
+		$this->process_settings_from_file( $import_file );
 		wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->id ) );
 		exit;
 	}
@@ -1614,5 +1653,28 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 
 		return $html;
+	}
+
+	/**
+	 * Save private key
+	 *
+	 * @param string $private_key Private key PEM string.
+	 */
+	private function save_private_key( $private_key ) {
+		$validate_private_key = openssl_pkey_get_private( $private_key );
+		if ( $validate_private_key ) {
+			update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
+			return true;
+		}
+
+		return false;
+	}
+
+	public function validate_api_keys() {
+		if ( wc_apa()->get_migration_status( true ) ) {
+			WC_Amazon_Payments_Advanced_API::validate_api_keys();
+		} else {
+			WC_Amazon_Payments_Advanced_API_Legacy::validate_api_keys();
+		}
 	}
 }

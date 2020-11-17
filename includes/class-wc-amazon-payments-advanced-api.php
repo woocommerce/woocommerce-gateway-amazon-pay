@@ -42,7 +42,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				throw new Exception( __( 'Error: You must add the private key file.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 			include_once wc_apa()->path . '/vendor/autoload.php';
-			$client       = new Amazon\Pay\API\Client( wc_apa()->get_amazonpay_sdk_config() );
+			$client       = new Amazon\Pay\API\Client( wc_apa()->get_amazonpay_sdk_config( true ) );
 			$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
 			$payload      = array(
 				'storeId'            => $settings['store_id'],
