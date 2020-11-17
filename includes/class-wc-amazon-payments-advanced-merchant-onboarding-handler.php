@@ -23,7 +23,6 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	const PRIVATE_KEY_BITS = 2048;
 	const PRIVATE_KEY_TYPE = 'OPENSSL_KEYTYPE_RSA';
 
-	const KEYS_OPTION_PUBLIC_KEY  = 'woocommerce_amazon_payments_advanced_public_key';
 	const KEYS_OPTION_PRIVATE_KEY = 'woocommerce_amazon_payments_advanced_private_key';
 
 	/**
@@ -213,7 +212,6 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 		);
 
 		$public_key = openssl_pkey_get_details( $keys );
-		update_option( self::KEYS_OPTION_PUBLIC_KEY, $public_key['key'] );
 		openssl_pkey_export( $keys, $private_key );
 		update_option( self::KEYS_OPTION_PRIVATE_KEY, $private_key );
 
@@ -224,7 +222,6 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 * Destroy public/private key generated for keys exchange.
 	 */
 	public static function destroy_keys() {
-		delete_option( self::KEYS_OPTION_PUBLIC_KEY );
 		delete_option( self::KEYS_OPTION_PRIVATE_KEY );
 	}
 
@@ -266,11 +263,13 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 * @throws Exception
 	 */
 	public function get_public_key( $pem_format = false, $reset = false ) {
-		$public_key = get_option( self::KEYS_OPTION_PUBLIC_KEY, false );
+		$priv_key = $this->get_private_key( $reset );
 
-		if ( ( ! $public_key ) || $reset ) {
-			$public_key = $this->generate_keys( true );
-		}
+		$priv_key = openssl_pkey_get_private( $priv_key );
+
+		$public_key = openssl_pkey_get_details( $priv_key );
+
+		$public_key = $public_key['key'];
 
 		if ( ! $pem_format ) {
 			$public_key = str_replace( array( '-----BEGIN PUBLIC KEY-----', '-----END PUBLIC KEY-----', "\n" ), array( '', '', '' ), $public_key );
