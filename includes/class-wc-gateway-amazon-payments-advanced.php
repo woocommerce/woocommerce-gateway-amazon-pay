@@ -273,12 +273,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'type'        => 'title',
 				'description' => '',
 			),
+			'manual_notice'                 => array(
+				'type'        => 'custom',
+				'html'        => '<p>Problems with automatic setup? <a href="#" class="wcapa-toggle-section" data-toggle="manual-settings-container">Click here</a> to manually enter your keys.</p>',
+			),
+			'manual_container_start'        => array(
+				'type'        => 'custom',
+				'html'        => '<div id="manual-settings-container" class="hidden">',
+			),
 			'keys_json'                     => array(
 				'title'       => __( 'Paste your keys into the box', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'textarea',
 				'description' => __( 'JSON format, retrieve the JSON clicking the "Download JSON file" button in Seller Central under "INTEGRATION- Central - Existing API keys', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
 				'desc_tip'    => true,
+			),
+			'manual_container_end'          => array(
+				'type'        => 'custom',
+				'html'        => '</div>',
 			),
 			'merchant_id'                   => array(
 				'title'       => __( 'Merchant ID', 'woocommerce-gateway-amazon-payments-advanced' ),
