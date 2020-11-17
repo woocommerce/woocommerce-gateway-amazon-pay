@@ -288,6 +288,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'default'     => '',
 				'desc_tip'    => true,
 			),
+			'private_key'                   => array(
+				'title'       => __( 'Private Key File', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Add .pem file with the private key generated in the Amazon seller Central', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'file',
+				'description' => __( 'This key is created automatically when you Connect your Amazon Pay merchant account form the Configure button, but can be created by logging into Seller Central and create keys in INTEGRATION - Central', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+			),
 			'manual_container_end'          => array(
 				'type'        => 'custom',
 				'html'        => '</div>',
@@ -311,13 +318,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				'type'        => 'text',
 				'description' => __( 'Obtained from your Amazon account. You can get these keys by logging into Seller Central and clicking the "See Details" button under INTEGRATION - Central - Existing API keys.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default'     => '',
-				'desc_tip'    => true,
-			),
-			'private_key'                   => array(
-				'title'       => __( 'Private Key File', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'label'       => __( 'Add .pem file with the private key generated in the Amazon seller Central', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'type'        => 'file',
-				'description' => __( 'This key is created automatically when you Connect your Amazon Pay merchant account form the Configure button, but can be created by logging into Seller Central and create keys in INTEGRATION - Central', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 			),
 			'enable_login_app'              => array(
