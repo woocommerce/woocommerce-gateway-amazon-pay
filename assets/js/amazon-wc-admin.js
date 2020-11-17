@@ -261,7 +261,7 @@
 		},
 		toggle_visibility: function( e ) {
 			e.preventDefault();
-			$("#" + $(this).data('toggle')).toggleClass('hidden');
+			$($(this).data('toggle')).toggleClass('hidden');
 		}
 	};
 	wc_simple_path_form.init();
