@@ -440,7 +440,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					'account_details_v1'       => array(
 						'title'       => __( 'Previous Version Configuration Details', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'title',
-						'description' => 'These credentials and settings are read-only and cannot be modified. You must complete the plugin upgrade as instructed at the top of the page in order to make any changes. <a href="#" class="toggle-v1-settings">Toggle visibility</a>.',
+						'description' => 'These credentials and settings are read-only and cannot be modified. You must complete the plugin upgrade as instructed at the top of the page in order to make any changes. <a href="#" class="wcapa-toggle-section"  data-toggle="v1-settings-container">Toggle visibility</a>.',
 					),
 					'container_start'       => array(
 						'type'        => 'custom',
