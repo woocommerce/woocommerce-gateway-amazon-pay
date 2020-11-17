@@ -373,8 +373,9 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Set up API V2 SDK.
 	 */
-	public function get_amazonpay_sdk_config() {
-		if ( empty( $this->amazonpay_sdk_config ) ) {
+	public function get_amazonpay_sdk_config( $fresh = false ) {
+		if ( $fresh || empty( $this->amazonpay_sdk_config ) ) {
+			$this->settings             = WC_Amazon_Payments_Advanced_API::get_settings();
 			$this->amazonpay_sdk_config = array(
 				'public_key_id' => $this->settings['public_key_id'],
 				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),
