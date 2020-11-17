@@ -602,10 +602,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	 */
 	public function process_admin_options() {
 		if ( check_admin_referer( 'woocommerce-settings' ) ) {
-			if ( isset( $_POST['woocommerce_amazon_payments_advanced_keys_json'] ) ) {
-				unset( $_POST['woocommerce_amazon_payments_advanced_keys_json'] );
+			if ( isset( $_FILES['woocommerce_amazon_payments_advanced_keys_json'] ) && isset( $_FILES['woocommerce_amazon_payments_advanced_keys_json']['size'] ) && 0 < $_FILES['woocommerce_amazon_payments_advanced_keys_json']['size'] ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				$json_file = $_FILES['woocommerce_amazon_payments_advanced_keys_json'];
+				$this->process_settings_from_file( $json_file, true );
 			}
-			if ( isset( $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) && 0 < $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) {
+			if ( isset( $_FILES['woocommerce_amazon_payments_advanced_private_key'] ) && isset( $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) && 0 < $_FILES['woocommerce_amazon_payments_advanced_private_key']['size'] ) {
 				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 				$pem_file = $_FILES['woocommerce_amazon_payments_advanced_private_key'];
 
@@ -1559,6 +1561,52 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Process settings in a file
+	 *
+	 * @param array $import_file PHP $_FILES (or similar) entry.
+	 */
+	private function process_settings_from_file( $import_file, $clean_post = false ) {
+		$fn_parts  = explode( '.', $import_file['name'] );
+		$extension = end( $fn_parts );
+
+		if ( 'json' !== $extension ) {
+			wp_die( esc_html__( 'Please upload a valid .json file', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$json_settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
+		if ( isset( $json_settings['v2_private_key'] ) ) {
+			$private_key = $json_settings['v2_private_key'];
+			unset( $json_settings['v2_private_key'] );
+			$this->save_private_key( $private_key );
+		}
+
+		foreach ( $this->get_form_fields() as $key => $field ) {
+			if ( 'title' !== $this->get_field_type( $field ) ) {
+				try {
+					if ( isset( $json_settings[ $key ] ) ) {
+						$this->settings[ $key ] = $json_settings[ $key ];
+						if ( $clean_post ) {
+							$post_key = 'woocommerce_amazon_payments_advanced_' . $key;
+							if ( isset( $this->data ) && is_array( $this->data ) && isset( $this->data[ $post_key ] ) ) {
+								$this->data[ $post_key ] = $this->settings[ $key ];
+							}
+							if ( isset( $_POST[ $post_key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+								$_POST[ $post_key ] = $this->settings[ $key ];
+							}
+						}
+						unset( $json_settings[ $key ] );
+					}
+				} catch ( Exception $e ) {
+					$this->add_error( $e->getMessage() );
+				}
+			}
+		}
+
+		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
+	}
+
+	/**
 	 * Process a settings import from a json file.
 	 */
 	public function process_settings_import() {
@@ -1580,35 +1628,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$import_file = $_FILES['import_file'];
 
-		$fn_parts  = explode( '.', $import_file['name'] );
-		$extension = end( $fn_parts );
-
-		if ( 'json' !== $extension ) {
-			wp_die( esc_html__( 'Please upload a valid .json file', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$json_settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
-		if ( isset( $json_settings['v2_private_key'] ) ) {
-			$private_key = $json_settings['v2_private_key'];
-			unset( $json_settings['v2_private_key'] );
-			$this->save_private_key( $private_key );
-		}
-
-		foreach ( $this->get_form_fields() as $key => $field ) {
-			if ( 'title' !== $this->get_field_type( $field ) ) {
-				try {
-					if( isset( $this->settings[ $key ] ) ) {
-						$this->settings[ $key ] = isset( $json_settings[ $key ] ) ? $json_settings[ $key ] : $this->settings[ $key ];
-						unset( $json_settings[ $key ] );
-					}
-				} catch ( Exception $e ) {
-					$this->add_error( $e->getMessage() );
-				}
-			}
-		}
-
-		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
+		$this->process_settings_from_file( $import_file );
 
 		if ( empty( $this->settings['merchant_id'] ) ) {
 			wc_apa()->delete_migration_status();
