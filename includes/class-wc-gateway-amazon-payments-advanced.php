@@ -79,7 +79,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		add_filter( 'woocommerce_thankyou_order_received_text', array( $this, 'maybe_render_timeout_transaction_order_received_text' ), 10, 2 );
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
-		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( 'WC_Amazon_Payments_Advanced_API', 'validate_api_keys' ) );
+		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'validate_api_keys' ) );
 		add_action( 'woocommerce_checkout_update_order_review', array( $this, 'store_shipping_info_in_session' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'check_customer_coupons' ) );
 		add_action( 'wc_amazon_async_authorize', array( $this, 'process_payment_with_async_authorize' ), 10, 2 );
@@ -1668,5 +1668,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 
 		return false;
+	}
+
+	public function validate_api_keys() {
+		if ( wc_apa()->get_migration_status( true ) ) {
+			WC_Amazon_Payments_Advanced_API::validate_api_keys();
+		} else {
+			WC_Amazon_Payments_Advanced_API_Legacy::validate_api_keys();
+		}
 	}
 }

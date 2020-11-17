@@ -1,6 +1,6 @@
 <?php
 /**
- * Amazon API class.
+ * Amazon Legacy API class.
  *
  * @package WC_Gateway_Amazon_Pay
  */
@@ -8,7 +8,7 @@
 /**
  * Amazon Pay API class
  */
-class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Abstract {
+class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced_API_Abstract {
 
 	/**
 	* Validate API keys when settings are updated.
