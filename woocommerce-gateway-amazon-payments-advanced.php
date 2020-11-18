@@ -63,6 +63,15 @@ class WC_Amazon_Payments_Advanced {
 	public $plugin_url;
 
 	/**
+	 * Plugin basename.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @var string
+	 */
+	public $plugin_basename;
+
+	/**
 	 * Amazon Pay settings.
 	 *
 	 * @var array
@@ -149,11 +158,12 @@ class WC_Amazon_Payments_Advanced {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->version       = WC_AMAZON_PAY_VERSION;
-		$this->path          = untrailingslashit( plugin_dir_path( __FILE__ ) );
-		$this->plugin_url    = untrailingslashit( plugins_url( '/', __FILE__ ) );
+		$this->version         = WC_AMAZON_PAY_VERSION;
+		$this->path            = untrailingslashit( plugin_dir_path( __FILE__ ) );
+		$this->plugin_url      = untrailingslashit( plugins_url( '/', __FILE__ ) );
+		$this->plugin_basename = plugin_basename( __FILE__ );
 		$this->get_migration_status();
-		$this->includes_path = $this->path . '/includes/';
+		$this->includes_path   = $this->path . '/includes/';
 
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-merchant-onboarding-handler.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api-abstract.php';
@@ -442,7 +452,7 @@ class WC_Amazon_Payments_Advanced {
 	 * @since 1.6.0
 	 */
 	public function load_plugin_textdomain() {
-		load_plugin_textdomain( 'woocommerce-gateway-amazon-payments-advanced', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+		load_plugin_textdomain( 'woocommerce-gateway-amazon-payments-advanced', false, dirname( $this->plugin_basename ) . '/languages' );
 	}
 
 	/**
