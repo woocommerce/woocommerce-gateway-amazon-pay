@@ -27,6 +27,8 @@ class WC_Amazon_Payments_Advanced_Admin {
 
 		$this->init_order_admin();
 
+		// Plugin list.
+		add_filter( 'plugin_action_links_' . wc_apa()->plugin_basename, array( $this, 'plugin_links' ) );
 		// Admin notices.
 		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 		add_action( 'wp_ajax_amazon_pay_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
@@ -52,6 +54,24 @@ class WC_Amazon_Payments_Advanced_Admin {
 		$this->order_admin = new WC_Amazon_Payments_Advanced_Order_Admin();
 		$this->order_admin->add_meta_box();
 		$this->order_admin->add_ajax_handler();
+	}
+
+	/**
+	 * Plugin page links
+	 *
+	 * @since 1.0.0
+	 * @version 1.7.3
+	 *
+	 * @param array $links Array links.
+	 */
+	public function plugin_links( $links ) {
+		$plugin_links = array(
+			'<a href="' . $this->get_settings_url() . '">' . __( 'Settings', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>',
+			'<a href="https://docs.woocommerce.com/">' . __( 'Support', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>',
+			'<a href="https://docs.woocommerce.com/document/amazon-payments-advanced/">' . __( 'Docs', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>',
+		);
+
+		return array_merge( $plugin_links, $links );
 	}
 
 	/**

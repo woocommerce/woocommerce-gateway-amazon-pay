@@ -179,7 +179,6 @@ class WC_Amazon_Payments_Advanced {
 		include_once( $this->includes_path . 'class-wc-amazon-payments-install.php' );
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
 
-		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_links' ) );
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'woocommerce_init', array( $this, 'multicurrency_init' ), 0 );
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
@@ -328,24 +327,6 @@ class WC_Amazon_Payments_Advanced {
 			}
 		</style>
 		<?php
-	}
-
-	/**
-	 * Plugin page links
-	 *
-	 * @since 1.0.0
-	 * @version 1.7.3
-	 *
-	 * @param array $links Array links.
-	 */
-	public function plugin_links( $links ) {
-		$plugin_links = array(
-			'<a href="' . $this->get_settings_url() . '">' . __( 'Settings', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>',
-			'<a href="https://docs.woocommerce.com/">' . __( 'Support', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>',
-			'<a href="https://docs.woocommerce.com/document/amazon-payments-advanced/">' . __( 'Docs', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>',
-		);
-
-		return array_merge( $plugin_links, $links );
 	}
 
 	/**
@@ -1587,16 +1568,6 @@ class WC_Amazon_Payments_Advanced {
 
 		WC()->checkout()->process_checkout();
 		wp_send_json_success();
-	}
-
-
-	/**
-	 * Returns the full URL to the plugin's settings page.
-	 *
-	 * @return string
-	 */
-	private function get_settings_url() {
-		return admin_url( 'admin.php?page=wc-settings&tab=checkout&section=amazon_payments_advanced' );
 	}
 
 	/**
