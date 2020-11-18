@@ -99,14 +99,6 @@ class WC_Amazon_Payments_Advanced {
 	private $logger;
 
 	/**
-	 * Order admin handler instance.
-	 *
-	 * @since 1.6.0
-	 * @var WC_Amazon_Payments_Advanced_Order_Admin
-	 */
-	private $order_admin;
-
-	/**
 	 * Amazon Pay compat handler.
 	 *
 	 * @since 1.6.0
@@ -363,7 +355,10 @@ class WC_Amazon_Payments_Advanced {
 		$this->compat->load_compats();
 
 		$this->load_plugin_textdomain();
-		$this->init_order_admin();
+		if ( is_admin() ) {
+			include_once( $this->includes_path . 'admin/class-wc-amazon-payments-advanced-admin.php' );
+			$this->admin = new WC_Amazon_Payments_Advanced_Admin();
+		}
 		$this->init_gateway();
 	}
 
@@ -448,19 +443,6 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function load_plugin_textdomain() {
 		load_plugin_textdomain( 'woocommerce-gateway-amazon-payments-advanced', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-	}
-
-	/**
-	 * Init admin handler.
-	 *
-	 * @since 1.6.0
-	 */
-	public function init_order_admin() {
-		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-order-admin.php' );
-
-		$this->order_admin = new WC_Amazon_Payments_Advanced_Order_Admin();
-		$this->order_admin->add_meta_box();
-		$this->order_admin->add_ajax_handler();
 	}
 
 	/**
