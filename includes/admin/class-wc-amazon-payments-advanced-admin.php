@@ -3,6 +3,13 @@
 class WC_Amazon_Payments_Advanced_Admin {
 
 	/**
+	 * Plugin's absolute path.
+	 *
+	 * @var string
+	 */
+	public $path;
+
+	/**
 	 * Plugin's settings.
 	 *
 	 * @var string
@@ -15,13 +22,12 @@ class WC_Amazon_Payments_Advanced_Admin {
 	 * @since 1.6.0
 	 * @var WC_Amazon_Payments_Advanced_Order_Admin
 	 */
-	private $order_admin;
+	protected $order_admin;
 
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->version       = WC_AMAZON_PAY_VERSION;
 		$this->path          = untrailingslashit( plugin_dir_path( __FILE__ ) );
 		$this->settings      = wc_apa()->get_settings();
 
