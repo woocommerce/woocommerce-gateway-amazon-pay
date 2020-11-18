@@ -350,17 +350,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'type'        => 'custom',
 				'html'        => '</div>',
 			),
-			'enable_login_app'              => array(
-				'title'             => __( 'Use Login with Amazon App', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'label'             => $enable_login_app_label,
-				'type'              => 'checkbox',
-				'description'       => '',
-				'default'           => 'yes',
-				'custom_attributes' => array(
-					'data-dependent-selector'       => '.show-if-app-is-enabled',
-					'data-dependent-show-condition' => ':checked',
-				),
-			),
 			'sandbox'                       => array(
 				'title'       => __( 'Use Sandbox', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable sandbox mode during testing and development - live payments will not be taken if enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -516,6 +505,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 						'title'       => __( 'App Client Secret', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
 						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'default'     => '',
+					),
+					'enable_login_app'         => array(
+						'title'       => __( 'Use Login with Amazon App', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'label'       => $enable_login_app_label,
+						'type'        => 'hidden',
+						'description' => $this->settings['enable_login_app'],
 						'default'     => '',
 					),
 					'redirect_authentication'  => array(
