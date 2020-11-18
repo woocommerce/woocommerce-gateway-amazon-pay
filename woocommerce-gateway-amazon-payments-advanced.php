@@ -918,7 +918,6 @@ class WC_Amazon_Payments_Advanced {
 			'public_key'            => wc_apa()->onboarding_handler->get_public_key(),
 			'privacy_url'           => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
 			'description'           => self::get_site_description(),
-			'keys_already_set'      => $this->amazon_keys_already_set(),
 			'ajax_url'              => admin_url( 'admin-ajax.php' ),
 			'credentials_nonce'     => wp_create_nonce( 'amazon_pay_check_credentials' ),
 			'manual_exchange_nonce' => wp_create_nonce( 'amazon_pay_manual_exchange' ),
