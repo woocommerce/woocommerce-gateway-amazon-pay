@@ -1712,6 +1712,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			add_action( 'woocommerce_before_cart', array( $this, 'checkout_message' ), 5 );
 		}
 
+		// Checkout
+		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
+
 		// When transaction is declined with reason code 'InvalidPaymentMethod',
 		// the customer will be promopted with read-only address widget and need
 		// to fix the chosen payment method. Coupon form should be disabled in
@@ -1724,6 +1727,86 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 	}
 
+
+	/**
+	 * Initialize Amazon Pay UI during checkout.
+	 *
+	 * @param WC_Checkout $checkout Checkout object.
+	 */
+	public function checkout_init( $checkout ) {
+
+		/**
+		 * Make sure this is checkout initiated from front-end where cart exsits.
+		 *
+		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/238
+		 */
+		if ( ! WC()->cart ) {
+			return;
+		}
+
+		// Are we using the login app?
+		$enable_login_app = ( 'yes' === $this->settings['enable_login_app'] );
+
+		// Disable Amazon Pay for zero-total checkouts using the standard button.
+		if ( ! WC()->cart->needs_payment() && ! $enable_login_app ) {
+
+			// Render a placeholder widget container instead, in the event we
+			// need to populate it later.
+			add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'placeholder_widget_container' ) );
+
+			// Render a placeholder checkout message container, in the event we
+			// need to populate it later.
+			add_action( 'woocommerce_before_checkout_form', array( $this, 'placeholder_checkout_message_container' ), 5 );
+
+			return;
+
+		}
+
+		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
+		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
+
+		// Don't try to render the Amazon widgets if we don't have the prerequisites
+		// for each mode.
+		if ( ( ! $enable_login_app && empty( $this->reference_id ) ) || ( $enable_login_app && empty( $this->access_token ) ) ) {
+			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
+			return;
+		}
+
+		// If all prerequisites are meet to be an amazon checkout.
+		do_action( 'woocommerce_amazon_checkout_init', $enable_login_app );
+
+		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'payment_widget' ), 20 );
+		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'address_widget' ), 10 );
+		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_gateways' ) );
+		add_action( 'woocommerce_checkout_order_processed', array( $this, 'capture_shipping_address_for_zero_order_total' ) );
+		add_action( 'woocommerce_ship_to_different_address_checked', '__return_true' );
+		// Some fields are not enforced on Amazon's side. Marking them as optional avoids issues with checkout.
+		add_filter( 'woocommerce_billing_fields', array( $this, 'override_billing_fields' ) );
+		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_shipping_fields' ) );
+		// The default checkout form uses the billing email for new account creation
+		// Let's hijack that field for the Amazon-based checkout.
+		if ( apply_filters( 'woocommerce_pa_hijack_checkout_fields', true ) ) {
+			$this->hijack_checkout_fields( $checkout );
+		}
+	}
+
+	/**
+	 * Output an empty placeholder widgets container
+	 */
+	public function placeholder_widget_container() {
+		?>
+		<div id="amazon_customer_details"></div>
+		<?php
+	}
+
+	/**
+	 * Output an empty placeholder checkout message container
+	 */
+	public function placeholder_checkout_message_container() {
+		?>
+		<div class="wc-amazon-checkout-message"></div>
+		<?php
+	}
 
 	/**
 	 * Checkout Message
@@ -1766,6 +1849,370 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			),
 			get_permalink( wc_get_page_id( 'checkout' ) )
 		);
+	}
+
+	/**
+	 * Output the address widget HTML
+	 */
+	public function address_widget() {
+		// Skip showing address widget for carts with virtual products only
+		$show_address_widget = apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() );
+		$hide_css_style      = ( ! $show_address_widget ) ? 'display: none;' : '';
+		?>
+		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
+			<div class="col2-set">
+				<div class="col-1" style="<?php echo esc_attr( $hide_css_style ); ?>">
+					<?php if ( 'skip' !== WC()->session->get( 'amazon_billing_agreement_details' ) ) : ?>
+						<h3><?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
+						<div id="amazon_addressbook_widget"></div>
+					<?php endif ?>
+					<?php if ( ! empty( $this->reference_id ) ) : ?>
+						<input type="hidden" name="amazon_reference_id" value="<?php echo esc_attr( $this->reference_id ); ?>" />
+					<?php endif; ?>
+					<?php if ( ! empty( $this->access_token ) ) : ?>
+						<input type="hidden" name="amazon_access_token" value="<?php echo esc_attr( $this->access_token ); ?>" />
+					<?php endif; ?>
+				</div>
+		<?php
+	}
+
+	/**
+	 * Output the payment method widget HTML
+	 */
+	public function payment_widget() {
+		$checkout = WC_Checkout::instance();
+		?>
+				<div class="col-2">
+					<h3><?php _e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
+					<div id="amazon_wallet_widget"></div>
+					<?php if ( ! empty( $this->reference_id ) ) : ?>
+						<input type="hidden" name="amazon_reference_id" value="<?php echo esc_attr( $this->reference_id ); ?>" />
+					<?php endif; ?>
+					<?php if ( ! empty( $this->access_token ) ) : ?>
+						<input type="hidden" name="amazon_access_token" value="<?php echo esc_attr( $this->access_token ); ?>" />
+					<?php endif; ?>
+					<?php if ( 'skip' === WC()->session->get( 'amazon_billing_agreement_details' ) ) : ?>
+						<input type="hidden" name="amazon_billing_agreement_details" value="skip" />
+					<?php endif; ?>
+				</div>
+				<?php if ( 'skip' !== WC()->session->get( 'amazon_billing_agreement_details' ) ) : ?>
+					<div id="amazon_consent_widget" style="display: none;"></div>
+				<?php endif; ?>
+
+		<?php if ( ! is_user_logged_in() && $checkout->enable_signup ) : ?>
+
+			<?php if ( $checkout->enable_guest_checkout ) : ?>
+
+				<p class="form-row form-row-wide create-account">
+					<input class="input-checkbox" id="createaccount" <?php checked( ( true === $checkout->get_value( 'createaccount' ) || ( true === apply_filters( 'woocommerce_create_account_default_checked', false ) ) ), true ) ?> type="checkbox" name="createaccount" value="1" /> <label for="createaccount" class="checkbox"><?php _e( 'Create an account?', 'woocommerce-gateway-amazon-payments-advanced' ); ?></label>
+				</p>
+
+			<?php endif; ?>
+
+			<?php do_action( 'woocommerce_before_checkout_registration_form', $checkout ); ?>
+
+			<?php if ( ! empty( $checkout->checkout_fields['account'] ) ) : ?>
+
+				<div class="create-account">
+
+					<h3><?php _e( 'Create Account', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
+					<p><?php _e( 'Create an account by entering the information below. If you are a returning customer please login at the top of the page.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
+
+					<?php foreach ( $checkout->checkout_fields['account'] as $key => $field ) : ?>
+
+						<?php woocommerce_form_field( $key, $field, $checkout->get_value( $key ) ); ?>
+
+					<?php endforeach; ?>
+
+					<div class="clear"></div>
+
+				</div>
+
+			<?php endif; ?>
+
+			<?php do_action( 'woocommerce_after_checkout_registration_form', $checkout ); ?>
+
+		<?php endif; ?>
+			</div>
+		</div>
+
+		<?php
+	}
+
+	/**
+	 * Remove amazon gateway.
+	 *
+	 * @param $gateways
+	 *
+	 * @return array
+	 */
+	public function remove_amazon_gateway( $gateways ) {
+
+		foreach ( $gateways as $gateway_key => $gateway ) {
+			if ( 'amazon_payments_advanced' === $gateway_key ) {
+				unset( $gateways[ $gateway_key ] );
+			}
+		}
+
+		return $gateways;
+	}
+
+	/**
+	 * Remove all gateways except amazon
+	 *
+	 * @param array $gateways List of payment methods.
+	 *
+	 * @return array List of payment methods.
+	 */
+	public function remove_gateways( $gateways ) {
+
+		foreach ( $gateways as $gateway_key => $gateway ) {
+			if ( 'amazon_payments_advanced' !== $gateway_key ) {
+				unset( $gateways[ $gateway_key ] );
+			}
+		}
+
+		return $gateways;
+	}
+
+	/**
+	 * Capture full shipping address in the case of a $0 order, using the "login app"
+	 * version of the API.
+	 *
+	 * @version 1.7.1
+	 *
+	 * @param int $order_id Order ID.
+	 */
+	public function capture_shipping_address_for_zero_order_total( $order_id ) {
+		$order = wc_get_order( $order_id );
+
+		/**
+		 * Complete address data is only available without a confirmed order if
+		 * we're using the login app.
+		 *
+		 * @see Getting the Shipping Address section at https://payments.amazon.com/documentation/lpwa/201749990
+		 */
+		if ( ( $order->get_total() > 0 ) || empty( $this->reference_id ) || ( 'yes' !== $this->settings['enable_login_app'] ) || empty( $this->access_token ) ) {
+			return;
+		}
+
+		// Get FULL address details and save them to the order.
+		$order_details = wc_apa()->get_gateway()->get_amazon_order_details( $this->reference_id );
+
+		if ( $order_details ) {
+			wc_apa()->get_gateway()->store_order_address_details( $order, $order_details );
+		}
+	}
+
+	/**
+	 * Override billing fields when checking out with Amazon.
+	 *
+	 * @param array $fields billing fields.
+	 */
+	public function override_billing_fields( $fields ) {
+		// Last name and State are not required on Amazon billing addrress forms.
+		$fields['billing_last_name']['required'] = false;
+		$fields['billing_state']['required']     = false;
+		// Phone field is missing on some sandbox accounts.
+		$fields['billing_phone']['required'] = false;
+
+		return $fields;
+	}
+
+	/**
+	 * Override address fields when checking out with Amazon.
+	 *
+	 * @param array $fields default address fields.
+	 */
+	public function override_shipping_fields( $fields ) {
+		// Last name and State are not required on Amazon shipping addrress forms.
+		$fields['shipping_last_name']['required'] = false;
+		$fields['shipping_state']['required']     = false;
+
+		return $fields;
+	}
+
+	/**
+	 * Hijack checkout fields during checkout.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	public function hijack_checkout_fields( $checkout ) {
+		$has_billing_fields = (
+			isset( $checkout->checkout_fields['billing'] )
+			&&
+			is_array( $checkout->checkout_fields['billing'] )
+		);
+
+		if ( $has_billing_fields && 'yes' !== $this->settings['enable_login_app'] ) {
+			$this->hijack_checkout_field_account( $checkout );
+		}
+
+		// During an Amazon checkout, the standard billing and shipping fields need to be
+		// "removed" so that we don't trigger a false negative on form validation -
+		// they can be empty since we're using the Amazon widgets.
+		$this->hijack_checkout_field_billing( $checkout );
+		$this->hijack_checkout_field_shipping( $checkout );
+	}
+
+	/**
+	 * Alter account checkout field.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	private function hijack_checkout_field_account( $checkout ) {
+		$billing_fields_to_copy = array(
+			'billing_first_name' => '',
+			'billing_last_name'  => '',
+			'billing_email'      => '',
+		);
+
+		$billing_fields_to_merge = array_intersect_key( $checkout->checkout_fields['billing'], $billing_fields_to_copy );
+
+		/**
+		 * WC 3.0 changes a bit a way to retrieve fields.
+		 *
+		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/217
+		 */
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		/**
+		 * Before 3.0.0, account fields may not set at all if guest checkout is
+		 * disabled with account and password generated automatically.
+		 *
+		 * @see https://github.com/woocommerce/woocommerce/blob/2.6.14/includes/class-wc-checkout.php#L92-L132
+		 * @see https://github.com/woocommerce/woocommerce/blob/master/includes/class-wc-checkout.php#L187-L197
+		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/228
+		 */
+		$checkout_fields['account'] = ! empty( $checkout_fields['account'] )
+			? $checkout_fields['account']
+			: array();
+
+		$checkout_fields['account'] = array_merge( $billing_fields_to_merge, $checkout_fields['account'] );
+
+		if ( isset( $checkout_fields['account']['billing_email']['class'] ) ) {
+			$checkout_fields['account']['billing_email']['class'] = array();
+		}
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Hijack billing checkout field.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	private function hijack_checkout_field_billing( $checkout ) {
+		// The following fields cannot be optional for WC compatibility reasons.
+		$required_fields = array( 'billing_first_name', 'billing_last_name', 'billing_email' );
+		// If the order does not require shipping, these fields can be optional.
+		$optional_fields = array(
+			'billing_company',
+			'billing_country',
+			'billing_address_1',
+			'billing_address_2',
+			'billing_city',
+			'billing_state',
+			'billing_postcode',
+			'billing_phone',
+		);
+		$all_fields      = array_merge( $required_fields, $optional_fields );
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		if ( 'yes' === $this->settings['enable_login_app'] ) {
+			// Some merchants might not have access to billing address information, so we need to make those fields optional
+			// when the order doesn't require shipping.
+			if ( ! apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ) ) {
+				foreach ( $optional_fields as $field ) {
+					$checkout_fields['billing'][ $field ]['required'] = false;
+				}
+			}
+			$this->add_hidden_class_to_fields( $checkout_fields['billing'], $all_fields );
+		} else {
+			// Cannot grab user details when not using login app. Need to unset all fields.
+			$this->unset_fields_from_checkout( $checkout_fields['billing'], $all_fields );
+		}
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Hijack shipping checkout field.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	private function hijack_checkout_field_shipping( $checkout ) {
+		$field_list      = array(
+			'shipping_first_name',
+			'shipping_last_name',
+			'shipping_company',
+			'shipping_country',
+			'shipping_address_1',
+			'shipping_address_2',
+			'shipping_city',
+			'shipping_state',
+			'shipping_postcode',
+		);
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		if ( 'yes' === $this->settings['enable_login_app'] && apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ) ) {
+			$this->add_hidden_class_to_fields( $checkout_fields['shipping'], $field_list );
+		} else {
+			$this->unset_fields_from_checkout( $checkout_fields['shipping'], $field_list );
+		}
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Adds hidden class to checkout field
+	 *
+	 * @param array $field reference to the field to be hidden.
+	 */
+	private function add_hidden_class_to_field( &$field ) {
+		if ( isset( $field['class'] ) ) {
+			array_push( $field['class'], 'hidden' );
+		} else {
+			$field['class'] = array( 'hidden' );
+		}
+	}
+
+	/**
+	 * Adds hidden class to checkout fields based on a list
+	 *
+	 * @param array $checkout_fields reference to checkout fields.
+	 * @param array $field_list fields to be hidden.
+	 */
+	private function add_hidden_class_to_fields( &$checkout_fields, $field_list ) {
+		foreach ( $field_list as $field ) {
+			$this->add_hidden_class_to_field( $checkout_fields[ $field ] );
+		}
+	}
+
+	/**
+	 * Removes fields from checkout based on a list
+	 *
+	 * @param array $checkout_fields reference to checkout fields.
+	 * @param array $field_list fields to be removed.
+	 */
+	private function unset_fields_from_checkout( &$checkout_fields, $field_list ) {
+		foreach ( $field_list as $field ) {
+			unset( $checkout_fields[ $field ] );
+		}
 	}
 
 	/**
