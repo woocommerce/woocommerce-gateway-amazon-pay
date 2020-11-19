@@ -326,8 +326,6 @@ class WC_Amazon_Payments_Advanced {
 		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) || empty( $this->settings['seller_id'] ) || 'no' == $this->settings['enabled'] ) {
 			return;
 		}
-
-		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 	}
 
 	/**
@@ -384,107 +382,6 @@ class WC_Amazon_Payments_Advanced {
 		$methods[] = $this->gateway;
 
 		return $methods;
-	}
-
-	/**
-	 * Add scripts
-	 */
-	public function scripts() {
-
-		$enqueue_scripts = is_cart() || is_checkout() || is_checkout_pay_page();
-
-		if ( ! apply_filters( 'woocommerce_amazon_pa_enqueue_scripts', $enqueue_scripts ) ) {
-			return;
-		}
-
-		$js_suffix = '.min.js';
-		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-			$js_suffix = '.js';
-		}
-
-		$type = ( 'yes' == $this->settings['enable_login_app'] ) ? 'app' : 'standard';
-
-		wp_enqueue_style( 'amazon_payments_advanced', plugins_url( 'assets/css/style.css', __FILE__ ), array(), $this->version );
-		wp_enqueue_script( 'amazon_payments_advanced_widgets', WC_Amazon_Payments_Advanced_API::get_widgets_url(), array(), $this->version, true );
-		wp_enqueue_script( 'amazon_payments_advanced', plugins_url( 'assets/js/amazon-' . $type . '-widgets' . $js_suffix, __FILE__ ), array(), $this->version, true );
-
-		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg( array( 'amazon_payments_advanced' => 'true', 'amazon_logout' => false ) );
-
-		$params = array(
-			'ajax_url'              => admin_url( 'admin-ajax.php' ),
-			'seller_id'             => $this->settings['seller_id'],
-			'reference_id'          => $this->reference_id,
-			'redirect'              => esc_url_raw( $redirect_page ),
-			'is_checkout_pay_page'  => is_checkout_pay_page(),
-			'is_checkout'           => is_checkout(),
-			'access_token'          => $this->access_token,
-			'logout_url'            => esc_url_raw( $this->get_amazon_logout_url() ),
-			'render_address_widget' => apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ),
-			'order_reference_nonce' => wp_create_nonce( 'order_reference_nonce' ),
-		);
-
-		if ( 'yes' == $this->settings['enable_login_app'] ) {
-
-			$params['button_type']     = $this->settings['button_type'];
-			$params['button_color']    = $this->settings['button_color'];
-			$params['button_size']     = $this->settings['button_size'];
-			$params['button_language'] = $this->settings['button_language'];
-			$params['checkout_url']    = esc_url_raw( get_permalink( wc_get_page_id( 'checkout' ) ) );
-
-		}
-
-		if ( WC()->session->amazon_declined_code ) {
-			$params['declined_code'] = WC()->session->amazon_declined_code;
-			unset( WC()->session->amazon_declined_code );
-		}
-
-		if ( WC()->session->amazon_declined_with_cancel_order ) {
-			$order                           = wc_get_order( WC()->session->amazon_declined_order_id );
-			$params['declined_redirect_url'] = add_query_arg(
-				array(
-					'amazon_payments_advanced' => 'true',
-					'amazon_logout'            => 'true',
-					'amazon_declined'          => 'true',
-				),
-				$order->get_cancel_order_url()
-			);
-
-			unset( WC()->session->amazon_declined_order_id );
-			unset( WC()->session->amazon_declined_with_cancel_order );
-		}
-
-		if ( class_exists( 'WC_Subscriptions_Cart' ) ) {
-
-			$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription() || wcs_cart_contains_renewal();
-			$change_payment_for_subscription = isset( $_GET['change_payment_method'] ) && wcs_is_subscription( absint( $_GET['change_payment_method'] ) );
-			$params['is_recurring']          = $cart_contains_subscription || $change_payment_for_subscription;
-
-			// No need to make billing agreement if automatic payments is turned off.
-			if ( 'yes' === get_option( 'woocommerce_subscriptions_turn_off_automatic_payments' ) ) {
-				unset( $params['is_recurring'] );
-			}
-		}
-
-		// SCA support. If Merchant is European Region and Order does not contain or is a subscriptions.
-		$params['is_sca'] = ( WC_Amazon_Payments_Advanced_API::is_sca_region() );
-		if ( $params['is_sca'] ) {
-			$params['sca_nonce'] = wp_create_nonce( 'sca_nonce' );
-		}
-
-		// Multi-currency support.
-		$multi_currency                         = WC_Amazon_Payments_Advanced_Multi_Currency::is_active();
-		$params['multi_currency_supported']     = $multi_currency;
-		$params['multi_currency_nonce']         = wp_create_nonce( 'multi_currency_nonce' );
-		$params['multi_currency_reload_wallet'] = ( $multi_currency ) ? WC_Amazon_Payments_Advanced_Multi_Currency::reload_wallet_widget() : false;
-		$params['current_currency']             = ( $multi_currency ) ? WC_Amazon_Payments_Advanced_Multi_Currency::get_selected_currency() : '';
-		$params['shipping_title']               =  __( 'Shipping details', 'woocommerce' );
-		$params['redirect_authentication']      = $this->settings['redirect_authentication'];
-
-		$params = array_map( 'esc_js', apply_filters( 'woocommerce_amazon_pa_widgets_params', $params ) );
-
-		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced_params', $params );
-
-		do_action( 'wc_amazon_pa_scripts_enqueued', $type, $params );
 	}
 
 	/**
