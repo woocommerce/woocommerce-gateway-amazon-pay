@@ -12,10 +12,18 @@
  */
 class WC_Amazon_Payments_Advanced_Compat {
 
+	public function __construct() {
+		add_action( 'init', array( $this, 'load_compats' ) );
+		add_action( 'woocommerce_init', array( $this, 'load_multicurrency' ), 0 );
+	}
+
 	/**
 	 * Load compat classes and instantiate it.
 	 */
 	public function load_compats() {
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			return;
+		}
 
 		// Load built-in compat classes.
 		require_once( 'compats/class-wc-amazon-payments-advanced-drip-compat.php' );

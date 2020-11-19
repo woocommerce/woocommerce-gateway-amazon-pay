@@ -157,7 +157,6 @@ class WC_Amazon_Payments_Advanced {
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
 
 		add_action( 'init', array( $this, 'init' ) );
-		add_action( 'woocommerce_init', array( $this, 'multicurrency_init' ), 0 );
 
 		// REST API support.
 		add_action( 'rest_api_init', array( $this, 'rest_api_register_routes' ), 11 );
@@ -169,6 +168,8 @@ class WC_Amazon_Payments_Advanced {
 		$this->synchro_handler = new WC_Amazon_Payments_Advanced_Synchronous_Handler();
 		// Simple path registration endpoint.
 		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
+		// Third party compatibilities
+		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
 	}
 
 	/**
@@ -209,24 +210,12 @@ class WC_Amazon_Payments_Advanced {
 
 		$this->settings     = WC_Amazon_Payments_Advanced_API::get_settings();
 
-		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
-		$this->compat->load_compats();
-
 		$this->load_plugin_textdomain();
 		if ( is_admin() ) {
 			include_once( $this->includes_path . 'admin/class-wc-amazon-payments-advanced-admin.php' );
 			$this->admin = new WC_Amazon_Payments_Advanced_Admin();
 		}
 		$this->init_gateway();
-	}
-
-
-	/**
-	 * Multi-currency Init.
-	 */
-	public function multicurrency_init() {
-		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
-		$this->compat->load_multicurrency();
 	}
 
 	/**
