@@ -183,7 +183,6 @@ class WC_Amazon_Payments_Advanced {
 		add_action( 'woocommerce_init', array( $this, 'multicurrency_init' ), 0 );
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
 		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'logout_from_amazon' ) );
-		add_filter( 'woocommerce_ajax_get_endpoint', array( $this, 'filter_ajax_endpoint' ), 10, 2 );
 
 		// REST API support.
 		add_action( 'rest_api_init', array( $this, 'rest_api_register_routes' ), 11 );
@@ -846,37 +845,6 @@ class WC_Amazon_Payments_Advanced {
 			),
 			get_permalink( wc_get_page_id( 'checkout' ) )
 		);
-	}
-
-	/**
-	 * Filter Ajax endpoint so it carries the query string after buyer is
-	 * redirected from Amazon.
-	 *
-	 * Commit 75cc4f91b534ce3114d19da80586bacd083bb5a8 from WC 3.2 replaces the
-	 * REQUEST_URI with `/` so that query string from current URL is not carried.
-	 * This plugin hooked into checkout related actions/filters that might be
-	 * called from Ajax request and expecting some parameters from query string.
-	 *
-	 * @since 1.8.0
-	 *
-	 * @param string $url     Ajax URL.
-	 * @param string $request Request type. Expecting only 'checkout'.
-	 *
-	 * @return string URL.
-	 */
-	public function filter_ajax_endpoint( $url, $request ) {
-		if ( 'checkout' !== $request ) {
-			return $url;
-		}
-
-		if ( ! empty( $_GET['amazon_payments_advanced'] ) ) {
-			$url = add_query_arg( 'amazon_payments_advanced', $_GET['amazon_payments_advanced'], $url );
-		}
-		if ( ! empty( $_GET['access_token'] ) ) {
-			$url = add_query_arg( 'access_token', $_GET['access_token'], $url );
-		}
-
-		return $url;
 	}
 
 	public function get_gateway() {
