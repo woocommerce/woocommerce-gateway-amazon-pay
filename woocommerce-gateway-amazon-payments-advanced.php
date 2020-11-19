@@ -381,16 +381,6 @@ class WC_Amazon_Payments_Advanced {
 			return;
 		}
 
-		if ( 'button' === $this->settings['cart_button_display_mode'] ) {
-
-			add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
-
-		} elseif ( 'banner' === $this->settings['cart_button_display_mode'] ) {
-
-			add_action( 'woocommerce_before_cart', array( $this, 'checkout_message' ), 5 );
-
-		}
-
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
 		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_widgets_fragment' ) );

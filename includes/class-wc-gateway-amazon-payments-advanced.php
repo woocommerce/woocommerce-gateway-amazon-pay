@@ -1705,6 +1705,73 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			// Login app widget.
 			add_action( 'wp_head', array( $this, 'init_amazon_login_app_widget' ) );
 		}
+
+		if ( 'button' === $this->settings['cart_button_display_mode'] ) {
+			add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
+		} elseif ( 'banner' === $this->settings['cart_button_display_mode'] ) {
+			add_action( 'woocommerce_before_cart', array( $this, 'checkout_message' ), 5 );
+		}
+	}
+
+
+	/**
+	 * Checkout Message
+	 */
+	public function checkout_message() {
+		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
+		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' == $this->settings['subscriptions_enabled'];
+		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
+
+		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+			return;
+		}
+
+		echo '<div class="wc-amazon-checkout-message wc-amazon-payments-advanced-populated">';
+
+		if ( empty( $this->reference_id ) && empty( $this->access_token ) ) {
+			echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info"><div id="pay_with_amazon"></div> ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
+		} else {
+			$logout_url = $this->get_amazon_logout_url();
+			$logout_msg_html = '<div class="woocommerce-info info">' . apply_filters( 'woocommerce_amazon_pa_checkout_logout_message', __( 'You\'re logged in with your Amazon Account.', 'woocommerce-gateway-amazon-payments-advanced' ) ) . ' <a href="' . esc_url( $logout_url ) . '" id="amazon-logout">' . __( 'Log out &raquo;', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a></div>';
+			echo apply_filters( 'woocommerce_amazon_payments_logout_checkout_message_html', $logout_msg_html );
+		}
+
+		echo '</div>';
+
+	}
+
+	/**
+	 * Get Amazon logout URL.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @return string Amazon logout URL
+	 */
+	public function get_amazon_logout_url() {
+		return add_query_arg(
+			array(
+				'amazon_payments_advanced' => 'true',
+				'amazon_logout'            => 'true',
+			),
+			get_permalink( wc_get_page_id( 'checkout' ) )
+		);
+	}
+
+	/**
+	 * Checkout Button
+	 *
+	 * Triggered from the 'woocommerce_proceed_to_checkout' action.
+	 */
+	public function checkout_button() {
+		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
+		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' == $this->settings['subscriptions_enabled'];
+		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
+
+		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+			return;
+		}
+
+		echo '<div id="pay_with_amazon"></div>';
 	}
 
 	/**
