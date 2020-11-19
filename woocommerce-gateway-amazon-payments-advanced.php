@@ -79,21 +79,6 @@ class WC_Amazon_Payments_Advanced {
 	private $settings;
 
 	/**
-	 * Reference ID
-	 *
-	 * @var string
-	 */
-	private $reference_id;
-
-
-	/**
-	 * Access token
-	 *
-	 * @var string
-	 */
-	private $access_token;
-
-	/**
 	 * Amazon Pay Gateway
 	 *
 	 * @var WC_Gateway_Amazon_Payments_Advanced
@@ -181,7 +166,6 @@ class WC_Amazon_Payments_Advanced {
 
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'woocommerce_init', array( $this, 'multicurrency_init' ), 0 );
-		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
 
 		// REST API support.
 		add_action( 'rest_api_init', array( $this, 'rest_api_register_routes' ), 11 );
@@ -239,8 +223,6 @@ class WC_Amazon_Payments_Advanced {
 		}
 
 		$this->settings     = WC_Amazon_Payments_Advanced_API::get_settings();
-		$this->reference_id = WC_Amazon_Payments_Advanced_API::get_reference_id();
-		$this->access_token = WC_Amazon_Payments_Advanced_API::get_access_token();
 
 		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
 		$this->compat->load_compats();
@@ -319,59 +301,6 @@ class WC_Amazon_Payments_Advanced {
 	}
 
 	/**
-	 * Load handlers for cart and orders after WC Cart is loaded.
-	 */
-	public function init_handlers() {
-		// Disable if no seller ID.
-		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) || empty( $this->settings['seller_id'] ) || 'no' == $this->settings['enabled'] ) {
-			return;
-		}
-	}
-
-	/**
-	 * Checkout Button
-	 *
-	 * Triggered from the 'woocommerce_proceed_to_checkout' action.
-	 */
-	public function checkout_button() {
-		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' == $this->settings['subscriptions_enabled'];
-		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
-
-		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
-			return;
-		}
-
-		echo '<div id="pay_with_amazon"></div>';
-	}
-
-	/**
-	 * Checkout Message
-	 */
-	public function checkout_message() {
-		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' == $this->settings['subscriptions_enabled'];
-		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
-
-		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
-			return;
-		}
-
-		echo '<div class="wc-amazon-checkout-message wc-amazon-payments-advanced-populated">';
-
-		if ( empty( $this->reference_id ) && empty( $this->access_token ) ) {
-			echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info"><div id="pay_with_amazon"></div> ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
-		} else {
-			$logout_url = $this->get_amazon_logout_url();
-			$logout_msg_html = '<div class="woocommerce-info info">' . apply_filters( 'woocommerce_amazon_pa_checkout_logout_message', __( 'You\'re logged in with your Amazon Account.', 'woocommerce-gateway-amazon-payments-advanced' ) ) . ' <a href="' . esc_url( $logout_url ) . '" id="amazon-logout">' . __( 'Log out &raquo;', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a></div>';
-			echo apply_filters( 'woocommerce_amazon_payments_logout_checkout_message_html', $logout_msg_html );
-		}
-
-		echo '</div>';
-
-	}
-
-	/**
 	 * Add Amazon gateway to WC.
 	 *
 	 * @param array $methods List of payment methods.
@@ -382,94 +311,6 @@ class WC_Amazon_Payments_Advanced {
 		$methods[] = $this->gateway;
 
 		return $methods;
-	}
-
-	/**
-	 * Output the address widget HTML
-	 */
-	public function address_widget() {
-		// Skip showing address widget for carts with virtual products only
-		$show_address_widget = apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() );
-		$hide_css_style      = ( ! $show_address_widget ) ? 'display: none;' : '';
-		?>
-		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
-			<div class="col2-set">
-				<div class="col-1" style="<?php echo esc_attr( $hide_css_style ); ?>">
-					<?php if ( 'skip' !== WC()->session->get( 'amazon_billing_agreement_details' ) ) : ?>
-						<h3><?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
-						<div id="amazon_addressbook_widget"></div>
-					<?php endif ?>
-					<?php if ( ! empty( $this->reference_id ) ) : ?>
-						<input type="hidden" name="amazon_reference_id" value="<?php echo esc_attr( $this->reference_id ); ?>" />
-					<?php endif; ?>
-					<?php if ( ! empty( $this->access_token ) ) : ?>
-						<input type="hidden" name="amazon_access_token" value="<?php echo esc_attr( $this->access_token ); ?>" />
-					<?php endif; ?>
-				</div>
-		<?php
-	}
-
-	/**
-	 * Output the payment method widget HTML
-	 */
-	public function payment_widget() {
-		$checkout = WC_Checkout::instance();
-		?>
-				<div class="col-2">
-					<h3><?php _e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
-					<div id="amazon_wallet_widget"></div>
-					<?php if ( ! empty( $this->reference_id ) ) : ?>
-						<input type="hidden" name="amazon_reference_id" value="<?php echo esc_attr( $this->reference_id ); ?>" />
-					<?php endif; ?>
-					<?php if ( ! empty( $this->access_token ) ) : ?>
-						<input type="hidden" name="amazon_access_token" value="<?php echo esc_attr( $this->access_token ); ?>" />
-					<?php endif; ?>
-					<?php if ( 'skip' === WC()->session->get( 'amazon_billing_agreement_details' ) ) : ?>
-						<input type="hidden" name="amazon_billing_agreement_details" value="skip" />
-					<?php endif; ?>
-				</div>
-				<?php if ( 'skip' !== WC()->session->get( 'amazon_billing_agreement_details' ) ) : ?>
-					<div id="amazon_consent_widget" style="display: none;"></div>
-				<?php endif; ?>
-
-		<?php if ( ! is_user_logged_in() && $checkout->enable_signup ) : ?>
-
-			<?php if ( $checkout->enable_guest_checkout ) : ?>
-
-				<p class="form-row form-row-wide create-account">
-					<input class="input-checkbox" id="createaccount" <?php checked( ( true === $checkout->get_value( 'createaccount' ) || ( true === apply_filters( 'woocommerce_create_account_default_checked', false ) ) ), true ) ?> type="checkbox" name="createaccount" value="1" /> <label for="createaccount" class="checkbox"><?php _e( 'Create an account?', 'woocommerce-gateway-amazon-payments-advanced' ); ?></label>
-				</p>
-
-			<?php endif; ?>
-
-			<?php do_action( 'woocommerce_before_checkout_registration_form', $checkout ); ?>
-
-			<?php if ( ! empty( $checkout->checkout_fields['account'] ) ) : ?>
-
-				<div class="create-account">
-
-					<h3><?php _e( 'Create Account', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
-					<p><?php _e( 'Create an account by entering the information below. If you are a returning customer please login at the top of the page.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
-
-					<?php foreach ( $checkout->checkout_fields['account'] as $key => $field ) : ?>
-
-						<?php woocommerce_form_field( $key, $field, $checkout->get_value( $key ) ); ?>
-
-					<?php endforeach; ?>
-
-					<div class="clear"></div>
-
-				</div>
-
-			<?php endif; ?>
-
-			<?php do_action( 'woocommerce_after_checkout_registration_form', $checkout ); ?>
-
-		<?php endif; ?>
-			</div>
-		</div>
-
-		<?php
 	}
 
 	/**
