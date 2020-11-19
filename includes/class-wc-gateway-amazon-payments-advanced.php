@@ -87,6 +87,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		add_action( 'admin_init', array( $this, 'process_settings_export' ) );
 		add_action( 'admin_init', array( $this, 'process_settings_import' ) );
 
+		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
+
 		add_action( 'wp_footer', array( $this, 'maybe_hide_standard_checkout_button' ) );
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
 
@@ -1686,6 +1688,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Load handlers for cart and orders after WC Cart is loaded.
+	 */
+	public function init_handlers() {
+		// Disable if no seller ID.
+		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) || empty( $this->settings['seller_id'] ) || 'no' == $this->settings['enabled'] ) {
+			return;
+		}
+
+		// Login app actions.
+		if ( 'yes' === $this->settings['enable_login_app'] ) {
+			// Login app widget.
+			add_action( 'wp_head', array( $this, 'init_amazon_login_app_widget' ) );
+		}
+	}
+
+	/**
 	 * Maybe hide standard WC checkout button on the cart, if enabled
 	 */
 	public function maybe_hide_standard_checkout_button() {
@@ -1738,5 +1756,35 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		WC()->checkout()->process_checkout();
 		wp_send_json_success();
+	}
+
+	/**
+	 * Init Amazon login app widget.
+	 */
+	public function init_amazon_login_app_widget() {
+		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg( array( 'amazon_payments_advanced' => 'true', 'amazon_logout' => false ) );
+		?>
+		<script type='text/javascript'>
+		  	function getURLParameter(name, source) {
+			return decodeURIComponent((new RegExp('[?|&|#]' + name + '=' +
+				'([^&]+?)(&|#|;|$)').exec(source) || [,""])[1].replace(/\+/g,
+				'%20')) || null;
+			}
+
+			var accessToken = getURLParameter("access_token", location.hash);
+
+			if (typeof accessToken === 'string' && accessToken.match(/^Atza/)) {
+				document.cookie = "amazon_Login_accessToken=" + encodeURIComponent(accessToken) +
+				";secure";
+				window.location = '<?php echo esc_js( esc_url_raw( $redirect_page ) ); ?>';
+			}
+		</script>
+		<script>
+			window.onAmazonLoginReady = function() {
+				amazon.Login.setClientId( "<?php echo esc_js( $this->settings['app_client_id'] ); ?>" );
+				jQuery( document ).trigger( 'wc_amazon_pa_login_ready' );
+			};
+		</script>
+		<?php
 	}
 }

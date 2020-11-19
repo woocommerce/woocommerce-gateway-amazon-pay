@@ -420,14 +420,6 @@ class WC_Amazon_Payments_Advanced {
 			return;
 		}
 
-		// Login app actions.
-		if ( 'yes' === $this->settings['enable_login_app'] ) {
-
-			// Login app widget.
-			add_action( 'wp_head', array( $this, 'init_amazon_login_app_widget' ) );
-
-		}
-
 		if ( 'button' === $this->settings['cart_button_display_mode'] ) {
 
 			add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
@@ -782,36 +774,6 @@ class WC_Amazon_Payments_Advanced {
 		$methods[] = $this->gateway;
 
 		return $methods;
-	}
-
-	/**
-	 * Init Amazon login app widget.
-	 */
-	public function init_amazon_login_app_widget() {
-		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg( array( 'amazon_payments_advanced' => 'true', 'amazon_logout' => false ) );
-		?>
-		<script type='text/javascript'>
-		  	function getURLParameter(name, source) {
-			return decodeURIComponent((new RegExp('[?|&|#]' + name + '=' +
-				'([^&]+?)(&|#|;|$)').exec(source) || [,""])[1].replace(/\+/g,
-				'%20')) || null;
-			}
-
-			var accessToken = getURLParameter("access_token", location.hash);
-
-			if (typeof accessToken === 'string' && accessToken.match(/^Atza/)) {
-				document.cookie = "amazon_Login_accessToken=" + encodeURIComponent(accessToken) +
-				";secure";
-				window.location = '<?php echo esc_js( esc_url_raw( $redirect_page ) ); ?>';
-			}
-		</script>
-		<script>
-			window.onAmazonLoginReady = function() {
-				amazon.Login.setClientId( "<?php echo esc_js( $this->settings['app_client_id'] ); ?>" );
-				jQuery( document ).trigger( 'wc_amazon_pa_login_ready' );
-			};
-		</script>
-		<?php
 	}
 
 	/**
