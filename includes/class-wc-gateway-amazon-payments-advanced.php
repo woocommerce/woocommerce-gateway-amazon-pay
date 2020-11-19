@@ -1715,6 +1715,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		// Checkout
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
 		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_widgets_fragment' ) );
+		add_action( 'woocommerce_after_calculate_totals', array( $this, 'force_standard_mode_refresh_with_zero_order_total' ) );
 
 		// When transaction is declined with reason code 'InvalidPaymentMethod',
 		// the customer will be promopted with read-only address widget and need
@@ -2250,6 +2251,47 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		return $fragments;
 
+	}
+
+	/**
+	 * Force a page refresh when an order is updated to have a zero total and
+	 * we're not using the "login app" mode.
+	 *
+	 * This ensures that the standard WC checkout form is rendered.
+	 *
+	 * @param WC_Cart $cart Cart object.
+	 */
+	public function force_standard_mode_refresh_with_zero_order_total( $cart ) {
+		// Avoid constant reload loop in the event we've forced a checkout refresh.
+		if ( ! is_ajax() ) {
+			unset( WC()->session->reload_checkout );
+		}
+
+		// Login app mode can handle zero-total orders.
+		if ( 'yes' === $this->settings['enable_login_app'] ) {
+			return;
+		}
+
+		if ( ! wc_apa()->get_gateway()->is_available() ) {
+			return;
+		}
+
+		// Get the previous cart total.
+		$previous_total = WC()->session->wc_amazon_previous_total;
+
+		// Store the current total.
+		WC()->session->wc_amazon_previous_total = $cart->total;
+
+		// If the total is non-zero, and we don't know what the previous total was, bail.
+		if ( is_null( $previous_total ) || $cart->needs_payment() ) {
+			return;
+		}
+
+		// This *wasn't* as zero-total order, but is now.
+		if ( $previous_total > 0 ) {
+			// Force reload, re-rendering standard WC checkout form.
+			WC()->session->reload_checkout = true;
+		}
 	}
 
 	/**
