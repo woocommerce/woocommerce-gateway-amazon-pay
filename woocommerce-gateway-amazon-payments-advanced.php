@@ -243,7 +243,6 @@ class WC_Amazon_Payments_Advanced {
 		$this->reference_id = WC_Amazon_Payments_Advanced_API::get_reference_id();
 		$this->access_token = WC_Amazon_Payments_Advanced_API::get_access_token();
 
-		$this->maybe_display_declined_notice();
 		$this->maybe_attempt_to_logout();
 
 		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
@@ -280,18 +279,6 @@ class WC_Amazon_Payments_Advanced {
 	public function multicurrency_init() {
 		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
 		$this->compat->load_multicurrency();
-	}
-
-	/**
-	 * Maybe display declined notice.
-	 *
-	 * @since 1.7.1
-	 * @version 1.7.1
-	 */
-	public function maybe_display_declined_notice() {
-		if ( ! empty( $_GET['amazon_declined'] ) ) {
-			wc_add_notice( __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-		}
 	}
 
 	/**

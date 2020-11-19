@@ -104,6 +104,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		// SCA Strong Customer Authentication Upgrade.
 		add_action( 'wp_ajax_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
 		add_action( 'wp_ajax_nopriv_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
+
+		// Declined notice
+		$this->maybe_display_declined_notice();
 	}
 
 	/**
@@ -2460,6 +2463,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 				new WP_Error( 'amazon_get_order_reference_failed', __( 'Failed to get order reference data. Make sure you are logged in and trying to access a valid order reference owned by you.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
 				400
 			);
+		}
+	}
+
+	/**
+	 * Maybe display declined notice.
+	 *
+	 * @since 1.7.1
+	 * @version 1.7.1
+	 */
+	public function maybe_display_declined_notice() {
+		if ( ! empty( $_GET['amazon_declined'] ) ) {
+			wc_add_notice( __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 		}
 	}
 }
