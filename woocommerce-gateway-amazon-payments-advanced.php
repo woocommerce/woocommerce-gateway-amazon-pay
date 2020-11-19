@@ -205,9 +205,6 @@ class WC_Amazon_Payments_Advanced {
 		// AJAX calls to get updated order reference details
 		add_action( 'wp_ajax_amazon_get_order_reference', array( $this, 'ajax_get_order_reference' ) );
 		add_action( 'wp_ajax_nopriv_amazon_get_order_reference', array( $this, 'ajax_get_order_reference' ) );
-
-		// WC Subscription Hook
-		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
 	}
 
 	/**
@@ -1475,21 +1472,6 @@ class WC_Amazon_Payments_Advanced {
 
 		WC()->checkout()->process_checkout();
 		wp_send_json_success();
-	}
-
-	/**
-	 * Set redirect URL if the result redirect URL is empty
-	 *
-	 * @param mixed $result
-	 * @param WC_Subscription $subscription
-	 *
-	 * @return mixed
-	 */
-	public function filter_payment_method_changed_result( $result, $subscription ) {
-		if ( empty( $result['redirect'] ) && ! empty( $subscription ) && method_exists( $subscription, 'get_view_order_url' ) ) {
-			$result['redirect'] = $subscription->get_view_order_url();
-		}
-		return $result;
 	}
 
 	public function get_gateway() {
