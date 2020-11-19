@@ -105,6 +105,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		add_action( 'wp_ajax_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
 		add_action( 'wp_ajax_nopriv_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
 
+		// Log out from Amazon handlers
+		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'logout_from_amazon' ) );
+		$this->maybe_attempt_to_logout();
+
 		// Declined notice
 		$this->maybe_display_declined_notice();
 	}
@@ -1734,6 +1738,42 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 	}
 
+	/**
+	 * Maybe the request to logout from Amazon.
+	 *
+	 * @since 1.6.0
+	 */
+	public function maybe_attempt_to_logout() {
+		if ( ! empty( $_GET['amazon_payments_advanced'] ) && ! empty( $_GET['amazon_logout'] ) ) {
+			$this->logout_from_amazon();
+		}
+	}
+
+	/**
+	 * Logout from Amazon by removing Amazon related session and logout too
+	 * from app widget.
+	 *
+	 * @since 1.6.0
+	 */
+	public function logout_from_amazon() {
+		unset( WC()->session->amazon_reference_id );
+		unset( WC()->session->amazon_access_token );
+
+		$this->reference_id = '';
+		$this->access_token = '';
+
+		if ( is_order_received_page() && 'yes' === $this->settings['enable_login_app'] ) {
+			?>
+			<script>
+			( function( $ ) {
+				$( document ).on( 'wc_amazon_pa_login_ready', function() {
+					amazon.Login.logout();
+				} );
+			} )(jQuery)
+			</script>
+			<?php
+		}
+	}
 
 	/**
 	 * Initialize Amazon Pay UI during checkout.

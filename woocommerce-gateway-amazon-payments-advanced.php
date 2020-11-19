@@ -182,7 +182,6 @@ class WC_Amazon_Payments_Advanced {
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'woocommerce_init', array( $this, 'multicurrency_init' ), 0 );
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
-		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'logout_from_amazon' ) );
 
 		// REST API support.
 		add_action( 'rest_api_init', array( $this, 'rest_api_register_routes' ), 11 );
@@ -243,8 +242,6 @@ class WC_Amazon_Payments_Advanced {
 		$this->reference_id = WC_Amazon_Payments_Advanced_API::get_reference_id();
 		$this->access_token = WC_Amazon_Payments_Advanced_API::get_access_token();
 
-		$this->maybe_attempt_to_logout();
-
 		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
 		$this->compat->load_compats();
 
@@ -279,43 +276,6 @@ class WC_Amazon_Payments_Advanced {
 	public function multicurrency_init() {
 		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
 		$this->compat->load_multicurrency();
-	}
-
-	/**
-	 * Maybe the request to logout from Amazon.
-	 *
-	 * @since 1.6.0
-	 */
-	public function maybe_attempt_to_logout() {
-		if ( ! empty( $_GET['amazon_payments_advanced'] ) && ! empty( $_GET['amazon_logout'] ) ) {
-			$this->logout_from_amazon();
-		}
-	}
-
-	/**
-	 * Logout from Amazon by removing Amazon related session and logout too
-	 * from app widget.
-	 *
-	 * @since 1.6.0
-	 */
-	public function logout_from_amazon() {
-		unset( WC()->session->amazon_reference_id );
-		unset( WC()->session->amazon_access_token );
-
-		$this->reference_id = '';
-		$this->access_token = '';
-
-		if ( is_order_received_page() && 'yes' === $this->settings['enable_login_app'] ) {
-			?>
-			<script>
-			( function( $ ) {
-				$( document ).on( 'wc_amazon_pa_login_ready', function() {
-					amazon.Login.logout();
-				} );
-			} )(jQuery)
-			</script>
-			<?php
-		}
 	}
 
 	/**
