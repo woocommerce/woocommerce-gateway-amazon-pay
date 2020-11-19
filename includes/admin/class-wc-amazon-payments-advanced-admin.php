@@ -29,7 +29,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 	 */
 	public function __construct() {
 		$this->path          = untrailingslashit( plugin_dir_path( __FILE__ ) );
-		$this->settings      = wc_apa()->get_settings();
+		$this->settings      = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		$this->init_order_admin();
 

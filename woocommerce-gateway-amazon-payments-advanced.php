@@ -197,13 +197,6 @@ class WC_Amazon_Payments_Advanced {
 		delete_option( 'amazon_api_version' );
 	}
 
-	public function get_settings( $fresh = false ) {
-		if ( ! isset( $this->settings ) || $fresh ) {
-			$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
-		}
-		return $this->settings;
-	}
-
 	/**
 	 * Init.
 	 *
