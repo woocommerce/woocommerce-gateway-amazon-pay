@@ -195,10 +195,6 @@ class WC_Amazon_Payments_Advanced {
 		$this->synchro_handler = new WC_Amazon_Payments_Advanced_Synchronous_Handler();
 		// Simple path registration endpoint.
 		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
-
-		// AJAX calls to get updated order reference details
-		add_action( 'wp_ajax_amazon_get_order_reference', array( $this, 'ajax_get_order_reference' ) );
-		add_action( 'wp_ajax_nopriv_amazon_get_order_reference', array( $this, 'ajax_get_order_reference' ) );
 	}
 
 	/**
@@ -225,41 +221,6 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function delete_migration_status() {
 		delete_option( 'amazon_api_version' );
-	}
-
-
-	/**
-	 * Ajax handler for fetching order reference
-	 */
-	public function ajax_get_order_reference() {
-		check_ajax_referer( 'order_reference_nonce', 'nonce' );
-
-		if ( empty( $_POST['order_reference_id'] ) ) {
-			wp_send_json(
-				new WP_Error( 'amazon_missing_order_reference_id', __( 'Missing order reference ID.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
-				400
-			);
-		}
-
-		if ( empty( $this->access_token ) ) {
-			wp_send_json(
-				new WP_Error( 'amazon_missing_access_token', __( 'Missing access token. Make sure you are logged in.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
-				400
-			);
-		}
-
-		$order_reference_id = sanitize_text_field( wp_unslash( $_POST['order_reference_id'] ) );
-
-		$response = $this->gateway->get_amazon_order_details( $order_reference_id );
-
-		if ( $response ) {
-			wp_send_json( $response );
-		} else {
-			wp_send_json(
-				new WP_Error( 'amazon_get_order_reference_failed', __( 'Failed to get order reference data. Make sure you are logged in and trying to access a valid order reference owned by you.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
-				400
-			);
-		}
 	}
 
 	public function get_settings( $fresh = false ) {
