@@ -87,6 +87,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		add_action( 'admin_init', array( $this, 'process_settings_export' ) );
 		add_action( 'admin_init', array( $this, 'process_settings_import' ) );
 
+		add_action( 'wp_footer', array( $this, 'maybe_hide_standard_checkout_button' ) );
+		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
+
 		// Add SCA processing and redirect.
 		add_action( 'template_redirect', array( $this, 'handle_sca_url_processing' ), 10, 2 );
 
@@ -1680,6 +1683,48 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		} else {
 			WC_Amazon_Payments_Advanced_API_Legacy::validate_api_keys();
 		}
+	}
+
+	/**
+	 * Maybe hide standard WC checkout button on the cart, if enabled
+	 */
+	public function maybe_hide_standard_checkout_button() {
+		if ( 'yes' === $this->settings['enabled'] && 'yes' === $this->settings['hide_standard_checkout_button'] ) {
+			?>
+				<style type="text/css">
+					.woocommerce a.checkout-button,
+					.woocommerce input.checkout-button,
+					.cart input.checkout-button,
+					.cart a.checkout-button,
+					.widget_shopping_cart a.checkout {
+						display: none !important;
+					}
+				</style>
+			<?php
+		}
+	}
+
+	/**
+	 * Maybe hides Amazon Pay buttons on cart or checkout pages if hide button mode
+	 * is enabled.
+	 *
+	 * @since 1.6.0
+	 */
+	public function maybe_hide_amazon_buttons() {
+		$hide_button_mode_enabled = ( 'yes' === $this->settings['enabled'] && 'yes' === $this->settings['hide_button_mode'] );
+		$hide_button_mode_enabled = apply_filters( 'woocommerce_amazon_payments_hide_amazon_buttons', $hide_button_mode_enabled );
+
+		if ( ! $hide_button_mode_enabled ) {
+			return;
+		}
+
+		?>
+		<style type="text/css">
+			.wc-amazon-payments-advanced-info, #pay_with_amazon {
+				display: none;
+			}
+		</style>
+		<?php
 	}
 
 	/**

@@ -182,8 +182,6 @@ class WC_Amazon_Payments_Advanced {
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'woocommerce_init', array( $this, 'multicurrency_init' ), 0 );
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
-		add_action( 'wp_footer', array( $this, 'maybe_hide_standard_checkout_button' ) );
-		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
 		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'logout_from_amazon' ) );
 		add_filter( 'woocommerce_ajax_get_endpoint', array( $this, 'filter_ajax_endpoint' ), 10, 2 );
 
@@ -264,53 +262,11 @@ class WC_Amazon_Payments_Advanced {
 		}
 	}
 
-	/**
-	 * Maybe hide standard WC checkout button on the cart, if enabled
-	 */
-	public function maybe_hide_standard_checkout_button() {
-		if ( 'yes' === $this->settings['enabled'] && 'yes' === $this->settings['hide_standard_checkout_button'] ) {
-			?>
-				<style type="text/css">
-					.woocommerce a.checkout-button,
-					.woocommerce input.checkout-button,
-					.cart input.checkout-button,
-					.cart a.checkout-button,
-					.widget_shopping_cart a.checkout {
-						display: none !important;
-					}
-				</style>
-			<?php
-		}
-	}
-
 	public function get_settings( $fresh = false ) {
 		if ( ! isset( $this->settings ) || $fresh ) {
 			$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		}
 		return $this->settings;
-	}
-
-	/**
-	 * Maybe hides Amazon Pay buttons on cart or checkout pages if hide button mode
-	 * is enabled.
-	 *
-	 * @since 1.6.0
-	 */
-	public function maybe_hide_amazon_buttons() {
-		$hide_button_mode_enabled = ( 'yes' === $this->settings['enabled'] && 'yes' === $this->settings['hide_button_mode'] );
-		$hide_button_mode_enabled = apply_filters( 'woocommerce_amazon_payments_hide_amazon_buttons', $hide_button_mode_enabled );
-
-		if ( ! $hide_button_mode_enabled ) {
-			return;
-		}
-
-		?>
-		<style type="text/css">
-			.wc-amazon-payments-advanced-info, #pay_with_amazon {
-				display: none;
-			}
-		</style>
-		<?php
 	}
 
 	/**
