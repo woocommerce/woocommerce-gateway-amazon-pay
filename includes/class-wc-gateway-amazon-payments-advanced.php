@@ -89,6 +89,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		// Add SCA processing and redirect.
 		add_action( 'template_redirect', array( $this, 'handle_sca_url_processing' ), 10, 2 );
+
+		// SCA Strong Customer Authentication Upgrade.
+		add_action( 'wp_ajax_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
+		add_action( 'wp_ajax_nopriv_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
 	}
 
 	/**
@@ -1676,5 +1680,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		} else {
 			WC_Amazon_Payments_Advanced_API_Legacy::validate_api_keys();
 		}
+	}
+
+	/**
+	 * When SCA, we hijack "Place Order Button" and perform our own custom Checkout.
+	 */
+	public function ajax_sca_processing() {
+		check_ajax_referer( 'sca_nonce', 'nonce' );
+		// Get $_POST and $_REQUEST compatible with process_checkout.
+		parse_str( $_POST['data'], $_POST );
+		$_REQUEST = $_POST;
+
+		WC()->checkout()->process_checkout();
+		wp_send_json_success();
 	}
 }

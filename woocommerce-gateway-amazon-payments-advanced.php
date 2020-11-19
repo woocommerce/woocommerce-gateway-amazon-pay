@@ -198,10 +198,6 @@ class WC_Amazon_Payments_Advanced {
 		// Simple path registration endpoint.
 		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
 
-		// SCA Strong Customer Authentication Upgrade.
-		add_action( 'wp_ajax_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
-		add_action( 'wp_ajax_nopriv_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
-
 		// AJAX calls to get updated order reference details
 		add_action( 'wp_ajax_amazon_get_order_reference', array( $this, 'ajax_get_order_reference' ) );
 		add_action( 'wp_ajax_nopriv_amazon_get_order_reference', array( $this, 'ajax_get_order_reference' ) );
@@ -1459,19 +1455,6 @@ class WC_Amazon_Payments_Advanced {
 		}
 
 		return $url;
-	}
-
-	/**
-	 * When SCA, we hijack "Place Order Button" and perform our own custom Checkout.
-	 */
-	public function ajax_sca_processing() {
-		check_ajax_referer( 'sca_nonce', 'nonce' );
-		// Get $_POST and $_REQUEST compatible with process_checkout.
-		parse_str( $_POST['data'], $_POST );
-		$_REQUEST = $_POST;
-
-		WC()->checkout()->process_checkout();
-		wp_send_json_success();
 	}
 
 	public function get_gateway() {
