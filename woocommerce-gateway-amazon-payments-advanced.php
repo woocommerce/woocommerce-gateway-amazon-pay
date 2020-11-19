@@ -198,9 +198,6 @@ class WC_Amazon_Payments_Advanced {
 		// Simple path registration endpoint.
 		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
 
-		// Admin Scripts.
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
-
 		// Check for credentials AJAX
 		add_action( 'wp_ajax_amazon_check_credentials', array( $this, 'ajax_check_credentials' ) );
 
@@ -872,50 +869,6 @@ class WC_Amazon_Payments_Advanced {
 			};
 		</script>
 		<?php
-	}
-
-	/**
-	 * Add scripts to dashboard settings.
-     *
-	 * @param $hook
-	 *
-	 * @throws Exception
-	 */
-	public function admin_scripts( $hook ) {
-		global $current_section;
-
-		if ( 'woocommerce_page_wc-settings' !== $hook || 'amazon_payments_advanced' !== $current_section ) {
-			return;
-		}
-
-		$js_suffix = '.min.js';
-		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-			$js_suffix = '.js';
-		}
-
-		$params = array(
-			'simple_path_urls'      => WC_Amazon_Payments_Advanced_API::$registration_urls,
-			'spids'                 => WC_Amazon_Payments_Advanced_API::$sp_ids,
-			'onboarding_version'    => WC_Amazon_Payments_Advanced_API::$onboarding_version,
-			'locale'                => get_locale(),
-			'home_url'              => home_url( null, '', 'https' ),
-			'simple_path_url'       => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
-			'public_key'            => wc_apa()->onboarding_handler->get_public_key(),
-			'privacy_url'           => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
-			'description'           => self::get_site_description(),
-			'ajax_url'              => admin_url( 'admin-ajax.php' ),
-			'credentials_nonce'     => wp_create_nonce( 'amazon_pay_check_credentials' ),
-			'manual_exchange_nonce' => wp_create_nonce( 'amazon_pay_manual_exchange' ),
-			'login_redirect_url'    => add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ),
-			'woo_version'           => 'WooCommerce: ' . WC()->version,
-			'plugin_version'        => 'WooCommerce Amazon Pay: ' . $this->version,
-		);
-
-		wp_register_script( 'amazon_payments_admin', plugins_url( 'assets/js/amazon-wc-admin' . $js_suffix, __FILE__ ), array(), $this->version, true );
-		wp_localize_script( 'amazon_payments_admin', 'amazon_admin_params', $params );
-		wp_enqueue_script( 'amazon_payments_admin' );
-
-		wp_enqueue_style( 'amazon_payments_admin', plugins_url( 'assets/css/style-admin.css', __FILE__ ), array(), $this->version );
 	}
 
 	/**
