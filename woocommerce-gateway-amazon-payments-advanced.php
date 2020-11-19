@@ -382,7 +382,6 @@ class WC_Amazon_Payments_Advanced {
 		}
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
-		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_widgets_fragment' ) );
 		add_action( 'woocommerce_after_calculate_totals', array( $this, 'force_standard_mode_refresh_with_zero_order_total' ) );
 	}
 
@@ -629,42 +628,6 @@ class WC_Amazon_Payments_Advanced {
 		</div>
 
 		<?php
-	}
-
-	/**
-	 * Render the Amazon Pay widgets when an order is updated to require
-	 * payment, and the Amazon gateway is available.
-	 *
-	 * @param array $fragments Fragments.
-	 *
-	 * @return array
-	 */
-	public function update_amazon_widgets_fragment( $fragments ) {
-
-		$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
-
-		if ( WC()->cart->needs_payment() ) {
-
-			ob_start();
-
-			$this->checkout_message();
-
-			$fragments['.wc-amazon-checkout-message:not(.wc-amazon-payments-advanced-populated)'] = ob_get_clean();
-
-			if ( array_key_exists( 'amazon_payments_advanced', $available_gateways ) ) {
-
-				ob_start();
-
-				$this->address_widget();
-
-				$this->payment_widget();
-
-				$fragments['#amazon_customer_details:not(.wc-amazon-payments-advanced-populated)'] = ob_get_clean();
-			}
-		}
-
-		return $fragments;
-
 	}
 
 	/**

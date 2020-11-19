@@ -1714,6 +1714,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		// Checkout
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
+		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_widgets_fragment' ) );
 
 		// When transaction is declined with reason code 'InvalidPaymentMethod',
 		// the customer will be promopted with read-only address widget and need
@@ -2213,6 +2214,42 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		foreach ( $field_list as $field ) {
 			unset( $checkout_fields[ $field ] );
 		}
+	}
+
+	/**
+	 * Render the Amazon Pay widgets when an order is updated to require
+	 * payment, and the Amazon gateway is available.
+	 *
+	 * @param array $fragments Fragments.
+	 *
+	 * @return array
+	 */
+	public function update_amazon_widgets_fragment( $fragments ) {
+
+		$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
+
+		if ( WC()->cart->needs_payment() ) {
+
+			ob_start();
+
+			$this->checkout_message();
+
+			$fragments['.wc-amazon-checkout-message:not(.wc-amazon-payments-advanced-populated)'] = ob_get_clean();
+
+			if ( array_key_exists( 'amazon_payments_advanced', $available_gateways ) ) {
+
+				ob_start();
+
+				$this->address_widget();
+
+				$this->payment_widget();
+
+				$fragments['#amazon_customer_details:not(.wc-amazon-payments-advanced-populated)'] = ob_get_clean();
+			}
+		}
+
+		return $fragments;
+
 	}
 
 	/**
