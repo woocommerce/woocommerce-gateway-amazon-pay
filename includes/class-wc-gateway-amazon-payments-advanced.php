@@ -1711,6 +1711,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		} elseif ( 'banner' === $this->settings['cart_button_display_mode'] ) {
 			add_action( 'woocommerce_before_cart', array( $this, 'checkout_message' ), 5 );
 		}
+
+		// When transaction is declined with reason code 'InvalidPaymentMethod',
+		// the customer will be promopted with read-only address widget and need
+		// to fix the chosen payment method. Coupon form should be disabled in
+		// this state.
+		//
+		// @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/244.
+		// @see https://pay.amazon.com/de/developer/documentation/lpwa/201953810#sync-invalidpaymentmethod.
+		if ( WC()->session && 'InvalidPaymentMethod' === WC()->session->amazon_declined_code ) {
+			remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form' );
+		}
 	}
 
 
