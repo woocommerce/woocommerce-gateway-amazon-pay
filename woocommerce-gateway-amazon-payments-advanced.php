@@ -198,12 +198,6 @@ class WC_Amazon_Payments_Advanced {
 		// Simple path registration endpoint.
 		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
 
-		// Check for credentials AJAX
-		add_action( 'wp_ajax_amazon_check_credentials', array( $this, 'ajax_check_credentials' ) );
-
-		// Delete credentials AJAX
-		add_action( 'wp_ajax_amazon_delete_credentials', array( $this, 'ajax_delete_credentials' ) );
-
 		// SCA Strong Customer Authentication Upgrade.
 		add_action( 'wp_ajax_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
 		add_action( 'wp_ajax_nopriv_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
@@ -1468,46 +1462,6 @@ class WC_Amazon_Payments_Advanced {
 		}
 
 		return $url;
-	}
-
-	/**
-	 *  AJAX handler to check if credentials have been set on settings page.
-	 */
-	public function ajax_check_credentials() {
-		check_ajax_referer( 'amazon_pay_check_credentials', 'nonce' );
-		$result        = -1;
-		$settings      = WC_Amazon_Payments_Advanced_API::get_settings();
-		$saved_payload = get_option( 'woocommerce_amazon_payments_advanced_saved_payload' );
-		if ( ! empty( $settings['merchant_id'] )
-			&& ! empty( $settings['store_id'] )
-			&& ! empty( $settings['public_key_id'] )
-			&& $saved_payload
-		) {
-			$result = array(
-				'merchant_id'   => $settings['merchant_id'],
-				'store_id'      => $settings['store_id'],
-				'public_key_id' => $settings['public_key_id'],
-
-			);
-			delete_option( 'woocommerce_amazon_payments_advanced_saved_payload' );
-		}
-		wp_send_json_success( $result );
-	}
-
-	/**
-	 *  AJAX handler to delete credentials have been set on settings page.
-	 */
-	public function ajax_delete_credentials() {
-		check_ajax_referer( 'amazon_pay_check_credentials', 'nonce' );
-		if ( current_user_can( 'manage_options' ) ) {
-			WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::destroy_keys();
-			$this->gateway->update_option( 'amazon_keys_setup_and_validated', 0 );
-			$this->gateway->update_option( 'public_key_id', '' );
-			wp_send_json_success();
-			wp_die();
-		}
-		wp_send_json_error();
-		wp_die();
 	}
 
 	/**
