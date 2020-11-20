@@ -71,7 +71,6 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 			$payload->publicKeyId = $decrypted_key;
 
 			$this->save_payload( $payload );
-			wc_apa()->update_migration_status();
 			header( 'Access-Control-Allow-Origin: ' . $this->get_origin_header( $headers ) );
 			header( 'Access-Control-Allow-Methods: GET, POST' );
 			header( 'Access-Control-Allow-Headers: Content-Type' );
