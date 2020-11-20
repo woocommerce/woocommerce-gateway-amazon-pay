@@ -84,6 +84,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$ret = true;
 			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 1 );
 
+			do_action( 'wc_amazon_keys_setup_and_validated', '2' );
+
 		} catch ( Exception $e ) {
 			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
 			wc_apa()->delete_migration_status();
