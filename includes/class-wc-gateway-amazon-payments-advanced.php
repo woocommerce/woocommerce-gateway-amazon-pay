@@ -1626,12 +1626,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 
 		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
-
-		if ( empty( $this->settings['merchant_id'] ) ) {
-			wc_apa()->delete_migration_status();
-		} else {
-			wc_apa()->update_migration_status();
-		}
 	}
 
 	/**
