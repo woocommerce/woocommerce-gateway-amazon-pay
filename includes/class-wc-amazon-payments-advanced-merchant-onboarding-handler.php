@@ -32,8 +32,6 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	public function __construct() {
 		// Handles Simple Path request from Amazon.
 		add_action( 'woocommerce_api_' . self::ENDPOINT_URL, array( $this, 'check_onboarding_request' ) );
-		// Handles manual encrypted key exchange.
-		add_action( 'wp_ajax_amazon_manual_exchange', array( $this, 'check_onboarding_ajax_request' ) );
 	}
 
 	/**
@@ -85,52 +83,6 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 					'result'  => 'error',
 					'message' => esc_html__( 'Bad request.', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(),
 				),
-				400
-			);
-		}
-	}
-
-	/**
-	 * Get encrypted payload from manual copy, decrypt it and return/save it.
-	 */
-	public function check_onboarding_ajax_request() {
-		check_ajax_referer( 'amazon_pay_manual_exchange', 'nonce' );
-
-		try {
-			$payload = array();
-			if ( isset( $_POST['data'] ) ) {
-				$payload = $_POST['data'];
-			}
-			$payload        = (object) filter_var_array(
-				$payload,
-				array(
-					array(
-						'merchantId'  => FILTER_SANITIZE_STRING,
-						'storeId'     => FILTER_SANITIZE_STRING,
-						'publicKeyId' => FILTER_SANITIZE_STRING,
-					),
-				),
-				true
-			);
-			$payment_region = isset( $_POST['region'] ) ? filter_input( INPUT_POST, 'region', FILTER_SANITIZE_STRING ) : 'us';
-
-			// Validate payload.
-			if ( ! isset( $payload->merchantId, $payload->storeId, $payload->publicKeyId ) ) {  // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				throw new Exception( esc_html__( 'Incomplete payload.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-			}
-
-			// URL decode values.
-			foreach ( $payload as $key => $value ) {
-				$payload->$key = rawurldecode( $value );
-			}
-
-			$this->save_payload( $payload );
-			wc_apa()->update_migration_status();
-
-		} catch ( Exception $e ) {
-			wc_apa()->log( __METHOD__, 'Failed to handle manual key exchange request: ' . $e->getMessage() );
-			wp_send_json_error(
-				new WP_Error( 'invalid_payload', esc_html__( 'Bad request.', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage() ),
 				400
 			);
 		}

@@ -307,7 +307,6 @@ class WC_Amazon_Payments_Advanced_Admin {
 			'description'           => WC_Amazon_Payments_Advanced::get_site_description(),
 			'ajax_url'              => admin_url( 'admin-ajax.php' ),
 			'credentials_nonce'     => wp_create_nonce( 'amazon_pay_check_credentials' ),
-			'manual_exchange_nonce' => wp_create_nonce( 'amazon_pay_manual_exchange' ),
 			'login_redirect_url'    => add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ),
 			'woo_version'           => 'WooCommerce: ' . WC()->version,
 			'plugin_version'        => 'WooCommerce Amazon Pay: ' . wc_apa()->version,
