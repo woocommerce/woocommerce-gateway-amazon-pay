@@ -139,7 +139,6 @@ class WC_Amazon_Payments_Advanced {
 		$this->path            = untrailingslashit( plugin_dir_path( __FILE__ ) );
 		$this->plugin_url      = untrailingslashit( plugins_url( '/', __FILE__ ) );
 		$this->plugin_basename = plugin_basename( __FILE__ );
-		$this->get_migration_status();
 		$this->includes_path   = $this->path . '/includes/';
 
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-merchant-onboarding-handler.php';
