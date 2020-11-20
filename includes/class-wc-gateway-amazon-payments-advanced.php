@@ -1569,7 +1569,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$settings    = get_option( $this->get_option_key() );
 		$private_key = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 
-		$settings['v2_private_key'] = $private_key;
+		$settings['private_key'] = $private_key;
 
 		ignore_user_abort( true );
 
@@ -1597,9 +1597,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$json_settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
-		if ( isset( $json_settings['v2_private_key'] ) ) {
-			$private_key = $json_settings['v2_private_key'];
-			unset( $json_settings['v2_private_key'] );
+		if ( isset( $json_settings['private_key'] ) ) {
+			$private_key = $json_settings['private_key'];
+			unset( $json_settings['private_key'] );
 			$this->save_private_key( $private_key );
 		}
 
