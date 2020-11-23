@@ -37,6 +37,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 		add_action( 'woocommerce_subscription_cancelled_' . $this->id, array( $this, 'cancelled_subscription' ) );
 
 		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $this->id, array( $this, 'update_failing_payment_method' ), 10, 2 );
+
+		// WC Subscription Hook
+		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
 	}
 
 	/**
@@ -734,5 +737,20 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 
 		wp_redirect( $redirect );
 		exit;
+	}
+
+	/**
+	 * Set redirect URL if the result redirect URL is empty
+	 *
+	 * @param mixed $result
+	 * @param WC_Subscription $subscription
+	 *
+	 * @return mixed
+	 */
+	public function filter_payment_method_changed_result( $result, $subscription ) {
+		if ( empty( $result['redirect'] ) && ! empty( $subscription ) && method_exists( $subscription, 'get_view_order_url' ) ) {
+			$result['redirect'] = $subscription->get_view_order_url();
+		}
+		return $result;
 	}
 }

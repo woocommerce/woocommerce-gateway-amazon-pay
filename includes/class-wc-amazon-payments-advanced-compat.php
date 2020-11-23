@@ -12,10 +12,18 @@
  */
 class WC_Amazon_Payments_Advanced_Compat {
 
+	public function __construct() {
+		add_action( 'init', array( $this, 'load_compats' ) );
+		add_action( 'woocommerce_init', array( $this, 'load_multicurrency' ), 0 );
+	}
+
 	/**
 	 * Load compat classes and instantiate it.
 	 */
 	public function load_compats() {
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			return;
+		}
 
 		// Load built-in compat classes.
 		require_once( 'compats/class-wc-amazon-payments-advanced-drip-compat.php' );
@@ -23,7 +31,6 @@ class WC_Amazon_Payments_Advanced_Compat {
 		require_once( 'compats/class-wc-amazon-payments-advanced-dynamic-pricing-compat.php' );
 		require_once( 'compats/class-wc-amazon-payments-advanced-subscribe-to-newsletter-compat.php' );
 		require_once( 'compats/class-wc-amazon-payments-advanced-woocommerce-multilingual-compat.php' );
-
 
 		$compats = array(
 			'WC_Amazon_Payments_Advanced_Drip_Compat',

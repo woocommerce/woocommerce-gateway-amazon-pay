@@ -8,7 +8,7 @@
 /**
  * Implement payment method for Amazon Pay.
  */
-class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
+class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Advanced_Legacy {
 
 	/**
 	 * Amazon Order Reference ID (when not in "login app" mode checkout)
@@ -38,7 +38,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$this->method_title         = __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' );
 		$this->method_description   = __( 'Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.', 'woocommerce-gateway-amazon-payments-advanced' );
 		$this->id                   = 'amazon_payments_advanced';
-		$this->icon                 = apply_filters( 'woocommerce_amazon_pa_logo', plugins_url( 'assets/images/amazon-payments.png', plugin_dir_path( __FILE__ ) ) );
+		$this->icon                 = apply_filters( 'woocommerce_amazon_pa_logo', wc_apa()->plugin_url . '/assets/images/amazon-payments.png' );
 		$this->debug                = ( 'yes' === $this->get_option( 'debug' ) );
 		$this->view_transaction_url = $this->get_transaction_url_format();
 		$this->supports             = array(
@@ -47,7 +47,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		);
 		$this->private_key          = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 
-		// Load multicurrency fields if compatibility. (Only on settings admin)
+		// Load multicurrency fields if compatibility. (Only on settings admin).
 		if ( is_admin() ) {
 			$compatible_region = isset( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) ? WC_Amazon_Payments_Advanced_Multi_Currency::compatible_region( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) : WC_Amazon_Payments_Advanced_Multi_Currency::compatible_region();
 			if ( $compatible_region && WC_Amazon_Payments_Advanced_Multi_Currency::get_compatible_instance( $compatible_region ) ) {
@@ -87,8 +87,30 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		add_action( 'admin_init', array( $this, 'process_settings_export' ) );
 		add_action( 'admin_init', array( $this, 'process_settings_import' ) );
 
+		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
+
+		add_filter( 'woocommerce_ajax_get_endpoint', array( $this, 'filter_ajax_endpoint' ), 10, 2 );
+
+		add_action( 'wp_footer', array( $this, 'maybe_hide_standard_checkout_button' ) );
+		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
+
+		// AJAX calls to get updated order reference details.
+		add_action( 'wp_ajax_amazon_get_order_reference', array( $this, 'ajax_get_order_reference' ) );
+		add_action( 'wp_ajax_nopriv_amazon_get_order_reference', array( $this, 'ajax_get_order_reference' ) );
+
 		// Add SCA processing and redirect.
 		add_action( 'template_redirect', array( $this, 'handle_sca_url_processing' ), 10, 2 );
+
+		// SCA Strong Customer Authentication Upgrade.
+		add_action( 'wp_ajax_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
+		add_action( 'wp_ajax_nopriv_amazon_sca_processing', array( $this, 'ajax_sca_processing' ) );
+
+		// Log out from Amazon handlers.
+		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'logout_from_amazon' ) );
+		$this->maybe_attempt_to_logout();
+
+		// Declined notice.
+		$this->maybe_display_declined_notice();
 	}
 
 	/**
@@ -155,7 +177,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			<?php if ( empty( $this->reference_id ) && empty( $this->access_token ) ) : ?>
 				<div>
 					<div id="pay_with_amazon"></div>
-					<?php echo apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ); ?>
+					<?php echo esc_html( apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) ); ?>
 				</div>
 			<?php else : ?>
 				<div class="wc-amazon-payments-advanced-order-day-widgets">
@@ -464,7 +486,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					),
 					'container_start'       => array(
 						'type'        => 'custom',
-						'html'        => '<div id="v1-settings-container" class="hidden">'
+						'html'        => '<div id="v1-settings-container" class="hidden">',
 					),
 					'seller_id'                => array(
 						'title'       => __( 'Seller ID', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -525,7 +547,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 					),
 					'container_end'       => array(
 						'type'        => 'custom',
-						'html'        => '</div>'
+						'html'        => '</div>',
 					),
 				)
 			);
@@ -910,6 +932,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Process asynchronous Authorization.
+	 *
 	 * @param WC_Order $order
 	 * @param string $amazon_reference_id
 	 */
@@ -923,13 +947,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$response = $this->process_payment_with_async_authorize( $order, $amazon_reference_id );
 
 		$amazon_authorization_id = WC_Amazon_Payments_Advanced_API::get_auth_id_from_response( $response );
-		$args = array(
+		$args                    = array(
 			'order_id'                => $order->get_id(),
 			'amazon_authorization_id' => $amazon_authorization_id,
 		);
 		// Schedule action to check pending order next hour.
 		if ( false === as_next_scheduled_action( 'wcga_process_pending_syncro_payments', $args ) ) {
-			as_schedule_single_action( strtotime( 'next hour' ) , 'wcga_process_pending_syncro_payments', $args );
+			as_schedule_single_action( strtotime( 'next hour' ), 'wcga_process_pending_syncro_payments', $args );
 		}
 	}
 
@@ -1009,10 +1033,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	}
 
 	/**
-     * In asynchronous mode, the Authorize operation always returns the State as Pending. The authorisation remains in this state until it is processed by Amazon.
-     * The processing time varies and can be a minute or more. After processing is complete, Amazon notifies you of the final processing status.
-     * Transaction Timeout always set to 1440.
-     *
+	 * In asynchronous mode, the Authorize operation always returns the State as Pending. The authorisation remains in this state until it is processed by Amazon.
+	 * The processing time varies and can be a minute or more. After processing is complete, Amazon notifies you of the final processing status.
+	 * Transaction Timeout always set to 1440.
+	 *
 	 * @param WC_Order $order               WC Order object.
 	 * @param string   $amazon_reference_id Amazon Order Reference ID.
 	 *
@@ -1026,7 +1050,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			'capture_now'         => ( 'authorize' === $this->payment_capture ) ? false : true,
 			'transaction_timeout' => 1440,
 		);
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
+		$order_id       = wc_apa_get_order_prop( $order, 'id' );
 		return WC_Amazon_Payments_Advanced_API::authorize( $order_id, $authorize_args );
 	}
 
@@ -1094,7 +1118,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		// If the transaction timed out and async authorization is enabled then throw an exception here and don't set
 		// any of the session state related to declined orders. We'll let the calling code re-try by triggering an async
 		// authorization.
-		if ( in_array( $code, array( 'TransactionTimedOut' ) ) && 'async' === $this->authorization_mode ) {
+		if ( in_array( $code, array( 'TransactionTimedOut' ), true ) && 'async' === $this->authorization_mode ) {
 			$e = new Exception( $result->get_error_message() );
 
 			$e->transaction_timed_out = true;
@@ -1102,7 +1126,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 
 		WC()->session->set( 'reload_checkout', true );
-		if ( in_array( $code, array( 'AmazonRejected', 'ProcessingFailure', 'TransactionTimedOut' ) ) ) {
+		if ( in_array( $code, array( 'AmazonRejected', 'ProcessingFailure', 'TransactionTimedOut' ), true ) ) {
 			WC()->session->set( 'amazon_declined_order_id', $order_id );
 			WC()->session->set( 'amazon_declined_with_cancel_order', true );
 		}
@@ -1125,6 +1149,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		$amazon_capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
 		if ( empty( $amazon_capture_id ) ) {
+			/* translators: Order number */
 			return new WP_Error( 'error', sprintf( __( 'Unable to refund order %s. Order does not have Amazon capture reference. Make sure order has been captured.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id ) );
 		}
 
@@ -1153,20 +1178,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$site_name = WC_Amazon_Payments_Advanced::get_site_name();
 
 		/* translators: Order number and site's name */
-		$seller_note  = sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), urlencode( $site_name ) );
+		$seller_note = sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), rawurlencode( $site_name ) );
+		/* translators: Plugin version */
 		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ),  WC_AMAZON_PAY_VERSION, WC()->version );
 
-		$request_args = array_merge( array(
-			'Action'                                                           => 'SetOrderReferenceDetails',
-			'AmazonOrderReferenceId'                                           => $amazon_reference_id,
-			'OrderReferenceAttributes.OrderTotal.Amount'                       => $order->get_total(),
-			'OrderReferenceAttributes.OrderTotal.CurrencyCode'                 => wc_apa_get_order_prop( $order, 'order_currency' ),
-			'OrderReferenceAttributes.SellerNote'                              => $seller_note,
-			'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId'     => $order->get_order_number(),
-			'OrderReferenceAttributes.SellerOrderAttributes.StoreName'         => $site_name,
-			'OrderReferenceAttributes.PlatformId'                              => 'A1BVJDFFHQ7US4',
-			'OrderReferenceAttributes.SellerOrderAttributes.CustomInformation' => $version_note,
-		), $overrides );
+		$request_args = array_merge(
+			array(
+				'Action'                                                           => 'SetOrderReferenceDetails',
+				'AmazonOrderReferenceId'                                           => $amazon_reference_id,
+				'OrderReferenceAttributes.OrderTotal.Amount'                       => $order->get_total(),
+				'OrderReferenceAttributes.OrderTotal.CurrencyCode'                 => wc_apa_get_order_prop( $order, 'order_currency' ),
+				'OrderReferenceAttributes.SellerNote'                              => $seller_note,
+				'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId'     => $order->get_order_number(),
+				'OrderReferenceAttributes.SellerOrderAttributes.StoreName'         => $site_name,
+				'OrderReferenceAttributes.PlatformId'                              => 'A1BVJDFFHQ7US4',
+				'OrderReferenceAttributes.SellerOrderAttributes.CustomInformation' => $version_note,
+			),
+			$overrides
+		);
 
 		// Update order reference with amounts.
 		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
@@ -1272,7 +1301,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		 * @see the "Getting the Shipping Address" section here: https://payments.amazon.com/documentation/lpwa/201749990
 		 */
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
-		if ( 'yes' == $settings['enable_login_app'] ) {
+		if ( 'yes' === $settings['enable_login_app'] ) {
 			$request_args['AddressConsentToken'] = $this->access_token;
 		}
 
@@ -1473,6 +1502,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Maybe render timeout transaction order received text.
+	 *
 	 * @param $text
 	 * @param WC_Order $order
 	 *
@@ -1530,7 +1561,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Process a settings export that generates a .json file 
+	 * Process a settings export that generates a .json file
 	 */
 	public function process_settings_export() {
 
@@ -1547,7 +1578,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		$settings    = get_option( $this->get_option_key() );
 		$private_key = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 
-		$settings['v2_private_key'] = $private_key;
+		$settings['private_key'] = $private_key;
 
 		ignore_user_abort( true );
 
@@ -1575,9 +1606,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$json_settings = (array) json_decode( file_get_contents( $import_file['tmp_name'] ) );
-		if ( isset( $json_settings['v2_private_key'] ) ) {
-			$private_key = $json_settings['v2_private_key'];
-			unset( $json_settings['v2_private_key'] );
+		if ( isset( $json_settings['private_key'] ) ) {
+			$private_key = $json_settings['private_key'];
+			unset( $json_settings['private_key'] );
 			$this->save_private_key( $private_key );
 		}
 
@@ -1604,12 +1635,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		}
 
 		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
-
-		if ( empty( $this->settings['merchant_id'] ) ) {
-			wc_apa()->delete_migration_status();
-		} else {
-			wc_apa()->update_migration_status();
-		}
 	}
 
 	/**
@@ -1639,10 +1664,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		exit;
 	}
 
+	/**
+	 * Generate Custom HTML.
+	 */
 	public function generate_custom_html( $id, $conf ) {
-		$html = isset( $conf['html'] ) ? wp_kses_post( $conf['html'] ) : "";
+		$html = isset( $conf['html'] ) ? wp_kses_post( $conf['html'] ) : '';
 
-		if( $html ) {
+		if ( $html ) {
 			ob_start();
 			?>
 			</table>
@@ -1656,7 +1684,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Save private key
+	 * Save private key.
 	 *
 	 * @param string $private_key Private key PEM string.
 	 */
@@ -1670,11 +1698,945 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 		return false;
 	}
 
+	/**
+	 * Validate api keys.
+	 */
 	public function validate_api_keys() {
-		if ( wc_apa()->get_migration_status( true ) ) {
+		if ( ! empty( $this->settings['merchant_id'] ) || WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
 			WC_Amazon_Payments_Advanced_API::validate_api_keys();
 		} else {
 			WC_Amazon_Payments_Advanced_API_Legacy::validate_api_keys();
 		}
+	}
+
+	/**
+	 * Load handlers for cart and orders after WC Cart is loaded.
+	 */
+	public function init_handlers() {
+		// Disable if no seller ID.
+		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) || empty( $this->settings['seller_id'] ) || 'no' === $this->settings['enabled'] ) {
+			return;
+		}
+
+		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
+
+		// Login app actions.
+		if ( 'yes' === $this->settings['enable_login_app'] ) {
+			// Login app widget.
+			add_action( 'wp_head', array( $this, 'init_amazon_login_app_widget' ) );
+		}
+
+		if ( 'button' === $this->settings['cart_button_display_mode'] ) {
+			add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
+		} elseif ( 'banner' === $this->settings['cart_button_display_mode'] ) {
+			add_action( 'woocommerce_before_cart', array( $this, 'checkout_message' ), 5 );
+		}
+
+		// Checkout.
+		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
+		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_widgets_fragment' ) );
+		add_action( 'woocommerce_after_calculate_totals', array( $this, 'force_standard_mode_refresh_with_zero_order_total' ) );
+
+		// When transaction is declined with reason code 'InvalidPaymentMethod',
+		// the customer will be promopted with read-only address widget and need
+		// to fix the chosen payment method. Coupon form should be disabled in
+		// this state.
+		//
+		// @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/244.
+		// @see https://pay.amazon.com/de/developer/documentation/lpwa/201953810#sync-invalidpaymentmethod.
+		if ( WC()->session && 'InvalidPaymentMethod' === WC()->session->amazon_declined_code ) {
+			remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form' );
+		}
+	}
+
+	/**
+	 * Maybe the request to logout from Amazon.
+	 *
+	 * @since 1.6.0
+	 */
+	public function maybe_attempt_to_logout() {
+		if ( ! empty( $_GET['amazon_payments_advanced'] ) && ! empty( $_GET['amazon_logout'] ) ) {
+			$this->logout_from_amazon();
+		}
+	}
+
+	/**
+	 * Logout from Amazon by removing Amazon related session and logout too
+	 * from app widget.
+	 *
+	 * @since 1.6.0
+	 */
+	public function logout_from_amazon() {
+		unset( WC()->session->amazon_reference_id );
+		unset( WC()->session->amazon_access_token );
+
+		$this->reference_id = '';
+		$this->access_token = '';
+
+		if ( is_order_received_page() && 'yes' === $this->settings['enable_login_app'] ) {
+			?>
+			<script>
+			( function( $ ) {
+				$( document ).on( 'wc_amazon_pa_login_ready', function() {
+					amazon.Login.logout();
+				} );
+			} )(jQuery)
+			</script>
+			<?php
+		}
+	}
+
+	/**
+	 * Initialize Amazon Pay UI during checkout.
+	 *
+	 * @param WC_Checkout $checkout Checkout object.
+	 */
+	public function checkout_init( $checkout ) {
+
+		/**
+		 * Make sure this is checkout initiated from front-end where cart exsits.
+		 *
+		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/238
+		 */
+		if ( ! WC()->cart ) {
+			return;
+		}
+
+		// Are we using the login app?
+		$enable_login_app = ( 'yes' === $this->settings['enable_login_app'] );
+
+		// Disable Amazon Pay for zero-total checkouts using the standard button.
+		if ( ! WC()->cart->needs_payment() && ! $enable_login_app ) {
+
+			// Render a placeholder widget container instead, in the event we
+			// need to populate it later.
+			add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'placeholder_widget_container' ) );
+
+			// Render a placeholder checkout message container, in the event we
+			// need to populate it later.
+			add_action( 'woocommerce_before_checkout_form', array( $this, 'placeholder_checkout_message_container' ), 5 );
+
+			return;
+
+		}
+
+		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
+		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
+
+		// Don't try to render the Amazon widgets if we don't have the prerequisites
+		// for each mode.
+		if ( ( ! $enable_login_app && empty( $this->reference_id ) ) || ( $enable_login_app && empty( $this->access_token ) ) ) {
+			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
+			return;
+		}
+
+		// If all prerequisites are meet to be an amazon checkout.
+		do_action( 'woocommerce_amazon_checkout_init', $enable_login_app );
+
+		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'payment_widget' ), 20 );
+		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'address_widget' ), 10 );
+		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_gateways' ) );
+		add_action( 'woocommerce_checkout_order_processed', array( $this, 'capture_shipping_address_for_zero_order_total' ) );
+		add_action( 'woocommerce_ship_to_different_address_checked', '__return_true' );
+		// Some fields are not enforced on Amazon's side. Marking them as optional avoids issues with checkout.
+		add_filter( 'woocommerce_billing_fields', array( $this, 'override_billing_fields' ) );
+		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_shipping_fields' ) );
+		// The default checkout form uses the billing email for new account creation
+		// Let's hijack that field for the Amazon-based checkout.
+		if ( apply_filters( 'woocommerce_pa_hijack_checkout_fields', true ) ) {
+			$this->hijack_checkout_fields( $checkout );
+		}
+	}
+
+	/**
+	 * Output an empty placeholder widgets container
+	 */
+	public function placeholder_widget_container() {
+		?>
+		<div id="amazon_customer_details"></div>
+		<?php
+	}
+
+	/**
+	 * Output an empty placeholder checkout message container
+	 */
+	public function placeholder_checkout_message_container() {
+		?>
+		<div class="wc-amazon-checkout-message"></div>
+		<?php
+	}
+
+	/**
+	 * Checkout Message
+	 */
+	public function checkout_message() {
+		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
+		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' == $this->settings['subscriptions_enabled'];
+		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
+
+		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+			return;
+		}
+
+		echo '<div class="wc-amazon-checkout-message wc-amazon-payments-advanced-populated">';
+
+		if ( empty( $this->reference_id ) && empty( $this->access_token ) ) {
+			echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info"><div id="pay_with_amazon"></div> ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
+		} else {
+			$logout_url      = $this->get_amazon_logout_url();
+			$logout_msg_html = '<div class="woocommerce-info info">' . apply_filters( 'woocommerce_amazon_pa_checkout_logout_message', __( 'You\'re logged in with your Amazon Account.', 'woocommerce-gateway-amazon-payments-advanced' ) ) . ' <a href="' . esc_url( $logout_url ) . '" id="amazon-logout">' . __( 'Log out &raquo;', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a></div>';
+			echo apply_filters( 'woocommerce_amazon_payments_logout_checkout_message_html', $logout_msg_html );
+		}
+
+		echo '</div>';
+
+	}
+
+	/**
+	 * Get Amazon logout URL.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @return string Amazon logout URL
+	 */
+	public function get_amazon_logout_url() {
+		return add_query_arg(
+			array(
+				'amazon_payments_advanced' => 'true',
+				'amazon_logout'            => 'true',
+			),
+			get_permalink( wc_get_page_id( 'checkout' ) )
+		);
+	}
+
+	/**
+	 * Output the address widget HTML
+	 */
+	public function address_widget() {
+		// Skip showing address widget for carts with virtual products only.
+		$show_address_widget = apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() );
+		$hide_css_style      = ( ! $show_address_widget ) ? 'display: none;' : '';
+		?>
+		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
+			<div class="col2-set">
+				<div class="col-1" style="<?php echo esc_attr( $hide_css_style ); ?>">
+					<?php if ( 'skip' !== WC()->session->get( 'amazon_billing_agreement_details' ) ) : ?>
+						<h3><?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
+						<div id="amazon_addressbook_widget"></div>
+					<?php endif ?>
+					<?php if ( ! empty( $this->reference_id ) ) : ?>
+						<input type="hidden" name="amazon_reference_id" value="<?php echo esc_attr( $this->reference_id ); ?>" />
+					<?php endif; ?>
+					<?php if ( ! empty( $this->access_token ) ) : ?>
+						<input type="hidden" name="amazon_access_token" value="<?php echo esc_attr( $this->access_token ); ?>" />
+					<?php endif; ?>
+				</div>
+		<?php
+	}
+
+	/**
+	 * Output the payment method widget HTML
+	 */
+	public function payment_widget() {
+		$checkout = WC_Checkout::instance();
+		?>
+				<div class="col-2">
+					<h3><?php esc_html_e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
+					<div id="amazon_wallet_widget"></div>
+					<?php if ( ! empty( $this->reference_id ) ) : ?>
+						<input type="hidden" name="amazon_reference_id" value="<?php echo esc_attr( $this->reference_id ); ?>" />
+					<?php endif; ?>
+					<?php if ( ! empty( $this->access_token ) ) : ?>
+						<input type="hidden" name="amazon_access_token" value="<?php echo esc_attr( $this->access_token ); ?>" />
+					<?php endif; ?>
+					<?php if ( 'skip' === WC()->session->get( 'amazon_billing_agreement_details' ) ) : ?>
+						<input type="hidden" name="amazon_billing_agreement_details" value="skip" />
+					<?php endif; ?>
+				</div>
+				<?php if ( 'skip' !== WC()->session->get( 'amazon_billing_agreement_details' ) ) : ?>
+					<div id="amazon_consent_widget" style="display: none;"></div>
+				<?php endif; ?>
+
+		<?php if ( ! is_user_logged_in() && $checkout->enable_signup ) : ?>
+
+			<?php if ( $checkout->enable_guest_checkout ) : ?>
+
+				<p class="form-row form-row-wide create-account">
+					<input class="input-checkbox" id="createaccount" <?php checked( ( true === $checkout->get_value( 'createaccount' ) || ( true === apply_filters( 'woocommerce_create_account_default_checked', false ) ) ), true ); ?> type="checkbox" name="createaccount" value="1" /> <label for="createaccount" class="checkbox"><?php esc_html_e( 'Create an account?', 'woocommerce-gateway-amazon-payments-advanced' ); ?></label>
+				</p>
+
+			<?php endif; ?>
+
+			<?php do_action( 'woocommerce_before_checkout_registration_form', $checkout ); ?>
+
+			<?php if ( ! empty( $checkout->checkout_fields['account'] ) ) : ?>
+
+				<div class="create-account">
+
+					<h3><?php esc_html_e( 'Create Account', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
+					<p><?php esc_html_e( 'Create an account by entering the information below. If you are a returning customer please login at the top of the page.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
+
+					<?php foreach ( $checkout->checkout_fields['account'] as $key => $field ) : ?>
+
+						<?php woocommerce_form_field( $key, $field, $checkout->get_value( $key ) ); ?>
+
+					<?php endforeach; ?>
+
+					<div class="clear"></div>
+
+				</div>
+
+			<?php endif; ?>
+
+			<?php do_action( 'woocommerce_after_checkout_registration_form', $checkout ); ?>
+
+		<?php endif; ?>
+			</div>
+		</div>
+
+		<?php
+	}
+
+	/**
+	 * Remove amazon gateway.
+	 *
+	 * @param $gateways
+	 *
+	 * @return array
+	 */
+	public function remove_amazon_gateway( $gateways ) {
+
+		foreach ( $gateways as $gateway_key => $gateway ) {
+			if ( 'amazon_payments_advanced' === $gateway_key ) {
+				unset( $gateways[ $gateway_key ] );
+			}
+		}
+
+		return $gateways;
+	}
+
+	/**
+	 * Remove all gateways except amazon
+	 *
+	 * @param array $gateways List of payment methods.
+	 *
+	 * @return array List of payment methods.
+	 */
+	public function remove_gateways( $gateways ) {
+
+		foreach ( $gateways as $gateway_key => $gateway ) {
+			if ( 'amazon_payments_advanced' !== $gateway_key ) {
+				unset( $gateways[ $gateway_key ] );
+			}
+		}
+
+		return $gateways;
+	}
+
+	/**
+	 * Capture full shipping address in the case of a $0 order, using the "login app"
+	 * version of the API.
+	 *
+	 * @version 1.7.1
+	 *
+	 * @param int $order_id Order ID.
+	 */
+	public function capture_shipping_address_for_zero_order_total( $order_id ) {
+		$order = wc_get_order( $order_id );
+
+		/**
+		 * Complete address data is only available without a confirmed order if
+		 * we're using the login app.
+		 *
+		 * @see Getting the Shipping Address section at https://payments.amazon.com/documentation/lpwa/201749990
+		 */
+		if ( ( $order->get_total() > 0 ) || empty( $this->reference_id ) || ( 'yes' !== $this->settings['enable_login_app'] ) || empty( $this->access_token ) ) {
+			return;
+		}
+
+		// Get FULL address details and save them to the order.
+		$order_details = wc_apa()->get_gateway()->get_amazon_order_details( $this->reference_id );
+
+		if ( $order_details ) {
+			wc_apa()->get_gateway()->store_order_address_details( $order, $order_details );
+		}
+	}
+
+	/**
+	 * Override billing fields when checking out with Amazon.
+	 *
+	 * @param array $fields billing fields.
+	 */
+	public function override_billing_fields( $fields ) {
+		// Last name and State are not required on Amazon billing addrress forms.
+		$fields['billing_last_name']['required'] = false;
+		$fields['billing_state']['required']     = false;
+		// Phone field is missing on some sandbox accounts.
+		$fields['billing_phone']['required'] = false;
+
+		return $fields;
+	}
+
+	/**
+	 * Override address fields when checking out with Amazon.
+	 *
+	 * @param array $fields default address fields.
+	 */
+	public function override_shipping_fields( $fields ) {
+		// Last name and State are not required on Amazon shipping addrress forms.
+		$fields['shipping_last_name']['required'] = false;
+		$fields['shipping_state']['required']     = false;
+
+		return $fields;
+	}
+
+	/**
+	 * Hijack checkout fields during checkout.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	public function hijack_checkout_fields( $checkout ) {
+		$has_billing_fields = (
+			isset( $checkout->checkout_fields['billing'] )
+			&&
+			is_array( $checkout->checkout_fields['billing'] )
+		);
+
+		if ( $has_billing_fields && 'yes' !== $this->settings['enable_login_app'] ) {
+			$this->hijack_checkout_field_account( $checkout );
+		}
+
+		// During an Amazon checkout, the standard billing and shipping fields need to be
+		// "removed" so that we don't trigger a false negative on form validation -
+		// they can be empty since we're using the Amazon widgets.
+		$this->hijack_checkout_field_billing( $checkout );
+		$this->hijack_checkout_field_shipping( $checkout );
+	}
+
+	/**
+	 * Alter account checkout field.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	private function hijack_checkout_field_account( $checkout ) {
+		$billing_fields_to_copy = array(
+			'billing_first_name' => '',
+			'billing_last_name'  => '',
+			'billing_email'      => '',
+		);
+
+		$billing_fields_to_merge = array_intersect_key( $checkout->checkout_fields['billing'], $billing_fields_to_copy );
+
+		/**
+		 * WC 3.0 changes a bit a way to retrieve fields.
+		 *
+		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/217
+		 */
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		/**
+		 * Before 3.0.0, account fields may not set at all if guest checkout is
+		 * disabled with account and password generated automatically.
+		 *
+		 * @see https://github.com/woocommerce/woocommerce/blob/2.6.14/includes/class-wc-checkout.php#L92-L132
+		 * @see https://github.com/woocommerce/woocommerce/blob/master/includes/class-wc-checkout.php#L187-L197
+		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/228
+		 */
+		$checkout_fields['account'] = ! empty( $checkout_fields['account'] )
+			? $checkout_fields['account']
+			: array();
+
+		$checkout_fields['account'] = array_merge( $billing_fields_to_merge, $checkout_fields['account'] );
+
+		if ( isset( $checkout_fields['account']['billing_email']['class'] ) ) {
+			$checkout_fields['account']['billing_email']['class'] = array();
+		}
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Hijack billing checkout field.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	private function hijack_checkout_field_billing( $checkout ) {
+		// The following fields cannot be optional for WC compatibility reasons.
+		$required_fields = array( 'billing_first_name', 'billing_last_name', 'billing_email' );
+		// If the order does not require shipping, these fields can be optional.
+		$optional_fields = array(
+			'billing_company',
+			'billing_country',
+			'billing_address_1',
+			'billing_address_2',
+			'billing_city',
+			'billing_state',
+			'billing_postcode',
+			'billing_phone',
+		);
+		$all_fields      = array_merge( $required_fields, $optional_fields );
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		if ( 'yes' === $this->settings['enable_login_app'] ) {
+			// Some merchants might not have access to billing address information, so we need to make those fields optional
+			// when the order doesn't require shipping.
+			if ( ! apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ) ) {
+				foreach ( $optional_fields as $field ) {
+					$checkout_fields['billing'][ $field ]['required'] = false;
+				}
+			}
+			$this->add_hidden_class_to_fields( $checkout_fields['billing'], $all_fields );
+		} else {
+			// Cannot grab user details when not using login app. Need to unset all fields.
+			$this->unset_fields_from_checkout( $checkout_fields['billing'], $all_fields );
+		}
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Hijack shipping checkout field.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	private function hijack_checkout_field_shipping( $checkout ) {
+		$field_list      = array(
+			'shipping_first_name',
+			'shipping_last_name',
+			'shipping_company',
+			'shipping_country',
+			'shipping_address_1',
+			'shipping_address_2',
+			'shipping_city',
+			'shipping_state',
+			'shipping_postcode',
+		);
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		if ( 'yes' === $this->settings['enable_login_app'] && apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ) ) {
+			$this->add_hidden_class_to_fields( $checkout_fields['shipping'], $field_list );
+		} else {
+			$this->unset_fields_from_checkout( $checkout_fields['shipping'], $field_list );
+		}
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Adds hidden class to checkout field
+	 *
+	 * @param array $field reference to the field to be hidden.
+	 */
+	private function add_hidden_class_to_field( &$field ) {
+		if ( isset( $field['class'] ) ) {
+			array_push( $field['class'], 'hidden' );
+		} else {
+			$field['class'] = array( 'hidden' );
+		}
+	}
+
+	/**
+	 * Adds hidden class to checkout fields based on a list
+	 *
+	 * @param array $checkout_fields reference to checkout fields.
+	 * @param array $field_list fields to be hidden.
+	 */
+	private function add_hidden_class_to_fields( &$checkout_fields, $field_list ) {
+		foreach ( $field_list as $field ) {
+			$this->add_hidden_class_to_field( $checkout_fields[ $field ] );
+		}
+	}
+
+	/**
+	 * Removes fields from checkout based on a list
+	 *
+	 * @param array $checkout_fields reference to checkout fields.
+	 * @param array $field_list fields to be removed.
+	 */
+	private function unset_fields_from_checkout( &$checkout_fields, $field_list ) {
+		foreach ( $field_list as $field ) {
+			unset( $checkout_fields[ $field ] );
+		}
+	}
+
+	/**
+	 * Render the Amazon Pay widgets when an order is updated to require
+	 * payment, and the Amazon gateway is available.
+	 *
+	 * @param array $fragments Fragments.
+	 *
+	 * @return array
+	 */
+	public function update_amazon_widgets_fragment( $fragments ) {
+
+		$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
+
+		if ( WC()->cart->needs_payment() ) {
+
+			ob_start();
+
+			$this->checkout_message();
+
+			$fragments['.wc-amazon-checkout-message:not(.wc-amazon-payments-advanced-populated)'] = ob_get_clean();
+
+			if ( array_key_exists( 'amazon_payments_advanced', $available_gateways ) ) {
+
+				ob_start();
+
+				$this->address_widget();
+
+				$this->payment_widget();
+
+				$fragments['#amazon_customer_details:not(.wc-amazon-payments-advanced-populated)'] = ob_get_clean();
+			}
+		}
+
+		return $fragments;
+
+	}
+
+	/**
+	 * Force a page refresh when an order is updated to have a zero total and
+	 * we're not using the "login app" mode.
+	 *
+	 * This ensures that the standard WC checkout form is rendered.
+	 *
+	 * @param WC_Cart $cart Cart object.
+	 */
+	public function force_standard_mode_refresh_with_zero_order_total( $cart ) {
+		// Avoid constant reload loop in the event we've forced a checkout refresh.
+		if ( ! is_ajax() ) {
+			unset( WC()->session->reload_checkout );
+		}
+
+		// Login app mode can handle zero-total orders.
+		if ( 'yes' === $this->settings['enable_login_app'] ) {
+			return;
+		}
+
+		if ( ! wc_apa()->get_gateway()->is_available() ) {
+			return;
+		}
+
+		// Get the previous cart total.
+		$previous_total = WC()->session->wc_amazon_previous_total;
+
+		// Store the current total.
+		WC()->session->wc_amazon_previous_total = $cart->total;
+
+		// If the total is non-zero, and we don't know what the previous total was, bail.
+		if ( is_null( $previous_total ) || $cart->needs_payment() ) {
+			return;
+		}
+
+		// This *wasn't* as zero-total order, but is now.
+		if ( $previous_total > 0 ) {
+			// Force reload, re-rendering standard WC checkout form.
+			WC()->session->reload_checkout = true;
+		}
+	}
+
+	/**
+	 * Checkout Button
+	 *
+	 * Triggered from the 'woocommerce_proceed_to_checkout' action.
+	 */
+	public function checkout_button() {
+		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
+		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
+		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
+
+		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+			return;
+		}
+
+		echo '<div id="pay_with_amazon"></div>';
+	}
+
+	/**
+	 * Maybe hide standard WC checkout button on the cart, if enabled
+	 */
+	public function maybe_hide_standard_checkout_button() {
+		if ( 'yes' === $this->settings['enabled'] && 'yes' === $this->settings['hide_standard_checkout_button'] ) {
+			?>
+				<style type="text/css">
+					.woocommerce a.checkout-button,
+					.woocommerce input.checkout-button,
+					.cart input.checkout-button,
+					.cart a.checkout-button,
+					.widget_shopping_cart a.checkout {
+						display: none !important;
+					}
+				</style>
+			<?php
+		}
+	}
+
+	/**
+	 * Maybe hides Amazon Pay buttons on cart or checkout pages if hide button mode
+	 * is enabled.
+	 *
+	 * @since 1.6.0
+	 */
+	public function maybe_hide_amazon_buttons() {
+		$hide_button_mode_enabled = ( 'yes' === $this->settings['enabled'] && 'yes' === $this->settings['hide_button_mode'] );
+		$hide_button_mode_enabled = apply_filters( 'woocommerce_amazon_payments_hide_amazon_buttons', $hide_button_mode_enabled );
+
+		if ( ! $hide_button_mode_enabled ) {
+			return;
+		}
+
+		?>
+		<style type="text/css">
+			.wc-amazon-payments-advanced-info, #pay_with_amazon {
+				display: none;
+			}
+		</style>
+		<?php
+	}
+
+	/**
+	 * When SCA, we hijack "Place Order Button" and perform our own custom Checkout.
+	 */
+	public function ajax_sca_processing() {
+		check_ajax_referer( 'sca_nonce', 'nonce' );
+		// Get $_POST and $_REQUEST compatible with process_checkout.
+		parse_str( $_POST['data'], $_POST );
+		$_REQUEST = $_POST;
+
+		WC()->checkout()->process_checkout();
+		wp_send_json_success();
+	}
+
+	/**
+	 * Init Amazon login app widget.
+	 */
+	public function init_amazon_login_app_widget() {
+		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg(
+			array(
+				'amazon_payments_advanced' => 'true',
+				'amazon_logout'            => false,
+			)
+		);
+		?>
+		<script type='text/javascript'>
+			function getURLParameter(name, source) {
+			return decodeURIComponent((new RegExp('[?|&|#]' + name + '=' +
+				'([^&]+?)(&|#|;|$)').exec(source) || [,""])[1].replace(/\+/g,
+				'%20')) || null;
+			}
+
+			var accessToken = getURLParameter("access_token", location.hash);
+
+			if (typeof accessToken === 'string' && accessToken.match(/^Atza/)) {
+				document.cookie = "amazon_Login_accessToken=" + encodeURIComponent(accessToken) +
+				";secure";
+				window.location = '<?php echo esc_js( esc_url_raw( $redirect_page ) ); ?>';
+			}
+		</script>
+		<script>
+			window.onAmazonLoginReady = function() {
+				amazon.Login.setClientId( "<?php echo esc_js( $this->settings['app_client_id'] ); ?>" );
+				jQuery( document ).trigger( 'wc_amazon_pa_login_ready' );
+			};
+		</script>
+		<?php
+	}
+
+	/**
+	 * Filter Ajax endpoint so it carries the query string after buyer is
+	 * redirected from Amazon.
+	 *
+	 * Commit 75cc4f91b534ce3114d19da80586bacd083bb5a8 from WC 3.2 replaces the
+	 * REQUEST_URI with `/` so that query string from current URL is not carried.
+	 * This plugin hooked into checkout related actions/filters that might be
+	 * called from Ajax request and expecting some parameters from query string.
+	 *
+	 * @since 1.8.0
+	 *
+	 * @param string $url     Ajax URL.
+	 * @param string $request Request type. Expecting only 'checkout'.
+	 *
+	 * @return string URL.
+	 */
+	public function filter_ajax_endpoint( $url, $request ) {
+		if ( 'checkout' !== $request ) {
+			return $url;
+		}
+
+		if ( ! empty( $_GET['amazon_payments_advanced'] ) ) {
+			$url = add_query_arg( 'amazon_payments_advanced', $_GET['amazon_payments_advanced'], $url );
+		}
+		if ( ! empty( $_GET['access_token'] ) ) {
+			$url = add_query_arg( 'access_token', $_GET['access_token'], $url );
+		}
+
+		return $url;
+	}
+
+	/**
+	 * Ajax handler for fetching order reference
+	 */
+	public function ajax_get_order_reference() {
+		check_ajax_referer( 'order_reference_nonce', 'nonce' );
+
+		if ( empty( $_POST['order_reference_id'] ) ) {
+			wp_send_json(
+				new WP_Error( 'amazon_missing_order_reference_id', __( 'Missing order reference ID.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
+				400
+			);
+		}
+
+		if ( empty( $this->access_token ) ) {
+			wp_send_json(
+				new WP_Error( 'amazon_missing_access_token', __( 'Missing access token. Make sure you are logged in.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
+				400
+			);
+		}
+
+		$order_reference_id = sanitize_text_field( wp_unslash( $_POST['order_reference_id'] ) );
+
+		$response = wc_apa()->get_gateway()->get_amazon_order_details( $order_reference_id );
+
+		if ( $response ) {
+			wp_send_json( $response );
+		} else {
+			wp_send_json(
+				new WP_Error( 'amazon_get_order_reference_failed', __( 'Failed to get order reference data. Make sure you are logged in and trying to access a valid order reference owned by you.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Maybe display declined notice.
+	 *
+	 * @since 1.7.1
+	 * @version 1.7.1
+	 */
+	public function maybe_display_declined_notice() {
+		if ( ! empty( $_GET['amazon_declined'] ) ) {
+			wc_add_notice( __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+		}
+	}
+
+	/**
+	 * Add scripts
+	 */
+	public function scripts() {
+
+		$enqueue_scripts = is_cart() || is_checkout() || is_checkout_pay_page();
+
+		if ( ! apply_filters( 'woocommerce_amazon_pa_enqueue_scripts', $enqueue_scripts ) ) {
+			return;
+		}
+
+		$js_suffix = '.min.js';
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+			$js_suffix = '.js';
+		}
+
+		$type = ( 'yes' === $this->settings['enable_login_app'] ) ? 'app' : 'standard';
+
+		wp_enqueue_style( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/css/style.css', array(), wc_apa()->version );
+		wp_enqueue_script( 'amazon_payments_advanced_widgets', WC_Amazon_Payments_Advanced_API::get_widgets_url(), array(), wc_apa()->version, true );
+		wp_enqueue_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-' . $type . '-widgets' . $js_suffix, array(), wc_apa()->version, true );
+
+		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg(
+			array(
+				'amazon_payments_advanced' => 'true',
+				'amazon_logout'            => false,
+			)
+		);
+
+		$params = array(
+			'ajax_url'              => admin_url( 'admin-ajax.php' ),
+			'seller_id'             => $this->settings['seller_id'],
+			'reference_id'          => $this->reference_id,
+			'redirect'              => esc_url_raw( $redirect_page ),
+			'is_checkout_pay_page'  => is_checkout_pay_page(),
+			'is_checkout'           => is_checkout(),
+			'access_token'          => $this->access_token,
+			'logout_url'            => esc_url_raw( $this->get_amazon_logout_url() ),
+			'render_address_widget' => apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ),
+			'order_reference_nonce' => wp_create_nonce( 'order_reference_nonce' ),
+		);
+
+		if ( 'yes' === $this->settings['enable_login_app'] ) {
+
+			$params['button_type']     = $this->settings['button_type'];
+			$params['button_color']    = $this->settings['button_color'];
+			$params['button_size']     = $this->settings['button_size'];
+			$params['button_language'] = $this->settings['button_language'];
+			$params['checkout_url']    = esc_url_raw( get_permalink( wc_get_page_id( 'checkout' ) ) );
+
+		}
+
+		if ( WC()->session->amazon_declined_code ) {
+			$params['declined_code'] = WC()->session->amazon_declined_code;
+			unset( WC()->session->amazon_declined_code );
+		}
+
+		if ( WC()->session->amazon_declined_with_cancel_order ) {
+			$order                           = wc_get_order( WC()->session->amazon_declined_order_id );
+			$params['declined_redirect_url'] = add_query_arg(
+				array(
+					'amazon_payments_advanced' => 'true',
+					'amazon_logout'            => 'true',
+					'amazon_declined'          => 'true',
+				),
+				$order->get_cancel_order_url()
+			);
+
+			unset( WC()->session->amazon_declined_order_id );
+			unset( WC()->session->amazon_declined_with_cancel_order );
+		}
+
+		if ( class_exists( 'WC_Subscriptions_Cart' ) ) {
+
+			$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription() || wcs_cart_contains_renewal();
+			$change_payment_for_subscription = isset( $_GET['change_payment_method'] ) && wcs_is_subscription( absint( $_GET['change_payment_method'] ) );
+			$params['is_recurring']          = $cart_contains_subscription || $change_payment_for_subscription;
+
+			// No need to make billing agreement if automatic payments is turned off.
+			if ( 'yes' === get_option( 'woocommerce_subscriptions_turn_off_automatic_payments' ) ) {
+				unset( $params['is_recurring'] );
+			}
+		}
+
+		// SCA support. If Merchant is European Region and Order does not contain or is a subscriptions.
+		$params['is_sca'] = ( WC_Amazon_Payments_Advanced_API::is_sca_region() );
+		if ( $params['is_sca'] ) {
+			$params['sca_nonce'] = wp_create_nonce( 'sca_nonce' );
+		}
+
+		// Multi-currency support.
+		$multi_currency                         = WC_Amazon_Payments_Advanced_Multi_Currency::is_active();
+		$params['multi_currency_supported']     = $multi_currency;
+		$params['multi_currency_nonce']         = wp_create_nonce( 'multi_currency_nonce' );
+		$params['multi_currency_reload_wallet'] = ( $multi_currency ) ? WC_Amazon_Payments_Advanced_Multi_Currency::reload_wallet_widget() : false;
+		$params['current_currency']             = ( $multi_currency ) ? WC_Amazon_Payments_Advanced_Multi_Currency::get_selected_currency() : '';
+		$params['shipping_title']               = esc_html__( 'Shipping details', 'woocommerce' );
+		$params['redirect_authentication']      = $this->settings['redirect_authentication'];
+
+		$params = array_map( 'esc_js', apply_filters( 'woocommerce_amazon_pa_widgets_params', $params ) );
+
+		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced_params', $params );
+
+		do_action( 'wc_amazon_pa_scripts_enqueued', $type, $params );
 	}
 }

@@ -10,6 +10,28 @@
  */
 class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Abstract {
 
+	protected static $amazonpay_sdk_config;
+
+	/**
+	 * Set up API V2 SDK.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return array Returns SDK configuration
+	 */
+	protected static function get_amazonpay_sdk_config( $fresh = false ) {
+		if ( $fresh || empty( self::$amazonpay_sdk_config ) ) {
+			$settings                   = self::get_settings();
+			self::$amazonpay_sdk_config = array(
+				'public_key_id' => $settings['public_key_id'],
+				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),
+				'sandbox'       => 'yes' === $settings['sandbox'] ? true : false,
+				'region'        => $settings['payment_region'],
+			);
+		}
+		return self::$amazonpay_sdk_config;
+	}
+
 	/**
 	* Validate API keys when settings are updated.
 	*
@@ -21,7 +43,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$settings = self::get_settings();
 
-		wc_apa()->update_migration_status();
+		WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::update_migration_status();
 
 		$ret = false;
 		if ( empty( $settings['merchant_id'] ) ) {
@@ -42,7 +64,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				throw new Exception( __( 'Error: You must add the private key file.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 			include_once wc_apa()->path . '/vendor/autoload.php';
-			$client       = new Amazon\Pay\API\Client( wc_apa()->get_amazonpay_sdk_config( true ) );
+			$client       = new Amazon\Pay\API\Client( self::get_amazonpay_sdk_config( true ) );
 			$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
 			$payload      = array(
 				'storeId'            => $settings['store_id'],
@@ -62,9 +84,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$ret = true;
 			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 1 );
 
+			do_action( 'wc_amazon_keys_setup_and_validated', '2' );
+
 		} catch ( Exception $e ) {
 			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
-			wc_apa()->delete_migration_status();
+			WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::delete_migration_status();
 			WC_Admin_Settings::add_error( $e->getMessage() );
 		}
 		return $ret;
