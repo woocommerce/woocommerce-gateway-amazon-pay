@@ -1687,7 +1687,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 	}
 
 	public function validate_api_keys() {
-		if ( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
+		if ( ! empty( $this->settings['merchant_id'] ) || WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
 			WC_Amazon_Payments_Advanced_API::validate_api_keys();
 		} else {
 			WC_Amazon_Payments_Advanced_API_Legacy::validate_api_keys();
