@@ -21,7 +21,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 */
 	protected static function get_amazonpay_sdk_config( $fresh = false ) {
 		if ( $fresh || empty( self::$amazonpay_sdk_config ) ) {
-			$settings             = self::get_settings();
+			$settings                   = self::get_settings();
 			self::$amazonpay_sdk_config = array(
 				'public_key_id' => $settings['public_key_id'],
 				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),

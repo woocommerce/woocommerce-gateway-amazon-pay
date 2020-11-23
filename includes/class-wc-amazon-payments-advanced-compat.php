@@ -32,7 +32,6 @@ class WC_Amazon_Payments_Advanced_Compat {
 		require_once( 'compats/class-wc-amazon-payments-advanced-subscribe-to-newsletter-compat.php' );
 		require_once( 'compats/class-wc-amazon-payments-advanced-woocommerce-multilingual-compat.php' );
 
-
 		$compats = array(
 			'WC_Amazon_Payments_Advanced_Drip_Compat',
 			'WC_Amazon_Payments_Advanced_WGM_Compat',

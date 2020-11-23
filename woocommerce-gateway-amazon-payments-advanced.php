@@ -139,12 +139,12 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-api-legacy.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
 
-		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-compat.php' );
-		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler.php' );
-		include_once( $this->includes_path . 'class-wc-amazon-payments-advanced-synchronous-handler.php' );
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-compat.php';
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler.php';
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-synchronous-handler.php';
 
 		// On install hook.
-		include_once( $this->includes_path . 'class-wc-amazon-payments-install.php' );
+		include_once $this->includes_path . 'class-wc-amazon-payments-install.php';
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
 
 		add_action( 'init', array( $this, 'init' ) );
@@ -159,7 +159,7 @@ class WC_Amazon_Payments_Advanced {
 		$this->synchro_handler = new WC_Amazon_Payments_Advanced_Synchronous_Handler();
 		// Simple path registration endpoint.
 		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
-		// Third party compatibilities
+		// Third party compatibilities.
 		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
 	}
 
@@ -173,11 +173,11 @@ class WC_Amazon_Payments_Advanced {
 			return;
 		}
 
-		$this->settings     = WC_Amazon_Payments_Advanced_API::get_settings();
+		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		$this->load_plugin_textdomain();
 		if ( is_admin() ) {
-			include_once( $this->includes_path . 'admin/class-wc-amazon-payments-advanced-admin.php' );
+			include_once $this->includes_path . 'admin/class-wc-amazon-payments-advanced-admin.php';
 			$this->admin = new WC_Amazon_Payments_Advanced_Admin();
 		}
 		$this->init_gateway();
@@ -201,18 +201,18 @@ class WC_Amazon_Payments_Advanced {
 			return;
 		}
 
-		include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-abstract.php' );
-		include_once( $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php' );
-		include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php' );
-		include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-privacy.php' );
+		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-abstract.php';
+		include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php';
+		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php';
+		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-privacy.php';
 
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' == $this->settings['subscriptions_enabled'];
+		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
 
 		// Check for Subscriptions 2.0, and load support if found.
 		if ( $subscriptions_installed && $subscriptions_enabled ) {
 
-			include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-subscriptions.php' );
+			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-subscriptions.php';
 
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Subscriptions();
 
@@ -246,7 +246,7 @@ class WC_Amazon_Payments_Advanced {
 	public static function get_site_name() {
 		// Get site setting for blog name.
 		$site_name = get_bloginfo( 'name' );
-		return self::sanitize_string($site_name);
+		return self::sanitize_string( $site_name );
 	}
 
 	/**
@@ -257,31 +257,31 @@ class WC_Amazon_Payments_Advanced {
 	public static function get_site_description() {
 		// Get site setting for blog name.
 		$site_description = get_bloginfo( 'description' );
-		return self::sanitize_string( $site_description);
-    }
+		return self::sanitize_string( $site_description );
+	}
 
 	/**
-     * Helper method to get a sanitized version of a string.
-     *
+	 * Helper method to get a sanitized version of a string.
+	 *
 	 * @param $string
 	 *
 	 * @return string
 	 */
-    protected static function sanitize_string( $string ) {
-	    // Decode HTML entities.
-	    $string = wp_specialchars_decode( $string, ENT_QUOTES );
+	protected static function sanitize_string( $string ) {
+		// Decode HTML entities.
+		$string = wp_specialchars_decode( $string, ENT_QUOTES );
 
-	    // ASCII-ify accented characters.
-	    $string = remove_accents( $string );
+		// ASCII-ify accented characters.
+		$string = remove_accents( $string );
 
-	    // Remove non-printable characters.
-	    $string = preg_replace( '/[[:^print:]]/', '', $string );
+		// Remove non-printable characters.
+		$string = preg_replace( '/[[:^print:]]/', '', $string );
 
-	    // Clean up leading/trailing whitespace.
-	    $string = trim( $string );
+		// Clean up leading/trailing whitespace.
+		$string = trim( $string );
 
-	    return $string;
-    }
+		return $string;
+	}
 
 	/**
 	 * Write a message to log if we're in "debug" mode.
@@ -309,7 +309,7 @@ class WC_Amazon_Payments_Advanced {
 		$this->logger->add( 'woocommerce-gateway-amazon-payments-advanced', $log_message );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( $log_message );
+			error_log( $log_message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
 
@@ -440,6 +440,13 @@ class WC_Amazon_Payments_Advanced {
 		return $response;
 	}
 
+	/**
+	 * Return instance of WC_Gateway_Amazon_Payments_Advanced.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return WC_Gateway_Amazon_Payments_Advanced/WC_Gateway_Amazon_Payments_Advanced_Subscriptions
+	 */
 	public function get_gateway() {
 		return $this->gateway;
 	}
