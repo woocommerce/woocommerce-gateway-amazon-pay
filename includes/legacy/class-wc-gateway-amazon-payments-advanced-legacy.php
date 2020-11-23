@@ -1822,8 +1822,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		$type = ( 'yes' === $this->settings['enable_login_app'] ) ? 'app' : 'standard';
 
 		wp_enqueue_style( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/css/style.css', array(), wc_apa()->version );
-		wp_enqueue_script( 'amazon_payments_advanced_widgets', WC_Amazon_Payments_Advanced_API::get_widgets_url(), array(), wc_apa()->version, true );
-		wp_enqueue_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-' . $type . '-widgets' . $js_suffix, array(), wc_apa()->version, true );
+		wp_enqueue_script( 'amazon_payments_advanced_widgets', WC_Amazon_Payments_Advanced_API_Legacy::get_widgets_url(), array(), wc_apa()->version, true );
+		wp_enqueue_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/legacy/amazon-' . $type . '-widgets' . $js_suffix, array(), wc_apa()->version, true );
 
 		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg(
 			array(
