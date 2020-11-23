@@ -43,7 +43,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$settings = self::get_settings();
 
-		wc_apa()->update_migration_status();
+		WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::update_migration_status();
 
 		$ret = false;
 		if ( empty( $settings['merchant_id'] ) ) {
@@ -88,7 +88,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		} catch ( Exception $e ) {
 			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
-			wc_apa()->delete_migration_status();
+			WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::delete_migration_status();
 			WC_Admin_Settings::add_error( $e->getMessage() );
 		}
 		return $ret;

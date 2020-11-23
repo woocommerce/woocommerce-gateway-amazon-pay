@@ -124,14 +124,6 @@ class WC_Amazon_Payments_Advanced {
 	public $onboarding_handler;
 
 	/**
-	 * API migration Status.
-	 *
-	 * @since 2.0.0
-	 * @var bool
-	 */
-	public $api_migration;
-
-	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -169,32 +161,6 @@ class WC_Amazon_Payments_Advanced {
 		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
 		// Third party compatibilities
 		$this->compat = new WC_Amazon_Payments_Advanced_Compat();
-	}
-
-	/**
-	 * Get API Migration status.
-	 */
-	public function get_migration_status( $fresh = false ) {
-		if ( $fresh || empty( $this->api_migration ) ) {
-			$status              = get_option( 'amazon_api_version' );
-			$old_install         = version_compare( get_option( 'woocommerce_amazon_payments_new_install' ), '2.0.0', '>=' );
-			$this->api_migration = 'V2' === $status || $old_install ? true : false;
-		}
-		return $this->api_migration;
-	}
-
-	/**
-	 * Update migration status update
-	 */
-	public function update_migration_status() {
-		update_option( 'amazon_api_version', 'V2' );
-	}
-
-	/**
-	 * Downgrade migration status update
-	 */
-	public function delete_migration_status() {
-		delete_option( 'amazon_api_version' );
 	}
 
 	/**

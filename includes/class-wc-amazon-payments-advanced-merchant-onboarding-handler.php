@@ -220,7 +220,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 		$settings['store_id']                        = $payload->storeId;
 		$settings['public_key_id']                   = $payload->publicKeyId;
 		$settings['amazon_keys_setup_and_validated'] = 1;
-		wc_apa()->update_migration_status();
+		self::update_migration_status();
 		update_option( 'woocommerce_amazon_payments_advanced_settings', $settings );
 		update_option( 'woocommerce_amazon_payments_advanced_saved_payload', true );
 	}
@@ -325,6 +325,29 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 */
 	private function get_origin_header( $headers ) {
 		return ( $headers['Origin'] ) ? $headers['Origin'] : $headers['origin'];
+	}
+
+	/**
+	 * Get API Migration status.
+	 */
+	public static function get_migration_status() {
+		$status              = get_option( 'amazon_api_version' );
+		$old_install         = version_compare( get_option( 'woocommerce_amazon_payments_new_install' ), '2.0.0', '>=' );
+		return 'V2' === $status || $old_install ? true : false;
+	}
+
+	/**
+	 * Update migration status update
+	 */
+	public static function update_migration_status() {
+		update_option( 'amazon_api_version', 'V2' );
+	}
+
+	/**
+	 * Downgrade migration status update
+	 */
+	public static function delete_migration_status() {
+		delete_option( 'amazon_api_version' );
 	}
 
 }

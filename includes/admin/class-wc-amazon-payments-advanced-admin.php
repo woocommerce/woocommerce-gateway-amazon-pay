@@ -180,7 +180,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 				'is_dismissable' => $is_dismissable,
 			);
 		}
-		if ( ! wc_apa()->get_migration_status() ) {
+		if ( ! WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
 			$notices[] = array(
 				'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
 				'class'          => 'notice notice-error',
