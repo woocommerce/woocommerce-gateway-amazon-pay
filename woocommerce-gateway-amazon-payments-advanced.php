@@ -201,6 +201,8 @@ class WC_Amazon_Payments_Advanced {
 			return;
 		}
 
+		include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-abstract.php' );
+		include_once( $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php' );
 		include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php' );
 		include_once( $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-privacy.php' );
 
