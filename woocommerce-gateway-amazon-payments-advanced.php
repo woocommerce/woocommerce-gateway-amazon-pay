@@ -438,23 +438,6 @@ class WC_Amazon_Payments_Advanced {
 		return $response;
 	}
 
-	/**
-	 * Get Amazon logout URL.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @return string Amazon logout URL
-	 */
-	public function get_amazon_logout_url() {
-		return add_query_arg(
-			array(
-				'amazon_payments_advanced' => 'true',
-				'amazon_logout'            => 'true',
-			),
-			get_permalink( wc_get_page_id( 'checkout' ) )
-		);
-	}
-
 	public function get_gateway() {
 		return $this->gateway;
 	}
