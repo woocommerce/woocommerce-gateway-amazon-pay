@@ -689,7 +689,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @return array Address.
 	 */
-	private function normalize_address( $address ) {
+	protected function normalize_address( $address ) {
 		/**
 		 * US postal codes comes back as a ZIP+4 when in "Login with Amazon App"
 		 * mode.
@@ -735,7 +735,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param string $setter_suffix Setter suffix.
 	 * @param mixed  $value         Value to set.
 	 */
-	private function set_customer_info( $setter_suffix, $value ) {
+	protected function set_customer_info( $setter_suffix, $value ) {
 		$setter             = array( WC()->customer, 'set_' . $setter_suffix );
 		$is_shipping_setter = strpos( $setter_suffix, 'shipping_' ) !== false;
 
@@ -1596,7 +1596,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param array $import_file PHP $_FILES (or similar) entry.
 	 */
-	private function process_settings_from_file( $import_file, $clean_post = false ) {
+	protected function process_settings_from_file( $import_file, $clean_post = false ) {
 		$fn_parts  = explode( '.', $import_file['name'] );
 		$extension = end( $fn_parts );
 
@@ -1688,7 +1688,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param string $private_key Private key PEM string.
 	 */
-	private function save_private_key( $private_key ) {
+	protected function save_private_key( $private_key ) {
 		$validate_private_key = openssl_pkey_get_private( $private_key );
 		if ( $validate_private_key ) {
 			update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, $private_key );
@@ -2105,7 +2105,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param WC_Checkout $checkout WC_Checkout instance.
 	 */
-	private function hijack_checkout_field_account( $checkout ) {
+	protected function hijack_checkout_field_account( $checkout ) {
 		$billing_fields_to_copy = array(
 			'billing_first_name' => '',
 			'billing_last_name'  => '',
@@ -2151,7 +2151,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param WC_Checkout $checkout WC_Checkout instance.
 	 */
-	private function hijack_checkout_field_billing( $checkout ) {
+	protected function hijack_checkout_field_billing( $checkout ) {
 		// The following fields cannot be optional for WC compatibility reasons.
 		$required_fields = array( 'billing_first_name', 'billing_last_name', 'billing_email' );
 		// If the order does not require shipping, these fields can be optional.
@@ -2194,7 +2194,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param WC_Checkout $checkout WC_Checkout instance.
 	 */
-	private function hijack_checkout_field_shipping( $checkout ) {
+	protected function hijack_checkout_field_shipping( $checkout ) {
 		$field_list      = array(
 			'shipping_first_name',
 			'shipping_last_name',
@@ -2224,7 +2224,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param array $field reference to the field to be hidden.
 	 */
-	private function add_hidden_class_to_field( &$field ) {
+	protected function add_hidden_class_to_field( &$field ) {
 		if ( isset( $field['class'] ) ) {
 			array_push( $field['class'], 'hidden' );
 		} else {
@@ -2238,7 +2238,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param array $checkout_fields reference to checkout fields.
 	 * @param array $field_list fields to be hidden.
 	 */
-	private function add_hidden_class_to_fields( &$checkout_fields, $field_list ) {
+	protected function add_hidden_class_to_fields( &$checkout_fields, $field_list ) {
 		foreach ( $field_list as $field ) {
 			$this->add_hidden_class_to_field( $checkout_fields[ $field ] );
 		}
@@ -2250,7 +2250,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param array $checkout_fields reference to checkout fields.
 	 * @param array $field_list fields to be removed.
 	 */
-	private function unset_fields_from_checkout( &$checkout_fields, $field_list ) {
+	protected function unset_fields_from_checkout( &$checkout_fields, $field_list ) {
 		foreach ( $field_list as $field ) {
 			unset( $checkout_fields[ $field ] );
 		}
