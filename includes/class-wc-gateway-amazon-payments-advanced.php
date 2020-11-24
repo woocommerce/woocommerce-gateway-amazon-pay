@@ -55,6 +55,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		wp_enqueue_script( 'amazon_payments_advanced_checkout', $this->get_region_script(), array(), wc_apa()->version, true );
 		wp_enqueue_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-wc-checkout' . $js_suffix, array(), wc_apa()->version, true );
 
+		$params = array(
+			'ajax_url'                       => admin_url( 'admin-ajax.php' ),
+			'create_checkout_session_config' => WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config(),
+			'merchant_id'                    => $this->settings['merchant_id']
+		);
+
+		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
+
 	}
 
 	protected function get_region_script() {

@@ -136,4 +136,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	}
 
+	public static function get_create_checkout_session_config() {
+		$settings = self::get_settings();
+		$client   = self::get_client();
+		$payload  = self::create_checkout_session_params();
+
+		$signature = $client->generateButtonSignature( $payload );
+		return array(
+			'publicKeyId' => $settings['public_key_id'],
+			'payloadJSON' => $payload,
+			'signature'   => $signature,
+		);
+	}
+
 }
