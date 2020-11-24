@@ -83,12 +83,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	protected function get_region_script() {
-		$region     = $this->settings['payment_region'];
-
-		// If payment_region is not set in settings, use base country.
-		if ( ! $region ) {
-			$region = WC_Amazon_Payments_Advanced_API::get_payment_region_from_country( WC()->countries->get_base_country() );
-		}
+		$region = WC_Amazon_Payments_Advanced_API::get_region();
 
 		$url = false;
 		switch( $region ) {
