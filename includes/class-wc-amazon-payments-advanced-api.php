@@ -130,7 +130,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			),
 		);
 
-		$payload = wp_json_encode( $payload );
+		$payload = wp_json_encode( $payload, JSON_UNESCAPED_SLASHES );
 
 		return $payload;
 
