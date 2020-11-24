@@ -13,8 +13,8 @@
   "license": "GPL-2.0",
   "assets": {
     "js": {
-      "min": "assets/js/*.min.js",
-      "js": "assets/js/*.js"
+      "min": "assets/js/**/*.min.js assets/js/*.min.js",
+      "js": "assets/js/**/*.js assets/js/*.js"
     },
     "styles": {
       "css": "assets/css/*.css",
