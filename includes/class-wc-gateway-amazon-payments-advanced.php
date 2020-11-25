@@ -21,11 +21,31 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	/**
+	 * Amazon Pay is available if the following conditions are met (on top of
+	 * WC_Payment_Gateway::is_available).
+	 *
+	 * 1) Gateway enabled
+	 * 2) Correctly setup
+	 * 2) In checkout pay page.
+	 *
+	 * @return bool
+	 */
+	public function is_available() {
+		$is_available = ( 'yes' === $this->enabled );
+
+		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
+			return $is_available;
+		}
+
+		return ( $is_available && ! empty( $this->settings['merchant_id'] ) );
+	}
+
+	/**
 	 * Load handlers for cart and orders after WC Cart is loaded.
 	 */
 	public function init_handlers() {
 		// Disable if no seller ID.
-		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) || empty( $this->settings['merchant_id'] ) || 'no' === $this->settings['enabled'] ) {
+		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) || ! $this->is_available() ) {
 			return;
 		}
 
