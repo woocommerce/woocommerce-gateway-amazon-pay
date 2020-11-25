@@ -8,7 +8,7 @@
 /**
  * Implement payment method for Amazon Pay.
  */
-class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Advanced_Legacy {
+class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Advanced_Abstract {
 
 	/**
 	 * Amazon Order Reference ID (when not in "login app" mode checkout)
