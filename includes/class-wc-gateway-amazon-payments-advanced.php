@@ -31,6 +31,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Scripts
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
+
+		// Buttons
+		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
 	}
 
 	/**

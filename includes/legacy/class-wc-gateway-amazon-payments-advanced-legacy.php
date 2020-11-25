@@ -1620,23 +1620,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	}
 
 	/**
-	 * Checkout Button
-	 *
-	 * Triggered from the 'woocommerce_proceed_to_checkout' action.
-	 */
-	public function checkout_button() {
-		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
-		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
-
-		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
-			return;
-		}
-
-		echo '<div id="pay_with_amazon"></div>';
-	}
-
-	/**
 	 * Maybe hide standard WC checkout button on the cart, if enabled
 	 */
 	public function maybe_hide_standard_checkout_button() {

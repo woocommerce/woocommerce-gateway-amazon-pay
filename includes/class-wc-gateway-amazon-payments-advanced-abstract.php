@@ -730,4 +730,27 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		}
 	}
 
+	/**
+	 * Checkout Button
+	 *
+	 * Triggered from the 'woocommerce_proceed_to_checkout' action.
+	 */
+	public function checkout_button( $echo = true ) {
+		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
+		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
+		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
+
+		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+			return;
+		}
+
+		$button_placeholder = '<div id="pay_with_amazon"></div>';
+
+		if ( $echo === false ) {
+			return $button_placeholder;
+		} else {
+			echo $button_placeholder;
+		}
+	}
+
 }
