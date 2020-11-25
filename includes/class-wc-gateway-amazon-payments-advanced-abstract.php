@@ -753,4 +753,19 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		}
 	}
 
+	/**
+	 * Remove amazon gateway.
+	 *
+	 * @param $gateways
+	 *
+	 * @return array
+	 */
+	public function remove_amazon_gateway( $gateways ) {
+		if ( isset( $gateways[ $this->id ] ) ) {
+			unset( $gateways[ $this->id ] );
+		}
+
+		return $gateways;
+	}
+
 }

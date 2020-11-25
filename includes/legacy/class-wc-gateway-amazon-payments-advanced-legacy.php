@@ -1267,24 +1267,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	}
 
 	/**
-	 * Remove amazon gateway.
-	 *
-	 * @param $gateways
-	 *
-	 * @return array
-	 */
-	public function remove_amazon_gateway( $gateways ) {
-
-		foreach ( $gateways as $gateway_key => $gateway ) {
-			if ( 'amazon_payments_advanced' === $gateway_key ) {
-				unset( $gateways[ $gateway_key ] );
-			}
-		}
-
-		return $gateways;
-	}
-
-	/**
 	 * Remove all gateways except amazon
 	 *
 	 * @param array $gateways List of payment methods.
