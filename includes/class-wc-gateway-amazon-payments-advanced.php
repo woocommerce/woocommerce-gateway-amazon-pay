@@ -10,4 +10,11 @@
  */
 class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Advanced_Abstract {
 
+	/**
+	 * Constructor
+	 */
+	public function __construct() {
+		parent::__construct();
+	}
+
 }
