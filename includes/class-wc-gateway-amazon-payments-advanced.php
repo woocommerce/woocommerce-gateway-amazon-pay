@@ -53,6 +53,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 
 		// Buttons
+		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
 	}
 
@@ -120,6 +121,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return $url;
+	}
+
+	/**
+	 * Display payment request button separator.
+	 *
+	 * @since 2.0.0
+	 */
+	public function display_amazon_pay_button_separator_html() {
+		?>
+		<p id="wc-apa-button-separator" style="margin:1.5em 0;text-align:center;display:none;">&mdash; <?php esc_html_e( 'OR', 'woocommerce-gateway-amazon-payments-advanced' ); ?> &mdash;</p>
+		<?php
 	}
 
 }
