@@ -60,7 +60,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// Scripts
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 
-		// Buttons
+		// Checkout.
+		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
+
+		// Cart
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
 	}
@@ -140,6 +143,44 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		?>
 		<p id="wc-apa-button-separator" style="margin:1.5em 0;text-align:center;display:none;">&mdash; <?php esc_html_e( 'OR', 'woocommerce-gateway-amazon-payments-advanced' ); ?> &mdash;</p>
 		<?php
+	}
+
+	public function checkout_init() {
+
+		/**
+		 * Make sure this is checkout initiated from front-end where cart exsits.
+		 *
+		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/238
+		 */
+		if ( ! WC()->cart ) {
+			return;
+		}
+
+		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
+		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
+
+		if( true ) { // TODO: Implement login handler
+			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
+			return;
+		}
+	}
+
+	/**
+	 * Checkout Message
+	 */
+	public function checkout_message() {
+		echo '<div class="wc-amazon-checkout-message wc-amazon-payments-advanced-populated">';
+
+		if ( true ) { // TODO: Implement login handler
+			echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info">' . $this->checkout_button( false ) . ' ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
+		} else {
+			$logout_url      = $this->get_amazon_logout_url();
+			$logout_msg_html = '<div class="woocommerce-info info">' . apply_filters( 'woocommerce_amazon_pa_checkout_logout_message', __( 'You\'re logged in with your Amazon Account.', 'woocommerce-gateway-amazon-payments-advanced' ) ) . ' <a href="' . esc_url( $logout_url ) . '" id="amazon-logout">' . __( 'Log out &raquo;', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a></div>';
+			echo apply_filters( 'woocommerce_amazon_payments_logout_checkout_message_html', $logout_msg_html );
+		}
+
+		echo '</div>';
+
 	}
 
 }
