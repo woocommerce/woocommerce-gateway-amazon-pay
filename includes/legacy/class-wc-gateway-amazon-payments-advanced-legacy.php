@@ -427,7 +427,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @param WC_Order $order
 	 * @param string $amazon_reference_id
 	 */
-	protected function process_async_auth( $order, $amazon_reference_id ) {
+	public function process_async_auth( $order, $amazon_reference_id ) {
 
 		update_post_meta( $order->get_id(), 'amazon_timed_out_transaction', true );
 		$order->update_status( 'on-hold', __( 'Transaction with Amazon Pay is currently being validated.', 'woocommerce-gateway-amazon-payments-advanced' ) );

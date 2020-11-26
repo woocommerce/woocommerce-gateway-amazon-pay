@@ -309,7 +309,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	public function authorize_payment( $order, $amazon_billing_agreement_id ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
-		switch ( $this->payment_capture ) {
+		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
+
+		switch ( $settings['payment_capture'] ) {
 
 			case 'manual' :
 
@@ -485,13 +487,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$billing_agreement_details = $response->GetBillingAgreementDetailsResult->BillingAgreementDetails;
 			// @codingStandardsIgnoreEnd
 
-			$this->store_order_address_details( $order_id, $billing_agreement_details );
+			wc_apa()->get_gateway()->store_order_address_details( $order_id, $billing_agreement_details );
 
 			$subscriptions = wcs_get_subscriptions_for_order( $order_id );
 
 			foreach ( $subscriptions as $subscription ) {
 				$subscription_id = wc_apa_get_order_prop( $subscription, 'id' );
-				$this->store_order_address_details( $subscription_id, $billing_agreement_details );
+				wc_apa()->get_gateway()->store_order_address_details( $subscription_id, $billing_agreement_details );
 			}
 		}
 	}
@@ -668,6 +670,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 		$redirect = wc_apa()->get_gateway()->get_return_url( $order );
 
+		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
+
 		try {
 			// It will process payment and empty the cart.
 			// Authorize/Capture initial payment, if initial payment required.
@@ -680,8 +684,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			}
 		} catch ( Exception $e ) {
 			// Async (optimal) mode on settings.
-			if ( 'async' === $this->authorization_mode && isset( $e->transaction_timed_out ) ) {
-				$this->process_async_auth( $order, $amazon_reference_id );
+			if ( 'async' === $settings['authorization_mode'] && isset( $e->transaction_timed_out ) ) {
+				wc_apa()->get_gateway()->process_async_auth( $order, $amazon_reference_id );
 			} else {
 				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(), 'error' );
 				$redirect = wc_get_checkout_url();
