@@ -778,6 +778,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @return bool|object Boolean false on failure, object of OrderReferenceDetails on success.
 	 */
 	public function get_amazon_order_details( $amazon_reference_id ) {
+		$process = apply_filters( 'woocommerce_amazon_pa_get_amazon_order_details', null, $amazon_reference_id );
+		if ( ! is_null( $process ) ) {
+			return $process;
+		}
 
 		$request_args = array(
 			'Action'                 => 'GetOrderReferenceDetails',
@@ -918,6 +922,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @param string $amazon_reference_id
 	 */
 	protected function handle_sca_success( $order, $amazon_reference_id ) {
+		$process = apply_filters( 'woocommerce_amazon_pa_handle_sca_success', null, $order, $amazon_reference_id );
+		if ( ! is_null( $process ) ) {
+			return $process;
+		}
+
 		$redirect = $this->get_return_url( $order );
 
 		try {
@@ -945,6 +954,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @param string $authorization_status
 	 */
 	protected function handle_sca_failure( $order, $amazon_reference_id, $authorization_status ) {
+		$process = apply_filters( 'woocommerce_amazon_pa_handle_sca_failure', null, $order, $amazon_reference_id, $authorization_status );
+		if ( ! is_null( $process ) ) {
+			return $process;
+		}
+
 		$redirect = wc_get_checkout_url();
 
 		// Failure will mock AmazonRejected behaviour.

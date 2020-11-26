@@ -30,6 +30,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $this->id, array( $this, 'update_failing_payment_method' ), 10, 2 );
 
 		add_filter( 'woocommerce_amazon_pa_process_payment', array( $this, 'process_payment' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_handle_sca_success', array( $this, 'handle_sca_success' ), 10, 3 );
+		add_filter( 'woocommerce_amazon_pa_handle_sca_failure', array( $this, 'handle_sca_failure' ), 10, 4 );
+		add_filter( 'woocommerce_amazon_pa_get_amazon_order_details', array( $this, 'get_amazon_order_details' ), 10, 2 );
 
 		// WC Subscription Hook
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
@@ -615,7 +618,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @return bool|object Boolean false on failure, object of OrderReferenceDetails on success.
 	 */
-	public function get_amazon_order_details( $amazon_reference_id ) {
+	public function get_amazon_order_details( $process, $amazon_reference_id ) {
 		$not_subscription = (
 			! WC_Subscriptions_Cart::cart_contains_subscription()
 			||
@@ -623,7 +626,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		);
 
 		if ( $not_subscription ) {
-			return parent::get_amazon_order_details( $amazon_reference_id );
+			return $process;
 		}
 
 		$request_args = array(
@@ -659,9 +662,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param WC_Order $order
 	 * @param string $amazon_reference_id
 	 */
-	protected function handle_sca_success( $order, $amazon_reference_id ) {
+	protected function handle_sca_success( $process, $order, $amazon_reference_id ) {
 		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
-			return parent::handle_sca_success( $order, $amazon_reference_id );
+			return $process;
 		}
 		$redirect = $this->get_return_url( $order );
 
@@ -696,9 +699,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param string $amazon_reference_id
 	 * @param string $authorization_status
 	 */
-	protected function handle_sca_failure( $order, $amazon_reference_id, $authorization_status ) {
+	protected function handle_sca_failure( $process, $order, $amazon_reference_id, $authorization_status ) {
 		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
-			return parent::handle_sca_failure( $order, $amazon_reference_id, $authorization_status );
+			return $process;
 		}
 		$redirect = wc_get_checkout_url();
 
