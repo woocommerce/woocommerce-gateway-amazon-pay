@@ -164,6 +164,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// If all prerequisites are meet to be an amazon checkout.
 		do_action( 'woocommerce_amazon_checkout_init' );
 
+		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'display_amazon_customer_info' ) );
+
 		// The default checkout form uses the billing email for new account creation
 		// Let's hijack that field for the Amazon-based checkout.
 		if ( apply_filters( 'woocommerce_pa_hijack_checkout_fields', true ) ) {
@@ -373,6 +375,64 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		foreach ( $field_list as $field ) {
 			$this->add_hidden_class_to_field( $checkout_fields[ $field ] );
 		}
+	}
+
+	public function display_amazon_customer_info() {
+		// Skip showing address widget for carts with virtual products only.
+		$show_address_widget = apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() );
+		$hide_css_style      = ( ! $show_address_widget ) ? 'display: none;' : '';
+
+		$checkout = WC_Checkout::instance();
+		?>
+		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
+			<div class="col2-set">
+				<div class="col-1" style="<?php echo esc_attr( $hide_css_style ); ?>">
+					<h3><?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
+					<div id="amazon_addressbook_widget"></div>
+				</div>
+				<div class="col-2">
+					<h3><?php esc_html_e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
+					<div id="amazon_wallet_widget"></div>
+				</div>
+
+				<?php if ( ! is_user_logged_in() && $checkout->enable_signup ) : ?>
+
+					<?php if ( $checkout->enable_guest_checkout ) : ?>
+
+						<p class="form-row form-row-wide create-account">
+							<input class="input-checkbox" id="createaccount" <?php checked( ( true === $checkout->get_value( 'createaccount' ) || ( true === apply_filters( 'woocommerce_create_account_default_checked', false ) ) ), true ); ?> type="checkbox" name="createaccount" value="1" /> <label for="createaccount" class="checkbox"><?php esc_html_e( 'Create an account?', 'woocommerce-gateway-amazon-payments-advanced' ); ?></label>
+						</p>
+
+					<?php endif; ?>
+
+					<?php do_action( 'woocommerce_before_checkout_registration_form', $checkout ); ?>
+
+					<?php if ( ! empty( $checkout->checkout_fields['account'] ) ) : ?>
+
+						<div class="create-account">
+
+							<h3><?php esc_html_e( 'Create Account', 'woocommerce-gateway-amazon-payments-advanced' ); ?></h3>
+							<p><?php esc_html_e( 'Create an account by entering the information below. If you are a returning customer please login at the top of the page.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
+
+							<?php foreach ( $checkout->checkout_fields['account'] as $key => $field ) : ?>
+
+								<?php woocommerce_form_field( $key, $field, $checkout->get_value( $key ) ); ?>
+
+							<?php endforeach; ?>
+
+							<div class="clear"></div>
+
+						</div>
+
+					<?php endif; ?>
+
+					<?php do_action( 'woocommerce_after_checkout_registration_form', $checkout ); ?>
+
+				<?php endif; ?>
+			</div>
+		</div>
+
+		<?php
 	}
 
 }
