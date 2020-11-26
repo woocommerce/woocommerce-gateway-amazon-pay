@@ -1,6 +1,8 @@
 /*global jQuery, window, document, setTimeout, console, amazon_payments_advanced, amazon */
 ( function( $ ) {
 	$( function() {
+		var button_id = '#pay_with_amazon';
+		var separator_id = '#wc-apa-button-separator';
 		var button_settings = {
 			// set checkout environment
 			merchantId: amazon_payments_advanced.merchant_id,
@@ -13,6 +15,7 @@
 			// configure Create Checkout Session request
 			createCheckoutSessionConfig: amazon_payments_advanced.create_checkout_session_config
 		};
-		amazon.Pay.renderButton( '#pay_with_amazon', button_settings );
+		amazon.Pay.renderButton( button_id, button_settings );
+		$( button_id ).siblings( separator_id ).show();
 	} );
 } )( jQuery );
