@@ -22,6 +22,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			'products',
 			'refunds',
 		);
+		$this->supports             = apply_filters( 'woocommerce_amazon_pa_supports', $this->supports, $this );
 		$this->private_key          = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 
 		// Load multicurrency fields if compatibility. (Only on settings admin).

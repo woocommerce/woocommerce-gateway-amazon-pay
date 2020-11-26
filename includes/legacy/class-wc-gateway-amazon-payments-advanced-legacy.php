@@ -80,6 +80,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			return parent::is_available();
 		}
 
+		$is_available = apply_filters( 'woocommerce_amazon_pa_is_gateway_available', true );
+
+		if ( ! $is_available ) {
+			return false;
+		}
+
 		$login_app_enabled = ( 'yes' === $this->enable_login_app );
 		$standard_mode_ok  = ( ! $login_app_enabled && ! empty( $this->reference_id ) );
 		$login_app_mode_ok = ( $login_app_enabled && ! empty( $this->access_token ) );

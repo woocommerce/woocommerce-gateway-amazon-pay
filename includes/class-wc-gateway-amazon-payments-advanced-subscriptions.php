@@ -10,27 +10,18 @@
  *
  * Extending main gateway class and only loaded if Subscriptions is available.
  */
-class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazon_Payments_Advanced {
+class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
 
-		parent::__construct();
+		$this->id = 'amazon_payments_advanced'; // TODO: Dynamically define
 
-		$this->supports = array_merge(
-			$this->supports,
-			array(
-				'subscriptions',
-				'subscription_date_changes',
-				'subscription_suspension',
-				'subscription_reactivation',
-				'subscription_cancellation',
-				'multiple_subscriptions',
-				'subscription_payment_method_change_customer',
-			)
-		);
+		add_filter( 'woocommerce_amazon_pa_supports', array( $this, 'add_subscription_support' ) );
+
+		add_filter( 'woocommerce_amazon_pa_is_gateway_available', array( $this, 'is_available' ) );
 
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $this->id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
 
@@ -53,12 +44,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 	 *
 	 * @return bool
 	 */
-	public function is_available() {
-		$is_available = parent::is_available();
+	public function is_available( $is_available ) {
+		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
+		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
+		$subscriptions_enabled   = empty( $settings['subscriptions_enabled'] ) || 'yes' == $settings['subscriptions_enabled'];
+		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
 
-		// No subscription product in cart.
-		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() ) {
-			return $is_available;
+		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+			return false;
 		}
 
 		return $is_available;
@@ -752,5 +745,22 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 			$result['redirect'] = $subscription->get_view_order_url();
 		}
 		return $result;
+	}
+
+	public function add_subscription_support( $supports ) {
+		$supports = array_merge(
+			$supports,
+			array(
+				'subscriptions',
+				'subscription_date_changes',
+				'subscription_suspension',
+				'subscription_reactivation',
+				'subscription_cancellation',
+				'multiple_subscriptions',
+				'subscription_payment_method_change_customer',
+			)
+		);
+
+		return $supports;
 	}
 }

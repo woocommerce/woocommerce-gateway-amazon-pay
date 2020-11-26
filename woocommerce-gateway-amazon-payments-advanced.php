@@ -207,20 +207,17 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-privacy.php';
 
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
 
 		// Check for Subscriptions 2.0, and load support if found.
-		if ( $subscriptions_installed && $subscriptions_enabled ) {
+		if ( $subscriptions_installed ) {
 
 			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-subscriptions.php';
 
-			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Subscriptions();
-
-		} else {
-
-			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced();
+			$this->subscriptions = new WC_Gateway_Amazon_Payments_Advanced_Subscriptions();
 
 		}
+		
+		$this->gateway = new WC_Gateway_Amazon_Payments_Advanced();
 
 		add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ) );
 	}

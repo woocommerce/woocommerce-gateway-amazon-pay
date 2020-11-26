@@ -37,13 +37,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $is_available;
 		}
 
-		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' == $this->settings['subscriptions_enabled'];
-		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
-
-		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
-			return false;
-		}
+		$is_available = apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $is_available );
 
 		return ( $is_available && ! empty( $this->settings['merchant_id'] ) );
 	}
