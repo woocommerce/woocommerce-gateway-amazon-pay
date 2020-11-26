@@ -51,6 +51,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
+		add_action( 'template_redirect', array( $this, 'maybe_handle_apa_action' ) );
+
 		// Scripts
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 
@@ -153,7 +155,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
 		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
 
-		if( true ) { // TODO: Implement login handler
+		if( ! $this->is_logged_in() ) {
 			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
 			return;
 		}
@@ -165,7 +167,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function checkout_message() {
 		echo '<div class="wc-amazon-checkout-message wc-amazon-payments-advanced-populated">';
 
-		if ( true ) { // TODO: Implement login handler
+		if ( ! $this->is_logged_in() ) {
 			echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info">' . $this->checkout_button( false ) . ' ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
 		} else {
 			$logout_url      = $this->get_amazon_logout_url();
@@ -175,6 +177,34 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		echo '</div>';
 
+	}
+
+	public function maybe_handle_apa_action() {
+
+		if ( empty( $_GET['amazon_payments_advanced'] ) ) {
+			return;
+		}
+
+		if ( is_null( WC()->session ) ) {
+			return;
+		}
+
+		if ( isset( $_GET['amazonCheckoutSessionId'] ) ) {
+			WC()->session->set( 'amazon_checkout_session_id', $_GET['amazonCheckoutSessionId'] );
+			wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
+			exit;
+		}
+
+	}
+
+	protected function is_logged_in() {
+		if ( is_null( WC()->session ) ) {
+			return false;
+		}
+
+		$session_id = WC()->session->get( 'amazon_checkout_session_id', false );
+
+		return ! empty( $session_id ) ? true : false;
 	}
 
 }
