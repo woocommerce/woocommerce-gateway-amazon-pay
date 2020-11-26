@@ -664,7 +664,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param WC_Order $order
 	 * @param string $amazon_reference_id
 	 */
-	protected function handle_sca_success( $process, $order, $amazon_reference_id ) {
+	public function handle_sca_success( $process, $order, $amazon_reference_id ) {
 		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
 			return $process;
 		}
@@ -703,7 +703,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param string $amazon_reference_id
 	 * @param string $authorization_status
 	 */
-	protected function handle_sca_failure( $process, $order, $amazon_reference_id, $authorization_status ) {
+	public function handle_sca_failure( $process, $order, $amazon_reference_id, $authorization_status ) {
 		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
 			return $process;
 		}
