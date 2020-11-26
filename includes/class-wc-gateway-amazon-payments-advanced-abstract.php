@@ -50,6 +50,8 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		add_action( 'admin_init', array( $this, 'process_settings_export' ) );
 		add_action( 'woocommerce_after_settings_checkout', array( $this, 'import_export_fields_output' ) );
 
+		add_action( 'woocommerce_amazon_checkout_init', array( $this, 'checkout_init_common' ) );
+
 	}
 
 	/**
@@ -785,6 +787,44 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		}
 
 		return $gateways;
+	}
+
+	/**
+	 * Override billing fields when checking out with Amazon.
+	 *
+	 * @param array $fields billing fields.
+	 */
+	public function override_billing_fields( $fields ) {
+		// Last name and State are not required on Amazon billing addrress forms.
+		$fields['billing_last_name']['required'] = false;
+		$fields['billing_state']['required']     = false;
+		// Phone field is missing on some sandbox accounts.
+		$fields['billing_phone']['required'] = false;
+
+		return $fields;
+	}
+
+	/**
+	 * Override address fields when checking out with Amazon.
+	 *
+	 * @param array $fields default address fields.
+	 */
+	public function override_shipping_fields( $fields ) {
+		// Last name and State are not required on Amazon shipping addrress forms.
+		$fields['shipping_last_name']['required'] = false;
+		$fields['shipping_state']['required']     = false;
+
+		return $fields;
+	}
+
+	public function checkout_init_common() {
+		// Remove other gateways after being logged in
+		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_gateways' ) );
+		// Some fields are not enforced on Amazon's side. Marking them as optional avoids issues with checkout.
+		add_filter( 'woocommerce_billing_fields', array( $this, 'override_billing_fields' ) );
+		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_shipping_fields' ) );
+		// Always ship to different address
+		add_action( 'woocommerce_ship_to_different_address_checked', '__return_true' );
 	}
 
 }

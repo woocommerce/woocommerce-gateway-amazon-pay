@@ -1146,12 +1146,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'payment_widget' ), 20 );
 		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'address_widget' ), 10 );
-		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_gateways' ) );
 		add_action( 'woocommerce_checkout_order_processed', array( $this, 'capture_shipping_address_for_zero_order_total' ) );
-		add_action( 'woocommerce_ship_to_different_address_checked', '__return_true' );
-		// Some fields are not enforced on Amazon's side. Marking them as optional avoids issues with checkout.
-		add_filter( 'woocommerce_billing_fields', array( $this, 'override_billing_fields' ) );
-		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_shipping_fields' ) );
 		// The default checkout form uses the billing email for new account creation
 		// Let's hijack that field for the Amazon-based checkout.
 		if ( apply_filters( 'woocommerce_pa_hijack_checkout_fields', true ) ) {
@@ -1318,34 +1313,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		if ( $order_details ) {
 			wc_apa()->get_gateway()->store_order_address_details( $order, $order_details );
 		}
-	}
-
-	/**
-	 * Override billing fields when checking out with Amazon.
-	 *
-	 * @param array $fields billing fields.
-	 */
-	public function override_billing_fields( $fields ) {
-		// Last name and State are not required on Amazon billing addrress forms.
-		$fields['billing_last_name']['required'] = false;
-		$fields['billing_state']['required']     = false;
-		// Phone field is missing on some sandbox accounts.
-		$fields['billing_phone']['required'] = false;
-
-		return $fields;
-	}
-
-	/**
-	 * Override address fields when checking out with Amazon.
-	 *
-	 * @param array $fields default address fields.
-	 */
-	public function override_shipping_fields( $fields ) {
-		// Last name and State are not required on Amazon shipping addrress forms.
-		$fields['shipping_last_name']['required'] = false;
-		$fields['shipping_state']['required']     = false;
-
-		return $fields;
 	}
 
 	/**

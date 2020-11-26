@@ -159,6 +159,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
 			return;
 		}
+
+		// If all prerequisites are meet to be an amazon checkout.
+		do_action( 'woocommerce_amazon_checkout_init' );
 	}
 
 	/**
