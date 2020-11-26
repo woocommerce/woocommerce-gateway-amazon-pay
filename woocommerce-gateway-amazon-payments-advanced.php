@@ -216,8 +216,12 @@ class WC_Amazon_Payments_Advanced {
 			$this->subscriptions = new WC_Gateway_Amazon_Payments_Advanced_Subscriptions();
 
 		}
-		
-		$this->gateway = new WC_Gateway_Amazon_Payments_Advanced();
+
+		if ( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
+			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced();
+		} else {
+			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Legacy();
+		}
 
 		add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ) );
 	}
