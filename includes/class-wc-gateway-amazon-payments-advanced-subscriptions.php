@@ -168,7 +168,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			// Return thank you page redirect.
 			return array(
 				'result'   => 'success',
-				'redirect' => $this->get_return_url( $order ),
+				'redirect' => wc_apa()->get_gateway()->get_return_url( $order ),
 			);
 		} catch ( Exception $e ) {
 
@@ -385,7 +385,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		// Return thank you page redirect.
 		return array(
 			'result'   => 'success',
-			'redirect' => $this->get_return_url( $order ),
+			'redirect' => wc_apa()->get_gateway()->get_return_url( $order ),
 		);
 	}
 
@@ -666,7 +666,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
 			return $process;
 		}
-		$redirect = $this->get_return_url( $order );
+		$redirect = wc_apa()->get_gateway()->get_return_url( $order );
 
 		try {
 			// It will process payment and empty the cart.
