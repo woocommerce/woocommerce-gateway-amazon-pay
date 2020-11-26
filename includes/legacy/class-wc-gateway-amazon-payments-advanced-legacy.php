@@ -270,6 +270,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @param int $order_id Order ID.
 	 */
 	public function process_payment( $order_id ) {
+		$process = apply_filters( 'woocommerce_amazon_pa_process_payment', null, $order_id );
+		if ( ! is_null( $process ) ) {
+			return $process;
+		}
+
 		$order               = wc_get_order( $order_id );
 		$amazon_reference_id = isset( $_POST['amazon_reference_id'] ) ? wc_clean( $_POST['amazon_reference_id'] ) : '';
 

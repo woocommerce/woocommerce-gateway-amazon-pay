@@ -29,6 +29,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $this->id, array( $this, 'update_failing_payment_method' ), 10, 2 );
 
+		add_filter( 'woocommerce_amazon_pa_process_payment', array( $this, 'process_payment' ), 10, 2 );
+
 		// WC Subscription Hook
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
 	}
@@ -72,10 +74,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @param int $order_id Order ID.
 	 */
-	public function process_payment( $order_id ) {
+	public function process_payment( $process, $order_id ) {
 
 		if ( ! $this->order_contains_subscription( $order_id ) && ! wcs_is_subscription( $order_id ) ) {
-			return parent::process_payment( $order_id );
+			return $process;
 		}
 
 		$amazon_reference_id              = isset( $_POST['amazon_reference_id'] ) ? wc_clean( $_POST['amazon_reference_id'] ) : '';
@@ -83,7 +85,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$amazon_billing_agreement_details = WC()->session->get( 'amazon_billing_agreement_details' ) ? wc_clean( WC()->session->get( 'amazon_billing_agreement_details' ) ) : false;
 
 		if ( ! $amazon_billing_agreement_id && 'yes' === get_option( 'woocommerce_subscriptions_turn_off_automatic_payments' ) ) {
-			return parent::process_payment( $order_id );
+			return $process;
 		}
 
 		try {
@@ -169,7 +171,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 			wc_apa()->log( __METHOD__, "Error: Exception encountered: {$e->getMessage()}" );
 			wc_add_notice( sprintf( __( 'Error: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ), 'error' );
-			return;
+			return false;
 		}
 	}
 
