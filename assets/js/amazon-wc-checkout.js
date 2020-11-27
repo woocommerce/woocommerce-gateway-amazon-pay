@@ -1,7 +1,6 @@
 /*global jQuery, window, document, setTimeout, console, amazon_payments_advanced, amazon */
 ( function( $ ) {
 	$( function() {
-		var button_id = '#pay_with_amazon';
 		function renderButton( button_id ) {
 			if ( 0 === $( button_id ).length ) {
 				return;
@@ -22,7 +21,7 @@
 			amazon.Pay.renderButton( button_id, button_settings );
 			$( button_id ).siblings( separator_id ).show();
 		}
-		renderButton( button_id );
+		renderButton( '#pay_with_amazon' );
 
 		function isAmazonCheckout() {
 			return ( 'amazon_payments_advanced' === $( 'input[name=payment_method]:checked' ).val() );
