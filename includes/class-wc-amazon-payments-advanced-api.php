@@ -107,6 +107,14 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return true;
 	}
 
+	/**
+	 * Get Amazon Pay SDK Client
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return Amazon\Pay\API\Client Instance
+	 */
+
 	protected static function get_client() {
 		if ( isset( self::$amazonpay_client ) ) {
 			return self::$amazonpay_client;
