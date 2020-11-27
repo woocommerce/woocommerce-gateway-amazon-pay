@@ -92,6 +92,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'action'                         => WC()->cart->needs_shipping() ? 'PayAndShip' :  'PayOnly',
 			'sandbox'                        => 'yes' === $this->settings['sandbox'],
 			'merchant_id'                    => $this->settings['merchant_id'],
+			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ),
 		);
 
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
@@ -141,7 +142,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
-	public function checkout_init() {
+	public function checkout_init( $checkout ) {
 
 		/**
 		 * Make sure this is checkout initiated from front-end where cart exsits.
@@ -162,6 +163,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// If all prerequisites are meet to be an amazon checkout.
 		do_action( 'woocommerce_amazon_checkout_init' );
+
+		// The default checkout form uses the billing email for new account creation
+		// Let's hijack that field for the Amazon-based checkout.
+		if ( apply_filters( 'woocommerce_pa_hijack_checkout_fields', true ) ) {
+			$this->hijack_checkout_fields( $checkout );
+		}
 	}
 
 	/**
@@ -214,6 +221,158 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$session_id = WC()->session->get( 'amazon_checkout_session_id', false );
 
 		return ! empty( $session_id ) ? true : false;
+	}
+
+	public function hijack_checkout_fields( $checkout ) {
+		$has_billing_fields = ( isset( $checkout->checkout_fields['billing'] ) && is_array( $checkout->checkout_fields['billing'] ) );
+		if ( $has_billing_fields ) {
+			$this->hijack_checkout_field_account( $checkout );
+		}
+
+		// During an Amazon checkout, the standard billing and shipping fields need to be
+		// "removed" so that we don't trigger a false negative on form validation -
+		// they can be empty since we're using the Amazon widgets.
+		$this->hijack_checkout_field_billing( $checkout );
+		$this->hijack_checkout_field_shipping( $checkout );
+	}
+
+	/**
+	 * Alter account checkout field.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	protected function hijack_checkout_field_account( $checkout ) {
+		$billing_fields_to_copy = array(
+			'billing_first_name' => '',
+			'billing_last_name'  => '',
+			'billing_email'      => '',
+		);
+
+		$billing_fields_to_merge = array_intersect_key( $checkout->checkout_fields['billing'], $billing_fields_to_copy );
+
+		/**
+		 * WC 3.0 changes a bit a way to retrieve fields.
+		 *
+		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/217
+		 */
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		/**
+		 * Before 3.0.0, account fields may not set at all if guest checkout is
+		 * disabled with account and password generated automatically.
+		 *
+		 * @see https://github.com/woocommerce/woocommerce/blob/2.6.14/includes/class-wc-checkout.php#L92-L132
+		 * @see https://github.com/woocommerce/woocommerce/blob/master/includes/class-wc-checkout.php#L187-L197
+		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/228
+		 */
+		$checkout_fields['account'] = ! empty( $checkout_fields['account'] )
+			? $checkout_fields['account']
+			: array();
+
+		$checkout_fields['account'] = array_merge( $billing_fields_to_merge, $checkout_fields['account'] );
+
+		if ( isset( $checkout_fields['account']['billing_email']['class'] ) ) {
+			$checkout_fields['account']['billing_email']['class'] = array();
+		}
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Hijack billing checkout field.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	protected function hijack_checkout_field_billing( $checkout ) {
+		// The following fields cannot be optional for WC compatibility reasons.
+		$required_fields = array( 'billing_first_name', 'billing_last_name', 'billing_email' );
+		// If the order does not require shipping, these fields can be optional.
+		$optional_fields = array(
+			'billing_company',
+			'billing_country',
+			'billing_address_1',
+			'billing_address_2',
+			'billing_city',
+			'billing_state',
+			'billing_postcode',
+			'billing_phone',
+		);
+		$all_fields      = array_merge( $required_fields, $optional_fields );
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		// Some merchants might not have access to billing address information, so we need to make those fields optional
+		// when the order doesn't require shipping.
+		if ( ! apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ) ) {
+			foreach ( $optional_fields as $field ) {
+				$checkout_fields['billing'][ $field ]['required'] = false;
+			}
+		}
+		$this->add_hidden_class_to_fields( $checkout_fields['billing'], $all_fields );
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Hijack shipping checkout field.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Checkout $checkout WC_Checkout instance.
+	 */
+	protected function hijack_checkout_field_shipping( $checkout ) {
+		$field_list      = array(
+			'shipping_first_name',
+			'shipping_last_name',
+			'shipping_company',
+			'shipping_country',
+			'shipping_address_1',
+			'shipping_address_2',
+			'shipping_city',
+			'shipping_state',
+			'shipping_postcode',
+		);
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		if ( apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ) ) {
+			$this->add_hidden_class_to_fields( $checkout_fields['shipping'], $field_list );
+		}
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Adds hidden class to checkout field
+	 *
+	 * @param array $field reference to the field to be hidden.
+	 */
+	protected function add_hidden_class_to_field( &$field ) {
+		if ( isset( $field['class'] ) ) {
+			array_push( $field['class'], 'hidden' );
+		} else {
+			$field['class'] = array( 'hidden' );
+		}
+	}
+
+	/**
+	 * Adds hidden class to checkout fields based on a list
+	 *
+	 * @param array $checkout_fields reference to checkout fields.
+	 * @param array $field_list fields to be hidden.
+	 */
+	protected function add_hidden_class_to_fields( &$checkout_fields, $field_list ) {
+		foreach ( $field_list as $field ) {
+			$this->add_hidden_class_to_field( $checkout_fields[ $field ] );
+		}
 	}
 
 }

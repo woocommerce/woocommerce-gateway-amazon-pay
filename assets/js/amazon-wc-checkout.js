@@ -23,5 +23,49 @@
 			$( button_id ).siblings( separator_id ).show();
 		}
 		renderButton( button_id );
+
+		function isAmazonCheckout() {
+			return ( 'amazon_payments_advanced' === $( 'input[name=payment_method]:checked' ).val() );
+		}
+
+		function toggleDetailsVisibility( detailsListName ) {
+			if ( $( '.' + detailsListName + '__field-wrapper' ).children( ':not(.hidden)' ).length === 0 ) {
+				$( '.' + detailsListName ).addClass( 'hidden' );
+			} else {
+				$( '.' + detailsListName ).removeClass( 'hidden' );
+			}
+		}
+
+		toggleDetailsVisibility( 'woocommerce-billing-fields' );
+		toggleDetailsVisibility( 'woocommerce-shipping-fields' );
+		toggleDetailsVisibility( 'woocommerce-additional-fields' );
+
+		function toggleFieldVisibility( type, key ) {
+			var fieldWrapper = $( '#' + type + '_' + key + '_field' ),
+				fieldValue = $( '#' + type + '_' + key ).val();
+			fieldWrapper.addClass( 'hidden' );
+			$( '.woocommerce-' + type + '-fields' ).addClass( 'hidden' );
+			if ( fieldValue == null || fieldValue === '' ) {
+				fieldWrapper.removeClass( 'hidden' );
+				$( '.woocommerce-' + type + '-fields' ).removeClass( 'hidden' );
+			}
+		}
+
+		$( 'body' ).on( 'updated_checkout', function() {
+			toggleFieldVisibility( 'shipping', 'state' );
+			if ( ! isAmazonCheckout() ) {
+				return;
+			}
+			if ( $( '.woocommerce-billing-fields .woocommerce-billing-fields__field-wrapper > *' ).length > 0 ) {
+				$( '.woocommerce-billing-fields' ).insertBefore( '#payment' );
+			}
+			if ( $( '.woocommerce-shipping-fields .woocommerce-shipping-fields__field-wrapper > *' ).length > 0 ) {
+				var title = $( '#ship-to-different-address' );
+				title.find( ':checkbox#ship-to-different-address-checkbox' ).hide();
+				title.find( 'span' ).text( amazon_payments_advanced.shipping_title );
+				$( '.woocommerce-shipping-fields' ).insertBefore( '#payment' );
+			}
+			$( '.woocommerce-additional-fields' ).insertBefore( '#payment' );
+		} );
 	} );
 } )( jQuery );
