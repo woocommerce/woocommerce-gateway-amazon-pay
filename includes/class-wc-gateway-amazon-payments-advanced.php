@@ -69,20 +69,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function scripts() {
 
-		$enqueue_scripts = is_cart() || is_checkout() || is_checkout_pay_page();
-
-		if ( ! apply_filters( 'woocommerce_amazon_pa_enqueue_scripts', $enqueue_scripts ) ) {
-			return;
-		}
-
 		$js_suffix = '.min.js';
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 			$js_suffix = '.js';
 		}
 
-		wp_enqueue_style( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/css/style.css', array(), wc_apa()->version );
-		wp_enqueue_script( 'amazon_payments_advanced_checkout', $this->get_region_script(), array(), wc_apa()->version, true );
-		wp_enqueue_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-wc-checkout' . $js_suffix, array(), wc_apa()->version, true );
+		wp_register_style( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/css/style.css', array(), wc_apa()->version );
+		wp_register_script( 'amazon_payments_advanced_checkout', $this->get_region_script(), array(), wc_apa()->version, true );
+		wp_register_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-wc-checkout' . $js_suffix, array(), wc_apa()->version, true );
 
 		$params = array(
 			'ajax_url'                       => admin_url( 'admin-ajax.php' ),
@@ -97,6 +91,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
 
+		$enqueue_scripts = is_cart() || is_checkout() || is_checkout_pay_page();
+
+		if ( ! apply_filters( 'woocommerce_amazon_pa_enqueue_scripts', $enqueue_scripts ) ) {
+			return;
+		}
+
+		$this->enqueue_scripts();
+
+	}
+
+	public function enqueue_scripts() {
+		wp_enqueue_style( 'amazon_payments_advanced' );
+		wp_enqueue_script( 'amazon_payments_advanced_checkout' );
+		wp_enqueue_script( 'amazon_payments_advanced' );
 	}
 
 	protected function get_current_placement() {
