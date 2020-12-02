@@ -10,6 +10,8 @@
  */
 class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Advanced_Abstract {
 
+	protected $checkout_session;
+
 	/**
 	 * Constructor
 	 */
@@ -228,6 +230,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return WC()->session->get( 'amazon_checkout_session_id', false );
 	}
 
+	protected function get_checkout_session() {
+		if ( ! is_null( $this->checkout_session ) ) {
+			return $this->checkout_session;
+		}
+
+		$this->checkout_session = WC_Amazon_Payments_Advanced_API::get_checkout_session_data( $this->get_checkout_session_id() );
+		return $this->checkout_session;
+	}
+
 	protected function is_logged_in() {
 		if ( is_null( WC()->session ) ) {
 			return false;
@@ -392,7 +403,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	public function display_amazon_customer_info() {
 
-		$checkout_session = WC_Amazon_Payments_Advanced_API::get_checkout_session_data( $this->get_checkout_session_id() );
+		$checkout_session = $this->get_checkout_session();
 
 		// Skip showing address widget for carts with virtual products only.
 		$show_address_widget = apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() );
