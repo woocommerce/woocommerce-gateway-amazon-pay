@@ -191,4 +191,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		}
 	}
 
+	public static function update_checkout_session_data( $checkout_session_id, $data = array() ) {
+		$client = self::get_client();
+		$result = $client->updateCheckoutSession( $checkout_session_id, $data );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->message );
+		}
+
+		return $response;
+	}
+
 }

@@ -536,4 +536,95 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return $data;
 	}
 
+	/**
+	 * Process payment.
+	 *
+	 * @version 2.0.0
+	 *
+	 * @param int $order_id Order ID.
+	 */
+	public function process_payment( $order_id ) {
+		$process = apply_filters( 'woocommerce_amazon_pa_process_payment', null, $order_id );
+		if ( ! is_null( $process ) ) {
+			return $process;
+		}
+
+		$order               = wc_get_order( $order_id );
+
+		$checkout_session_id = $this->get_checkout_session_id();
+
+		$checkout_session = $this->get_checkout_session();
+
+		$payments = $checkout_session->paymentPreferences;
+
+		try {
+			if ( ! $order ) {
+				throw new Exception( __( 'Invalid order.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			}
+
+			if ( empty( $payments ) ) {
+				throw new Exception( __( 'An Amazon Pay payment method was not chosen.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			}
+
+			// TODO: Add shipping requirement check
+
+			// TODO: Implement Multicurrency
+
+			$order_total = $order->get_total();
+			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
+
+			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
+			update_post_meta( $order_id, 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION );
+			update_post_meta( $order_id, 'woocommerce_version', WC()->version );
+
+			$paymentIntent = 'AuthorizeWithCapture';
+			switch( $this->settings['payment_capture'] ) {
+				case 'authorize':
+					$paymentIntent = 'Authorize';
+					break;
+				case 'manual':
+					$paymentIntent = 'Confirm';
+					break;
+			}
+
+			$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data( $checkout_session_id, array(
+				"paymentDetails" => array(
+					"paymentIntent" => $paymentIntent,
+					// "softDescriptor" => "Descriptor", // TODO: Maybe implement?
+					"chargeAmount" => array(
+						"amount" => $order_total,
+						"currencyCode" => $currency,
+					),
+				),
+				"merchantMetadata" => array(
+					"merchantReferenceId" => "Order #" . $order_id,
+					"merchantStoreName" => WC_Amazon_Payments_Advanced::get_site_name(),
+					// "noteToBuyer" => "Note to buyer", // TODO: Ask amazon what this could be used for.
+					// "customInformation" => "Custom information", // TODO: Ask amazon what this could be used for.
+				),
+			) );
+
+			if ( is_wp_error( $response ) ) {
+				// TODO: Clean up
+				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+				return;
+			}
+
+			if ( ! empty( $response->constraints ) ) {
+				// TODO: Clean up
+				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->constraints, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+				return;
+			}
+
+			// Return thank you page redirect.
+			return array(
+				'result'   => 'success',
+				'redirect' => $response->webCheckoutDetails->amazonPayRedirectUrl,
+			);
+
+		} catch ( Exception $e ) {
+			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(), 'error' );
+		}
+	}
+
 }
