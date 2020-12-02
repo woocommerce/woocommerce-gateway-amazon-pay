@@ -574,8 +574,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
 			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
-			update_post_meta( $order_id, 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION );
-			update_post_meta( $order_id, 'woocommerce_version', WC()->version );
+
+			$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // TODO: ask if WC 2.6 support is still needed (it's a 2017 release)
+			$order->update_meta_data( 'woocommerce_version', WC()->version );
 
 			$paymentIntent = 'AuthorizeWithCapture';
 			switch( $this->settings['payment_capture'] ) {
@@ -615,6 +616,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->constraints, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
 				return;
 			}
+
+			$order->save();
 
 			// Return thank you page redirect.
 			return array(
