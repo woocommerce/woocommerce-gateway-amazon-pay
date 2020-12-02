@@ -5,7 +5,7 @@
 			if ( 0 === $( button_id ).length ) {
 				return;
 			}
-			var separator_id = '#wc-apa-button-separator';
+			var separator_id = '.wc-apa-button-separator';
 			var button_settings = {
 				// set checkout environment
 				merchantId: amazon_payments_advanced.merchant_id,
