@@ -60,6 +60,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Checkout.
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
+		add_filter( 'woocommerce_checkout_posted_data', array( $this, 'use_checkout_session_data' ) );
 
 		// Cart
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
@@ -493,6 +494,46 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		</div>
 
 		<?php
+	}
+
+	public function use_checkout_session_data( $data ) {
+		if ( $data['payment_method'] !== $this->id ) {
+			return $data;
+		}
+
+		$checkout_session = $this->get_checkout_session();
+
+		if( ! empty( $checkout_session->buyer ) ) {
+			// Billing
+			$wc_billing_address = array();
+			if ( ! empty( $checkout_session->billingAddress ) ) {
+				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress );
+			} else {
+				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_name( $checkout_session->buyer->name );
+			}
+			if ( ! empty( $checkout_session->buyer->email ) ) {
+				$wc_billing_address['email'] = $checkout_session->buyer->email;
+			}
+			foreach( $wc_billing_address as $field => $val ) {
+				if ( isset( $data[ 'billing_' . $field ] ) ) {
+					$data[ 'billing_' . $field ] = $val;
+				}
+			}
+
+			$wc_shipping_address = array();
+			if ( ! empty( $checkout_session->billingAddress ) ) {
+				$wc_shipping_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress );
+			}
+
+			// Shipping
+			foreach( $wc_shipping_address as $field => $val ) {
+				if ( isset( $data[ 'shipping_' . $field ] ) ) {
+					$data[ 'shipping_' . $field ] = $val;
+				}
+			}
+		}
+
+		return $data;
 	}
 
 }
