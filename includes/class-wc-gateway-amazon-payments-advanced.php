@@ -229,6 +229,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			exit;
 		}
 
+		if ( isset( $_GET['amazon_return'] ) && isset( $_GET['amazonCheckoutSessionId'] ) ) {
+			if ( $_GET['amazonCheckoutSessionId'] !== $this->get_checkout_session_id() ) {
+				// TODO: Handle error
+			}
+
+			$this->handle_return();
+			// If we didn't redirect and quit yet, lets force redirect to checkout.
+			wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
+			exit;
+		}
+
 	}
 
 	protected function get_checkout_session_id() {
@@ -632,6 +643,73 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		} catch ( Exception $e ) {
 			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(), 'error' );
 		}
+	}
+
+	public function handle_return() {
+		$checkout_session_id = $this->get_checkout_session_id();
+
+		$order_id = isset( WC()->session->order_awaiting_payment ) ? absint( WC()->session->order_awaiting_payment ) : 0;
+
+		if ( empty( $order_id ) ) {
+			// TODO: Handle error
+			return;
+		}
+
+		$order = wc_get_order( $order_id );
+
+		$order_total = $order->get_total();
+		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
+
+		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session( $checkout_session_id, array(
+			"chargeAmount" => array(
+				"amount" => $order_total,
+				"currencyCode" => $currency,
+			),
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			$error_code = $response->get_error_code();
+			if( 'CheckoutSessionCanceled' == $error_code ) {
+				$checkout_session = $this->get_checkout_session( true );
+
+				switch( $checkout_session->statusDetails->reasonCode ) {
+					case 'Declined':
+						wc_add_notice( __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+						break;
+					case 'BuyerCanceled':
+						wc_add_notice( __( 'The transaction was canceled by you. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+						break;
+					default:
+						// TODO: Clean up
+						wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( array( 'error_code' => $error_code, 'checkout_session' => $checkout_session ), JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+						break;
+				}
+
+				$this->do_logout();
+			} else {
+				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $response->get_error_message(), 'error' );
+			}
+			return;
+		}
+
+		if ( 'Completed' !== $response->statusDetails->state ) {
+			// TODO: Handle error
+			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->statusDetails, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+			return;
+		}
+
+		$order->update_meta_data( 'amazon_charge_id', $response->chargeId );
+		$order->update_meta_data( 'amazon_charge_permission_id', $response->chargePermissionId );
+		$order->save();
+
+		// TODO: Handle failure cases
+		$order->payment_complete();
+
+		// Remove cart.
+		WC()->cart->empty_cart();
+
+		wp_safe_redirect( $order->get_checkout_order_received_url() );
+		exit;
 	}
 
 }
