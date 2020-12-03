@@ -203,6 +203,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	}
 
+	protected function do_logout() {
+		unset( WC()->session->amazon_checkout_session_id );
+	}
+
 	public function maybe_handle_apa_action() {
 
 		if ( empty( $_GET['amazon_payments_advanced'] ) ) {
@@ -214,7 +218,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( isset( $_GET['amazon_logout'] ) ) {
-			unset( WC()->session->amazon_checkout_session_id );
+			$this->do_logout();
 			wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
 			exit;
 		}
