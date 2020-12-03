@@ -231,8 +231,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return WC()->session->get( 'amazon_checkout_session_id', false );
 	}
 
-	protected function get_checkout_session() {
-		if ( ! is_null( $this->checkout_session ) ) {
+	protected function get_checkout_session( $force = false) {
+		if ( ! $force && ! is_null( $this->checkout_session ) ) {
 			return $this->checkout_session;
 		}
 
