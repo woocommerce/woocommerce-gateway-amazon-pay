@@ -275,8 +275,68 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// During an Amazon checkout, the standard billing and shipping fields need to be
 		// "removed" so that we don't trigger a false negative on form validation -
 		// they can be empty since we're using the Amazon widgets.
-		$this->hijack_checkout_field_billing( $checkout );
-		$this->hijack_checkout_field_shipping( $checkout );
+
+		// The following fields cannot be optional for WC compatibility reasons.
+		$required_fields = array( 'billing_first_name', 'billing_last_name', 'billing_email' );
+		// If the order does not require shipping, these fields can be optional.
+		$optional_fields = array(
+			'billing_company',
+			'billing_country',
+			'billing_address_1',
+			'billing_address_2',
+			'billing_city',
+			'billing_state',
+			'billing_postcode',
+			'billing_phone',
+		);
+		$all_fields      = array_merge( $required_fields, $optional_fields );
+		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
+			? $checkout->get_checkout_fields()
+			: $checkout->checkout_fields;
+
+		$session_wc_format = $this->get_woocommerce_data();
+
+		$required_present = true;
+		foreach( $all_fields as $key ) {
+			if ( ! isset( $checkout_fields['billing'][ $key ]['required'] ) || $checkout_fields['billing'][ $key ]['required'] ) {
+				if ( ! isset( $session_wc_format[$key] ) ) {
+					$required_present = false;
+					break;
+				}
+			}
+		}
+
+		if ( $required_present ) {
+			$this->add_hidden_class_to_fields( $checkout_fields['billing'], $all_fields );
+		}
+
+		$field_list      = array(
+			'shipping_first_name',
+			'shipping_last_name',
+			'shipping_company',
+			'shipping_country',
+			'shipping_address_1',
+			'shipping_address_2',
+			'shipping_city',
+			'shipping_state',
+			'shipping_postcode',
+		);
+
+		$required_present = true;
+		foreach( $field_list as $key ) {
+			if ( ! isset( $checkout_fields['shipping'][ $key ]['required'] ) || $checkout_fields['shipping'][ $key ]['required'] ) {
+				if ( ! isset( $session_wc_format[$key] ) ) {
+					$required_present = false;
+					break;
+				}
+			}
+		}
+
+		if ( $required_present ) {
+			$this->add_hidden_class_to_fields( $checkout_fields['shipping'], $field_list );
+		}
+
+		$checkout->checkout_fields = $checkout_fields;
 	}
 
 	/**
@@ -320,74 +380,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		if ( isset( $checkout_fields['account']['billing_email']['class'] ) ) {
 			$checkout_fields['account']['billing_email']['class'] = array();
-		}
-
-		$checkout->checkout_fields = $checkout_fields;
-	}
-
-	/**
-	 * Hijack billing checkout field.
-	 *
-	 * @since 1.7.0
-	 *
-	 * @param WC_Checkout $checkout WC_Checkout instance.
-	 */
-	protected function hijack_checkout_field_billing( $checkout ) {
-		// The following fields cannot be optional for WC compatibility reasons.
-		$required_fields = array( 'billing_first_name', 'billing_last_name', 'billing_email' );
-		// If the order does not require shipping, these fields can be optional.
-		$optional_fields = array(
-			'billing_company',
-			'billing_country',
-			'billing_address_1',
-			'billing_address_2',
-			'billing_city',
-			'billing_state',
-			'billing_postcode',
-			'billing_phone',
-		);
-		$all_fields      = array_merge( $required_fields, $optional_fields );
-		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
-			? $checkout->get_checkout_fields()
-			: $checkout->checkout_fields;
-
-		// Some merchants might not have access to billing address information, so we need to make those fields optional
-		// when the order doesn't require shipping.
-		if ( ! apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ) ) {
-			foreach ( $optional_fields as $field ) {
-				$checkout_fields['billing'][ $field ]['required'] = false;
-			}
-		}
-		$this->add_hidden_class_to_fields( $checkout_fields['billing'], $all_fields );
-
-		$checkout->checkout_fields = $checkout_fields;
-	}
-
-	/**
-	 * Hijack shipping checkout field.
-	 *
-	 * @since 1.7.0
-	 *
-	 * @param WC_Checkout $checkout WC_Checkout instance.
-	 */
-	protected function hijack_checkout_field_shipping( $checkout ) {
-		$field_list      = array(
-			'shipping_first_name',
-			'shipping_last_name',
-			'shipping_company',
-			'shipping_country',
-			'shipping_address_1',
-			'shipping_address_2',
-			'shipping_city',
-			'shipping_state',
-			'shipping_postcode',
-		);
-		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
-			? $checkout->get_checkout_fields()
-			: $checkout->checkout_fields;
-
-		if ( apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() ) ) {
-			$this->add_hidden_class_to_fields( $checkout_fields['shipping'], $field_list );
 		}
 
 		$checkout->checkout_fields = $checkout_fields;
