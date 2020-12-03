@@ -161,7 +161,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$client   = self::get_client();
 		$result = $client->getCheckoutSession( $checkout_session_id );
 		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
-			return new WP_Error( __( 'Error while getting checkout session.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			return new WP_Error( $result['status'], __( 'Error while getting checkout session.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 		}
 		$checkout_session = json_decode( $result['response'] );
 
@@ -198,7 +198,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
-			return new WP_Error( $response->message );
+			return new WP_Error( $response->reasonCode, $response->message );
 		}
 
 		return $response;
