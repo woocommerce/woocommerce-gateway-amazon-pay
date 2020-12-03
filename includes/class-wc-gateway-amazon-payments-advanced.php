@@ -61,6 +61,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// Checkout.
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
 		add_filter( 'woocommerce_checkout_posted_data', array( $this, 'use_checkout_session_data' ) );
+		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
 
 		// Cart
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
@@ -560,6 +561,37 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$data = array_merge( $data, array_intersect_key( $formatted_session_data, $data ) ); // only set data that exists in data
 
 		return $data;
+	}
+
+	public function use_checkout_session_data_single( $ret, $input ) {
+		// TODO: Test logged out and not so clear phases
+
+		if ( ! WC()->cart->needs_payment() ) {
+			return $ret;
+		}
+		
+		$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
+		WC()->payment_gateways()->set_current_gateway( $available_gateways );
+
+		if ( ! isset( $available_gateways[ $this->id ] ) ) {
+			return $ret;
+		}
+
+		if ( true !== $available_gateways[ $this->id ]->chosen ) {
+			return $ret;
+		}
+
+		if ( ! $this->is_logged_in() ) {
+			return $ret;
+		}
+
+		$session = $this->get_woocommerce_data();
+
+		if( isset( $session[ $input ] ) ) {
+			return $session[ $input ];
+		}
+
+		return $ret;
 	}
 
 	/**
