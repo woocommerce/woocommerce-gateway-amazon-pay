@@ -310,6 +310,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$this->add_hidden_class_to_fields( $checkout_fields['billing'], $all_fields );
 		}
 
+		// TODO: Handle case where important fields are missing and/or wrong.
+		// TODO: Billing address on tests accounts doesn't match CC addresses on seller central. Ask.
+
 		$field_list      = array(
 			'shipping_first_name',
 			'shipping_last_name',
@@ -335,6 +338,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( $required_present ) {
 			$this->add_hidden_class_to_fields( $checkout_fields['shipping'], $field_list );
 		}
+
+		// TODO: Handle case where important fields are missing and/or wrong.
 
 		$checkout->checkout_fields = $checkout_fields;
 	}
@@ -505,6 +510,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	protected function get_woocommerce_data() {
+		// TODO: Store in session for performance, always clear when coming back from AMZ
 		$checkout_session_id = $this->get_checkout_session_id();
 		if( empty( $checkout_session_id ) ) {
 			return array();
