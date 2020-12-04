@@ -66,6 +66,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// Cart
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
+		add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 	}
 
 	/**
@@ -751,6 +752,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		wp_safe_redirect( $order->get_checkout_order_received_url() );
 		exit;
+	}
+
+	public function update_js() {
+		$data = array(
+			'action' => WC()->cart->needs_shipping() ? 'PayAndShip' :  'PayOnly',
+		);
+		?>
+		<script type="text/template" id="wc-apa-update-vals" data-value="<?php echo esc_attr( wp_json_encode( $data ) ) ?>"></script>
+		<?php
 	}
 
 }

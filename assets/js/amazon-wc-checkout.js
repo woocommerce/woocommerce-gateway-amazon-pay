@@ -3,6 +3,7 @@
 	$( function() {
 		var button_id = '#pay_with_amazon';
 		function renderButton() {
+			attemptRefreshData();
 			if ( 0 === $( button_id ).length ) {
 				return;
 			}
@@ -24,6 +25,16 @@
 		}
 		renderButton();
 		$( document.body ).on( 'updated_wc_div', renderButton );
+
+		function attemptRefreshData() {
+			var dataCont = $( '#wc-apa-update-vals' );
+			if ( ! dataCont.length ) {
+				return;
+			}
+			var data = dataCont.data( 'value' );
+			$.extend( amazon_payments_advanced, data );
+			dataCont.remove();
+		}
 
 		function activateChange( button_id, action ) {
 			if ( 0 === $( button_id ).length ) {
