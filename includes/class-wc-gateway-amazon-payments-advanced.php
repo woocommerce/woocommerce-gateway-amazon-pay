@@ -301,7 +301,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$present = array();
 		$optional = array();
 		foreach( $all_fields as $key ) {
-			if ( ! isset( $checkout_fields['billing'][ $key ]['required'] ) || $checkout_fields['billing'][ $key ]['required'] ) {
+			if ( ! empty( $checkout_fields['billing'][ $key ]['required'] ) ) {
 				if ( ! isset( $session_wc_format[$key] ) ) {
 					$missing[] = $key;
 				} else {
@@ -335,7 +335,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$present = array();
 		$optional = array();
 		foreach( $field_list as $key ) {
-			if ( ! isset( $checkout_fields['shipping'][ $key ]['required'] ) || $checkout_fields['shipping'][ $key ]['required'] ) {
+			if ( ! empty( $checkout_fields['shipping'][ $key ]['required'] ) ) {
 				if ( ! isset( $session_wc_format[$key] ) ) {
 					$missing[] = $key;
 				} else {
