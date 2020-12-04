@@ -52,3 +52,26 @@ form.checkout .hidden {
 .wc-apa-widget-change {
 	float: right;
 }
+
+.wc-apa-amazon-logo {
+	display: inline-block;
+	vertical-align: baseline;
+	position: relative;
+	height: 1em;
+	width:  5.75em;;
+	padding-right: 0.5em;
+	margin-right: 0.5em;
+	bottom: -0.4375em;
+}
+
+img.wc-apa-amazon-logo {
+	object-fit: contain;
+	object-position: 0 0;
+}
+
+span.wc-apa-amazon-logo {
+	background-image: url('../images/logo-amazonpay-primary-fullcolor-positive.svg');
+	background-position: 0 0;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
