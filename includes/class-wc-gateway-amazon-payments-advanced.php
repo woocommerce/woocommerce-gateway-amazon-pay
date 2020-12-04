@@ -88,7 +88,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'create_checkout_session_config' => WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config(),
 			'button_color'                   => $this->settings['button_color'],
 			'placement'                      => $this->get_current_placement(),
-			'action'                         => WC()->cart->needs_shipping() ? 'PayAndShip' :  'PayOnly',
+			'action'                         => $this->get_current_cart_action(),
 			'sandbox'                        => 'yes' === $this->settings['sandbox'],
 			'merchant_id'                    => $this->settings['merchant_id'],
 			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ),
@@ -752,11 +752,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	public function update_js() {
 		$data = array(
-			'action' => WC()->cart->needs_shipping() ? 'PayAndShip' :  'PayOnly',
+			'action' => $this->get_current_cart_action(),
 		);
 		?>
 		<script type="text/template" id="wc-apa-update-vals" data-value="<?php echo esc_attr( wp_json_encode( $data ) ) ?>"></script>
 		<?php
+	}
+
+	public function get_current_cart_action() {
+		return WC()->cart->needs_shipping() ? 'PayAndShip' :  'PayOnly';
 	}
 
 }
