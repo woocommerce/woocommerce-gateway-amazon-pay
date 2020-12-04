@@ -65,7 +65,10 @@
 		}
 
 		function toggleDetailsVisibility( detailsListName ) {
-			if ( $( '.' + detailsListName + '__field-wrapper' ).children( ':not(.hidden)' ).length === 0 ) {
+			var visibleFields = $( '.' + detailsListName + '__field-wrapper' ).children().filter( function() {
+				return $( this ).is( ':not(.hidden)' ) && $( this ).css( 'display' ) !== 'none';
+			} );
+			if ( visibleFields.length === 0 ) {
 				$( '.' + detailsListName ).addClass( 'hidden' );
 			} else {
 				$( '.' + detailsListName ).removeClass( 'hidden' );
