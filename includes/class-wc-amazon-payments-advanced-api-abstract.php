@@ -1921,6 +1921,25 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$formatted['postcode'] = isset( $address->PostalCode ) ? (string) $address->PostalCode : null;
 		$formatted['state'] = isset( $address->StateOrRegion ) ? (string) $address->StateOrRegion : null;
 		$formatted['country'] = isset( $address->CountryCode ) ? (string) $address->CountryCode : null;
+
+		// Handle missmatches of states in AMZ and WC
+		if ( ! is_null( $formatted['state'] ) ) {
+			$valid_states = WC()->countries->get_states( $formatted['country'] );
+
+			if ( ! empty( $valid_states ) && is_array( $valid_states ) && count( $valid_states ) > 0 ) {
+				$valid_state_values = array_map( 'wc_strtoupper', array_flip( array_map( 'wc_strtoupper', $valid_states ) ) );
+				$uc_state       = wc_strtoupper( $formatted['state'] );
+
+				if ( isset( $valid_state_values[ $uc_state ] ) ) {
+					// With this part we consider state value to be valid as well, convert it to the state key for the valid_states check below.
+					$uc_state = $valid_state_values[ $uc_state ];
+				}
+
+				if ( ! in_array( $uc_state, $valid_state_values, true ) ) {
+					$formatted['state'] = null;
+				}
+			}
+		}
 		// @codingStandardsIgnoreEnd
 
 		return array_filter( $formatted );
