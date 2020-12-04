@@ -802,4 +802,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
+	public function override_billing_fields($fields) {
+		$fields = parent::override_billing_fields( $fields );
+
+		$fields['billing_state']['required'] = true;
+
+		return $fields;
+	}
+
+	public function override_shipping_fields($fields) {
+		$fields = parent::override_shipping_fields( $fields );
+
+		$fields['shipping_state']['required'] = true;
+
+		return $fields;
+	}
+
 }
