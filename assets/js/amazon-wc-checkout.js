@@ -1,7 +1,8 @@
 /*global jQuery, window, document, setTimeout, console, amazon_payments_advanced, amazon */
 ( function( $ ) {
 	$( function() {
-		function renderButton( button_id ) {
+		var button_id = '#pay_with_amazon';
+		function renderButton() {
 			if ( 0 === $( button_id ).length ) {
 				return;
 			}
@@ -21,7 +22,8 @@
 			amazon.Pay.renderButton( button_id, button_settings );
 			$( button_id ).siblings( separator_id ).show();
 		}
-		renderButton( '#pay_with_amazon' );
+		renderButton();
+		$( document.body ).on( 'updated_wc_div', renderButton );
 
 		function activateChange( button_id, action ) {
 			if ( 0 === $( button_id ).length ) {
