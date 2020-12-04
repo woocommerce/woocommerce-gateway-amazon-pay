@@ -661,7 +661,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data( $checkout_session_id, array(
 				"paymentDetails" => array(
 					"paymentIntent" => $paymentIntent,
-					// "softDescriptor" => "Descriptor", // TODO: Maybe implement?
+					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this.
 					"chargeAmount" => array(
 						"amount" => $order_total,
 						"currencyCode" => $currency,
