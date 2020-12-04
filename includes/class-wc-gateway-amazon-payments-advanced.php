@@ -538,7 +538,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 
 			$wc_shipping_address = array();
-			if ( ! empty( $checkout_session->billingAddress ) ) {
+			if ( ! empty( $checkout_session->shippingAddress ) ) {
 				$wc_shipping_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress );
 			}
 
