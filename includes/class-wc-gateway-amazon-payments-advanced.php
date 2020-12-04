@@ -420,15 +420,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$checkout_session = $this->get_checkout_session();
 
-		// Skip showing address widget for carts with virtual products only.
-		$show_address_widget = apply_filters( 'woocommerce_amazon_show_address_widget', WC()->cart->needs_shipping() );
-		$hide_style_col2 = ( ! $show_address_widget && empty( $checkout_session->billingAddress ) ) ? 'style="display: none;"' : '';
-
 		$checkout = WC_Checkout::instance();
 		?>
 		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
 			<div class="col2-set">
-				<div class="col-1">
+				<div class="col-1 <?php echo empty( $checkout_session->shippingAddress ) ? 'hidden' : ''; ?>">
+					<?php if ( ! empty( $checkout_session->shippingAddress ) ): ?>
+						<div id="shipping_address_widget">
+							<h3>
+								<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change">Change</a>
+								<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+							</h3>
+							<div class="shipping_address_display">
+								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ) ?>
+							</div>
+						</div>
+					<?php endif; ?>
+				</div>
+				<div class="col-2">
 					<div id="payment_method_widget">
 						<?php
 						$payments = $checkout_session->paymentPreferences;
@@ -445,8 +454,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 							<?php esc_html_e( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 						</div>
 					</div>
-				</div>
-				<div class="col-2" <?php echo esc_attr( $hide_style_col2 ); ?>>
 					<?php if ( ! empty( $checkout_session->billingAddress ) ): ?>
 						<div id="billing_address_widget">
 							<h3>
@@ -454,17 +461,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 							</h3>
 							<div class="billing_address_display">
 								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) ) ?>
-							</div>
-						</div>
-					<?php endif; ?>
-					<?php if ( ! empty( $checkout_session->shippingAddress ) ): ?>
-						<div id="shipping_address_widget">
-							<h3>
-								<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change">Change</a>
-								<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
-							</h3>
-							<div class="shipping_address_display">
-								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ) ?>
 							</div>
 						</div>
 					<?php endif; ?>
