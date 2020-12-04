@@ -658,6 +658,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					break;
 			}
 
+			/* translators: Plugin version */
+			$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ),  WC_AMAZON_PAY_VERSION, WC()->version );
+
 			$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data( $checkout_session_id, array(
 				"paymentDetails" => array(
 					"paymentIntent" => $paymentIntent,
@@ -670,7 +673,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				"merchantMetadata" => array(
 					"merchantReferenceId" => "Order #" . $order_id,
 					"merchantStoreName" => WC_Amazon_Payments_Advanced::get_site_name(),
-					// "customInformation" => "Custom information", // TODO: Ask amazon what this could be used for.
+					"customInformation" => $version_note,
 				),
 			) );
 
