@@ -670,7 +670,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				"merchantMetadata" => array(
 					"merchantReferenceId" => "Order #" . $order_id,
 					"merchantStoreName" => WC_Amazon_Payments_Advanced::get_site_name(),
-					// "noteToBuyer" => "Note to buyer", // TODO: Ask amazon what this could be used for.
 					// "customInformation" => "Custom information", // TODO: Ask amazon what this could be used for.
 				),
 			) );
