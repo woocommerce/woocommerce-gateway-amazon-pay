@@ -17,7 +17,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 */
 	public function __construct() {
 
-		$this->id = 'amazon_payments_advanced'; // TODO: Dynamically define
+		$this->id = 'amazon_payments_advanced';
 
 		add_filter( 'woocommerce_amazon_pa_supports', array( $this, 'add_subscription_support' ) );
 

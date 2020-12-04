@@ -316,9 +316,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$this->add_hidden_class_to_fields( $checkout_fields['billing'], array_merge( $present, $optional ) );
 		}
 
-		// TODO: Handle case where important fields are missing and/or wrong.
-		// TODO: Billing address on tests accounts doesn't match CC addresses on seller central. Ask.
-
 		$field_list      = array(
 			'shipping_first_name',
 			'shipping_last_name',
@@ -759,7 +756,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->update_meta_data( 'amazon_charge_permission_id', $response->chargePermissionId );
 		$order->save();
 
-		// TODO: Handle failure cases
 		$order->payment_complete();
 
 		// Remove cart.
