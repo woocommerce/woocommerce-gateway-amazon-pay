@@ -297,18 +297,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$session_wc_format = $this->get_woocommerce_data();
 
-		$required_present = true;
+		$missing = array();
+		$present = array();
+		$optional = array();
 		foreach( $all_fields as $key ) {
 			if ( ! isset( $checkout_fields['billing'][ $key ]['required'] ) || $checkout_fields['billing'][ $key ]['required'] ) {
 				if ( ! isset( $session_wc_format[$key] ) ) {
-					$required_present = false;
-					break;
+					$missing[] = $key;
+				} else {
+					$present[] = $key;
 				}
+			} else {
+				$optional[] = $key;
 			}
 		}
 
-		if ( $required_present ) {
-			$this->add_hidden_class_to_fields( $checkout_fields['billing'], $all_fields );
+		if ( ! empty( $present ) ) {
+			$this->add_hidden_class_to_fields( $checkout_fields['billing'], array_merge( $present, $optional ) );
 		}
 
 		// TODO: Handle case where important fields are missing and/or wrong.
@@ -326,21 +331,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'shipping_postcode',
 		);
 
-		$required_present = true;
+		$missing = array();
+		$present = array();
+		$optional = array();
 		foreach( $field_list as $key ) {
 			if ( ! isset( $checkout_fields['shipping'][ $key ]['required'] ) || $checkout_fields['shipping'][ $key ]['required'] ) {
 				if ( ! isset( $session_wc_format[$key] ) ) {
-					$required_present = false;
-					break;
+					$missing[] = $key;
+				} else {
+					$present[] = $key;
 				}
+			} else {
+				$optional[] = $key;
 			}
 		}
 
-		if ( $required_present ) {
-			$this->add_hidden_class_to_fields( $checkout_fields['shipping'], $field_list );
+		if ( ! empty( $present ) ) {
+			$this->add_hidden_class_to_fields( $checkout_fields['shipping'], array_merge( $present, $optional ) );
 		}
-
-		// TODO: Handle case where important fields are missing and/or wrong.
 
 		$checkout->checkout_fields = $checkout_fields;
 	}

@@ -80,19 +80,7 @@
 			activateChange( '#shipping_address_widget_change', 'changeAddress' );
 		}
 
-		function toggleFieldVisibility( type, key ) {
-			var fieldWrapper = $( '#' + type + '_' + key + '_field' ),
-				fieldValue = $( '#' + type + '_' + key ).val();
-			fieldWrapper.addClass( 'hidden' );
-			$( '.woocommerce-' + type + '-fields' ).addClass( 'hidden' );
-			if ( fieldValue == null || fieldValue === '' ) {
-				fieldWrapper.removeClass( 'hidden' );
-				$( '.woocommerce-' + type + '-fields' ).removeClass( 'hidden' );
-			}
-		}
-
 		$( 'body' ).on( 'updated_checkout', function() {
-			toggleFieldVisibility( 'shipping', 'state' );
 			initAmazonPaymentFields();
 			if ( ! isAmazonCheckout() ) {
 				return;
