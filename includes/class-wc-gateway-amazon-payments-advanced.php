@@ -528,7 +528,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			if ( ! empty( $checkout_session->billingAddress ) ) {
 				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress );
 			} else {
-				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_name( $checkout_session->buyer->name );
+				if ( ! empty( $checkout_session->shippingAddress ) ) {
+					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress );
+				} else {
+					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_name( $checkout_session->buyer->name );
+				}
 			}
 			if ( ! empty( $checkout_session->buyer->email ) ) {
 				$wc_billing_address['email'] = $checkout_session->buyer->email;
