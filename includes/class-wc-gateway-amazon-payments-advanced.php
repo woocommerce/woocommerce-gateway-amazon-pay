@@ -420,6 +420,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$checkout_session = $this->get_checkout_session();
 
+		if( $checkout_session->productType !== $this->get_current_cart_action() ) {
+			$this->render_login_button_again();
+			return;
+		}
+
 		$checkout = WC_Checkout::instance();
 		?>
 		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
@@ -761,6 +766,28 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	public function get_current_cart_action() {
 		return WC()->cart->needs_shipping() ? 'PayAndShip' :  'PayOnly';
+	}
+
+	public function render_login_button_again() {
+		?>
+		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
+			<div class="col2-set">
+				<div class="col-1">
+					<div id="shipping_address_widget">
+						<h3>
+							<?php esc_html_e( 'Confirm payment method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+						</h3>
+						<div class="shipping_address_display">
+							<p>Your cart changed, and you need to confirm your selected payment method again.</p>
+							<?php $this->checkout_button(); ?>
+						</div>
+					</div>
+				</div>
+				<div class="col-2">
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 }
