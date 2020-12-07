@@ -575,8 +575,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function use_checkout_session_data_single( $ret, $input ) {
-		// TODO: Test logged out and not so clear phases
-
 		if ( ! WC()->cart->needs_payment() ) {
 			return $ret;
 		}
