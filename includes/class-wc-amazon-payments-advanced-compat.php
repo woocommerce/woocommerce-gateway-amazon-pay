@@ -26,11 +26,11 @@ class WC_Amazon_Payments_Advanced_Compat {
 		}
 
 		// Load built-in compat classes.
-		require_once( 'compats/class-wc-amazon-payments-advanced-drip-compat.php' );
-		require_once( 'compats/class-wc-amazon-payments-advanced-wgm-compat.php' );
-		require_once( 'compats/class-wc-amazon-payments-advanced-dynamic-pricing-compat.php' );
-		require_once( 'compats/class-wc-amazon-payments-advanced-subscribe-to-newsletter-compat.php' );
-		require_once( 'compats/class-wc-amazon-payments-advanced-woocommerce-multilingual-compat.php' );
+		require_once 'compats/class-wc-amazon-payments-advanced-drip-compat.php';
+		require_once 'compats/class-wc-amazon-payments-advanced-wgm-compat.php';
+		require_once 'compats/class-wc-amazon-payments-advanced-dynamic-pricing-compat.php';
+		require_once 'compats/class-wc-amazon-payments-advanced-subscribe-to-newsletter-compat.php';
+		require_once 'compats/class-wc-amazon-payments-advanced-woocommerce-multilingual-compat.php';
 
 		$compats = array(
 			'WC_Amazon_Payments_Advanced_Drip_Compat',
@@ -57,7 +57,7 @@ class WC_Amazon_Payments_Advanced_Compat {
 	}
 
 	public function load_multicurrency() {
-		require_once( 'compats/class-wc-amazon-payments-advanced-multi-currency.php' );
+		require_once 'compats/class-wc-amazon-payments-advanced-multi-currency.php';
 		WC_Amazon_Payments_Advanced_Multi_Currency::init();
 	}
 }

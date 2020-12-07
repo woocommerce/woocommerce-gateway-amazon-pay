@@ -24,7 +24,7 @@ class WC_Amazon_Payments_Advanced_Synchronous_Handler {
 	 */
 	public function __construct() {
 		// Scheduled event to check pending synchronous payments on wrong ipn setting.
-		add_action( 'wcga_process_pending_syncro_payments', array( $this, 'process_pending_syncro_payments' ), 10 , 2 );
+		add_action( 'wcga_process_pending_syncro_payments', array( $this, 'process_pending_syncro_payments' ), 10, 2 );
 		// Unschedule on IPN recieve.
 		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn_order', array( $this, 'unschedule_pending_syncro_payments' ) );
 	}
@@ -44,12 +44,14 @@ class WC_Amazon_Payments_Advanced_Synchronous_Handler {
 		}
 
 		try {
-			$response = WC_Amazon_Payments_Advanced_API::request( array(
-				'Action'                 => 'GetAuthorizationDetails',
-				'AmazonAuthorizationId' => $amazon_authorization_id,
-			) );
+			$response = WC_Amazon_Payments_Advanced_API::request(
+				array(
+					'Action'                => 'GetAuthorizationDetails',
+					'AmazonAuthorizationId' => $amazon_authorization_id,
+				)
+			);
 			if ( $order->get_meta( 'amazon_timed_out_transaction' ) ) {
-				WC_Amazon_Payments_Advanced_API::handle_synch_payment_authorization_payload( $response , $order, $amazon_authorization_id );
+				WC_Amazon_Payments_Advanced_API::handle_synch_payment_authorization_payload( $response, $order, $amazon_authorization_id );
 			}
 		} catch ( Exception $e ) {
 			/* translators: placeholder is error message from Amazon Pay API */

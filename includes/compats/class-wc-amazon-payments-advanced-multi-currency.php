@@ -87,7 +87,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 	/**
 	 * Singleton to get if there is a compatible instance running. Region can be injected.
-	 * 
+	 *
 	 * @param bool $region
 	 *
 	 * @return WC_Amazon_Payments_Advanced_Multi_Currency_Abstract

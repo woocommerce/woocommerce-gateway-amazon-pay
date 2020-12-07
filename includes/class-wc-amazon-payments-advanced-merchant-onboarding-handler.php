@@ -114,7 +114,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 				$private_key
 			);
 
-			if( $res ) {
+			if ( $res ) {
 				$found = $private_key;
 				break;
 			}
@@ -214,7 +214,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 * @param obj $payload
 	 */
 	protected function save_payload( $payload ) {
-		$settings                                    = WC_Amazon_Payments_Advanced_API::get_settings();
+		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		$settings['merchant_id']                     = $payload->merchantId;
 		$settings['store_id']                        = $payload->storeId;
@@ -304,7 +304,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 */
 	private function get_all_headers() {
 		if ( ! function_exists( 'getallheaders' ) ) {
-			$headers = [];
+			$headers = array();
 			foreach ( $_SERVER as $name => $value ) {
 				if ( substr( $name, 0, 5 ) == 'HTTP_' ) {
 					$headers[ str_replace( ' ', '-', ucwords( strtolower( str_replace( '_', ' ', substr( $name, 5 ) ) ) ) ) ] = $value;
@@ -331,8 +331,8 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 * Get API Migration status.
 	 */
 	public static function get_migration_status() {
-		$status              = get_option( 'amazon_api_version' );
-		$old_install         = version_compare( get_option( 'woocommerce_amazon_payments_new_install' ), '2.0.0', '>=' );
+		$status      = get_option( 'amazon_api_version' );
+		$old_install = version_compare( get_option( 'woocommerce_amazon_payments_new_install' ), '2.0.0', '>=' );
 		return 'V2' === $status || $old_install ? true : false;
 	}
 

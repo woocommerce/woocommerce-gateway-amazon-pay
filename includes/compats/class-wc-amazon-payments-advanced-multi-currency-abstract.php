@@ -28,7 +28,8 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
 			add_filter( 'woocommerce_amazon_payments_hide_amazon_buttons', '__return_true' );
 			add_filter(
-				'woocommerce_amazon_payments_logout_checkout_message_html', function() {
+				'woocommerce_amazon_payments_logout_checkout_message_html',
+				function() {
 					return '';
 				}
 			);
