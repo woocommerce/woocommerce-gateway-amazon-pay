@@ -676,8 +676,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				) );
 	
 				if ( is_wp_error( $response ) ) {
-					// TODO: Clean up
-					wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+					wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.\n" . wp_json_encode( $response, JSON_PRETTY_PRINT ) );
+					wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 					return;
 				}
 			} else {
@@ -685,8 +685,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 
 			if ( ! empty( $response->constraints ) ) {
-				// TODO: Clean up
-				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->constraints, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+				wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.\n" . wp_json_encode( $response->constraints, JSON_PRETTY_PRINT ) );
+				wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 				return;
 			}
 
@@ -709,7 +709,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order_id = isset( WC()->session->order_awaiting_payment ) ? absint( WC()->session->order_awaiting_payment ) : 0;
 
 		if ( empty( $order_id ) ) {
-			// TODO: Handle error
+			wc_apa()->log( __METHOD__, "Error: Order could not be found. Checkout Session ID: {$checkout_session_id}." );
+			wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 			return;
 		}
 
@@ -738,8 +739,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 						wc_add_notice( __( 'The transaction was canceled by you. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
 					default:
-						// TODO: Clean up
-						wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( array( 'error_code' => $error_code, 'checkout_session' => $checkout_session ), JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+						wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.\n" . wp_json_encode( array( 'error_code' => $error_code, 'checkout_session' => $checkout_session ), JSON_PRETTY_PRINT ) );
+						wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
 				}
 
