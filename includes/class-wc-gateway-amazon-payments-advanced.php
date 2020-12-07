@@ -233,7 +233,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		if ( isset( $_GET['amazon_return'] ) && isset( $_GET['amazonCheckoutSessionId'] ) ) {
 			if ( $_GET['amazonCheckoutSessionId'] !== $this->get_checkout_session_id() ) {
-				// TODO: Handle error
+				wc_add_notice( __( 'There was an error after returning from Amazon. Please try again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+				wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
+				exit;
 			}
 
 			$this->handle_return();
@@ -642,42 +644,46 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
 
-			$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // TODO: ask if WC 2.6 support is still needed (it's a 2017 release)
-			$order->update_meta_data( 'woocommerce_version', WC()->version );
-
-			$paymentIntent = 'AuthorizeWithCapture';
-			switch( $this->settings['payment_capture'] ) {
-				case 'authorize':
-					$paymentIntent = 'Authorize';
-					break;
-				case 'manual':
-					$paymentIntent = 'Confirm';
-					break;
-			}
-
-			/* translators: Plugin version */
-			$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ),  WC_AMAZON_PAY_VERSION, WC()->version );
-
-			$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data( $checkout_session_id, array(
-				"paymentDetails" => array(
-					"paymentIntent" => $paymentIntent,
-					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this.
-					"chargeAmount" => array(
-						"amount" => $order_total,
-						"currencyCode" => $currency,
+			if ( empty( $checkout_session->paymentDetails ) || empty( $checkout_session->paymentDetails->chargeAmount ) || $checkout_session->paymentDetails->chargeAmount->amount !== $order_total ) {
+				$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // TODO: ask if WC 2.6 support is still needed (it's a 2017 release)
+				$order->update_meta_data( 'woocommerce_version', WC()->version );
+	
+				$paymentIntent = 'AuthorizeWithCapture';
+				switch( $this->settings['payment_capture'] ) {
+					case 'authorize':
+						$paymentIntent = 'Authorize';
+						break;
+					case 'manual':
+						$paymentIntent = 'Confirm';
+						break;
+				}
+	
+				/* translators: Plugin version */
+				$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ),  WC_AMAZON_PAY_VERSION, WC()->version );
+	
+				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data( $checkout_session_id, array(
+					"paymentDetails" => array(
+						"paymentIntent" => $paymentIntent,
+						// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this.
+						"chargeAmount" => array(
+							"amount" => $order_total,
+							"currencyCode" => $currency,
+						),
 					),
-				),
-				"merchantMetadata" => array(
-					"merchantReferenceId" => "Order #" . $order_id,
-					"merchantStoreName" => WC_Amazon_Payments_Advanced::get_site_name(),
-					"customInformation" => $version_note,
-				),
-			) );
-
-			if ( is_wp_error( $response ) ) {
-				// TODO: Clean up
-				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
-				return;
+					"merchantMetadata" => array(
+						"merchantReferenceId" => "Order #" . $order_id,
+						"merchantStoreName" => WC_Amazon_Payments_Advanced::get_site_name(),
+						"customInformation" => $version_note,
+					),
+				) );
+	
+				if ( is_wp_error( $response ) ) {
+					// TODO: Clean up
+					wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+					return;
+				}
+			} else {
+				$response = $checkout_session;
 			}
 
 			if ( ! empty( $response->constraints ) ) {
