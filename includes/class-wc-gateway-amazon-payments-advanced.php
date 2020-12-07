@@ -767,6 +767,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// Remove cart.
 		WC()->cart->empty_cart();
 
+		// TODO: Maybe log out with JS. Ask.
+		$this->do_logout();
+
 		wp_safe_redirect( $order->get_checkout_order_received_url() );
 		exit;
 	}
