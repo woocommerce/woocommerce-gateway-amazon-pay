@@ -201,7 +201,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 * @return string
 	 */
 	public static function check_session( $key, $value ) {
-		if ( ! in_array( $key, array( 'amazon_reference_id', 'access_token' ) ) ) {
+		if ( ! in_array( $key, array( 'amazon_reference_id', 'access_token' ), true ) ) {
 			return $value;
 		}
 
@@ -255,7 +255,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 				break;
 			default:
 				$region = $default;
-				if ( in_array( $country, WC()->countries->get_european_union_countries() ) ) {
+				if ( in_array( $country, WC()->countries->get_european_union_countries(), true ) ) {
 					$region = 'eu';
 				}
 		}
@@ -768,7 +768,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 					$failed_before_api_request = (
 						is_wp_error( $result )
 						&&
-						in_array( $result->get_error_code(), array( 'invalid_order', 'order_missing_amazon_reference_id' ) )
+						in_array( $result->get_error_code(), array( 'invalid_order', 'order_missing_amazon_reference_id' ), true )
 					);
 					if ( $failed_before_api_request ) {
 						wc_apa()->log( __METHOD__, sprintf( 'Failed to cancel order reference: %s', $result->get_error_message() ) );

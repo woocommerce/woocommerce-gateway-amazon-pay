@@ -84,7 +84,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$eu_countries = WC()->countries->get_european_union_countries();
 		$base_country = WC()->countries->get_base_country();
 
-		if ( in_array( $base_country, $eu_countries ) ) {
+		if ( in_array( $base_country, $eu_countries, true ) ) {
 			$url = 'https://sellercentral-europe.amazon.com';
 		} elseif ( 'JP' === $base_country ) {
 			$url = 'https://sellercentral-japan.amazon.com';

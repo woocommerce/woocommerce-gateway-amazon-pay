@@ -82,7 +82,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 */
 	public static function compatible_region( $region = null ) {
 		$region = ( $region ) ? $region : WC_Amazon_Payments_Advanced_API::get_region();
-		return is_int( array_search( $region, self::COMPATIBLE_REGIONS ) );
+		return is_int( array_search( $region, self::COMPATIBLE_REGIONS, true ) );
 	}
 
 	/**

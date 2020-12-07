@@ -79,7 +79,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 */
 	public function is_currency_compatible( $currency_selected ) {
 		$amazon_selected_currencies = WC_Amazon_Payments_Advanced_API::get_selected_currencies();
-		return ( false !== ( array_search( $currency_selected, $amazon_selected_currencies ) ) );
+		return ( false !== ( array_search( $currency_selected, $amazon_selected_currencies, true ) ) );
 	}
 
 	/**

@@ -197,10 +197,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		// Amazon. But if state is available we still need the WC state key.
 		$state = '';
 		if ( ! empty( $address['state'] ) ) {
-			$state = array_search( $address['state'], $states );
+			$state = array_search( $address['state'], $states, true );
 		}
 		if ( ! $state && ! empty( $address['city'] ) ) {
-			$state = array_search( $address['city'], $states );
+			$state = array_search( $address['city'], $states, true );
 		}
 		if ( $state ) {
 			$address['state'] = $state;
