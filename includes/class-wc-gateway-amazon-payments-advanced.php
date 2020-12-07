@@ -736,7 +736,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		if ( is_wp_error( $response ) ) {
 			$error_code = $response->get_error_code();
-			if ( 'CheckoutSessionCanceled' == $error_code ) {
+			if ( 'CheckoutSessionCanceled' === $error_code ) {
 				$checkout_session = $this->get_checkout_session( true );
 
 				switch ( $checkout_session->statusDetails->reasonCode ) { // phpcs:ignore WordPress.NamingConventions

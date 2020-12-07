@@ -1511,7 +1511,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	public static function close_authorization( $order_id, $amazon_authorization_id ) {
 		$order = new WC_Order( $order_id );
 
-		if ( 'amazon_payments_advanced' == wc_apa_get_order_prop( $order, 'payment_method' ) ) {
+		if ( 'amazon_payments_advanced' === wc_apa_get_order_prop( $order, 'payment_method' ) ) {
 			$response = self::request(
 				array(
 					'Action'                => 'CloseAuthorization',
@@ -1693,7 +1693,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$ret   = false;
 
 		if ( 'amazon_payments_advanced' === wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			if ( 'US' == WC()->countries->get_base_country() && $amount > $order->get_total() ) {
+			if ( 'US' === WC()->countries->get_base_country() && $amount > $order->get_total() ) {
 				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), __( 'Refund amount is greater than order total.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
 
 				return false;

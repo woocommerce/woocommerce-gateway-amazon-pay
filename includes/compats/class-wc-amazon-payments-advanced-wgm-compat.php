@@ -205,7 +205,7 @@ class WC_Amazon_Payments_Advanced_WGM_Compat {
 		 */
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
-		if ( 'yes' == $settings['enable_login_app'] ) {
+		if ( 'yes' === $settings['enable_login_app'] ) {
 			$request_args['AddressConsentToken'] = $this->get_amazon_access_token();
 		}
 

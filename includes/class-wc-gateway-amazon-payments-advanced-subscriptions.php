@@ -52,7 +52,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	public function is_available( $is_available ) {
 		$settings                = WC_Amazon_Payments_Advanced_API::get_settings();
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $settings['subscriptions_enabled'] ) || 'yes' == $settings['subscriptions_enabled'];
+		$subscriptions_enabled   = empty( $settings['subscriptions_enabled'] ) || 'yes' === $settings['subscriptions_enabled'];
 		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
 
 		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {

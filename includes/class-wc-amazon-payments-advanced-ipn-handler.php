@@ -181,7 +181,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 		$content   = $this->get_string_to_sign( $message );
 		$signature = base64_decode( $message['Signature'] );
 
-		if ( 1 != openssl_verify( $content, $signature, $key, OPENSSL_ALGO_SHA1 ) ) {
+		if ( 1 !== openssl_verify( $content, $signature, $key, OPENSSL_ALGO_SHA1 ) ) {
 			throw new Exception( 'The message signature is invalid.' );
 		}
 	}
@@ -599,7 +599,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 		}
 
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		if ( $order->get_total() == $refund_amount ) {
+		if ( $order->get_total() === $refund_amount ) {
 			wc_order_fully_refunded( $order_id );
 		} else {
 			wc_create_refund(
