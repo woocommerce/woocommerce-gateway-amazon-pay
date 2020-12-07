@@ -17,9 +17,23 @@
 
 	<!-- Rules -->
 	<rule ref="WooCommerce-Core">
+		<!-- TODO: Use full ruleset, fix these later. -->
+		<exclude name="WordPress.Security.NonceVerification"/>
+		<exclude name="WordPress.Security.EscapeOutput"/>
+		<exclude name="WordPress.Security.ValidatedSanitizedInput"/>
+		<exclude name="WordPress.WP.I18n"/>
+		<exclude name="Squiz.Commenting"/>
+		<exclude name="Generic.Commenting"/>
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode"/>
+		<exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited"/>
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode"/>
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode"/>
 	</rule>
 	<rule ref="PHPCompatibility">
 		<exclude-pattern>tests/</exclude-pattern>
+		<!-- TODO: Use full ruleset, fix these later. -->
+		<exclude name="PHPCompatibility.Variables.ForbiddenGlobalVariableVariable.NonBareVariableFound"/>
+		<exclude name="PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved"/>
 	</rule>
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<exclude-pattern>includes/**/abstract-*.php</exclude-pattern>
