@@ -170,8 +170,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 	public function is_amazon_settings_page() {
 		if ( is_admin() &&
-			 ( isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) &&
-			 ( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) ) {
+			( isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) &&
+			( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) ) {
 			return true;
 		}
 		return false;

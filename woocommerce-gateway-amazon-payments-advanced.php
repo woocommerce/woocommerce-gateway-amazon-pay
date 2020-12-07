@@ -408,7 +408,7 @@ class WC_Amazon_Payments_Advanced {
 			return;
 		}
 
-		require_once( $this->includes_path . 'class-wc-amazon-payments-advanced-rest-api-controller.php' );
+		require_once $this->includes_path . 'class-wc-amazon-payments-advanced-rest-api-controller.php';
 
 		WC()->api->WC_Amazon_Payments_Advanced_REST_API_Controller = new WC_Amazon_Payments_Advanced_REST_API_Controller();
 		WC()->api->WC_Amazon_Payments_Advanced_REST_API_Controller->register_routes();
@@ -484,7 +484,6 @@ function wc_apa_get_order_prop( $order, $key ) {
 	switch ( $key ) {
 		case 'order_currency':
 			return is_callable( array( $order, 'get_currency' ) ) ? $order->get_currency() : $order->get_order_currency();
-			break;
 		default:
 			$getter = array( $order, 'get_' . $key );
 			return is_callable( $getter ) ? call_user_func( $getter ) : $order->{ $key };

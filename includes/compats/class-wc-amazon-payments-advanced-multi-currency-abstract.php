@@ -185,7 +185,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 *
 	 * @return bool
 	 */
-	function is_order_reference_checkout_suspended() {
+	public function is_order_reference_checkout_suspended() {
 		if ( ! defined( 'DOING_AJAX' ) && isset( WC()->session->amazon_reference_id ) && WC()->session->order_awaiting_payment > 0 ) {
 			$order_awaiting_payment = WC()->session->order_awaiting_payment;
 

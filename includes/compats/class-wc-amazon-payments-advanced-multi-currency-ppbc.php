@@ -55,11 +55,11 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 	 */
 	public function hook_before_ppbc_update_order_review() {
 		if ( defined( 'WC_DOING_AJAX' ) &&
-			 WC_DOING_AJAX &&
-			 isset( $_GET['wc-ajax'] ) &&
-			 'update_order_review' === $_GET['wc-ajax'] &&
-			 isset( $_REQUEST['payment_method'] ) &&
-			 'amazon_payments_advanced' === $_REQUEST['payment_method']
+			WC_DOING_AJAX &&
+			isset( $_GET['wc-ajax'] ) &&
+			'update_order_review' === $_GET['wc-ajax'] &&
+			isset( $_REQUEST['payment_method'] ) &&
+			'amazon_payments_advanced' === $_REQUEST['payment_method']
 		) {
 			$order_details = $this->get_amazon_order_details();
 			// @codingStandardsIgnoreStart

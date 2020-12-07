@@ -648,13 +648,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // TODO: ask if WC 2.6 support is still needed (it's a 2017 release)
 				$order->update_meta_data( 'woocommerce_version', WC()->version );
 
-				$paymentIntent = 'AuthorizeWithCapture';
+				$payment_intent = 'AuthorizeWithCapture';
 				switch ( $this->settings['payment_capture'] ) {
 					case 'authorize':
-						$paymentIntent = 'Authorize';
+						$payment_intent = 'Authorize';
 						break;
 					case 'manual':
-						$paymentIntent = 'Confirm';
+						$payment_intent = 'Confirm';
 						break;
 				}
 
@@ -665,7 +665,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					$checkout_session_id,
 					array(
 						'paymentDetails'   => array(
-							'paymentIntent' => $paymentIntent, // TODO: Check Authorize, and Confirm flows.
+							'paymentIntent' => $payment_intent, // TODO: Check Authorize, and Confirm flows.
 							// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this.
 							'chargeAmount'  => array(
 								'amount'       => $order_total,

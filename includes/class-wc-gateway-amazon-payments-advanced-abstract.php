@@ -682,7 +682,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 		nocache_headers();
 		header( 'Content-Type: application/json; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename=wc-amazon-pay-settings-export-' . date( 'm-d-Y' ) . '.json' );
+		header( 'Content-Disposition: attachment; filename=wc-amazon-pay-settings-export-' . gmdate( 'm-d-Y' ) . '.json' );
 		header( 'Expires: 0' );
 
 		echo wp_json_encode( $settings );
@@ -749,7 +749,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 		$button_placeholder = '<' . $elem . ' id="pay_with_amazon"></' . $elem . '>';
 
-		if ( $echo === false ) {
+		if ( false === $echo ) {
 			return $button_placeholder;
 		} else {
 			echo $button_placeholder;

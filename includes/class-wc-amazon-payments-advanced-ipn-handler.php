@@ -238,7 +238,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	 * @param string $url Cert URL.
 	 */
 	protected function validate_certificate_url( $url ) {
-		$parsed_url = parse_url( $url );
+		$parsed_url = wp_parse_url( $url );
 		if ( empty( $parsed_url['scheme'] )
 			|| empty( $parsed_url['host'] )
 			|| 'https' !== $parsed_url['scheme']

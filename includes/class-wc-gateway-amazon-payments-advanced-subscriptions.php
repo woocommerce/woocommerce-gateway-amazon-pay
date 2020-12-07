@@ -695,7 +695,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			}
 		}
 		WC()->session->set( 'amazon_billing_agreement_details', 'false' );
-		wp_redirect( $redirect );
+		wp_safe_redirect( $redirect );
 		exit;
 	}
 
@@ -740,7 +740,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			WC()->session->set( 'amazon_billing_agreement_details', 'skip' );
 		}
 
-		wp_redirect( $redirect );
+		wp_safe_redirect( $redirect );
 		exit;
 	}
 
