@@ -127,7 +127,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 				<input type="hidden" name="amazon_access_token" value="<?php echo esc_attr( $this->access_token ); ?>" />
 			<?php endif; ?>
 
-		<?php endif;
+			<?php
+		endif;
 	}
 
 	/**
@@ -670,18 +671,18 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		/* translators: Order number and site's name */
 		$seller_note = sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), rawurlencode( $site_name ) );
 		/* translators: Plugin version */
-		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ),  WC_AMAZON_PAY_VERSION, WC()->version );
+		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
 
 		$request_args = array_merge(
 			array(
-				'Action'                                                           => 'SetOrderReferenceDetails',
-				'AmazonOrderReferenceId'                                           => $amazon_reference_id,
-				'OrderReferenceAttributes.OrderTotal.Amount'                       => $order->get_total(),
-				'OrderReferenceAttributes.OrderTotal.CurrencyCode'                 => wc_apa_get_order_prop( $order, 'order_currency' ),
-				'OrderReferenceAttributes.SellerNote'                              => $seller_note,
-				'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId'     => $order->get_order_number(),
-				'OrderReferenceAttributes.SellerOrderAttributes.StoreName'         => $site_name,
-				'OrderReferenceAttributes.PlatformId'                              => 'A1BVJDFFHQ7US4',
+				'Action'                              => 'SetOrderReferenceDetails',
+				'AmazonOrderReferenceId'              => $amazon_reference_id,
+				'OrderReferenceAttributes.OrderTotal.Amount' => $order->get_total(),
+				'OrderReferenceAttributes.OrderTotal.CurrencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
+				'OrderReferenceAttributes.SellerNote' => $seller_note,
+				'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
+				'OrderReferenceAttributes.SellerOrderAttributes.StoreName' => $site_name,
+				'OrderReferenceAttributes.PlatformId' => 'A1BVJDFFHQ7US4',
 				'OrderReferenceAttributes.SellerOrderAttributes.CustomInformation' => $version_note,
 			),
 			$overrides

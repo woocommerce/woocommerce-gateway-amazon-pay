@@ -205,12 +205,12 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'description' => '',
 			),
 			'manual_notice'                 => array(
-				'type'        => 'custom',
-				'html'        => '<p>Problems with automatic setup? <a href="#" class="wcapa-toggle-section" data-toggle="#manual-settings-container, #automatic-settings-container">Click here</a> to manually enter your keys.</p>',
+				'type' => 'custom',
+				'html' => '<p>Problems with automatic setup? <a href="#" class="wcapa-toggle-section" data-toggle="#manual-settings-container, #automatic-settings-container">Click here</a> to manually enter your keys.</p>',
 			),
 			'manual_container_start'        => array(
-				'type'        => 'custom',
-				'html'        => '<div id="manual-settings-container" class="hidden">',
+				'type' => 'custom',
+				'html' => '<div id="manual-settings-container" class="hidden">',
 			),
 			'keys_json'                     => array(
 				'title'       => __( 'Manual Keys JSON', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -227,12 +227,12 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'desc_tip'    => true,
 			),
 			'manual_container_end'          => array(
-				'type'        => 'custom',
-				'html'        => '</div>',
+				'type' => 'custom',
+				'html' => '</div>',
 			),
-			'default_container_start'        => array(
-				'type'        => 'custom',
-				'html'        => '<div id="automatic-settings-container">',
+			'default_container_start'       => array(
+				'type' => 'custom',
+				'html' => '<div id="automatic-settings-container">',
 			),
 			'merchant_id'                   => array(
 				'title'       => __( 'Merchant ID', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -255,9 +255,9 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'default_container_end'          => array(
-				'type'        => 'custom',
-				'html'        => '</div>',
+			'default_container_end'         => array(
+				'type' => 'custom',
+				'html' => '</div>',
 			),
 			'sandbox'                       => array(
 				'title'       => __( 'Use Sandbox', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -382,9 +382,9 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 						'type'        => 'title',
 						'description' => 'These credentials and settings are read-only and cannot be modified. You must complete the plugin upgrade as instructed at the top of the page in order to make any changes. <a href="#" class="wcapa-toggle-section"  data-toggle="#v1-settings-container">Toggle visibility</a>.',
 					),
-					'container_start'       => array(
-						'type'        => 'custom',
-						'html'        => '<div id="v1-settings-container" class="hidden">',
+					'container_start'          => array(
+						'type' => 'custom',
+						'html' => '<div id="v1-settings-container" class="hidden">',
 					),
 					'seller_id'                => array(
 						'title'       => __( 'Seller ID', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -450,9 +450,9 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 						'type'        => 'hidden',
 						'class'       => 'show-if-app-is-enabled',
 					),
-					'container_end'       => array(
-						'type'        => 'custom',
-						'html'        => '</div>',
+					'container_end'            => array(
+						'type' => 'custom',
+						'html' => '</div>',
 					),
 				)
 			);

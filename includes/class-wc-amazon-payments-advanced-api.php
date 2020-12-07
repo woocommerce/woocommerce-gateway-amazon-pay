@@ -47,9 +47,9 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::update_migration_status();
 
-		$ret = false;
+		$ret            = false;
 		$valid_settings = self::validate_api_settings();
-		if( is_wp_error( $valid_settings ) ) {
+		if ( is_wp_error( $valid_settings ) ) {
 			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
 			WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::delete_migration_status();
 			WC_Admin_Settings::add_error( $valid_settings->get_error_message() );
@@ -128,7 +128,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	protected static function create_checkout_session_params() {
 
-		$settings = self::get_settings();
+		$settings     = self::get_settings();
 		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
 		$payload      = array(
 			'storeId'            => $settings['store_id'],
@@ -158,7 +158,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	}
 
 	public static function get_checkout_session_data( $checkout_session_id ) {
-		$client   = self::get_client();
+		$client = self::get_client();
 		$result = $client->getCheckoutSession( $checkout_session_id );
 		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
 			return new WP_Error( $result['status'], __( 'Error while getting checkout session.', 'woocommerce-gateway-amazon-payments-advanced' ) );
@@ -172,12 +172,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( ! empty( $checkout_session->shippingAddress ) ) {
 			self::normalize_address( $checkout_session->shippingAddress );
 		}
-		
+
 		return $checkout_session;
 	}
 
 	protected static function normalize_address( $address ) {
-		foreach( (array) $address as $prop => $val ) {
+		foreach ( (array) $address as $prop => $val ) {
 			switch ( strtolower( $prop ) ) {
 				case 'phonenumber':
 					$ucprop = 'Phone';
