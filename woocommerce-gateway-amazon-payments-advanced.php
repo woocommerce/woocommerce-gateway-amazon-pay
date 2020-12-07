@@ -1,4 +1,4 @@
-<?php
+<?php // phpcs:ignore
 /**
  * Main class and core functions.
  *
@@ -144,7 +144,7 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-synchronous-handler.php';
 
 		// On install hook.
-		include_once $this->includes_path . 'class-wc-amazon-payments-install.php';
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-install.php';
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
 
 		add_action( 'init', array( $this, 'init' ) );

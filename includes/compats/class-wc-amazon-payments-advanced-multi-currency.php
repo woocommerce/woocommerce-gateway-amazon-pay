@@ -55,7 +55,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 						break;
 					case 'class_WC_Product_Price_Based_Country':
 						require_once 'class-wc-amazon-payments-advanced-multi-currency-ppbc.php';
-						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country();
+						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_PPBC();
 						break;
 					case 'global_woocommerce_wpml':
 						$wpml_settings = get_option( '_wcml_settings' );
@@ -66,7 +66,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 						break;
 					case 'class_WC_Currency_Converter':
 						require_once 'class-wc-amazon-payments-advanced-multi-currency-wccw.php';
-						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_Converted_Widget();
+						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_WCCW();
 						break;
 				}
 			}

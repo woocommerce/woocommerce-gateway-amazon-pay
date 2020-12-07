@@ -10,7 +10,7 @@
 /**
  * WooCommerce WooCommerce Price Based on Country Multi-currency compatibility.
  */
-class WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country extends WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
+class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 	/**
 	 * Session key to force new region.
