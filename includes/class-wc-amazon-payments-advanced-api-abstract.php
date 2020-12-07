@@ -981,7 +981,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	public static function handle_async_ipn_order_reference_payload( $ipn_payload, $order ) {
 		$order                 = is_int( $order ) ? wc_get_order( $order ) : $order;
 		$order_id              = wc_apa_get_order_prop( $order, 'id' );
-		$order_reference_state = (string) $ipn_payload->OrderReference->OrderReferenceStatus->State;
+		$order_reference_state = (string) $ipn_payload->OrderReference->OrderReferenceStatus->State; // phpcs:ignore WordPress.NamingConventions
 
 		update_post_meta( $order_id, 'amazon_reference_state', $order_reference_state );
 

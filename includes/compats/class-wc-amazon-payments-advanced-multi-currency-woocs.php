@@ -23,8 +23,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_Woocs extends WC_Amazon_Payment
 	 * Specify hooks where compatibility action takes place.
 	 */
 	public function __construct() {
-		global $WOOCS;
-		$this->woocs = $WOOCS;
+		global $WOOCS; // phpcs:ignore WordPress.NamingConventions
+		$this->woocs = $WOOCS; // phpcs:ignore WordPress.NamingConventions
 		// Option woocs_restrike_on_checkout_page === 1 will hide switcher on checkout.
 		add_filter( 'option_woocs_restrike_on_checkout_page', array( $this, 'remove_currency_switcher_on_order_reference_suspended' ) );
 		add_filter( 'init', array( $this, 'remove_shortcode_currency_switcher_on_order_reference_suspended' ) );

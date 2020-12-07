@@ -427,12 +427,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$checkout_session = $this->get_checkout_session();
 
-		if ( $checkout_session->productType !== $this->get_current_cart_action() ) {
+		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
 			$this->render_login_button_again();
 			return;
 		}
 
 		$checkout = WC_Checkout::instance();
+		// phpcs:disable WordPress.NamingConventions
 		?>
 		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
 			<div class="col2-set">
@@ -516,6 +517,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		</div>
 
 		<?php
+		// phpcs:enable WordPress.NamingConventions
 	}
 
 	protected function get_woocommerce_data() {
@@ -532,11 +534,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( ! empty( $checkout_session->buyer ) ) {
 			// Billing
 			$wc_billing_address = array();
-			if ( ! empty( $checkout_session->billingAddress ) ) {
-				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress );
+			if ( ! empty( $checkout_session->billingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ); // phpcs:ignore WordPress.NamingConventions
 			} else {
-				if ( ! empty( $checkout_session->shippingAddress ) ) {
-					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress );
+				if ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ); // phpcs:ignore WordPress.NamingConventions
 				} else {
 					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_name( $checkout_session->buyer->name );
 				}
@@ -549,8 +551,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 
 			$wc_shipping_address = array();
-			if ( ! empty( $checkout_session->shippingAddress ) ) {
-				$wc_shipping_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress );
+			if ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+				$wc_shipping_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ); // phpcs:ignore WordPress.NamingConventions
 			}
 
 			// Shipping
@@ -622,7 +624,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$checkout_session = $this->get_checkout_session();
 
-		$payments = $checkout_session->paymentPreferences;
+		$payments = $checkout_session->paymentPreferences; // phpcs:ignore WordPress.NamingConventions
 
 		try {
 			if ( ! $order ) {
@@ -642,7 +644,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
 
-			if ( empty( $checkout_session->paymentDetails ) || empty( $checkout_session->paymentDetails->chargeAmount ) || $checkout_session->paymentDetails->chargeAmount->amount !== $order_total ) {
+			if ( empty( $checkout_session->paymentDetails ) || empty( $checkout_session->paymentDetails->chargeAmount ) || $checkout_session->paymentDetails->chargeAmount->amount !== $order_total ) { // phpcs:ignore WordPress.NamingConventions
 				$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // TODO: ask if WC 2.6 support is still needed (it's a 2017 release)
 				$order->update_meta_data( 'woocommerce_version', WC()->version );
 
@@ -698,7 +700,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			// Return thank you page redirect.
 			return array(
 				'result'   => 'success',
-				'redirect' => $response->webCheckoutDetails->amazonPayRedirectUrl,
+				'redirect' => $response->webCheckoutDetails->amazonPayRedirectUrl, // phpcs:ignore WordPress.NamingConventions
 			);
 
 		} catch ( Exception $e ) {
@@ -737,7 +739,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			if ( 'CheckoutSessionCanceled' == $error_code ) {
 				$checkout_session = $this->get_checkout_session( true );
 
-				switch ( $checkout_session->statusDetails->reasonCode ) {
+				switch ( $checkout_session->statusDetails->reasonCode ) { // phpcs:ignore WordPress.NamingConventions
 					case 'Declined':
 						wc_add_notice( __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
@@ -766,14 +768,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
-		if ( 'Completed' !== $response->statusDetails->state ) {
+		if ( 'Completed' !== $response->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions
 			// TODO: Handle error. Ask for posibilities of status not to be completed at this stage.
-			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->statusDetails, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->statusDetails, JSON_PRETTY_PRINT ) . '</pre>', 'error' ); // phpcs:ignore WordPress.NamingConventions
 			return;
 		}
 
-		$order->update_meta_data( 'amazon_charge_id', $response->chargeId );
-		$order->update_meta_data( 'amazon_charge_permission_id', $response->chargePermissionId );
+		$order->update_meta_data( 'amazon_charge_id', $response->chargeId ); // phpcs:ignore WordPress.NamingConventions
+		$order->update_meta_data( 'amazon_charge_permission_id', $response->chargePermissionId ); // phpcs:ignore WordPress.NamingConventions
 		$order->save();
 
 		$order->payment_complete();

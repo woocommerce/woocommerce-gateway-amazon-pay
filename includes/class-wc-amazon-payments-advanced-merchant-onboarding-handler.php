@@ -216,9 +216,9 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	protected function save_payload( $payload ) {
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
-		$settings['merchant_id']                     = $payload->merchantId;
-		$settings['store_id']                        = $payload->storeId;
-		$settings['public_key_id']                   = $payload->publicKeyId;
+		$settings['merchant_id']                     = $payload->merchantId; // phpcs:ignore WordPress.NamingConventions
+		$settings['store_id']                        = $payload->storeId; // phpcs:ignore WordPress.NamingConventions
+		$settings['public_key_id']                   = $payload->publicKeyId; // phpcs:ignore WordPress.NamingConventions
 		$settings['amazon_keys_setup_and_validated'] = 1;
 		self::update_migration_status();
 		update_option( 'woocommerce_amazon_payments_advanced_settings', $settings );
