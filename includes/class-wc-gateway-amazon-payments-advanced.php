@@ -661,7 +661,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	
 				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data( $checkout_session_id, array(
 					"paymentDetails" => array(
-						"paymentIntent" => $paymentIntent,
+						"paymentIntent" => $paymentIntent, // TODO: Check Authorize, and Confirm flows.
 						// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this.
 						"chargeAmount" => array(
 							"amount" => $order_total,
@@ -752,7 +752,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( 'Completed' !== $response->statusDetails->state ) {
-			// TODO: Handle error
+			// TODO: Handle error. Ask for posibilities of status not to be completed at this stage.
 			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->statusDetails, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
 			return;
 		}
