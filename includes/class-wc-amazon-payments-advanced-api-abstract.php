@@ -42,26 +42,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	);
 
 	/**
-	 * Widgets URLs.
-	 *
-	 * @var array
-	 */
-	protected static $widgets_urls = array(
-		'sandbox'    => array(
-			'us' => 'https://static-na.payments-amazon.com/OffAmazonPayments/us/sandbox/js/Widgets.js',
-			'gb' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/gbp/sandbox/lpa/js/Widgets.js',
-			'eu' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/eur/sandbox/lpa/js/Widgets.js',
-			'jp' => 'https://origin-na.ssl-images-amazon.com/images/G/09/EP/offAmazonPayments/sandbox/prod/lpa/js/Widgets.js',
-		),
-		'production' => array(
-			'us' => 'https://static-na.payments-amazon.com/OffAmazonPayments/us/js/Widgets.js',
-			'gb' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/gbp/lpa/js/Widgets.js',
-			'eu' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/eur/lpa/js/Widgets.js',
-			'jp' => 'https://origin-na.ssl-images-amazon.com/images/G/09/EP/offAmazonPayments/live/prod/lpa/js/Widgets.js',
-		),
-	);
-
-	/**
 	 * Language ISO code map to its domain.
 	 *
 	 * @var array
@@ -74,28 +54,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		'es-ES' => 'es',
 		'en-US' => 'com',
 		'ja-JP' => 'co.jp',
-	);
-
-	/**
-	 * Non-app widgets URLs.
-	 *
-	 * @since 1.6.3
-	 *
-	 * @var array
-	 */
-	protected static $non_app_widgets_urls = array(
-		'sandbox'    => array(
-			'us' => 'https://static-na.payments-amazon.com/OffAmazonPayments/us/sandbox/js/Widgets.js',
-			'gb' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/gbp/sandbox/js/Widgets.js',
-			'eu' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/eur/sandbox/js/Widgets.js',
-			'jp' => 'https://static-fe.payments-amazon.com/OffAmazonPayments/jp/sandbox/js/Widgets.js',
-		),
-		'production' => array(
-			'us' => 'https://static-na.payments-amazon.com/OffAmazonPayments/us/js/Widgets.js',
-			'gb' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/gbp/js/Widgets.js',
-			'eu' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/eur/js/Widgets.js',
-			'jp' => 'https://static-fe.payments-amazon.com/OffAmazonPayments/jp/js/Widgets.js',
-		),
 	);
 
 	/**
@@ -178,9 +136,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'store_id'                        => '',
 			'public_key_id'                   => '',
 			'seller_id'                       => '',
-			'merchant_id'                     => '',
-			'store_id'                        => '',
-			'public_key_id'                   => '',
 			'mws_access_key'                  => '',
 			'secret_key'                      => '',
 			'payment_region'                  => self::get_payment_region_from_country( WC()->countries->get_base_country() ),
@@ -210,7 +165,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return string
 	 */
-	public static function get_reference_id() {
+	public static function get_reference_id() { // TODO: Move to legacy.
 		$reference_id = ! empty( $_REQUEST['amazon_reference_id'] ) ? $_REQUEST['amazon_reference_id'] : '';
 
 		if ( isset( $_POST['post_data'] ) ) {
@@ -229,7 +184,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return string
 	 */
-	public static function get_access_token() {
+	public static function get_access_token() { // TODO: Move to legacy.
 		$access_token = ! empty( $_REQUEST['access_token'] ) ? $_REQUEST['access_token'] : ( isset( $_COOKIE['amazon_Login_accessToken'] ) && ! empty( $_COOKIE['amazon_Login_accessToken'] ) ? $_COOKIE['amazon_Login_accessToken'] : '' );
 
 		return self::check_session( 'access_token', $access_token );
@@ -421,30 +376,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	public static function get_amazon_keys_set() {
 		$settings = self::get_settings();
 		return ( isset( $settings['amazon_keys_setup_and_validated'] ) ) && ( 1 === $settings['amazon_keys_setup_and_validated'] );
-	}
-
-	/**
-	 * Get widgets URL.
-	 *
-	 * @return string
-	 */
-	public static function get_widgets_url() {
-		$settings   = self::get_settings();
-		$region     = $settings['payment_region'];
-		$is_sandbox = 'yes' === $settings['sandbox'];
-
-		// If payment_region is not set in settings, use base country.
-		if ( ! $region ) {
-			$region = self::get_payment_region_from_country( WC()->countries->get_base_country() );
-		}
-
-		if ( 'yes' === $settings['enable_login_app'] ) {
-			return $is_sandbox ? self::$widgets_urls['sandbox'][ $region ] : self::$widgets_urls['production'][ $region ];
-		}
-
-		$non_app_url = $is_sandbox ? self::$non_app_widgets_urls['sandbox'][ $region ] : self::$non_app_widgets_urls['production'][ $region ];
-
-		return $non_app_url . '?sellerId=' . $settings['seller_id'];
 	}
 
 	/**
@@ -1987,6 +1918,25 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$formatted['postcode'] = isset( $address->PostalCode ) ? (string) $address->PostalCode : null;
 		$formatted['state'] = isset( $address->StateOrRegion ) ? (string) $address->StateOrRegion : null;
 		$formatted['country'] = isset( $address->CountryCode ) ? (string) $address->CountryCode : null;
+
+		// Handle missmatches of states in AMZ and WC
+		if ( ! is_null( $formatted['state'] ) ) {
+			$valid_states = WC()->countries->get_states( $formatted['country'] );
+
+			if ( ! empty( $valid_states ) && is_array( $valid_states ) && count( $valid_states ) > 0 ) {
+				$valid_state_values = array_map( 'wc_strtoupper', array_flip( array_map( 'wc_strtoupper', $valid_states ) ) );
+				$uc_state       = wc_strtoupper( $formatted['state'] );
+
+				if ( isset( $valid_state_values[ $uc_state ] ) ) {
+					// With this part we consider state value to be valid as well, convert it to the state key for the valid_states check below.
+					$uc_state = $valid_state_values[ $uc_state ];
+				}
+
+				if ( ! in_array( $uc_state, $valid_state_values, true ) ) {
+					$formatted['state'] = null;
+				}
+			}
+		}
 		// @codingStandardsIgnoreEnd
 
 		return array_filter( $formatted );

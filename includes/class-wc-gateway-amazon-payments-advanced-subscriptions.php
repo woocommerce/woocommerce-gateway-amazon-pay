@@ -10,33 +10,29 @@
  *
  * Extending main gateway class and only loaded if Subscriptions is available.
  */
-class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazon_Payments_Advanced {
+class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
 
-		parent::__construct();
+		$this->id = 'amazon_payments_advanced';
 
-		$this->supports = array_merge(
-			$this->supports,
-			array(
-				'subscriptions',
-				'subscription_date_changes',
-				'subscription_suspension',
-				'subscription_reactivation',
-				'subscription_cancellation',
-				'multiple_subscriptions',
-				'subscription_payment_method_change_customer',
-			)
-		);
+		add_filter( 'woocommerce_amazon_pa_supports', array( $this, 'add_subscription_support' ) );
+
+		add_filter( 'woocommerce_amazon_pa_is_gateway_available', array( $this, 'is_available' ) );
 
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $this->id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
 
 		add_action( 'woocommerce_subscription_cancelled_' . $this->id, array( $this, 'cancelled_subscription' ) );
 
 		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $this->id, array( $this, 'update_failing_payment_method' ), 10, 2 );
+
+		add_filter( 'woocommerce_amazon_pa_process_payment', array( $this, 'process_payment' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_handle_sca_success', array( $this, 'handle_sca_success' ), 10, 3 );
+		add_filter( 'woocommerce_amazon_pa_handle_sca_failure', array( $this, 'handle_sca_failure' ), 10, 4 );
+		add_filter( 'woocommerce_amazon_pa_get_amazon_order_details', array( $this, 'get_amazon_order_details' ), 10, 2 );
 
 		// WC Subscription Hook
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
@@ -53,12 +49,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 	 *
 	 * @return bool
 	 */
-	public function is_available() {
-		$is_available = parent::is_available();
+	public function is_available( $is_available ) {
+		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
+		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
+		$subscriptions_enabled   = empty( $settings['subscriptions_enabled'] ) || 'yes' == $settings['subscriptions_enabled'];
+		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
 
-		// No subscription product in cart.
-		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() ) {
-			return $is_available;
+		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+			return false;
 		}
 
 		return $is_available;
@@ -79,10 +77,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 	 *
 	 * @param int $order_id Order ID.
 	 */
-	public function process_payment( $order_id ) {
+	public function process_payment( $process, $order_id ) {
 
 		if ( ! $this->order_contains_subscription( $order_id ) && ! wcs_is_subscription( $order_id ) ) {
-			return parent::process_payment( $order_id );
+			return $process;
 		}
 
 		$amazon_reference_id              = isset( $_POST['amazon_reference_id'] ) ? wc_clean( $_POST['amazon_reference_id'] ) : '';
@@ -90,7 +88,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 		$amazon_billing_agreement_details = WC()->session->get( 'amazon_billing_agreement_details' ) ? wc_clean( WC()->session->get( 'amazon_billing_agreement_details' ) ) : false;
 
 		if ( ! $amazon_billing_agreement_id && 'yes' === get_option( 'woocommerce_subscriptions_turn_off_automatic_payments' ) ) {
-			return parent::process_payment( $order_id );
+			return $process;
 		}
 
 		try {
@@ -170,13 +168,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 			// Return thank you page redirect.
 			return array(
 				'result'   => 'success',
-				'redirect' => $this->get_return_url( $order ),
+				'redirect' => wc_apa()->get_gateway()->get_return_url( $order ),
 			);
 		} catch ( Exception $e ) {
 
 			wc_apa()->log( __METHOD__, "Error: Exception encountered: {$e->getMessage()}" );
 			wc_add_notice( sprintf( __( 'Error: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ), 'error' );
-			return;
+			return false;
 		}
 	}
 
@@ -311,7 +309,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 	public function authorize_payment( $order, $amazon_billing_agreement_id ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
-		switch ( $this->payment_capture ) {
+		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
+
+		switch ( $settings['payment_capture'] ) {
 
 			case 'manual' :
 
@@ -387,7 +387,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 		// Return thank you page redirect.
 		return array(
 			'result'   => 'success',
-			'redirect' => $this->get_return_url( $order ),
+			'redirect' => wc_apa()->get_gateway()->get_return_url( $order ),
 		);
 	}
 
@@ -487,13 +487,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 			$billing_agreement_details = $response->GetBillingAgreementDetailsResult->BillingAgreementDetails;
 			// @codingStandardsIgnoreEnd
 
-			$this->store_order_address_details( $order_id, $billing_agreement_details );
+			wc_apa()->get_gateway()->store_order_address_details( $order_id, $billing_agreement_details );
 
 			$subscriptions = wcs_get_subscriptions_for_order( $order_id );
 
 			foreach ( $subscriptions as $subscription ) {
 				$subscription_id = wc_apa_get_order_prop( $subscription, 'id' );
-				$this->store_order_address_details( $subscription_id, $billing_agreement_details );
+				wc_apa()->get_gateway()->store_order_address_details( $subscription_id, $billing_agreement_details );
 			}
 		}
 	}
@@ -620,7 +620,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 	 *
 	 * @return bool|object Boolean false on failure, object of OrderReferenceDetails on success.
 	 */
-	public function get_amazon_order_details( $amazon_reference_id ) {
+	public function get_amazon_order_details( $process, $amazon_reference_id ) {
 		$not_subscription = (
 			! WC_Subscriptions_Cart::cart_contains_subscription()
 			||
@@ -628,7 +628,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 		);
 
 		if ( $not_subscription ) {
-			return parent::get_amazon_order_details( $amazon_reference_id );
+			return $process;
 		}
 
 		$request_args = array(
@@ -664,11 +664,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 	 * @param WC_Order $order
 	 * @param string $amazon_reference_id
 	 */
-	protected function handle_sca_success( $order, $amazon_reference_id ) {
+	public function handle_sca_success( $process, $order, $amazon_reference_id ) {
 		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
-			return parent::handle_sca_success( $order, $amazon_reference_id );
+			return $process;
 		}
-		$redirect = $this->get_return_url( $order );
+		$redirect = wc_apa()->get_gateway()->get_return_url( $order );
+
+		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		try {
 			// It will process payment and empty the cart.
@@ -682,8 +684,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 			}
 		} catch ( Exception $e ) {
 			// Async (optimal) mode on settings.
-			if ( 'async' === $this->authorization_mode && isset( $e->transaction_timed_out ) ) {
-				$this->process_async_auth( $order, $amazon_reference_id );
+			if ( 'async' === $settings['authorization_mode'] && isset( $e->transaction_timed_out ) ) {
+				wc_apa()->get_gateway()->process_async_auth( $order, $amazon_reference_id );
 			} else {
 				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(), 'error' );
 				$redirect = wc_get_checkout_url();
@@ -701,9 +703,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 	 * @param string $amazon_reference_id
 	 * @param string $authorization_status
 	 */
-	protected function handle_sca_failure( $order, $amazon_reference_id, $authorization_status ) {
+	public function handle_sca_failure( $process, $order, $amazon_reference_id, $authorization_status ) {
 		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
-			return parent::handle_sca_failure( $order, $amazon_reference_id, $authorization_status );
+			return $process;
 		}
 		$redirect = wc_get_checkout_url();
 
@@ -752,5 +754,22 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 			$result['redirect'] = $subscription->get_view_order_url();
 		}
 		return $result;
+	}
+
+	public function add_subscription_support( $supports ) {
+		$supports = array_merge(
+			$supports,
+			array(
+				'subscriptions',
+				'subscription_date_changes',
+				'subscription_suspension',
+				'subscription_reactivation',
+				'subscription_cancellation',
+				'multiple_subscriptions',
+				'subscription_payment_method_change_customer',
+			)
+		);
+
+		return $supports;
 	}
 }

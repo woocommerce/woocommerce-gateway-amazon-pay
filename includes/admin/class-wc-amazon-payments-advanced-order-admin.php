@@ -123,7 +123,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 *
 	 * @return string HTML of refresh link with its container
 	 */
-	private function _get_refresh_link() {
+	protected function _get_refresh_link() {
 		return wpautop( sprintf(
 			'<a href="#" data-action="refresh" class="refresh">%s</a>%s',
 			esc_html__( 'Refresh', 'woocommerce-gateway-amazon-payments-advanced' ),

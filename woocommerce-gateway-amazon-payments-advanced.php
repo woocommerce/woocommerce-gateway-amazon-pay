@@ -202,24 +202,25 @@ class WC_Amazon_Payments_Advanced {
 		}
 
 		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-abstract.php';
-		include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php';
-		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php';
 		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-privacy.php';
 
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
 
 		// Check for Subscriptions 2.0, and load support if found.
-		if ( $subscriptions_installed && $subscriptions_enabled ) {
+		if ( $subscriptions_installed ) { // TODO: Maybe load conditionally if subscriptions is enabled.
 
 			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-subscriptions.php';
 
-			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Subscriptions();
+			$this->subscriptions = new WC_Gateway_Amazon_Payments_Advanced_Subscriptions();
 
-		} else {
+		}
 
+		if ( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
+			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php';
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced();
-
+		} else {
+			include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php';
+			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Legacy();
 		}
 
 		add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ) );
