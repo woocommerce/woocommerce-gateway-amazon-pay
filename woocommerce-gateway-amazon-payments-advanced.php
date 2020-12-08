@@ -209,7 +209,7 @@ class WC_Amazon_Payments_Advanced {
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
 
 		// Check for Subscriptions 2.0, and load support if found.
-		if ( $subscriptions_installed ) {
+		if ( $subscriptions_installed ) { // TODO: Maybe load conditionally if subscriptions is enabled.
 
 			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-subscriptions.php';
 

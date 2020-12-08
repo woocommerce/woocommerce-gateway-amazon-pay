@@ -168,7 +168,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return string
 	 */
-	public static function get_reference_id() {
+	public static function get_reference_id() { // TODO: Move to legacy.
 		$reference_id = ! empty( $_REQUEST['amazon_reference_id'] ) ? $_REQUEST['amazon_reference_id'] : '';
 
 		if ( isset( $_POST['post_data'] ) ) {
@@ -187,7 +187,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return string
 	 */
-	public static function get_access_token() {
+	public static function get_access_token() { // TODO: Move to legacy.
 		$access_token = ! empty( $_REQUEST['access_token'] ) ? $_REQUEST['access_token'] : ( isset( $_COOKIE['amazon_Login_accessToken'] ) && ! empty( $_COOKIE['amazon_Login_accessToken'] ) ? $_COOKIE['amazon_Login_accessToken'] : '' );
 
 		return self::check_session( 'access_token', $access_token );
