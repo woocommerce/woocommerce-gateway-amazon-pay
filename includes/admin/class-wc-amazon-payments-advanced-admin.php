@@ -354,6 +354,8 @@ class WC_Amazon_Payments_Advanced_Admin {
 			WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::destroy_keys();
 			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
 			wc_apa()->get_gateway()->update_option( 'public_key_id', '' );
+			wc_apa()->get_gateway()->update_option( 'store_id', '' );
+			wc_apa()->get_gateway()->update_option( 'merchant_id', '' );
 			wp_send_json_success();
 			wp_die();
 		}
