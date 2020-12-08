@@ -29,7 +29,6 @@ class WC_Amazon_Payments_Advanced_Admin {
 	 */
 	public function __construct() {
 		$this->path     = untrailingslashit( plugin_dir_path( __FILE__ ) );
-		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		$this->init_order_admin();
 
@@ -96,6 +95,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 	 * @return bool
 	 */
 	protected function amazon_keys_already_set() {
+		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		return ( isset( $this->settings['amazon_keys_setup_and_validated'] ) ) && ( 1 === $this->settings['amazon_keys_setup_and_validated'] );
 	}
 
@@ -108,6 +108,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 	 * @return array Array of notices.
 	 */
 	protected function get_admin_notices() {
+		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		global $current_section;
 
 		$notices = array();
