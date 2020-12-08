@@ -202,8 +202,6 @@ class WC_Amazon_Payments_Advanced {
 		}
 
 		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-abstract.php';
-		include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php';
-		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php';
 		include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-privacy.php';
 
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
@@ -218,8 +216,10 @@ class WC_Amazon_Payments_Advanced {
 		}
 
 		if ( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
+			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php';
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced();
 		} else {
+			include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php';
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Legacy();
 		}
 
