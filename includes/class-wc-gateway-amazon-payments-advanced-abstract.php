@@ -29,7 +29,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		if ( is_admin() ) {
 			$compatible_region = isset( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) ? WC_Amazon_Payments_Advanced_Multi_Currency::compatible_region( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) : WC_Amazon_Payments_Advanced_Multi_Currency::compatible_region();
 			if ( $compatible_region && WC_Amazon_Payments_Advanced_Multi_Currency::get_compatible_instance( $compatible_region ) ) {
-				$this->add_currency_fields();
+				add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( $this, 'add_currency_fields' ) );
 			}
 		}
 
@@ -98,10 +98,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	/**
 	 * Adds multicurrency settings to form fields.
 	 */
-	public function add_currency_fields() {
+	public function add_currency_fields( $form_fields ) {
 		$compatible_plugin = WC_Amazon_Payments_Advanced_Multi_Currency::compatible_plugin( true );
 
-		$this->form_fields['multicurrency_options'] = array(
+		$form_fields['multicurrency_options'] = array(
 			'title'       => __( 'Multi-Currency', 'woocommerce-gateway-amazon-payments-advanced' ),
 			'type'        => 'title',
 			/* translators: Compatible plugin */
@@ -112,7 +112,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		 * Only show currency list for plugins that will use the list. Frontend plugins will be exempt.
 		 */
 		if ( ! WC_Amazon_Payments_Advanced_Multi_Currency::$compatible_instance->is_front_end_compatible() ) {
-			$this->form_fields['currencies_supported'] = array(
+			$form_fields['currencies_supported'] = array(
 				'title'             => __( 'Select currencies to display Amazon in your shop', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'              => 'multiselect',
 				'options'           => WC_Amazon_Payments_Advanced_API::get_supported_currencies( true ),
@@ -123,6 +123,8 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				),
 			);
 		}
+
+		return $form_fields;
 	}
 
 	/**
@@ -373,6 +375,18 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			),
 		);
 
+		/**
+		 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
+		 * For old merchants, keep "Use Login with Amazon App" checkbox, as they can fallback to APA (no client id)
+		 *
+		 * @since 1.9.0
+		 */
+		if ( WC_Amazon_Payments_Advanced_API::is_new_installation() ) {
+			unset( $this->form_fields['enable_login_app'] );
+		}
+
+		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields_before_legacy', $this->form_fields );
+
 		if ( ! empty( $this->settings['seller_id'] ) ) {
 			$this->form_fields = array_merge(
 				$this->form_fields,
@@ -458,15 +472,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			);
 		}
 
-		/**
-		 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
-		 * For old merchants, keep "Use Login with Amazon App" checkbox, as they can fallback to APA (no client id)
-		 *
-		 * @since 1.9.0
-		 */
-		if ( WC_Amazon_Payments_Advanced_API::is_new_installation() ) {
-			unset( $this->form_fields['enable_login_app'] );
-		}
+		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields', $this->form_fields );
 	}
 
 	/**
