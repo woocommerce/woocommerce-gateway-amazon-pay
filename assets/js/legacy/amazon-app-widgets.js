@@ -307,7 +307,7 @@ jQuery( function( $ ) {
 			fieldValue = $( '#' + type + '_' + key ).val();
 		fieldWrapper.addClass( 'hidden' );
 		$( '.woocommerce-' + type + '-fields' ).addClass( 'hidden' );
-		if ( fieldValue == null || fieldValue == '' ) {
+		if ( fieldValue == null || fieldValue === '' ) {
 			fieldWrapper.removeClass( 'hidden' );
 			$( '.woocommerce-' + type + '-fields' ).removeClass( 'hidden' );
 		}

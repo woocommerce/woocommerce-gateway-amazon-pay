@@ -1,5 +1,5 @@
 ( function( $ ) {
-	wcDdripCompat = {
+	var wcDdripCompat = {
 		subscribeSelector: '#wcdrip_subscribe_field',
 		consentWidget: '#amazon_consent_widget',
 		cloned: false,

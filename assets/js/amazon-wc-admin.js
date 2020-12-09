@@ -1,3 +1,4 @@
+/*global amazon_admin_params */
 ( function( $ ) {
 	var wc_simple_path_form = {
 		simple_path_form_id: 'simple_path',

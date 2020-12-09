@@ -1,7 +1,7 @@
-/*global amazon_payments_advanced_params */
+/*global amazon_payments_advanced_params, OffAmazonPayments */
 jQuery( function( $ ) {
 	// Make sure we only try to load the Amazon widgets once
-	var widgetsLoaded = false, buttonLoaded = false, amazonOrderReferenceId;
+	var widgetsLoaded = false, amazonOrderReferenceId;
 
 	// Login Widget
 	function wcAmazonPaymentsButton() {

@@ -1,4 +1,4 @@
-/*global jQuery, window, document, setTimeout, console, amazon_payments_advanced, amazon */
+/*global amazon_payments_advanced, amazon */
 ( function( $ ) {
 	$( function() {
 		var button_count = 0;
