@@ -680,9 +680,23 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			return;
 		}
 		$settings    = get_option( $this->get_option_key() );
+
+		$clean_settings = array();
+		foreach ( $this->form_fields as $key => $field ) {
+			if ( 'title' === $field['type'] || 'custom' === $field['type'] || 'file' === $field['type'] ) {
+				continue;
+			}
+			if ( isset( $settings[ $key ] ) ) {
+				$clean_settings[ $key ] = $settings[ $key ];
+				unset( $settings[ $key ] );
+			} else {
+				$clean_settings[ $key ] = '';
+			}
+		}
+
 		$private_key = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 
-		$settings['private_key'] = $private_key;
+		$clean_settings['private_key'] = $private_key;
 
 		ignore_user_abort( true );
 
@@ -691,7 +705,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		header( 'Content-Disposition: attachment; filename=wc-amazon-pay-settings-export-' . gmdate( 'm-d-Y' ) . '.json' );
 		header( 'Expires: 0' );
 
-		echo wp_json_encode( $settings );
+		echo wp_json_encode( $clean_settings );
 		exit;
 	}
 
