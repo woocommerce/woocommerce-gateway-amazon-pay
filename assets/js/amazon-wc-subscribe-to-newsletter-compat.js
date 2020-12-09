@@ -1,7 +1,6 @@
-(function($) {
-
+( function( $ ) {
 	subscribeToNewsletterCompat = {
-		subscribeSelector:  '#subscribe_to_newsletter_field',
+		subscribeSelector: '#subscribe_to_newsletter_field',
 		consentWidget: '#amazon_consent_widget',
 		cloned: false,
 
@@ -26,5 +25,4 @@
 	};
 
 	$( subscribeToNewsletterCompat.init );
-
-})(jQuery);
+} )( jQuery );

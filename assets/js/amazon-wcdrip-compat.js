@@ -1,7 +1,6 @@
-(function($) {
-
+( function( $ ) {
 	wcDdripCompat = {
-		subscribeSelector:  '#wcdrip_subscribe_field',
+		subscribeSelector: '#wcdrip_subscribe_field',
 		consentWidget: '#amazon_consent_widget',
 		cloned: false,
 
@@ -26,5 +25,4 @@
 	};
 
 	$( wcDdripCompat.init );
-
-})(jQuery);
+} )( jQuery );
