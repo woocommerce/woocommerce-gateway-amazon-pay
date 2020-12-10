@@ -3,6 +3,8 @@
 	var wc_simple_path_form = {
 		simple_path_form_id: 'simple_path',
 		payment_region_input: $( '#woocommerce_amazon_payments_advanced_payment_region' ),
+		button_language_input: $( '#woocommerce_amazon_payments_advanced_button_language' ),
+		button_languages: {},
 		action_url: '#',
 		spId: '',
 		register_now_link: $( 'a.register_now' ),
@@ -22,6 +24,11 @@
 		poll_interval: 3000,
 		main_setting_form: $( '#mainform' ),
 		init: function() {
+			wc_simple_path_form.button_language_input.children( 'option' ).each( function() {
+				var key = $( this ).prop( 'value' ).replace( '-', '_' );
+				wc_simple_path_form.button_languages[ key ] = $( this ).text();
+			} );
+
 			// Init values if region is already selected
 			wc_simple_path_form.payment_region_on_change();
 
@@ -31,7 +38,46 @@
 			wc_simple_path_form.delete_settings_link.on( 'click', this.delete_settings_on_click );
 			$( document ).on( 'click', 'a.wcapa-toggle-section', this.toggle_visibility );
 		},
+		payment_button_language_rebuild: function() {
+			var langs = amazon_admin_params.language_combinations[ wc_simple_path_form.get_region_selected() ].slice();
+			langs.unshift( '' );
+			langs = $.map( langs, function( item ) {
+				return item.replace( '-', '_' );
+			} );
+			var selected = wc_simple_path_form.button_language_input.children( 'option:selected' );
+			var selected_key = selected.prop( 'value' ).replace( '-', '_' );
+			if ( langs.indexOf( selected_key ) === -1 ) {
+				wc_simple_path_form.button_language_input.children( 'option' ).remove();
+				selected_key = false;
+			} else {
+				wc_simple_path_form.button_language_input.children( 'option' ).not( ':selected' ).remove();
+			}
+			var found = false;
+			$.each( langs, function( i, key ) {
+				if ( selected_key === key ) {
+					found = true;
+					return;
+				}
+
+				var newOpt = $(
+					'<option/>',
+					{
+						value: key.replace( '_', '-' ),
+					}
+				).html( wc_simple_path_form.button_languages[ key ] );
+
+				if ( selected_key && ! found ) {
+					selected.before( newOpt );
+				} else {
+					wc_simple_path_form.button_language_input.append( newOpt );
+				}
+			} );
+			if ( ! selected_key ) {
+				wc_simple_path_form.button_language_input.children().first().prop( 'selected', true );
+			}
+		},
 		payment_region_on_change: function() {
+			wc_simple_path_form.payment_button_language_rebuild();
 			if ( 'jp' === wc_simple_path_form.get_region_selected() ) {
 				// JP does not have Simple Path Registration, we open a new url for it.
 				wc_simple_path_form.register_now_link.attr( 'href', wc_simple_path_form.get_simple_path_url() );

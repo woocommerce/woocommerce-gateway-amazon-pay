@@ -352,9 +352,12 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return string Payment region label.
 	 */
-	public static function get_region_label() {
+	public static function get_region_label( $region = null ) {
+		if ( is_null( $region ) ) {
+			$region = self::get_region();
+		}
 		$regions = self::get_payment_regions();
-		return $regions[ self::get_region() ];
+		return isset( $regions[ $region ] ) ? $regions[ $region ] : '';
 	}
 
 	/**

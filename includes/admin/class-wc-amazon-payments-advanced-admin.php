@@ -314,20 +314,21 @@ class WC_Amazon_Payments_Advanced_Admin {
 		}
 
 		$params = array(
-			'simple_path_urls'   => WC_Amazon_Payments_Advanced_API::$registration_urls,
-			'spids'              => WC_Amazon_Payments_Advanced_API::$sp_ids,
-			'onboarding_version' => WC_Amazon_Payments_Advanced_API::$onboarding_version,
-			'locale'             => get_locale(),
-			'home_url'           => home_url( null, '', 'https' ),
-			'simple_path_url'    => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
-			'public_key'         => WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ? wc_apa()->onboarding_handler->get_public_key() : wc_apa()->onboarding_handler->get_public_key( false, true ),
-			'privacy_url'        => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
-			'description'        => WC_Amazon_Payments_Advanced::get_site_description(),
-			'ajax_url'           => admin_url( 'admin-ajax.php' ),
-			'credentials_nonce'  => wp_create_nonce( 'amazon_pay_check_credentials' ),
-			'login_redirect_url' => add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ),
-			'woo_version'        => 'WooCommerce: ' . WC()->version,
-			'plugin_version'     => 'WooCommerce Amazon Pay: ' . wc_apa()->version,
+			'simple_path_urls'      => WC_Amazon_Payments_Advanced_API::$registration_urls,
+			'spids'                 => WC_Amazon_Payments_Advanced_API::$sp_ids,
+			'onboarding_version'    => WC_Amazon_Payments_Advanced_API::$onboarding_version,
+			'locale'                => get_locale(),
+			'home_url'              => home_url( null, '', 'https' ),
+			'simple_path_url'       => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
+			'public_key'            => WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ? wc_apa()->onboarding_handler->get_public_key() : wc_apa()->onboarding_handler->get_public_key( false, true ),
+			'privacy_url'           => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
+			'description'           => WC_Amazon_Payments_Advanced::get_site_description(),
+			'ajax_url'              => admin_url( 'admin-ajax.php' ),
+			'credentials_nonce'     => wp_create_nonce( 'amazon_pay_check_credentials' ),
+			'login_redirect_url'    => add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ),
+			'woo_version'           => 'WooCommerce: ' . WC()->version,
+			'plugin_version'        => 'WooCommerce Amazon Pay: ' . wc_apa()->version,
+			'language_combinations' => WC_Amazon_Payments_Advanced_API::get_languages_per_region(),
 		);
 
 		wp_register_script( 'amazon_payments_admin', wc_apa()->plugin_url . '/assets/js/amazon-wc-admin' . $js_suffix, array(), wc_apa()->version, true );

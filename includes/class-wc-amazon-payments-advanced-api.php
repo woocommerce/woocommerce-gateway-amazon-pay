@@ -218,4 +218,29 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	public static function get_languages_per_region() {
+		return array(
+			'eu' => array(
+				'en-GB',
+				'de-DE',
+				'fr-FR',
+				'it-IT',
+				'es-ES',
+			),
+			'gb' => array(
+				'en-GB',
+				'de-DE',
+				'fr-FR',
+				'it-IT',
+				'es-ES',
+			),
+			'us' => array(
+				'en-US',
+			),
+			'jp' => array(
+				'jp-JP',
+			),
+		);
+	}
+
 }
