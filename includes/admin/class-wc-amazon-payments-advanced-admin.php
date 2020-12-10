@@ -160,9 +160,11 @@ class WC_Amazon_Payments_Advanced_Admin {
 			'woocommerce_page_wc-settings' === $current_screen->id &&
 			'amazon_payments_advanced' === $current_section
 		) {
+			$in_settings                    = true;
 			$in_amazon_pay_settings_section = 'in_settings';
 			$is_dismissable                 = false;
 		} else {
+			$in_settings                    = false;
 			$in_amazon_pay_settings_section = '';
 			$is_dismissable                 = true;
 		}
@@ -184,16 +186,29 @@ class WC_Amazon_Payments_Advanced_Admin {
 			);
 		}
 		if ( ! WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
-			$notices[] = array(
-				'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
-				'class'          => 'notice notice-error',
-				'text'           => sprintf(
-					/* translators: 1) The URL to the Amazon Pay settings screen. */
-					'<p>' . __( 'Amazon Pay V2 is now available and migration is required. Please go to your <a href="%1$s">Amazon Pay settings</a> to configure your merchant account', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
-					esc_url( $this->get_settings_url() )
-				),
-				'is_dismissable' => false,
-			);
+			if ( ! $in_settings ) {
+				$notices[] = array(
+					'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
+					'class'          => 'notice notice-error',
+					'text'           => sprintf(
+						/* translators: 1) The URL to the Amazon Pay settings screen. */
+						'<p>' . __( 'Amazon Pay V2 is now available and migration is required. Please go to your <a href="%1$s">Amazon Pay settings</a> to configure your merchant account', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
+						esc_url( $this->get_settings_url() )
+					),
+					'is_dismissable' => false,
+				);
+			} else {
+				$notices[] = array(
+					'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
+					'class'          => 'notice notice-error',
+					'text'           => sprintf(
+						/* translators: 1) The URL to the Amazon Pay settings screen. */
+						'<p>' . __( 'Amazon Pay V2 is now available and migration is required. Please click the "Reconnect to Amazon Pay" button to continue.', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
+						esc_url( $this->get_settings_url() )
+					),
+					'is_dismissable' => false,
+				);
+			}
 		}
 		if ( ! wc_checkout_is_https() ) {
 			$notices[] = array(
