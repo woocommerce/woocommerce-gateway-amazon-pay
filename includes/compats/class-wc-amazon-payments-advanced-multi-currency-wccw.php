@@ -11,9 +11,9 @@
  * This plugin does not need hooks to make it compatible, currency switch happens only on frontend level,
  * native currency is being used to process payments.
  *
- * Class WC_Amazon_Payments_Advanced_Multi_Currency_Converted_Widget
+ * Class WC_Amazon_Payments_Advanced_Multi_Currency_WCCW
  */
-class WC_Amazon_Payments_Advanced_Multi_Currency_Converted_Widget extends WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
+class WC_Amazon_Payments_Advanced_Multi_Currency_WCCW extends WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 	/**
 	 * Get Currency_Converted_Widget selected currency.

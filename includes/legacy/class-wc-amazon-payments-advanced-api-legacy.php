@@ -74,10 +74,12 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 				throw new Exception( __( 'Error: You must enter MWS Secret Key.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 
-			$response = WC_Amazon_Payments_Advanced_API::request( array(
-				'Action'                 => 'GetOrderReferenceDetails',
-				'AmazonOrderReferenceId' => 'S00-0000000-0000000',
-			) );
+			$response = WC_Amazon_Payments_Advanced_API::request(
+				array(
+					'Action'                 => 'GetOrderReferenceDetails',
+					'AmazonOrderReferenceId' => 'S00-0000000-0000000',
+				)
+			);
 
 			// @codingStandardsIgnoreStart
 			if ( ! is_wp_error( $response ) && isset( $response->Error->Code ) && 'InvalidOrderReferenceId' !== (string) $response->Error->Code ) {

@@ -28,7 +28,8 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
 			add_filter( 'woocommerce_amazon_payments_hide_amazon_buttons', '__return_true' );
 			add_filter(
-				'woocommerce_amazon_payments_logout_checkout_message_html', function() {
+				'woocommerce_amazon_payments_logout_checkout_message_html',
+				function() {
 					return '';
 				}
 			);
@@ -78,7 +79,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 */
 	public function is_currency_compatible( $currency_selected ) {
 		$amazon_selected_currencies = WC_Amazon_Payments_Advanced_API::get_selected_currencies();
-		return ( false !== ( array_search( $currency_selected, $amazon_selected_currencies ) ) );
+		return ( false !== ( array_search( $currency_selected, $amazon_selected_currencies, true ) ) );
 	}
 
 	/**
@@ -184,7 +185,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 *
 	 * @return bool
 	 */
-	function is_order_reference_checkout_suspended() {
+	public function is_order_reference_checkout_suspended() {
 		if ( ! defined( 'DOING_AJAX' ) && isset( WC()->session->amazon_reference_id ) && WC()->session->order_awaiting_payment > 0 ) {
 			$order_awaiting_payment = WC()->session->order_awaiting_payment;
 

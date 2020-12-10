@@ -27,7 +27,7 @@ class WC_Amazon_Payments_Advanced_Install {
 	 * If it is a fresh install (new merchant), we will log version to be used for back/forward compatibility.
 	 */
 	protected static function log_when_fresh_install() {
-		$settings    = get_option( 'woocommerce_amazon_payments_advanced_settings' );
+		$settings = get_option( 'woocommerce_amazon_payments_advanced_settings' );
 		if ( ! $settings ) {
 			update_option( self::APA_NEW_INSTALL_OPTION, wc_apa()->version );
 		}

@@ -43,64 +43,88 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 */
 	public function register_routes() {
 
-		register_rest_route( $this->namespace, '/' . $this->rest_base . '/reference-state', array(
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/reference-state',
 			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_reference_state' ),
-				'permission_callback' => array( $this, 'get_read_permissions_check' ),
-			),
-		) );
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_reference_state' ),
+					'permission_callback' => array( $this, 'get_read_permissions_check' ),
+				),
+			)
+		);
 
-		register_rest_route( $this->namespace, '/' . $this->rest_base . '/authorize', array(
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/authorize',
 			array(
-				'methods'             => WP_REST_Server::EDITABLE,
-				'callback'            => array( $this, 'authorize' ),
-				'permission_callback' => array( $this, 'get_edit_permissions_check' ),
-			),
-		) );
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'authorize' ),
+					'permission_callback' => array( $this, 'get_edit_permissions_check' ),
+				),
+			)
+		);
 
-		register_rest_route( $this->namespace, '/' . $this->rest_base . '/authorize-and-capture', array(
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/authorize-and-capture',
 			array(
-				'methods'             => WP_REST_Server::EDITABLE,
-				'callback'            => array( $this, 'authorize_and_capture' ),
-				'permission_callback' => array( $this, 'get_edit_permissions_check' ),
-			),
-		) );
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'authorize_and_capture' ),
+					'permission_callback' => array( $this, 'get_edit_permissions_check' ),
+				),
+			)
+		);
 
-		register_rest_route( $this->namespace, '/' . $this->rest_base . '/close-authorization', array(
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/close-authorization',
 			array(
-				'methods'             => WP_REST_Server::EDITABLE,
-				'callback'            => array( $this, 'close_authorization' ),
-				'permission_callback' => array( $this, 'get_edit_permissions_check' ),
-			),
-		) );
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'close_authorization' ),
+					'permission_callback' => array( $this, 'get_edit_permissions_check' ),
+				),
+			)
+		);
 
-		register_rest_route( $this->namespace, '/' . $this->rest_base . '/capture', array(
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/capture',
 			array(
-				'methods'             => WP_REST_Server::EDITABLE,
-				'callback'            => array( $this, 'capture' ),
-				'permission_callback' => array( $this, 'get_edit_permissions_check' ),
-			),
-		) );
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'capture' ),
+					'permission_callback' => array( $this, 'get_edit_permissions_check' ),
+				),
+			)
+		);
 
-		register_rest_route( $this->namespace, '/' . $this->rest_base . '/refund', array(
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/refund',
 			array(
-				'methods'             => WP_REST_Server::EDITABLE,
-				'callback'            => array( $this, 'refund' ),
-				'permission_callback' => array( $this, 'get_edit_permissions_check' ),
-				'args'                => array(
-					'amount' => array(
-						'description' => __( 'Refund amount.', 'woocommerce-gateway-amazon-payments-advanced' ),
-						'type'        => 'string',
-						'required'    => true,
-					),
-					'reason' => array(
-						'description' => __( 'Reason for refund.', 'woocommerce-gateway-amazon-payments-advanced' ),
-						'type'        => 'string',
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'refund' ),
+					'permission_callback' => array( $this, 'get_edit_permissions_check' ),
+					'args'                => array(
+						'amount' => array(
+							'description' => __( 'Refund amount.', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+						'reason' => array(
+							'description' => __( 'Reason for refund.', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'type'        => 'string',
+						),
 					),
 				),
-			),
-		) );
+			)
+		);
 
 	}
 
@@ -166,7 +190,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				break;
 			case 'delete':
 			case 'edit':
-				$post = get_post( (int) $request['order_id'] );
+				$post           = get_post( (int) $request['order_id'] );
 				$has_permission = (
 					$post
 					&&

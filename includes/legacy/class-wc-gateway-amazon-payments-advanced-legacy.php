@@ -127,7 +127,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 				<input type="hidden" name="amazon_access_token" value="<?php echo esc_attr( $this->access_token ); ?>" />
 			<?php endif; ?>
 
-		<?php endif;
+			<?php
+		endif;
 	}
 
 	/**
@@ -196,10 +197,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		// Amazon. But if state is available we still need the WC state key.
 		$state = '';
 		if ( ! empty( $address['state'] ) ) {
-			$state = array_search( $address['state'], $states );
+			$state = array_search( $address['state'], $states, true );
 		}
 		if ( ! $state && ! empty( $address['city'] ) ) {
-			$state = array_search( $address['city'], $states );
+			$state = array_search( $address['city'], $states, true );
 		}
 		if ( $state ) {
 			$address['state'] = $state;
@@ -670,18 +671,18 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		/* translators: Order number and site's name */
 		$seller_note = sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), rawurlencode( $site_name ) );
 		/* translators: Plugin version */
-		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ),  WC_AMAZON_PAY_VERSION, WC()->version );
+		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
 
 		$request_args = array_merge(
 			array(
-				'Action'                                                           => 'SetOrderReferenceDetails',
-				'AmazonOrderReferenceId'                                           => $amazon_reference_id,
-				'OrderReferenceAttributes.OrderTotal.Amount'                       => $order->get_total(),
-				'OrderReferenceAttributes.OrderTotal.CurrencyCode'                 => wc_apa_get_order_prop( $order, 'order_currency' ),
-				'OrderReferenceAttributes.SellerNote'                              => $seller_note,
-				'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId'     => $order->get_order_number(),
-				'OrderReferenceAttributes.SellerOrderAttributes.StoreName'         => $site_name,
-				'OrderReferenceAttributes.PlatformId'                              => 'A1BVJDFFHQ7US4',
+				'Action'                              => 'SetOrderReferenceDetails',
+				'AmazonOrderReferenceId'              => $amazon_reference_id,
+				'OrderReferenceAttributes.OrderTotal.Amount' => $order->get_total(),
+				'OrderReferenceAttributes.OrderTotal.CurrencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
+				'OrderReferenceAttributes.SellerNote' => $seller_note,
+				'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
+				'OrderReferenceAttributes.SellerOrderAttributes.StoreName' => $site_name,
+				'OrderReferenceAttributes.PlatformId' => 'A1BVJDFFHQ7US4',
 				'OrderReferenceAttributes.SellerOrderAttributes.CustomInformation' => $version_note,
 			),
 			$overrides
@@ -714,15 +715,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			switch ( $constraint ) {
 				case 'BuyerEqualSeller':
 					throw new Exception( __( 'You cannot shop on your own store.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-					break;
 				case 'PaymentPlanNotSet':
 					throw new Exception( __( 'You have not selected a payment method from your Amazon account. Please choose a payment method for this order.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-					break;
 				case 'PaymentMethodNotAllowed':
 					throw new Exception( __( 'There has been a problem with the selected payment method from your Amazon account. Please update the payment method or choose another one.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 				case 'ShippingAddressNotSet':
 					throw new Exception( __( 'You have not selected a shipping address from your Amazon account. Please choose a shipping address for this order.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-					break;
 			}
 		}
 
@@ -910,7 +908,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 				$this->handle_sca_failure( $order, $amazon_reference_id, $authorization_status );
 				break;
 			default:
-				wp_redirect( wc_get_checkout_url() );
+				wp_safe_redirect( wc_get_checkout_url() );
 				exit;
 		}
 	}
@@ -942,7 +940,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			}
 		}
 
-		wp_redirect( $redirect );
+		wp_safe_redirect( $redirect );
 		exit;
 	}
 
@@ -987,7 +985,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			wc_apa()->log( __METHOD__, 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Abandoned", reference ' . $amazon_reference_id );
 		}
 
-		wp_redirect( $redirect );
+		wp_safe_redirect( $redirect );
 		exit;
 	}
 
@@ -1177,7 +1175,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 */
 	public function checkout_message() {
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' == $this->settings['subscriptions_enabled'];
+		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
 		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
 
 		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {

@@ -50,9 +50,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return bool
 	 */
 	public function is_available( $is_available ) {
-		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
+		$settings                = WC_Amazon_Payments_Advanced_API::get_settings();
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $settings['subscriptions_enabled'] ) || 'yes' == $settings['subscriptions_enabled'];
+		$subscriptions_enabled   = empty( $settings['subscriptions_enabled'] ) || 'yes' === $settings['subscriptions_enabled'];
 		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
 
 		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
@@ -204,16 +204,16 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		} else {
 			$subscription_ids = wp_list_pluck( $subscriptions, 'id' );
 		}
-		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ),  WC_AMAZON_PAY_VERSION, WC()->version );
+		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
 
 		$request_args = array(
-			'Action'                                                                               => 'SetBillingAgreementDetails',
-			'AmazonBillingAgreementId'                                                             => $amazon_billing_agreement_id,
-			'BillingAgreementAttributes.SellerNote'                                                => sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), urlencode( $site_name ) ),
+			'Action'                                => 'SetBillingAgreementDetails',
+			'AmazonBillingAgreementId'              => $amazon_billing_agreement_id,
+			'BillingAgreementAttributes.SellerNote' => sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), urlencode( $site_name ) ),
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.SellerBillingAgreementId' => sprintf( __( 'Subscription(s): %s.', 'woocommerce-gateway-amazon-payments-advanced' ), implode( ', ', $subscription_ids ) ),
-			'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName'                => $site_name,
-			'BillingAgreementAttributes.PlatformId'                                                => 'A1BVJDFFHQ7US4',
-			'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation'        => $version_note,
+			'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName' => $site_name,
+			'BillingAgreementAttributes.PlatformId' => 'A1BVJDFFHQ7US4',
+			'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation' => $version_note,
 		);
 
 		// Update order reference with amounts.
@@ -276,10 +276,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return WP_Error|array WP_Error or parsed response array
 	 */
 	public function validate_billing_agreement( $amazon_billing_agreement_id ) {
-		$response = WC_Amazon_Payments_Advanced_API::request( array(
-			'Action'                   => 'ValidateBillingAgreement',
-			'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
-		) );
+		$response = WC_Amazon_Payments_Advanced_API::request(
+			array(
+				'Action'                   => 'ValidateBillingAgreement',
+				'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
+			)
+		);
 
 		if ( is_wp_error( $response ) ) {
 			throw new Exception( $response->get_error_message() );
@@ -313,8 +315,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		switch ( $settings['payment_capture'] ) {
 
-			case 'manual' :
-
+			case 'manual':
 				// Mark as on-hold.
 				$order->update_status( 'on-hold', __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 
@@ -329,8 +330,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 				break;
 
-			case 'authorize' :
-
+			case 'authorize':
 				// Authorize only.
 				$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
 
@@ -358,8 +358,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 				break;
 
-			default :
-
+			default:
 				// Capture.
 				$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
 
@@ -461,10 +460,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return WP_Error|array WP_Error or parsed response array.
 	 */
 	public function get_billing_agreement_details( $order_id, $amazon_billing_agreement_id ) {
-		$response = WC_Amazon_Payments_Advanced_API::request( array(
-			'Action'                   => 'GetBillingAgreementDetails',
-			'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
-		) );
+		$response = WC_Amazon_Payments_Advanced_API::request(
+			array(
+				'Action'                   => 'GetBillingAgreementDetails',
+				'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
+			)
+		);
 
 		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
@@ -522,10 +523,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 				sleep( ( 'yes' === $settings['sandbox'] ) ? 2 : 1 );
 
-				$response = WC_Amazon_Payments_Advanced_API::request( array(
-					'Action'                   => 'CloseBillingAgreement',
-					'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
-				) );
+				$response = WC_Amazon_Payments_Advanced_API::request(
+					array(
+						'Action'                   => 'CloseBillingAgreement',
+						'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
+					)
+				);
 
 				$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
@@ -691,8 +694,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				$redirect = wc_get_checkout_url();
 			}
 		}
-		WC()->session->set( 'amazon_billing_agreement_details' ,'false' );
-		wp_redirect( $redirect );
+		WC()->session->set( 'amazon_billing_agreement_details', 'false' );
+		wp_safe_redirect( $redirect );
 		exit;
 	}
 
@@ -728,16 +731,16 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			// Adds notice and logging.
 			wc_add_notice( __( 'There was a problem authorizing your transaction using Amazon Pay. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 			wc_apa()->log( __METHOD__, 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Failure", reference ' . $amazon_reference_id );
-			WC()->session->set( 'amazon_billing_agreement_details' ,'false' );
+			WC()->session->set( 'amazon_billing_agreement_details', 'false' );
 		}
 
 		if ( 'Abandoned' === $authorization_status ) {
 			wc_add_notice( __( 'Authentication for the transaction was not completed, please try again selecting another payment instrument from your Amazon wallet.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 			wc_apa()->log( __METHOD__, 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Abandoned", reference ' . $amazon_reference_id );
-			WC()->session->set( 'amazon_billing_agreement_details' ,'skip' );
+			WC()->session->set( 'amazon_billing_agreement_details', 'skip' );
 		}
 
-		wp_redirect( $redirect );
+		wp_safe_redirect( $redirect );
 		exit;
 	}
 

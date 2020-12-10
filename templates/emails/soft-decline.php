@@ -12,20 +12,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 $lang                = '';
 $lang_domain_mapping = WC_Amazon_Payments_Advanced_API::get_order_language( $order_id );
 if ( 'unknown' !== $lang_domain_mapping ) {
-	$lang   = "?language=$lang_domain_mapping";
-	$domain = WC_Amazon_Payments_Advanced_API::$lang_domains_mapping[ $lang_domain_mapping ];
+	$lang = "?language=$lang_domain_mapping";
+	$tld  = WC_Amazon_Payments_Advanced_API::$lang_domains_mapping[ $lang_domain_mapping ];
 } else {
 	$region = WC_Amazon_Payments_Advanced_API::get_region();
 	switch ( $region ) {
 		case 'us':
-			$domain = 'com';
+			$tld = 'com';
 			break;
 		case 'jp':
-			$domain = 'co.jp';
+			$tld = 'co.jp';
 			break;
 	}
 }
-$url = sprintf( 'https://payments.amazon.%1$s/jr/your-account/orders%2$s', $domain, $lang );
+$url      = sprintf( 'https://payments.amazon.%1$s/jr/your-account/orders%2$s', $tld, $lang );
 $url_link = "<a href='$url' target='_blank'>$url</a>";
 ?>
 

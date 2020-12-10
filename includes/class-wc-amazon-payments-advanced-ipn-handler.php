@@ -169,7 +169,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 
 		// Get the certificate.
 		$this->validate_certificate_url( $message['SigningCertURL'] );
-		$certificate = file_get_contents( $message['SigningCertURL'] );
+		$certificate = file_get_contents( $message['SigningCertURL'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 
 		// Extract the public key.
 		$key = openssl_get_publickey( $certificate );
@@ -181,7 +181,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 		$content   = $this->get_string_to_sign( $message );
 		$signature = base64_decode( $message['Signature'] );
 
-		if ( 1 != openssl_verify( $content, $signature, $key, OPENSSL_ALGO_SHA1 ) ) {
+		if ( 1 !== openssl_verify( $content, $signature, $key, OPENSSL_ALGO_SHA1 ) ) {
 			throw new Exception( 'The message signature is invalid.' );
 		}
 	}
@@ -238,7 +238,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	 * @param string $url Cert URL.
 	 */
 	protected function validate_certificate_url( $url ) {
-		$parsed_url = parse_url( $url );
+		$parsed_url = wp_parse_url( $url );
 		if ( empty( $parsed_url['scheme'] )
 			|| empty( $parsed_url['host'] )
 			|| 'https' !== $parsed_url['scheme']
@@ -584,27 +584,31 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 		$refund_reason = (string) $notification_data->RefundDetails->SellerRefundNote;
 		// @codingStandardsIgnoreEnd
 
-		$order->add_order_note( sprintf(
-			/* translators: 1) Amazon refund ID 2) refund status 3) refund amount */
-			__( 'Received IPN for payment refund %1$s with status %2$s. Refund amount: %3$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
-			$refund_id,
-			$refund_status,
-			wc_price( $refund_amount )
-		) );
+		$order->add_order_note(
+			sprintf(
+				// translators: 1) Amazon refund ID 2) refund status 3) refund amount
+				__( 'Received IPN for payment refund %1$s with status %2$s. Refund amount: %3$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				$refund_id,
+				$refund_status,
+				wc_price( $refund_amount )
+			)
+		);
 
 		if ( 'refunded' === $order->get_status() ) {
 			return;
 		}
 
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		if ( $order->get_total() == $refund_amount ) {
+		if ( $order->get_total() === $refund_amount ) {
 			wc_order_fully_refunded( $order_id );
 		} else {
-			wc_create_refund( array(
-				'amount'   => $refund_amount,
-				'reason'   => $refund_reason,
-				'order_id' => $order_id,
-			) );
+			wc_create_refund(
+				array(
+					'amount'   => $refund_amount,
+					'reason'   => $refund_reason,
+					'order_id' => $order_id,
+				)
+			);
 		}
 		add_post_meta( $order_id, 'amazon_refund_id', $refund_id );
 
@@ -653,7 +657,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	 * @return WC_Order Order object.
 	 */
 	protected function get_order_from_notification_data( $notification_type, $notification_data ) {
-		$order_id  = null;
+		$order_id = null;
 
 		// @codingStandardsIgnoreStart
 		switch ( $notification_type ) {

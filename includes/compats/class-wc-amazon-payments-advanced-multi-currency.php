@@ -55,7 +55,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 						break;
 					case 'class_WC_Product_Price_Based_Country':
 						require_once 'class-wc-amazon-payments-advanced-multi-currency-ppbc.php';
-						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country();
+						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_PPBC();
 						break;
 					case 'global_woocommerce_wpml':
 						$wpml_settings = get_option( '_wcml_settings' );
@@ -66,7 +66,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 						break;
 					case 'class_WC_Currency_Converter':
 						require_once 'class-wc-amazon-payments-advanced-multi-currency-wccw.php';
-						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_Converted_Widget();
+						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_WCCW();
 						break;
 				}
 			}
@@ -82,12 +82,12 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 */
 	public static function compatible_region( $region = null ) {
 		$region = ( $region ) ? $region : WC_Amazon_Payments_Advanced_API::get_region();
-		return is_int( array_search( $region, self::COMPATIBLE_REGIONS ) );
+		return is_int( array_search( $region, self::COMPATIBLE_REGIONS, true ) );
 	}
 
 	/**
 	 * Singleton to get if there is a compatible instance running. Region can be injected.
-	 * 
+	 *
 	 * @param bool $region
 	 *
 	 * @return WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
@@ -170,8 +170,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 	public function is_amazon_settings_page() {
 		if ( is_admin() &&
-			 ( isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) &&
-			 ( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) ) {
+			( isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) &&
+			( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) ) {
 			return true;
 		}
 		return false;

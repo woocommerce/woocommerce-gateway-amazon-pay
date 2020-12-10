@@ -34,9 +34,7 @@ jQuery( function( $ ) {
 	}
 
 	function isAmazonCheckout() {
-
 		return ( 'amazon_payments_advanced' === $( 'input[name=payment_method]:checked' ).val() );
-
 	}
 
 	// Login with Amazon Widget.
@@ -268,7 +266,7 @@ jQuery( function( $ ) {
 
 		if ( 0 !== $( '#pay_with_amazon' ).length ) {
 			var popup = true;
-			if ( 'optimal' === amazon_payments_advanced_params.redirect_authentication && isSmallScreen() ){
+			if ( 'optimal' === amazon_payments_advanced_params.redirect_authentication && isSmallScreen() ) {
 				popup = false;
 			}
 
@@ -306,10 +304,10 @@ jQuery( function( $ ) {
 
 	function toggleFieldVisibility( type, key ) {
 		var fieldWrapper = $( '#' + type + '_' + key + '_field' ),
-			fieldValue   = $( '#' + type + '_' + key ).val();
+			fieldValue = $( '#' + type + '_' + key ).val();
 		fieldWrapper.addClass( 'hidden' );
 		$( '.woocommerce-' + type + '-fields' ).addClass( 'hidden' );
-		if ( fieldValue == null || fieldValue == '' ) {
+		if ( fieldValue == null || fieldValue === '' ) {
 			fieldWrapper.removeClass( 'hidden' );
 			$( '.woocommerce-' + type + '-fields' ).removeClass( 'hidden' );
 		}
@@ -391,20 +389,19 @@ jQuery( function( $ ) {
 	}
 
 	// To be used on some multicurrency solutions, that change currency without reloading the checkout, then we need to rebind the widget with proper currency.
-	if (amazon_payments_advanced_params.multi_currency_supported && amazon_payments_advanced_params.multi_currency_reload_wallet) {
-
+	if ( amazon_payments_advanced_params.multi_currency_supported && amazon_payments_advanced_params.multi_currency_reload_wallet ) {
 		$( document.body ).on(
 			'updated_checkout',
 			function() {
 				$.ajax(
 					{
-						url : amazon_payments_advanced_params.ajax_url,
-						type : 'post',
-						data : {
-							action : 'amazon_get_currency',
-							nonce  : amazon_payments_advanced_params.multi_currency_nonce,
+						url: amazon_payments_advanced_params.ajax_url,
+						type: 'post',
+						data: {
+							action: 'amazon_get_currency',
+							nonce: amazon_payments_advanced_params.multi_currency_nonce,
 						},
-						success : function( response ) {
+						success: function( response ) {
 							wcAmazonWalletWidget( response );
 						}
 					}
@@ -420,13 +417,12 @@ jQuery( function( $ ) {
 	function wcAmazonWalletWidget( force_currency ) {
 		// If previously declined with redirection to cart, do not render the
 		// wallet widget.
-		if (amazon_payments_advanced_params.declined_redirect_url) {
+		if ( amazon_payments_advanced_params.declined_redirect_url ) {
 			return;
 		}
 
 		// Only instantiate walletWidget once
 		if ( ! walletWidget ) {
-
 			var walletConfig = {
 				sellerId: amazon_payments_advanced_params.seller_id,
 				design: {
@@ -436,43 +432,42 @@ jQuery( function( $ ) {
 				// Since onPaymentSelect is fired on both actions, we're not using onAddressSelect to avoid fetching the
 				// same data twice.
 				onPaymentSelect: wcAmazonUpdateCheckoutAddresses,
-				onError: function (error) {
-					var msg = wcAmazonErrorToString(error);
-					logError('Error encountered in OffAmazonPayments.Widgets.Wallet', msg ? ': ' + msg : '');
+				onError: function( error ) {
+					var msg = wcAmazonErrorToString( error );
+					logError( 'Error encountered in OffAmazonPayments.Widgets.Wallet', msg ? ': ' + msg : '' );
 				}
 			};
 
-			if (amazon_payments_advanced_params.reference_id) {
+			if ( amazon_payments_advanced_params.reference_id ) {
 				referenceId = amazon_payments_advanced_params.reference_id;
 				walletConfig.amazonOrderReferenceId = referenceId;
 				walletConfig.onPaymentSelect = wcAmazonOnPaymentSelect;
 			}
 
-			if (!renderAddressBookWidget || !addressBookWidgetExists) {
+			if ( ! renderAddressBookWidget || ! addressBookWidgetExists ) {
 				walletConfig.onOrderReferenceCreate = wcAmazonOnOrderReferenceCreate;
 			}
 
-			if (amazon_payments_advanced_params.is_recurring) {
+			if ( amazon_payments_advanced_params.is_recurring ) {
 				walletConfig.agreementType = 'BillingAgreement';
 
-				if (billingAgreementId) {
+				if ( billingAgreementId ) {
 					walletConfig.amazonBillingAgreementId = billingAgreementId;
 				} else {
-					walletConfig.onReady = function (billingAgreement) {
-						wcAmazonOnBillingAgreementCreate(billingAgreement);
+					walletConfig.onReady = function( billingAgreement ) {
+						wcAmazonOnBillingAgreementCreate( billingAgreement );
 						wcAmazonConsentWidget();
 					};
 				}
 			}
-			walletWidget = new OffAmazonPayments.Widgets.Wallet(walletConfig);
+			walletWidget = new OffAmazonPayments.Widgets.Wallet( walletConfig );
 		}
 
-		if (amazon_payments_advanced_params.multi_currency_supported) {
+		if ( amazon_payments_advanced_params.multi_currency_supported ) {
 			var currency = ( force_currency ) ? force_currency : amazon_payments_advanced_params.current_currency;
-			walletWidget.setPresentmentCurrency(currency);
+			walletWidget.setPresentmentCurrency( currency );
 		}
-		walletWidget.bind('amazon_wallet_widget');
-
+		walletWidget.bind( 'amazon_wallet_widget' );
 	}
 
 	// Recurring payment consent widget
@@ -496,10 +491,9 @@ jQuery( function( $ ) {
 		} ).bind( 'amazon_consent_widget' );
 	}
 
-
 	function toggleAbleCheckoutButton( billingAgreementConsentStatus ) {
 		var buyerBillingAgreementConsentStatus = billingAgreementConsentStatus.getConsentStatus();
-		if ( buyerBillingAgreementConsentStatus !== 'undefined') {
+		if ( buyerBillingAgreementConsentStatus !== 'undefined' ) {
 			/* eslint-disable eqeqeq */
 			$( '#place_order' ).css( 'opacity', ( 'true' == buyerBillingAgreementConsentStatus ) ? 1 : 0.5 );
 			$( '#place_order' ).prop( 'disabled', ( 'true' != buyerBillingAgreementConsentStatus ) );
@@ -538,7 +532,7 @@ jQuery( function( $ ) {
 
 	$( 'body' ).on( 'click', '#amazon-logout', function() {
 		amazon.Login.logout();
-		document.cookie = "amazon_Login_accessToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+		document.cookie = 'amazon_Login_accessToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 		window.location = amazon_payments_advanced_params.redirect_url;
 	} );
 
@@ -586,7 +580,7 @@ jQuery( function( $ ) {
 	// Hijack form checkout button to trigger SCA if needed.
 	$( 'form.checkout' ).on(
 		'checkout_place_order',
-		function (evt) {
+		function( evt ) {
 			// Check if Amazon is selected
 			if ( ! isAmazonCheckout() ) {
 				return true;
@@ -601,7 +595,7 @@ jQuery( function( $ ) {
 			OffAmazonPayments.initConfirmationFlow(
 				amazon_payments_advanced_params.seller_id,
 				referenceId,
-				function (amazonPayFlow) {
+				function( amazonPayFlow ) {
 					placeOrder( amazonPayFlow, $form );
 				}
 			);
@@ -616,8 +610,7 @@ jQuery( function( $ ) {
 	 * @param amazonPayFlow
 	 * @param $form
 	 */
-	function placeOrder(amazonPayFlow, $form) {
-
+	function placeOrder( amazonPayFlow, $form ) {
 		blockCheckoutForm( $form );
 
 		$.ajax(
@@ -629,7 +622,7 @@ jQuery( function( $ ) {
 					nonce: amazon_payments_advanced_params.sca_nonce,
 					data: $( 'form.checkout' ).serialize(),
 				},
-				success: function (result) {
+				success: function( result ) {
 					if ( 'success' === result.result ) {
 						amazonPayFlow.success();
 					} else if ( 'failure' === result.result ) {
@@ -661,7 +654,7 @@ jQuery( function( $ ) {
 	 * @param error_message
 	 * @param $form
 	 */
-	function submit_error ( error_message, $form ) {
+	function submit_error( error_message, $form ) {
 		$( '.woocommerce-NoticeGroup-checkout, .woocommerce-error, .woocommerce-message' ).remove();
 		$form.prepend( '<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">' + error_message + '</div>' );
 		$form.removeClass( 'processing' ).unblock();
@@ -674,7 +667,7 @@ jQuery( function( $ ) {
 	 * Scroll to errors.
 	 */
 	function scroll_to_notices() {
-		var scrollElement           = $( '.woocommerce-NoticeGroup-updateOrderReview, .woocommerce-NoticeGroup-checkout' );
+		var scrollElement = $( '.woocommerce-NoticeGroup-updateOrderReview, .woocommerce-NoticeGroup-checkout' );
 
 		if ( ! scrollElement.length ) {
 			scrollElement = $( '.form.checkout' );
@@ -684,7 +677,7 @@ jQuery( function( $ ) {
 
 	$( 'body' ).on( 'updated_checkout', function() {
 		toggleFieldVisibility( 'shipping', 'state' );
-		if( ! isAmazonCheckout() ) {
+		if ( ! isAmazonCheckout() ) {
 			return;
 		}
 		if ( $( '.woocommerce-billing-fields .woocommerce-billing-fields__field-wrapper > *' ).length > 0 ) {

@@ -31,7 +31,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	protected function get_amazon_orders( $email_address, $page ) {
 		$user = get_user_by( 'email', $email_address ); // Check if user has an ID in the DB to load stored personal data.
 
-		$order_query    = array(
+		$order_query = array(
 			'payment_method' => 'amazon_payments_advanced',
 			'limit'          => 10,
 			'page'           => $page,
@@ -91,7 +91,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 						),
 						array(
 							'name'  => __( 'Amazon Pay refunds id', 'woocommerce-gateway-amazon-payments-advanced' ),
-							'value' => json_encode( get_post_meta( $order->get_id(), 'amazon_refunds', true ) ),
+							'value' => wp_json_encode( get_post_meta( $order->get_id(), 'amazon_refunds', true ) ),
 						),
 					),
 				);
@@ -120,7 +120,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 		$data_to_export = array();
 
 		$meta_query = array(
-			'relation'    => 'AND',
+			'relation' => 'AND',
 			array(
 				'key'     => '_payment_method',
 				'value'   => 'amazon_payments_advanced',
@@ -133,10 +133,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 			),
 		);
 
-		$subscription_query    = array(
-			'posts_per_page'  => 10,
-			'page'            => $page,
-			'meta_query'      => $meta_query,
+		$subscription_query = array(
+			'posts_per_page' => 10,
+			'page'           => $page,
+			'meta_query'     => $meta_query, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 		);
 
 		$subscriptions = wcs_get_subscriptions( $subscription_query );
@@ -186,14 +186,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 			$order = wc_get_order( $order->get_id() );
 
 			list( $removed, $retained, $msgs ) = $this->maybe_handle_order( $order );
-			$items_removed  |= $removed;
-			$items_retained |= $retained;
-			$messages        = array_merge( $messages, $msgs );
+			$items_removed                    |= $removed;
+			$items_retained                   |= $retained;
+			$messages                          = array_merge( $messages, $msgs );
 
 			list( $removed, $retained, $msgs ) = $this->maybe_handle_subscription( $order );
-			$items_removed  |= $removed;
-			$items_retained |= $retained;
-			$messages        = array_merge( $messages, $msgs );
+			$items_removed                    |= $removed;
+			$items_retained                   |= $retained;
+			$messages                          = array_merge( $messages, $msgs );
 		}
 
 		// Tell core if we have more orders to work on still

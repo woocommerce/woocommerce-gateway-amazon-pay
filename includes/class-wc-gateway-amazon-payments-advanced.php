@@ -129,7 +129,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$region = WC_Amazon_Payments_Advanced_API::get_region();
 
 		$url = false;
-		switch( $region ) {
+		switch ( $region ) {
 			case 'us':
 				$url = 'https://static-na.payments-amazon.com/checkout.js';
 				break;
@@ -170,7 +170,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
 		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
 
-		if( ! $this->is_logged_in() ) {
+		if ( ! $this->is_logged_in() ) {
 			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
 			return;
 		}
@@ -250,7 +250,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return WC()->session->get( 'amazon_checkout_session_id', false );
 	}
 
-	protected function get_checkout_session( $force = false) {
+	protected function get_checkout_session( $force = false ) {
 		if ( ! $force && ! is_null( $this->checkout_session ) ) {
 			return $this->checkout_session;
 		}
@@ -299,12 +299,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$session_wc_format = $this->get_woocommerce_data();
 
-		$missing = array();
-		$present = array();
+		$missing  = array();
+		$present  = array();
 		$optional = array();
-		foreach( $all_fields as $key ) {
+		foreach ( $all_fields as $key ) {
 			if ( ! empty( $checkout_fields['billing'][ $key ]['required'] ) ) {
-				if ( ! isset( $session_wc_format[$key] ) ) {
+				if ( ! isset( $session_wc_format[ $key ] ) ) {
 					$missing[] = $key;
 				} else {
 					$present[] = $key;
@@ -318,7 +318,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$this->add_hidden_class_to_fields( $checkout_fields['billing'], array_merge( $present, $optional ) );
 		}
 
-		$field_list      = array(
+		$field_list = array(
 			'shipping_first_name',
 			'shipping_last_name',
 			'shipping_company',
@@ -330,12 +330,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'shipping_postcode',
 		);
 
-		$missing = array();
-		$present = array();
+		$missing  = array();
+		$present  = array();
 		$optional = array();
-		foreach( $field_list as $key ) {
+		foreach ( $field_list as $key ) {
 			if ( ! empty( $checkout_fields['shipping'][ $key ]['required'] ) ) {
-				if ( ! isset( $session_wc_format[$key] ) ) {
+				if ( ! isset( $session_wc_format[ $key ] ) ) {
 					$missing[] = $key;
 				} else {
 					$present[] = $key;
@@ -427,24 +427,25 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$checkout_session = $this->get_checkout_session();
 
-		if( $checkout_session->productType !== $this->get_current_cart_action() ) {
+		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
 			$this->render_login_button_again();
 			return;
 		}
 
 		$checkout = WC_Checkout::instance();
+		// phpcs:disable WordPress.NamingConventions
 		?>
 		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
 			<div class="col2-set">
 				<div class="col-1 <?php echo empty( $checkout_session->shippingAddress ) ? 'hidden' : ''; ?>">
-					<?php if ( ! empty( $checkout_session->shippingAddress ) ): ?>
+					<?php if ( ! empty( $checkout_session->shippingAddress ) ) : ?>
 						<div id="shipping_address_widget">
 							<h3>
 								<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change">Change</a>
 								<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 							</h3>
 							<div class="shipping_address_display">
-								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ) ?>
+								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ); ?>
 							</div>
 						</div>
 					<?php endif; ?>
@@ -452,7 +453,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				<div class="col-2">
 					<div id="payment_method_widget">
 						<?php
-						$payments = $checkout_session->paymentPreferences;
+						$payments     = $checkout_session->paymentPreferences;
 						$change_label = esc_html__( 'Change', 'woocommerce-gateway-amazon-payments-advanced' );
 						if ( empty( $payments ) ) {
 							$change_label = esc_html__( 'Select', 'woocommerce-gateway-amazon-payments-advanced' );
@@ -466,13 +467,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 							<span class="wc-apa-amazon-logo"></span><?php esc_html_e( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 						</div>
 					</div>
-					<?php if ( ! empty( $checkout_session->billingAddress ) ): ?>
+					<?php if ( ! empty( $checkout_session->billingAddress ) ) : ?>
 						<div id="billing_address_widget">
 							<h3>
 								<?php esc_html_e( 'Billing Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 							</h3>
 							<div class="billing_address_display">
-								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) ) ?>
+								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) ); ?>
 							</div>
 						</div>
 					<?php endif; ?>
@@ -516,12 +517,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		</div>
 
 		<?php
+		// phpcs:enable WordPress.NamingConventions
 	}
 
 	protected function get_woocommerce_data() {
 		// TODO: Store in session for performance, always clear when coming back from AMZ
 		$checkout_session_id = $this->get_checkout_session_id();
-		if( empty( $checkout_session_id ) ) {
+		if ( empty( $checkout_session_id ) ) {
 			return array();
 		}
 
@@ -529,14 +531,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$data = array();
 
-		if( ! empty( $checkout_session->buyer ) ) {
+		if ( ! empty( $checkout_session->buyer ) ) {
 			// Billing
 			$wc_billing_address = array();
-			if ( ! empty( $checkout_session->billingAddress ) ) {
-				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress );
+			if ( ! empty( $checkout_session->billingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ); // phpcs:ignore WordPress.NamingConventions
 			} else {
-				if ( ! empty( $checkout_session->shippingAddress ) ) {
-					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress );
+				if ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ); // phpcs:ignore WordPress.NamingConventions
 				} else {
 					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_name( $checkout_session->buyer->name );
 				}
@@ -544,17 +546,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			if ( ! empty( $checkout_session->buyer->email ) ) {
 				$wc_billing_address['email'] = $checkout_session->buyer->email;
 			}
-			foreach( $wc_billing_address as $field => $val ) {
+			foreach ( $wc_billing_address as $field => $val ) {
 				$data[ 'billing_' . $field ] = $val;
 			}
 
 			$wc_shipping_address = array();
-			if ( ! empty( $checkout_session->shippingAddress ) ) {
-				$wc_shipping_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress );
+			if ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+				$wc_shipping_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ); // phpcs:ignore WordPress.NamingConventions
 			}
 
 			// Shipping
-			foreach( $wc_shipping_address as $field => $val ) {
+			foreach ( $wc_shipping_address as $field => $val ) {
 				$data[ 'shipping_' . $field ] = $val;
 			}
 		}
@@ -578,7 +580,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( ! WC()->cart->needs_payment() ) {
 			return $ret;
 		}
-		
+
 		$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
 		WC()->payment_gateways()->set_current_gateway( $available_gateways );
 
@@ -596,7 +598,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$session = $this->get_woocommerce_data();
 
-		if( isset( $session[ $input ] ) ) {
+		if ( isset( $session[ $input ] ) ) {
 			return $session[ $input ];
 		}
 
@@ -616,13 +618,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $process;
 		}
 
-		$order               = wc_get_order( $order_id );
+		$order = wc_get_order( $order_id );
 
 		$checkout_session_id = $this->get_checkout_session_id();
 
 		$checkout_session = $this->get_checkout_session();
 
-		$payments = $checkout_session->paymentPreferences;
+		$payments = $checkout_session->paymentPreferences; // phpcs:ignore WordPress.NamingConventions
 
 		try {
 			if ( ! $order ) {
@@ -642,39 +644,42 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
 
-			if ( empty( $checkout_session->paymentDetails ) || empty( $checkout_session->paymentDetails->chargeAmount ) || $checkout_session->paymentDetails->chargeAmount->amount !== $order_total ) {
+			if ( empty( $checkout_session->paymentDetails ) || empty( $checkout_session->paymentDetails->chargeAmount ) || $checkout_session->paymentDetails->chargeAmount->amount !== $order_total ) { // phpcs:ignore WordPress.NamingConventions
 				$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // TODO: ask if WC 2.6 support is still needed (it's a 2017 release)
 				$order->update_meta_data( 'woocommerce_version', WC()->version );
-	
-				$paymentIntent = 'AuthorizeWithCapture';
-				switch( $this->settings['payment_capture'] ) {
+
+				$payment_intent = 'AuthorizeWithCapture';
+				switch ( $this->settings['payment_capture'] ) {
 					case 'authorize':
-						$paymentIntent = 'Authorize';
+						$payment_intent = 'Authorize';
 						break;
 					case 'manual':
-						$paymentIntent = 'Confirm';
+						$payment_intent = 'Confirm';
 						break;
 				}
-	
+
 				/* translators: Plugin version */
-				$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ),  WC_AMAZON_PAY_VERSION, WC()->version );
-	
-				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data( $checkout_session_id, array(
-					"paymentDetails" => array(
-						"paymentIntent" => $paymentIntent, // TODO: Check Authorize, and Confirm flows.
-						// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this.
-						"chargeAmount" => array(
-							"amount" => $order_total,
-							"currencyCode" => $currency,
+				$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
+
+				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
+					$checkout_session_id,
+					array(
+						'paymentDetails'   => array(
+							'paymentIntent' => $payment_intent, // TODO: Check Authorize, and Confirm flows.
+							// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this.
+							'chargeAmount'  => array(
+								'amount'       => $order_total,
+								'currencyCode' => $currency,
+							),
 						),
-					),
-					"merchantMetadata" => array(
-						"merchantReferenceId" => "Order #" . $order_id,
-						"merchantStoreName" => WC_Amazon_Payments_Advanced::get_site_name(),
-						"customInformation" => $version_note,
-					),
-				) );
-	
+						'merchantMetadata' => array(
+							'merchantReferenceId' => 'Order #' . $order_id,
+							'merchantStoreName'   => WC_Amazon_Payments_Advanced::get_site_name(),
+							'customInformation'   => $version_note,
+						),
+					)
+				);
+
 				if ( is_wp_error( $response ) ) {
 					wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.\n" . wp_json_encode( $response, JSON_PRETTY_PRINT ) );
 					wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
@@ -695,7 +700,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			// Return thank you page redirect.
 			return array(
 				'result'   => 'success',
-				'redirect' => $response->webCheckoutDetails->amazonPayRedirectUrl,
+				'redirect' => $response->webCheckoutDetails->amazonPayRedirectUrl, // phpcs:ignore WordPress.NamingConventions
 			);
 
 		} catch ( Exception $e ) {
@@ -719,19 +724,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order_total = $order->get_total();
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
-		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session( $checkout_session_id, array(
-			"chargeAmount" => array(
-				"amount" => $order_total,
-				"currencyCode" => $currency,
-			),
-		) );
+		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session(
+			$checkout_session_id,
+			array(
+				'chargeAmount' => array(
+					'amount'       => $order_total,
+					'currencyCode' => $currency,
+				),
+			)
+		);
 
 		if ( is_wp_error( $response ) ) {
 			$error_code = $response->get_error_code();
-			if( 'CheckoutSessionCanceled' == $error_code ) {
+			if ( 'CheckoutSessionCanceled' === $error_code ) {
 				$checkout_session = $this->get_checkout_session( true );
 
-				switch( $checkout_session->statusDetails->reasonCode ) {
+				switch ( $checkout_session->statusDetails->reasonCode ) { // phpcs:ignore WordPress.NamingConventions
 					case 'Declined':
 						wc_add_notice( __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
@@ -739,7 +747,16 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 						wc_add_notice( __( 'The transaction was canceled by you. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
 					default:
-						wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.\n" . wp_json_encode( array( 'error_code' => $error_code, 'checkout_session' => $checkout_session ), JSON_PRETTY_PRINT ) );
+						wc_apa()->log(
+							__METHOD__,
+							"Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.\n" . wp_json_encode(
+								array(
+									'error_code'       => $error_code,
+									'checkout_session' => $checkout_session,
+								),
+								JSON_PRETTY_PRINT
+							)
+						);
 						wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
 				}
@@ -751,14 +768,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
-		if ( 'Completed' !== $response->statusDetails->state ) {
+		if ( 'Completed' !== $response->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions
 			// TODO: Handle error. Ask for posibilities of status not to be completed at this stage.
-			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->statusDetails, JSON_PRETTY_PRINT ) . '</pre>', 'error' );
+			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->statusDetails, JSON_PRETTY_PRINT ) . '</pre>', 'error' ); // phpcs:ignore WordPress.NamingConventions
 			return;
 		}
 
-		$order->update_meta_data( 'amazon_charge_id', $response->chargeId );
-		$order->update_meta_data( 'amazon_charge_permission_id', $response->chargePermissionId );
+		$order->update_meta_data( 'amazon_charge_id', $response->chargeId ); // phpcs:ignore WordPress.NamingConventions
+		$order->update_meta_data( 'amazon_charge_permission_id', $response->chargePermissionId ); // phpcs:ignore WordPress.NamingConventions
 		$order->save();
 
 		$order->payment_complete();
@@ -778,12 +795,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'action' => $this->get_current_cart_action(),
 		);
 		?>
-		<script type="text/template" id="wc-apa-update-vals" data-value="<?php echo esc_attr( wp_json_encode( $data ) ) ?>"></script>
+		<script type="text/template" id="wc-apa-update-vals" data-value="<?php echo esc_attr( wp_json_encode( $data ) ); ?>"></script>
 		<?php
 	}
 
 	public function get_current_cart_action() {
-		return WC()->cart->needs_shipping() ? 'PayAndShip' :  'PayOnly';
+		return WC()->cart->needs_shipping() ? 'PayAndShip' : 'PayOnly';
 	}
 
 	public function render_login_button_again() {
@@ -808,8 +825,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
-	public function override_billing_fields($fields) {
-		$old = ! empty($fields['billing_state']['required'] );
+	public function override_billing_fields( $fields ) {
+		$old = ! empty( $fields['billing_state']['required'] );
 
 		$fields = parent::override_billing_fields( $fields );
 
@@ -818,8 +835,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return $fields;
 	}
 
-	public function override_shipping_fields($fields) {
-		$old = ! empty($fields['shipping_state']['required'] );
+	public function override_shipping_fields( $fields ) {
+		$old = ! empty( $fields['shipping_state']['required'] );
 
 		$fields = parent::override_shipping_fields( $fields );
 

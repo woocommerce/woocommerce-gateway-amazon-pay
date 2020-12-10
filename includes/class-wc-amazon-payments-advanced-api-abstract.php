@@ -201,7 +201,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 * @return string
 	 */
 	public static function check_session( $key, $value ) {
-		if ( ! in_array( $key, array( 'amazon_reference_id', 'access_token' ) ) ) {
+		if ( ! in_array( $key, array( 'amazon_reference_id', 'access_token' ), true ) ) {
 			return $value;
 		}
 
@@ -255,7 +255,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 				break;
 			default:
 				$region = $default;
-				if ( in_array( $country, WC()->countries->get_european_union_countries() ) ) {
+				if ( in_array( $country, WC()->countries->get_european_union_countries(), true ) ) {
 					$region = 'eu';
 				}
 		}
@@ -517,7 +517,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 * @return string
 	 */
 	public static function get_signed_amazon_url( $url, $secret_key ) {
-		$urlparts = parse_url( $url );
+		$urlparts = wp_parse_url( $url );
 
 		// Build $params with each name/value pair.
 		foreach ( explode( '&', $urlparts['query'] ) as $part ) {
@@ -598,7 +598,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 * @return string|bool Returns false if failed
 	 */
 	public static function get_reference_state( $order_id, $id ) {
-		if ( $state = get_post_meta( $order_id, 'amazon_reference_state', true ) ) {
+		$state = get_post_meta( $order_id, 'amazon_reference_state', true );
+		if ( $state ) {
 			return $state;
 		}
 
@@ -630,7 +631,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 * @return string|bool Returns false if failed.
 	 */
 	public static function get_authorization_state( $order_id, $id ) {
-		if ( $state = get_post_meta( $order_id, 'amazon_authorization_state', true ) ) {
+		$state = get_post_meta( $order_id, 'amazon_authorization_state', true );
+		if ( $state ) {
 			return $state;
 		}
 
@@ -664,7 +666,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 * @return string|bool Returns false if failed.
 	 */
 	public static function get_capture_state( $order_id, $id ) {
-		if ( $state = get_post_meta( $order_id, 'amazon_capture_state', true ) ) {
+		$state = get_post_meta( $order_id, 'amazon_capture_state', true );
+		if ( $state ) {
 			return $state;
 		}
 
@@ -768,7 +771,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 					$failed_before_api_request = (
 						is_wp_error( $result )
 						&&
-						in_array( $result->get_error_code(), array( 'invalid_order', 'order_missing_amazon_reference_id' ) )
+						in_array( $result->get_error_code(), array( 'invalid_order', 'order_missing_amazon_reference_id' ), true )
 					);
 					if ( $failed_before_api_request ) {
 						wc_apa()->log( __METHOD__, sprintf( 'Failed to cancel order reference: %s', $result->get_error_message() ) );
@@ -815,7 +818,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 				'TransactionTimeout'                  => ( isset( $args['transaction_timeout'] ) ) ? $args['transaction_timeout'] : 0,
 				'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
 				'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
-			// 'SellerAuthorizationNote'          => '{"SandboxSimulation": {"State":"Declined", "ReasonCode":"AmazonRejected"}}'
+				// 'SellerAuthorizationNote'          => '{"SandboxSimulation": {"State":"Declined", "ReasonCode":"AmazonRejected"}}'
 			)
 		);
 	}
@@ -981,7 +984,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	public static function handle_async_ipn_order_reference_payload( $ipn_payload, $order ) {
 		$order                 = is_int( $order ) ? wc_get_order( $order ) : $order;
 		$order_id              = wc_apa_get_order_prop( $order, 'id' );
-		$order_reference_state = (string) $ipn_payload->OrderReference->OrderReferenceStatus->State;
+		$order_reference_state = (string) $ipn_payload->OrderReference->OrderReferenceStatus->State; // phpcs:ignore WordPress.NamingConventions
 
 		update_post_meta( $order_id, 'amazon_reference_state', $order_reference_state );
 
@@ -1314,14 +1317,14 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			$address_lines[] = $address['AddressLine3'];
 		}
 
-		if ( 3 === sizeof( $address_lines ) ) {
+		if ( 3 === count( $address_lines ) ) {
 			update_post_meta( $order_id, '_billing_company', $address_lines[0] );
 			update_post_meta( $order_id, '_billing_address_1', $address_lines[1] );
 			update_post_meta( $order_id, '_billing_address_2', $address_lines[2] );
-		} elseif ( 2 === sizeof( $address_lines ) ) {
+		} elseif ( 2 === count( $address_lines ) ) {
 			update_post_meta( $order_id, '_billing_address_1', $address_lines[0] );
 			update_post_meta( $order_id, '_billing_address_2', $address_lines[1] );
-		} elseif ( sizeof( $address_lines ) ) {
+		} elseif ( count( $address_lines ) ) {
 			update_post_meta( $order_id, '_billing_address_1', $address_lines[0] );
 		}
 
@@ -1508,7 +1511,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	public static function close_authorization( $order_id, $amazon_authorization_id ) {
 		$order = new WC_Order( $order_id );
 
-		if ( 'amazon_payments_advanced' == wc_apa_get_order_prop( $order, 'payment_method' ) ) {
+		if ( 'amazon_payments_advanced' === wc_apa_get_order_prop( $order, 'payment_method' ) ) {
 			$response = self::request(
 				array(
 					'Action'                => 'CloseAuthorization',
@@ -1690,7 +1693,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$ret   = false;
 
 		if ( 'amazon_payments_advanced' === wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			if ( 'US' == WC()->countries->get_base_country() && $amount > $order->get_total() ) {
+			if ( 'US' === WC()->countries->get_base_country() && $amount > $order->get_total() ) {
 				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), __( 'Refund amount is greater than order total.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
 
 				return false;
@@ -1953,7 +1956,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	public static function send_email_notification( $subject, $message, $recipient ) {
 		$mailer  = WC()->mailer();
 		$message = $mailer->wrap_message( $subject, $message );
-		$mailer->send( $recipient, strip_tags( $subject ), $message );
+		$mailer->send( $recipient, wp_strip_all_tags( $subject ), $message );
 	}
 
 	public static function validate_api_keys() {
