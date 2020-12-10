@@ -39,9 +39,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		// Load saved settings.
 		$this->load_settings();
 
-		// Load the form fields.
-		$this->init_form_fields();
-
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'validate_api_keys' ) );
 
@@ -153,7 +150,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	/**
 	 * Init payment gateway form fields
 	 */
-	public function init_form_fields() {
+	public function get_form_fields() {
 
 		$login_app_setup_url = WC_Amazon_Payments_Advanced_API::get_client_id_instructions_url();
 		/* translators: Login URL */
@@ -473,6 +470,8 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		}
 
 		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields', $this->form_fields );
+
+		return parent::get_form_fields();
 	}
 
 	/**
