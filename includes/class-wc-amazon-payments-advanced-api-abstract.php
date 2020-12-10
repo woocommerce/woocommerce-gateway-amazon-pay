@@ -818,7 +818,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 				'TransactionTimeout'                  => ( isset( $args['transaction_timeout'] ) ) ? $args['transaction_timeout'] : 0,
 				'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
 				'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
-			// 'SellerAuthorizationNote'          => '{"SandboxSimulation": {"State":"Declined", "ReasonCode":"AmazonRejected"}}'
+				// 'SellerAuthorizationNote'          => '{"SandboxSimulation": {"State":"Declined", "ReasonCode":"AmazonRejected"}}'
 			)
 		);
 	}

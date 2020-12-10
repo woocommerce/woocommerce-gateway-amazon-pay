@@ -169,7 +169,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 
 		// Get the certificate.
 		$this->validate_certificate_url( $message['SigningCertURL'] );
-		$certificate = file_get_contents( $message['SigningCertURL'] );
+		$certificate = file_get_contents( $message['SigningCertURL'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 
 		// Extract the public key.
 		$key = openssl_get_publickey( $certificate );
@@ -586,7 +586,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 
 		$order->add_order_note(
 			sprintf(
-			/* translators: 1) Amazon refund ID 2) refund status 3) refund amount */
+				// translators: 1) Amazon refund ID 2) refund status 3) refund amount
 				__( 'Received IPN for payment refund %1$s with status %2$s. Refund amount: %3$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				$refund_id,
 				$refund_status,
