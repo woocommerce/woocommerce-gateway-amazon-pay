@@ -305,7 +305,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 			'locale'             => get_locale(),
 			'home_url'           => home_url( null, '', 'https' ),
 			'simple_path_url'    => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
-			'public_key'         => wc_apa()->onboarding_handler->get_public_key(),
+			'public_key'         => WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ? wc_apa()->onboarding_handler->get_public_key() : wc_apa()->onboarding_handler->get_public_key( false, true ),
 			'privacy_url'        => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
 			'description'        => WC_Amazon_Payments_Advanced::get_site_description(),
 			'ajax_url'           => admin_url( 'admin-ajax.php' ),

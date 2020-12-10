@@ -168,10 +168,16 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$redirect_url           = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
 		$valid                  = isset( $this->settings['amazon_keys_setup_and_validated'] ) ? $this->settings['amazon_keys_setup_and_validated'] : false;
 
-		$connect_desc    = __( 'Register for a new Amazon Pay merchant account, or sign in with your existing Amazon Pay Seller Central credentials to complete the plugin upgrade and configuration', 'woocommerce-gateway-amazon-payments-advanced' );
-		$connect_btn     = '<a class="register_now button-primary">' . __( 'Connect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
-		$disconnect_desc = __( 'In order to connect to a different account you need to disconect first, this will delete current Account Settings, you will need to go throught all the configuration process again', 'woocommerce-gateway-amazon-payments-advanced' );
-		$disconnect_btn  = '<a class="delete-settings button-primary">' . __( 'Disconnect Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
+		$button_desc = __( 'Register for a new Amazon Pay merchant account, or sign in with your existing Amazon Pay Seller Central credentials to complete the plugin upgrade and configuration', 'woocommerce-gateway-amazon-payments-advanced' );
+		$button_btn  = '<a class="register_now button-primary">' . __( 'Connect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
+		if ( $this->private_key ) {
+			$button_desc = __( 'In order to connect to a different account you need to disconect first, this will delete current Account Settings, you will need to go throught all the configuration process again', 'woocommerce-gateway-amazon-payments-advanced' );
+			$button_btn  = '<a class="delete-settings button-primary">' . __( 'Disconnect Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
+		}
+		if ( ! WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
+			$button_desc = __( 'In order to keep using Amazon Pay, you need to reconnect to your account.', 'woocommerce-gateway-amazon-payments-advanced' );
+			$button_btn  = '<a class="register_now button-primary">' . __( 'Reconnect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
+		}
 
 		$this->form_fields = array(
 			'important_note'                => array(
@@ -189,7 +195,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			'register_now'                  => array(
 				'title'       => __( 'Connect your Amazon Pay merchant account', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
-				'description' => $this->private_key ? $disconnect_desc . '<br/><br/>' . $disconnect_btn : $connect_desc . '<br/><br/>' . $connect_btn,
+				'description' => $button_desc . '<br/><br/>' . $button_btn,
 			),
 			'enabled'                       => array(
 				'title'       => __( 'Enable/Disable', 'woocommerce-gateway-amazon-payments-advanced' ),
