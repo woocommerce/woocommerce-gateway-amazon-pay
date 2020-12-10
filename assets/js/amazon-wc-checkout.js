@@ -27,6 +27,7 @@
 					productType: amazon_payments_advanced.action,
 					placement: amazon_payments_advanced.placement,
 					buttonColor: amazon_payments_advanced.button_color,
+					checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
 					// configure Create Checkout Session request
 					createCheckoutSessionConfig: amazon_payments_advanced.create_checkout_session_config
 				};

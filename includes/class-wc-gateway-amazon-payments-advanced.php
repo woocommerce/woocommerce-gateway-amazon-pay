@@ -93,6 +93,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'merchant_id'                    => $this->settings['merchant_id'],
 			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ),
 			'checkout_session_id'            => $this->get_checkout_session_id(),
+			'button_language'                => $this->settings['button_language'],
 		);
 
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
