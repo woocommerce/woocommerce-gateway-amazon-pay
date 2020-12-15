@@ -33,15 +33,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return bool
 	 */
 	public function is_available() {
-		$is_available = ( 'yes' === $this->enabled );
+		$is_available = parent::is_available() && ! empty( $this->settings['merchant_id'] );
 
-		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
-			return $is_available; // TODO: Check if filter below can be implemented without affecting functionality.
-		}
-
-		$is_available = apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $is_available );
-
-		return ( $is_available && ! empty( $this->settings['merchant_id'] ) );
+		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $is_available );
 	}
 
 	/**
