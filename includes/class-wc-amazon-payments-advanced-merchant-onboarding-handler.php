@@ -8,7 +8,7 @@
 
 /**
  * Amazon Pay Merchant Onboarding flow handler.
- * https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/files/537729/PWA.Merchant.Registration.Integration.Guide_Version.1.0.pdf TODO: Edit this file.
+ * https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/files/537729/PWA.Merchant.Registration.Integration.Guide_Version.1.0.pdf
  *
  * Class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler
  */
