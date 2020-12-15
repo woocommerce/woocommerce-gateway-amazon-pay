@@ -48,8 +48,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Load handlers for cart and orders after WC Cart is loaded.
 	 */
 	public function init_handlers() {
-		// Disable if no seller ID.
-		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) || ! $this->is_available() ) {
+		$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
+
+		if ( ! isset( $available_gateways[ $this->id ] ) ) {
+			return;
+		}
+
+		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) ) {
 			return;
 		}
 

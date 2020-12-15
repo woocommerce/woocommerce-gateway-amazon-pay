@@ -21,8 +21,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		add_filter( 'woocommerce_amazon_pa_supports', array( $this, 'add_subscription_support' ) );
 
-		add_filter( 'woocommerce_amazon_pa_is_gateway_available', array( $this, 'is_available' ) );
-
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $this->id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
 
 		add_action( 'woocommerce_subscription_cancelled_' . $this->id, array( $this, 'cancelled_subscription' ) );
@@ -36,30 +34,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		// WC Subscription Hook
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
-	}
-
-	/**
-	 * Enforce: "Amazon imposes a $500 per calendar month limit on the amount of
-	 * funds you can charge a buyer.".
-	 *
-	 * @since 1.0.0
-	 * @version 1.7.3
-	 *
-	 * @see https://payments.amazon.com/documentation/automatic/201752090#201757640
-	 *
-	 * @return bool
-	 */
-	public function is_available( $is_available ) {
-		$settings                = WC_Amazon_Payments_Advanced_API::get_settings();
-		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
-		$subscriptions_enabled   = empty( $settings['subscriptions_enabled'] ) || 'yes' === $settings['subscriptions_enabled'];
-		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
-
-		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
-			return false;
-		}
-
-		return $is_available;
 	}
 
 	/**
