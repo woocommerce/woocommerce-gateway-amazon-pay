@@ -326,7 +326,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'description' => __( 'Language to use in Login with Amazon or a Amazon Pay button. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 				'type'        => 'select',
-				'class'       => 'show-if-app-is-enabled',
 				'default'     => '',
 				'options'     => array(
 					''      => __( 'Detect from buyer\'s browser', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -344,7 +343,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'description' => __( 'Button color to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 				'type'        => 'select',
-				'class'       => 'show-if-app-is-enabled',
 				'default'     => 'Gold',
 				'options'     => array(
 					'Gold'      => __( 'Gold', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -461,13 +459,11 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 						'title'       => __( 'Button type', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'description' => '<strong>' . $this->settings['button_type'] . '</strong><br>' . __( 'Type of button image to display on cart and checkout pages. Only used when Amazon Login App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
-						'class'       => 'show-if-app-is-enabled',
 					),
 					'button_size'              => array(
 						'title'       => __( 'Button size', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'description' => '<strong>' . $this->settings['button_size'] . '</strong><br>' . __( 'Button size to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
-						'class'       => 'show-if-app-is-enabled',
 					),
 					'container_end'            => array(
 						'type' => 'custom',
