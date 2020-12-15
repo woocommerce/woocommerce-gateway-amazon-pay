@@ -29,7 +29,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		if ( is_admin() ) {
 			$compatible_region = isset( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) ? WC_Amazon_Payments_Advanced_Multi_Currency::compatible_region( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) : WC_Amazon_Payments_Advanced_Multi_Currency::compatible_region();
 			if ( $compatible_region && WC_Amazon_Payments_Advanced_Multi_Currency::get_compatible_instance( $compatible_region ) ) {
-				$this->add_currency_fields();
+				add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( $this, 'add_currency_fields' ) );
 			}
 		}
 
@@ -98,10 +98,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	/**
 	 * Adds multicurrency settings to form fields.
 	 */
-	public function add_currency_fields() {
+	public function add_currency_fields( $form_fields ) {
 		$compatible_plugin = WC_Amazon_Payments_Advanced_Multi_Currency::compatible_plugin( true );
 
-		$this->form_fields['multicurrency_options'] = array(
+		$form_fields['multicurrency_options'] = array(
 			'title'       => __( 'Multi-Currency', 'woocommerce-gateway-amazon-payments-advanced' ),
 			'type'        => 'title',
 			/* translators: Compatible plugin */
@@ -112,7 +112,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		 * Only show currency list for plugins that will use the list. Frontend plugins will be exempt.
 		 */
 		if ( ! WC_Amazon_Payments_Advanced_Multi_Currency::$compatible_instance->is_front_end_compatible() ) {
-			$this->form_fields['currencies_supported'] = array(
+			$form_fields['currencies_supported'] = array(
 				'title'             => __( 'Select currencies to display Amazon in your shop', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'              => 'multiselect',
 				'options'           => WC_Amazon_Payments_Advanced_API::get_supported_currencies( true ),
@@ -123,6 +123,8 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				),
 			);
 		}
+
+		return $form_fields;
 	}
 
 	/**
@@ -170,9 +172,9 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$valid                  = isset( $this->settings['amazon_keys_setup_and_validated'] ) ? $this->settings['amazon_keys_setup_and_validated'] : false;
 
 		$connect_desc    = __( 'Register for a new Amazon Pay merchant account, or sign in with your existing Amazon Pay Seller Central credentials to complete the plugin upgrade and configuration', 'woocommerce-gateway-amazon-payments-advanced' );
-		$connect_btn     = '<button class="register_now button-primary">' . __( 'Connect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</button>';
+		$connect_btn     = '<a class="register_now button-primary">' . __( 'Connect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
 		$disconnect_desc = __( 'In order to connect to a different account you need to disconect first, this will delete current Account Settings, you will need to go throught all the configuration process again', 'woocommerce-gateway-amazon-payments-advanced' );
-		$disconnect_btn  = '<button class="delete-settings button-primary">' . __( 'Disconnect Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</button>';
+		$disconnect_btn  = '<a class="delete-settings button-primary">' . __( 'Disconnect Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
 
 		$this->form_fields = array(
 			'important_note'                => array(
@@ -373,6 +375,18 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			),
 		);
 
+		/**
+		 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
+		 * For old merchants, keep "Use Login with Amazon App" checkbox, as they can fallback to APA (no client id)
+		 *
+		 * @since 1.9.0
+		 */
+		if ( WC_Amazon_Payments_Advanced_API::is_new_installation() ) {
+			unset( $this->form_fields['enable_login_app'] );
+		}
+
+		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields_before_legacy', $this->form_fields );
+
 		if ( ! empty( $this->settings['seller_id'] ) ) {
 			$this->form_fields = array_merge(
 				$this->form_fields,
@@ -458,15 +472,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			);
 		}
 
-		/**
-		 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
-		 * For old merchants, keep "Use Login with Amazon App" checkbox, as they can fallback to APA (no client id)
-		 *
-		 * @since 1.9.0
-		 */
-		if ( WC_Amazon_Payments_Advanced_API::is_new_installation() ) {
-			unset( $this->form_fields['enable_login_app'] );
-		}
+		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields', $this->form_fields );
 	}
 
 	/**
@@ -674,9 +680,23 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			return;
 		}
 		$settings    = get_option( $this->get_option_key() );
+
+		$clean_settings = array();
+		foreach ( $this->form_fields as $key => $field ) {
+			if ( 'title' === $field['type'] || 'custom' === $field['type'] || 'file' === $field['type'] ) {
+				continue;
+			}
+			if ( isset( $settings[ $key ] ) ) {
+				$clean_settings[ $key ] = $settings[ $key ];
+				unset( $settings[ $key ] );
+			} else {
+				$clean_settings[ $key ] = '';
+			}
+		}
+
 		$private_key = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 
-		$settings['private_key'] = $private_key;
+		$clean_settings['private_key'] = $private_key;
 
 		ignore_user_abort( true );
 
@@ -685,7 +705,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		header( 'Content-Disposition: attachment; filename=wc-amazon-pay-settings-export-' . gmdate( 'm-d-Y' ) . '.json' );
 		header( 'Expires: 0' );
 
-		echo wp_json_encode( $settings );
+		echo wp_json_encode( $clean_settings );
 		exit;
 	}
 

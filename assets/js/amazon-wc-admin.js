@@ -5,8 +5,8 @@
 		payment_region_input: $( '#woocommerce_amazon_payments_advanced_payment_region' ),
 		action_url: '#',
 		spId: '',
-		register_now_link: $( 'button.register_now' ),
-		delete_settings_link: $( 'button.delete-settings' ),
+		register_now_link: $( 'a.register_now' ),
+		delete_settings_link: $( 'a.delete-settings' ),
 		onboarding_version: amazon_admin_params.onboarding_version,
 		locale: amazon_admin_params.locale,
 		home_url: amazon_admin_params.home_url,
@@ -58,6 +58,11 @@
 			$( '#woocommerce_amazon_payments_advanced_public_key_id' ).val( public_key_id );
 		},
 		register_link_on_click: function( e ) {
+			if ( $( this ).is( '.button-disabled' ) ) {
+				e.preventDefault();
+				e.stopPropagation();
+				return;
+			}
 			// Trigger simple path form on all regions except JP.
 			if ( 'jp' !== wc_simple_path_form.get_region_selected() ) {
 				e.preventDefault();
@@ -74,6 +79,11 @@
 			$( '#woocommerce_amazon_payments_advanced_redirect_authentication' ).val( 'optimal' );
 		},
 		delete_settings_on_click: function( e ) {
+			if ( $( this ).is( '.button-disabled' ) ) {
+				e.preventDefault();
+				e.stopPropagation();
+				return;
+			}
 			e.preventDefault();
 			if ( confirm( 'Disconnecting will clear your saved merchant credentials -- you will need to reconnect and sign into Amazon Pay in order to activate Amazon Pay again.' ) ) {
 				$.ajax(
@@ -246,8 +256,8 @@
 							);
 							wc_simple_path_form.main_setting_form.unblock();
 							$( '#mainform .notice-error' ).remove();
-							wc_simple_path_form.register_now_link.prop( 'disabled', true );
-							wc_simple_path_form.delete_settings_link.prop( 'disabled', false );
+							wc_simple_path_form.register_now_link.toggleClass( 'button-disabled', true );
+							wc_simple_path_form.delete_settings_link.toggleClass( 'button-disabled', false );
 						} else {
 							// Halt Polling.
 							if ( false === wc_simple_path_form.poll_timer ) {

@@ -23,12 +23,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 */
 	protected static function get_amazonpay_sdk_config( $fresh = false ) {
 		if ( $fresh || empty( self::$amazonpay_sdk_config ) ) {
-			$settings                   = self::get_settings();
+			$settings = self::get_settings();
+			$region   = $settings['payment_region']; // TODO: Maybe normalize v1 and v2 different region management
+			if ( 'gb' === $region ) {
+				$region = 'eu';
+			}
+
 			self::$amazonpay_sdk_config = array(
 				'public_key_id' => $settings['public_key_id'],
 				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),
 				'sandbox'       => 'yes' === $settings['sandbox'] ? true : false,
-				'region'        => $settings['payment_region'],
+				'region'        => $region,
 			);
 		}
 		return self::$amazonpay_sdk_config;
