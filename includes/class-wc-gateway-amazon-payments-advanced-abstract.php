@@ -471,6 +471,16 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					),
 				)
 			);
+
+			/**
+			 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
+			 * For old merchants, keep "Use Login with Amazon App" checkbox, as they can fallback to APA (no client id)
+			 *
+			 * @since 1.9.0
+			 */
+			if ( WC_Amazon_Payments_Advanced_API::is_new_installation() ) {
+				unset( $this->form_fields['enable_login_app'] );
+			}
 		}
 
 		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields', $this->form_fields );
