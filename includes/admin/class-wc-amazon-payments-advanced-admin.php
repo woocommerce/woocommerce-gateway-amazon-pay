@@ -28,7 +28,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->path     = untrailingslashit( plugin_dir_path( __FILE__ ) );
+		$this->path = untrailingslashit( plugin_dir_path( __FILE__ ) );
 
 		$this->init_order_admin();
 
