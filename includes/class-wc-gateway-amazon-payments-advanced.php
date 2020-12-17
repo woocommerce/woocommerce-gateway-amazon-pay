@@ -219,28 +219,30 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
+		$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
+
 		if ( isset( $_GET['amazon_logout'] ) ) {
 			$this->do_logout();
-			wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
+			wp_safe_redirect( $redirect_url );
 			exit;
 		}
 
 		if ( isset( $_GET['amazon_login'] ) && isset( $_GET['amazonCheckoutSessionId'] ) ) {
 			WC()->session->set( 'amazon_checkout_session_id', $_GET['amazonCheckoutSessionId'] );
-			wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
+			wp_safe_redirect( $redirect_url );
 			exit;
 		}
 
 		if ( isset( $_GET['amazon_return'] ) && isset( $_GET['amazonCheckoutSessionId'] ) ) {
 			if ( $_GET['amazonCheckoutSessionId'] !== $this->get_checkout_session_id() ) {
 				wc_add_notice( __( 'There was an error after returning from Amazon. Please try again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-				wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
+				wp_safe_redirect( $redirect_url );
 				exit;
 			}
 
 			$this->handle_return();
 			// If we didn't redirect and quit yet, lets force redirect to checkout.
-			wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
+			wp_safe_redirect( $redirect_url );
 			exit;
 		}
 
