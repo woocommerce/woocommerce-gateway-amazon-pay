@@ -238,7 +238,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				'en-US',
 			),
 			'jp' => array(
-				'jp-JP',
+				'ja-JP',
 			),
 		);
 	}
