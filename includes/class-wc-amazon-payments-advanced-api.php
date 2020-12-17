@@ -127,10 +127,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return self::$amazonpay_client;
 	}
 
-	protected static function create_checkout_session_params() {
+	protected static function create_checkout_session_params( $redirect_url = null ) {
 
 		$settings     = self::get_settings();
-		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
+		if ( is_null( $redirect_url ) ) {
+			$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
+		}
+		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
 		$payload      = array(
 			'storeId'            => $settings['store_id'],
 			'webCheckoutDetails' => array(
@@ -145,10 +148,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	}
 
-	public static function get_create_checkout_session_config() {
+	public static function get_create_checkout_session_config( $redirect_url = null ) {
 		$settings = self::get_settings();
 		$client   = self::get_client();
-		$payload  = self::create_checkout_session_params();
+		$payload  = self::create_checkout_session_params( $redirect_url );
 
 		$signature = $client->generateButtonSignature( $payload );
 		return array(
