@@ -21,7 +21,7 @@
 				var button_settings = {
 					// set checkout environment
 					merchantId: amazon_payments_advanced.merchant_id,
-					ledgerCurrency: 'EUR',
+					ledgerCurrency: 'EUR', // TODO: Implement multicurrency
 					sandbox: amazon_payments_advanced.sandbox === '1' ? true : false,
 					// customize the buyer experience
 					productType: amazon_payments_advanced.action,
