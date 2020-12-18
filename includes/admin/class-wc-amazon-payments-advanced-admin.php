@@ -28,7 +28,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->path     = untrailingslashit( plugin_dir_path( __FILE__ ) );
+		$this->path = untrailingslashit( plugin_dir_path( __FILE__ ) );
 
 		$this->init_order_admin();
 
@@ -160,9 +160,11 @@ class WC_Amazon_Payments_Advanced_Admin {
 			'woocommerce_page_wc-settings' === $current_screen->id &&
 			'amazon_payments_advanced' === $current_section
 		) {
+			$in_settings                    = true;
 			$in_amazon_pay_settings_section = 'in_settings';
 			$is_dismissable                 = false;
 		} else {
+			$in_settings                    = false;
 			$in_amazon_pay_settings_section = '';
 			$is_dismissable                 = true;
 		}
@@ -184,16 +186,29 @@ class WC_Amazon_Payments_Advanced_Admin {
 			);
 		}
 		if ( ! WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
-			$notices[] = array(
-				'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
-				'class'          => 'notice notice-error',
-				'text'           => sprintf(
-					/* translators: 1) The URL to the Amazon Pay settings screen. */
-					'<p>' . __( 'Amazon Pay V2 is now available and migration is required. Please go to your <a href="%1$s">Amazon Pay settings</a> to configure your merchant account', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
-					esc_url( $this->get_settings_url() )
-				),
-				'is_dismissable' => false,
-			);
+			if ( ! $in_settings ) {
+				$notices[] = array(
+					'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
+					'class'          => 'notice notice-error',
+					'text'           => sprintf(
+						/* translators: 1) The URL to the Amazon Pay settings screen. */
+						'<p>' . __( 'Amazon Pay V2 is now available and migration is required. Please go to your <a href="%1$s">Amazon Pay settings</a> to configure your merchant account', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
+						esc_url( $this->get_settings_url() )
+					),
+					'is_dismissable' => false,
+				);
+			} else {
+				$notices[] = array(
+					'dismiss_action' => 'amazon_pay_dismiss_api_migration_notice',
+					'class'          => 'notice notice-error',
+					'text'           => sprintf(
+						/* translators: 1) The URL to the Amazon Pay settings screen. */
+						'<p>' . __( 'Amazon Pay V2 is now available and migration is required. Please click the "Reconnect to Amazon Pay" button to continue.', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
+						esc_url( $this->get_settings_url() )
+					),
+					'is_dismissable' => false,
+				);
+			}
 		}
 		if ( ! wc_checkout_is_https() ) {
 			$notices[] = array(
@@ -299,20 +314,21 @@ class WC_Amazon_Payments_Advanced_Admin {
 		}
 
 		$params = array(
-			'simple_path_urls'   => WC_Amazon_Payments_Advanced_API::$registration_urls,
-			'spids'              => WC_Amazon_Payments_Advanced_API::$sp_ids,
-			'onboarding_version' => WC_Amazon_Payments_Advanced_API::$onboarding_version,
-			'locale'             => get_locale(),
-			'home_url'           => home_url( null, '', 'https' ),
-			'simple_path_url'    => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
-			'public_key'         => wc_apa()->onboarding_handler->get_public_key(),
-			'privacy_url'        => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
-			'description'        => WC_Amazon_Payments_Advanced::get_site_description(),
-			'ajax_url'           => admin_url( 'admin-ajax.php' ),
-			'credentials_nonce'  => wp_create_nonce( 'amazon_pay_check_credentials' ),
-			'login_redirect_url' => add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ),
-			'woo_version'        => 'WooCommerce: ' . WC()->version,
-			'plugin_version'     => 'WooCommerce Amazon Pay: ' . wc_apa()->version,
+			'simple_path_urls'      => WC_Amazon_Payments_Advanced_API::$registration_urls,
+			'spids'                 => WC_Amazon_Payments_Advanced_API::$sp_ids,
+			'onboarding_version'    => WC_Amazon_Payments_Advanced_API::$onboarding_version,
+			'locale'                => get_locale(),
+			'home_url'              => home_url( null, '', 'https' ),
+			'simple_path_url'       => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
+			'public_key'            => WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ? wc_apa()->onboarding_handler->get_public_key() : wc_apa()->onboarding_handler->get_public_key( false, true ),
+			'privacy_url'           => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
+			'description'           => WC_Amazon_Payments_Advanced::get_site_description(),
+			'ajax_url'              => admin_url( 'admin-ajax.php' ),
+			'credentials_nonce'     => wp_create_nonce( 'amazon_pay_check_credentials' ),
+			'login_redirect_url'    => add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ),
+			'woo_version'           => 'WooCommerce: ' . WC()->version,
+			'plugin_version'        => 'WooCommerce Amazon Pay: ' . wc_apa()->version,
+			'language_combinations' => WC_Amazon_Payments_Advanced_API::get_languages_per_region(),
 		);
 
 		wp_register_script( 'amazon_payments_admin', wc_apa()->plugin_url . '/assets/js/amazon-wc-admin' . $js_suffix, array(), wc_apa()->version, true );

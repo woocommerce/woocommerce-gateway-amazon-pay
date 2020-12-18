@@ -8,7 +8,7 @@
 
 /**
  * Amazon Pay Merchant Onboarding flow handler.
- * https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/files/537729/PWA.Merchant.Registration.Integration.Guide_Version.1.0.pdf TODO: Edit this file.
+ * https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/files/537729/PWA.Merchant.Registration.Integration.Guide_Version.1.0.pdf
  *
  * Class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler
  */
@@ -32,6 +32,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	public function __construct() {
 		// Handles Simple Path request from Amazon.
 		add_action( 'woocommerce_api_' . self::ENDPOINT_URL, array( $this, 'check_onboarding_request' ) );
+		add_action( 'wc_amazon_keys_setup_and_validated', array( __CLASS__, 'update_migration_status' ) );
 	}
 
 	/**
@@ -220,7 +221,6 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 		$settings['store_id']                        = $payload->storeId; // phpcs:ignore WordPress.NamingConventions
 		$settings['public_key_id']                   = $payload->publicKeyId; // phpcs:ignore WordPress.NamingConventions
 		$settings['amazon_keys_setup_and_validated'] = 1;
-		self::update_migration_status();
 		update_option( 'woocommerce_amazon_payments_advanced_settings', $settings );
 		update_option( 'woocommerce_amazon_payments_advanced_saved_payload', true );
 	}

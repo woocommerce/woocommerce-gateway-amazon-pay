@@ -50,13 +50,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$settings = self::get_settings();
 
-		WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::update_migration_status();
-
 		$ret            = false;
 		$valid_settings = self::validate_api_settings();
 		if ( is_wp_error( $valid_settings ) ) {
 			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
-			WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::delete_migration_status();
 			WC_Admin_Settings::add_error( $valid_settings->get_error_message() );
 			return $ret;
 		}
@@ -77,7 +74,6 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		} catch ( Exception $e ) {
 			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
-			WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::delete_migration_status();
 			WC_Admin_Settings::add_error( $e->getMessage() );
 		}
 		return $ret;
@@ -220,6 +216,31 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		}
 
 		return $response;
+	}
+
+	public static function get_languages_per_region() {
+		return array(
+			'eu' => array(
+				'en-GB',
+				'de-DE',
+				'fr-FR',
+				'it-IT',
+				'es-ES',
+			),
+			'gb' => array(
+				'en-GB',
+				'de-DE',
+				'fr-FR',
+				'it-IT',
+				'es-ES',
+			),
+			'us' => array(
+				'en-US',
+			),
+			'jp' => array(
+				'ja-JP',
+			),
+		);
 	}
 
 }

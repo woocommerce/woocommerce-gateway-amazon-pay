@@ -39,9 +39,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		// Load saved settings.
 		$this->load_settings();
 
-		// Load the form fields.
-		$this->init_form_fields();
-
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'validate_api_keys' ) );
 
@@ -153,7 +150,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	/**
 	 * Init payment gateway form fields
 	 */
-	public function init_form_fields() {
+	public function get_form_fields() {
 
 		$login_app_setup_url = WC_Amazon_Payments_Advanced_API::get_client_id_instructions_url();
 		/* translators: Login URL */
@@ -171,10 +168,16 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$redirect_url           = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
 		$valid                  = isset( $this->settings['amazon_keys_setup_and_validated'] ) ? $this->settings['amazon_keys_setup_and_validated'] : false;
 
-		$connect_desc    = __( 'Register for a new Amazon Pay merchant account, or sign in with your existing Amazon Pay Seller Central credentials to complete the plugin upgrade and configuration', 'woocommerce-gateway-amazon-payments-advanced' );
-		$connect_btn     = '<a class="register_now button-primary">' . __( 'Connect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
-		$disconnect_desc = __( 'In order to connect to a different account you need to disconect first, this will delete current Account Settings, you will need to go throught all the configuration process again', 'woocommerce-gateway-amazon-payments-advanced' );
-		$disconnect_btn  = '<a class="delete-settings button-primary">' . __( 'Disconnect Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
+		$button_desc = __( 'Register for a new Amazon Pay merchant account, or sign in with your existing Amazon Pay Seller Central credentials to complete the plugin upgrade and configuration', 'woocommerce-gateway-amazon-payments-advanced' );
+		$button_btn  = '<a class="register_now button-primary">' . __( 'Connect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
+		if ( $this->private_key ) {
+			$button_desc = __( 'In order to connect to a different account you need to disconect first, this will delete current Account Settings, you will need to go throught all the configuration process again', 'woocommerce-gateway-amazon-payments-advanced' );
+			$button_btn  = '<a class="delete-settings button-primary">' . __( 'Disconnect Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
+		}
+		if ( ! WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
+			$button_desc = __( 'In order to keep using Amazon Pay, you need to reconnect to your account.', 'woocommerce-gateway-amazon-payments-advanced' );
+			$button_btn  = '<a class="register_now button-primary">' . __( 'Reconnect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
+		}
 
 		$this->form_fields = array(
 			'important_note'                => array(
@@ -192,7 +195,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			'register_now'                  => array(
 				'title'       => __( 'Connect your Amazon Pay merchant account', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
-				'description' => $this->private_key ? $disconnect_desc . '<br/><br/>' . $disconnect_btn : $connect_desc . '<br/><br/>' . $connect_btn,
+				'description' => $button_desc . '<br/><br/>' . $button_btn,
 			),
 			'enabled'                       => array(
 				'title'       => __( 'Enable/Disable', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -323,15 +326,16 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'description' => __( 'Language to use in Login with Amazon or a Amazon Pay button. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 				'type'        => 'select',
-				'class'       => 'show-if-app-is-enabled',
 				'default'     => '',
 				'options'     => array(
 					''      => __( 'Detect from buyer\'s browser', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'en-US' => __( 'US English', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'en-GB' => __( 'UK English', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'de-DE' => __( 'Germany\'s German', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'fr-FR' => __( 'France\'s French', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'it-IT' => __( 'Italy\'s Italian', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'es-ES' => __( 'Spain\'s Spanish', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'ja-JP' => __( 'Japan\'s Japanese', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
 			'button_color'                  => array(
@@ -339,7 +343,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'description' => __( 'Button color to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 				'type'        => 'select',
-				'class'       => 'show-if-app-is-enabled',
 				'default'     => 'Gold',
 				'options'     => array(
 					'Gold'      => __( 'Gold', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -456,13 +459,11 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 						'title'       => __( 'Button type', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'description' => '<strong>' . $this->settings['button_type'] . '</strong><br>' . __( 'Type of button image to display on cart and checkout pages. Only used when Amazon Login App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
-						'class'       => 'show-if-app-is-enabled',
 					),
 					'button_size'              => array(
 						'title'       => __( 'Button size', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'description' => '<strong>' . $this->settings['button_size'] . '</strong><br>' . __( 'Button size to display on cart and checkout pages. Only used when Login with Amazon App is enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
-						'class'       => 'show-if-app-is-enabled',
 					),
 					'container_end'            => array(
 						'type' => 'custom',
@@ -470,9 +471,21 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					),
 				)
 			);
+
+			/**
+			 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
+			 * For old merchants, keep "Use Login with Amazon App" checkbox, as they can fallback to APA (no client id)
+			 *
+			 * @since 1.9.0
+			 */
+			if ( WC_Amazon_Payments_Advanced_API::is_new_installation() ) {
+				unset( $this->form_fields['enable_login_app'] );
+			}
 		}
 
 		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields', $this->form_fields );
+
+		return parent::get_form_fields();
 	}
 
 	/**
@@ -679,7 +692,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		$settings    = get_option( $this->get_option_key() );
+		$settings = get_option( $this->get_option_key() );
 
 		$clean_settings = array();
 		foreach ( $this->form_fields as $key => $field ) {

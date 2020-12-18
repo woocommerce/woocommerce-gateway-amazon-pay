@@ -33,23 +33,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return bool
 	 */
 	public function is_available() {
-		$is_available = ( 'yes' === $this->enabled );
+		$is_available = parent::is_available() && ! empty( $this->settings['merchant_id'] );
 
-		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
-			return $is_available; // TODO: Check if filter below can be implemented without affecting functionality.
-		}
-
-		$is_available = apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $is_available );
-
-		return ( $is_available && ! empty( $this->settings['merchant_id'] ) );
+		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $is_available );
 	}
 
 	/**
 	 * Load handlers for cart and orders after WC Cart is loaded.
 	 */
 	public function init_handlers() {
-		// Disable if no seller ID.
-		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) || ! $this->is_available() ) {
+		$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
+
+		if ( ! isset( $available_gateways[ $this->id ] ) ) {
+			return;
+		}
+
+		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) ) {
 			return;
 		}
 
@@ -93,6 +92,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'merchant_id'                    => $this->settings['merchant_id'],
 			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ),
 			'checkout_session_id'            => $this->get_checkout_session_id(),
+			'button_language'                => $this->settings['button_language'],
 		);
 
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
@@ -843,6 +843,26 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$fields['shipping_state']['required'] = $old;
 
 		return $fields;
+	}
+
+	/**
+	 * Unset keys json box.
+	 *
+	 * @return bool|void
+	 */
+	public function process_admin_options() {
+		if ( check_admin_referer( 'woocommerce-settings' ) ) {
+			if ( ! empty( $_POST['woocommerce_amazon_payments_advanced_button_language'] ) ) {
+				$region   = $_POST['woocommerce_amazon_payments_advanced_payment_region'];
+				$language = $_POST['woocommerce_amazon_payments_advanced_button_language'];
+				$regions  = WC_Amazon_Payments_Advanced_API::get_languages_per_region();
+				if ( ! isset( $regions[ $region ] ) || ! in_array( $language, $regions[ $region ], true ) ) {
+					WC_Admin_Settings::add_error( sprintf( __( '%1$s is not a valid language for the %2$s region.', 'woocommerce-gateway-amazon-payments-advanced' ), $language, WC_Amazon_Payments_Advanced_API::get_region_label( $region ) ) );
+					$_POST['woocommerce_amazon_payments_advanced_button_language'] = '';
+				}
+			}
+			parent::process_admin_options();
+		}
 	}
 
 }

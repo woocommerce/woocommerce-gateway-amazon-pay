@@ -125,7 +125,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return array
 	 */
-	public static function get_settings() {
+	public static function get_settings( $key = null ) {
 		$settings_options_name = 'woocommerce_amazon_payments_advanced_settings';
 
 		$settings = (array) get_option( $settings_options_name, array() );
@@ -157,7 +157,13 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'amazon_keys_setup_and_validated' => '0',
 		);
 
-		return apply_filters( 'woocommerce_amazon_pa_settings', array_merge( $default, $settings ) );
+		$settings = apply_filters( 'woocommerce_amazon_pa_settings', array_merge( $default, $settings ) );
+
+		if ( is_null( $key ) ) {
+			return $settings;
+		} else {
+			return isset( $settings[ $key ] ) ? $settings[ $key ] : null;
+		}
 	}
 
 	/**
@@ -352,9 +358,12 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return string Payment region label.
 	 */
-	public static function get_region_label() {
+	public static function get_region_label( $region = null ) {
+		if ( is_null( $region ) ) {
+			$region = self::get_region();
+		}
 		$regions = self::get_payment_regions();
-		return $regions[ self::get_region() ];
+		return isset( $regions[ $region ] ) ? $regions[ $region ] : '';
 	}
 
 	/**
