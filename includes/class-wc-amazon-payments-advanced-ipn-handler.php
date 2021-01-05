@@ -307,8 +307,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 
 		switch ( $message['Type'] ) {
 			case 'Notification':
-				$notification_message = $this->decode_raw_post_data( $message['Message'] );
-				$this->validate_required_keys( $notification_message, $this->required_notification_message_keys );
+				$message['Message'] = $this->decode_raw_post_data( $message['Message'] );
+				$this->validate_required_keys( $message['Message'], $this->required_notification_message_keys );
 				break;
 			case 'SubscriptionConfirmation':
 			case 'UnsubscribeConfirmation':
