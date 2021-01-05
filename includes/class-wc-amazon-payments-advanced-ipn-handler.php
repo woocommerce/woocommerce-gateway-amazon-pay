@@ -303,6 +303,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 
 		$this->validate_required_keys( $message, $this->required_data_keys );
 
+		$this->validate_message( $message );
+
 		switch ( $message['Type'] ) {
 			case 'Notification':
 				$notification_message = $this->decode_raw_post_data( $message['Message'] );
@@ -315,6 +317,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 			default:
 				throw new Exception( 'No handler for message type ' . $message['Type'] );
 		}
+
+		wc_apa()->log( __METHOD__, sprintf( 'Valid IPN message %s.', $message['MessageId'] ) );
 
 		return $message;
 	}
@@ -427,10 +431,6 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 			}
 
 			$message = $this->get_message_from_raw_post_data( $raw_post_data );
-
-			$this->validate_message( $message );
-
-			wc_apa()->log( __METHOD__, sprintf( 'Valid IPN message %s.', $message['MessageId'] ) );
 
 			header( 'HTTP/1.1 200 OK' );
 
