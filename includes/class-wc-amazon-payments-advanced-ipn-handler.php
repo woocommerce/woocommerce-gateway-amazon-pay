@@ -78,7 +78,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	 *
 	 * @var array
 	 */
-	protected $required_subscription_keys = array(
+	protected $required_subscription_keys_v1 = array(
 		array( 'SubscribeURL', 'SubscribeUrl' ),
 		'Token',
 	);
@@ -93,7 +93,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	 *
 	 * @var array
 	 */
-	protected $required_notification_message_keys = array(
+	protected $required_notification_message_keys_v1 = array(
 		'NotificationType',
 		'NotificationData',
 		'NotificationReferenceId',
@@ -109,6 +109,9 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	public function __construct() {
 		// Handles notification request from Amazon.
 		add_action( 'woocommerce_api_wc_gateway_amazon_payments_advanced', array( $this, 'check_ipn_request' ) );
+
+		add_action( 'woocommerce_amazon_payments_advanced_ipn_validate_notification_keys', array( $this, 'validate_notification_keys_v1' ), 10, 2 );
+		add_action( 'woocommerce_amazon_payments_advanced_ipn_validate_subscription_keys', array( $this, 'validate_subscription_keys_v1' ), 10, 1 );
 
 		// Handle valid IPN message.
 		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_ipn' ) );
@@ -307,12 +310,13 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 
 		switch ( $message['Type'] ) {
 			case 'Notification':
-				$message['Message'] = $this->decode_raw_post_data( $message['Message'] );
-				$this->validate_required_keys( $message['Message'], $this->required_notification_message_keys );
+				$message['Message']   = $this->decode_raw_post_data( $message['Message'] );
+				$notification_version = isset( $message['Message']['NotificationVersion'] ) ? strtolower( $message['Message']['NotificationVersion'] ) : 'v1';
+				do_action( 'woocommerce_amazon_payments_advanced_ipn_validate_notification_keys', $message, $notification_version );
 				break;
 			case 'SubscriptionConfirmation':
 			case 'UnsubscribeConfirmation':
-				$this->validate_required_keys( $message, $this->required_subscription_keys );
+				do_action( 'woocommerce_amazon_payments_advanced_ipn_validate_subscription_keys', $message );
 				break;
 			default:
 				throw new Exception( 'No handler for message type ' . $message['Type'] );
@@ -321,6 +325,17 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 		wc_apa()->log( __METHOD__, sprintf( 'Valid IPN message %s.', $message['MessageId'] ) );
 
 		return $message;
+	}
+
+	public function validate_notification_keys_v1( $message, $notification_version ) {
+		if ( 'v1' !== $notification_version ) {
+			return;
+		}
+		$this->validate_required_keys( $message['Message'], $this->required_notification_message_keys_v1 );
+	}
+
+	public function validate_subscription_keys_v1( $message ) {
+		$this->validate_required_keys( $message['Message'], $this->required_subscription_keys_v1 );
 	}
 
 	/**
