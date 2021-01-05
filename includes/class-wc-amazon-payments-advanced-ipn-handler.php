@@ -432,7 +432,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 
 			$message = $this->get_message_from_raw_post_data( $raw_post_data );
 
-			header( 'HTTP/1.1 200 OK' );
+			status_header( 200 );
 
 			do_action( 'woocommerce_amazon_payments_advanced_handle_ipn', $message );
 			exit;
