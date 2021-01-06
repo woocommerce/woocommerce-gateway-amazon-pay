@@ -140,7 +140,9 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
 
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-compat.php';
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler-abstract.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler.php';
+		include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-ipn-handler-legacy.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-synchronous-handler.php';
 
 		// On install hook.
@@ -155,6 +157,7 @@ class WC_Amazon_Payments_Advanced {
 
 		// IPN handler.
 		$this->ipn_handler = new WC_Amazon_Payments_Advanced_IPN_Handler();
+		new WC_Amazon_Payments_Advanced_IPN_Handler_Legacy(); // TODO: Maybe register legacy hooks differently
 		// Synchronous handler.
 		$this->synchro_handler = new WC_Amazon_Payments_Advanced_Synchronous_Handler();
 		// Simple path registration endpoint.
