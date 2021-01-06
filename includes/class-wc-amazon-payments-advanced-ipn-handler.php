@@ -114,7 +114,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 		add_action( 'woocommerce_amazon_payments_advanced_ipn_validate_subscription_keys', array( $this, 'validate_subscription_keys_v1' ), 10, 1 );
 
 		// Handle valid IPN message.
-		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_ipn' ) );
+		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_notification_ipn_v1' ) );
 	}
 
 	/**
@@ -475,13 +475,19 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	 *
 	 * @param array $message Parsed SNS message.
 	 */
-	public function handle_ipn( $message ) {
+	public function handle_notification_ipn_v1( $message ) {
 		// Ignore non-notification type message.
 		if ( 'Notification' !== $message['Type'] ) {
 			return;
 		}
 
-		$notification      = $this->decode_raw_post_data( $message['Message'] );
+		$notification_version = isset( $message['Message']['NotificationVersion'] ) ? strtolower( $message['Message']['NotificationVersion'] ) : 'v1';
+
+		if ( 'v1' !== $notification_version ) {
+			return;
+		}
+
+		$notification      = $message['Message'];
 		$notification_data = $this->get_parsed_notification_data( $notification );
 		$order             = $this->get_order_from_notification_data( $notification['NotificationType'], $notification_data );
 
