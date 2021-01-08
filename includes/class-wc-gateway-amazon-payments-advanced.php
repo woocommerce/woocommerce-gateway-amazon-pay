@@ -786,11 +786,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
-		$order->update_meta_data( 'amazon_charge_id', $response->chargeId ); // phpcs:ignore WordPress.NamingConventions
 		$order->update_meta_data( 'amazon_charge_permission_id', $response->chargePermissionId ); // phpcs:ignore WordPress.NamingConventions
 		$order->save();
-
-		$order->payment_complete();
+		$charge_id = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
+		if ( ! empty( $charge_id ) ) {
+			$order->update_meta_data( 'amazon_charge_id', $charge_id );
+			$charge        = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+			$charge_status = $this->log_charge_status_change( $order, $charge );
+		} else {
+			$order->update_status( 'on-hold' );
+			wc_maybe_reduce_stock_levels( $order->get_id() );
+		}
+		$order->save();
 
 		// Remove cart.
 		WC()->cart->empty_cart();
@@ -800,6 +807,52 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		wp_safe_redirect( $order->get_checkout_order_received_url() );
 		exit;
+	}
+
+	public function log_charge_status_change( WC_Order $order, $charge ) {
+		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
+		$old_status = $order->get_meta( 'amazon_charge_status' );
+		$charge_status = $charge->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
+		if ( $charge_status === $old_status ) {
+			return $old_status;
+		}
+		$order->update_meta_data( 'amazon_charge_status', $charge_status );
+		$order->update_meta_data( 'amazon_charge_id', $charge->chargeId ); // phpcs:ignore WordPress.NamingConventions
+		$order->save(); // Save early for less race conditions
+
+		// @codingStandardsIgnoreStart
+		$order->add_order_note( sprintf(
+			/* translators: 1) Amazon Charge ID 2) Charge status */
+			__( 'Charge %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
+			(string) $charge->chargeId,
+			(string) $charge_status
+		) );
+		// @codingStandardsIgnoreEnd
+
+		switch ( $charge_status ) {
+			case 'AuthorizationInitiated':
+			case 'Authorized':
+			case 'CaptureInitiated':
+				// Mark as on-hold.
+				$order->update_status( 'on-hold' );
+				wc_maybe_reduce_stock_levels( $order->get_id() );
+				break;
+			case 'Canceled':
+			case 'Declined':
+				$order->update_status( 'failed' );
+				wc_maybe_increase_stock_levels( $order->get_id() );
+				break;
+			case 'Captured':
+				$order->payment_complete();
+				break;
+			default:
+				// TODO: This is an unknown state, maybe handle?
+				break;
+		}
+
+		$order->save();
+
+		return $charge_status;
 	}
 
 	public function update_js() {

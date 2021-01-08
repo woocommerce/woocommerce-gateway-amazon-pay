@@ -246,4 +246,30 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		);
 	}
 
+	public static function get_charge_permission( $charge_permission_id ) {
+		$client = self::get_client();
+		$result = $client->getChargePermission( $charge_permission_id );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	public static function get_charge( $charge_id ) {
+		$client = self::get_client();
+		$result = $client->getCharge( $charge_id );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
 }

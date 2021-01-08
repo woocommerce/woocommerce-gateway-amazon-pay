@@ -77,6 +77,9 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	public function __construct() {
 		// Handles notification request from Amazon.
 		add_action( 'woocommerce_api_wc_gateway_amazon_payments_advanced', array( $this, 'check_ipn_request' ) );
+
+		// Handle valid IPN message.
+		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_notification_ipn_v2' ) );
 	}
 
 	/**
@@ -375,6 +378,55 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 					'response' => 400, // Send 40x to tell 'no retriees'.
 				)
 			);
+		}
+	}
+
+	/**
+	 * Handle the IPN.
+	 *
+	 * At this point, notification message is validated already.
+	 *
+	 * @throws Exception Missing handler for the notification type.
+	 *
+	 * @since 1.8.0
+	 * @version 1.8.0
+	 *
+	 * @param array $message Parsed SNS message.
+	 */
+	public function handle_notification_ipn_v2( $message ) {
+		// Ignore non-notification type message.
+		if ( 'Notification' !== $message['Type'] ) {
+			return;
+		}
+
+		$notification_version = isset( $message['Message']['NotificationVersion'] ) ? strtolower( $message['Message']['NotificationVersion'] ) : 'v1';
+
+		if ( 'v2' !== $notification_version ) {
+			return;
+		}
+
+		$notification = $message['Message'];
+
+		$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ChargePermissionId'] );
+
+		$order_id = $charge_permission->merchantMetadata->merchantReferenceId;
+		if ( is_numeric( $order_id ) ) {
+			$order = wc_get_order( $order_id );
+		} else {
+			throw new Exception( 'Invalid order ID ' . $order_id );
+		}
+
+		if ( 'STATE_CHANGE' !== strtoupper( $notification['NotificationType'] ) ) {
+			throw new Exception( sprintf( __( 'Notification type "%s" not supported' ), $notification['NotificationType'] ) );
+		}
+
+		switch ( strtoupper( $notification['ObjectType'] ) ) {
+			case 'CHARGE':
+				$object = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
+				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $object );
+				break;
+			default:
+				throw new Exception( 'Not Implemented' );
 		}
 	}
 }
