@@ -678,7 +678,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 						'paymentDetails'                => array(
 							'paymentIntent' => $payment_intent, // TODO: Check Authorize, and Confirm flows.
 							'canHandlePendingAuthorization' => $can_do_async,
-							// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this.
+							// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
 							'chargeAmount'  => array(
 								'amount'       => $order_total,
 								'currencyCode' => $currency,
