@@ -664,21 +664,27 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 						break;
 				}
 
+				$can_do_async = false;
+				if ( 'async' === $this->settings['authorization_mode'] && 'authorize' === $this->settings['payment_capture'] ) {
+					$can_do_async = true;
+				}
+
 				/* translators: Plugin version */
 				$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
 
 				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
 					$checkout_session_id,
 					array(
-						'paymentDetails'   => array(
+						'paymentDetails'                => array(
 							'paymentIntent' => $payment_intent, // TODO: Check Authorize, and Confirm flows.
+							'canHandlePendingAuthorization' => $can_do_async,
 							// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this.
 							'chargeAmount'  => array(
 								'amount'       => $order_total,
 								'currencyCode' => $currency,
 							),
 						),
-						'merchantMetadata' => array(
+						'merchantMetadata'              => array(
 							'merchantReferenceId' => $order_id,
 							'merchantStoreName'   => WC_Amazon_Payments_Advanced::get_site_name(),
 							'customInformation'   => $version_note,
