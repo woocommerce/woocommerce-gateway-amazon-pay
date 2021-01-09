@@ -814,6 +814,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$old_status = $order->get_meta( 'amazon_charge_status' );
 		$charge_status = $charge->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
 		if ( $charge_status === $old_status ) {
+			switch ( $old_status ) {
+				case 'AuthorizationInitiated':
+				case 'Authorized':
+				case 'CaptureInitiated':
+					wc_apa()->ipn_handler->schedule_hook( $order->get_id() );
+					break;
+			}
 			return $old_status;
 		}
 		$order->update_meta_data( 'amazon_charge_status', $charge_status );
@@ -836,6 +843,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				// Mark as on-hold.
 				$order->update_status( 'on-hold' );
 				wc_maybe_reduce_stock_levels( $order->get_id() );
+				wc_apa()->ipn_handler->schedule_hook( $order->get_id() );
 				break;
 			case 'Canceled':
 			case 'Declined':

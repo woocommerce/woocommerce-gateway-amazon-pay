@@ -80,6 +80,9 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		// Handle valid IPN message.
 		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_notification_ipn_v2' ) );
+
+		// Do async polling action (as a fallback)
+		add_action( 'wc_amazon_async_polling', array( $this, 'handle_async_polling' ) );
 	}
 
 	/**
@@ -420,6 +423,10 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			throw new Exception( sprintf( __( 'Notification type "%s" not supported' ), $notification['NotificationType'] ) );
 		}
 
+		if ( ! isset( $notification['MockedIPN'] ) ) {
+			$this->unschedule_hook( $order->get_id() ); // Unshchedule just in case we're actually on real IPN, we'll schedule again if needed.
+		}
+
 		switch ( strtoupper( $notification['ObjectType'] ) ) {
 			case 'CHARGE':
 				$object = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
@@ -428,5 +435,49 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			default:
 				throw new Exception( 'Not Implemented' );
 		}
+	}
+
+	public function schedule_hook( $order_id ) {
+		// Schedule action to check pending order next hour.
+		if ( doing_action( 'wc_amazon_async_polling' ) || false === as_next_scheduled_action( 'wc_amazon_async_polling', array( $order_id ), 'wc_amazon_async_polling' ) ) {
+			wc_apa()->log( __METHOD__, 'Scheduling ' . $order_id );
+			as_schedule_single_action( strtotime('next minute'), 'wc_amazon_async_polling', array( $order_id ), 'wc_amazon_async_polling' );
+		}
+	}
+
+	public function unschedule_hook( $order_id ) {
+		// Schedule action to check pending order next hour.
+		wc_apa()->log( __METHOD__, 'Unscheduling ' . $order_id );
+		as_unschedule_all_actions( 'wc_amazon_async_polling', array( $order_id ), 'wc_amazon_async_polling' );
+	}
+
+	public function handle_async_polling( $order_id ) {
+		$order = wc_get_order( $order_id );
+
+		if ( 'amazon_payments_advanced' !== $order->get_payment_method() ) {
+			return;
+		}
+
+		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+
+		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		if ( empty( $charge_id ) ) {
+			// TODO: Not possible to poll for charge_id only with charge permission id (eg: collect payment from seller central)
+			return;
+		}
+
+		$mock_ipn = array(
+			'Type' => 'Notification',
+			'Message' => array(
+				'NotificationVersion' => 'V2',
+				'ChargePermissionId'  => $charge_permission_id,
+				'NotificationType'    => 'STATE_CHANGE',
+				'ObjectType'          => 'CHARGE',
+				'ObjectId'            => $charge_id,
+				'MockedIPN'           => true,
+			),
+		);
+
+		$this->handle_notification_ipn_v2( $mock_ipn );
 	}
 }
