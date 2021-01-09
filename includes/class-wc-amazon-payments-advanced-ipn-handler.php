@@ -419,6 +419,10 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			throw new Exception( 'Invalid order ID ' . $order_id );
 		}
 
+		if ( 'amazon_payments_advanced' !== $order->get_payment_method() ) {
+			throw new Exception( 'Order ID ' . $order_id . ' is not paid with Amazon' );
+		}
+
 		if ( 'STATE_CHANGE' !== strtoupper( $notification['NotificationType'] ) ) {
 			throw new Exception( sprintf( __( 'Notification type "%s" not supported' ), $notification['NotificationType'] ) );
 		}
