@@ -291,9 +291,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( empty( $data ) ) {
 			$data = array();
 		}
+		// TODO: Validate entered data
 		if ( empty( $data['captureAmount'] ) ) {
 			$charge = self::get_charge( $charge_id );
 			$data['captureAmount'] = (array) $charge->chargeAmount; // phpcs:ignore WordPress.NamingConventions
+			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
 		}
 
 		$result = $client->captureCharge(
@@ -307,6 +309,35 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 202 ), true ) ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	public static function refund_charge( $charge_id, $data = array() ) {
+		$client = self::get_client();
+		if ( empty( $data ) ) {
+			$data = array();
+		}
+		$data['chargeId'] = $charge_id;
+		// TODO: Validate entered data
+		if ( empty( $data['refundAmount'] ) ) {
+			$charge               = self::get_charge( $charge_id );
+			$data['refundAmount'] = (array) $charge->captureAmount; // phpcs:ignore WordPress.NamingConventions
+			$data['refundAmount']['amount'] -= (float) $charge->refundedAmount->amount;
+		}
+
+		$result = $client->createRefund(
+			$data,
+			array(
+				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 

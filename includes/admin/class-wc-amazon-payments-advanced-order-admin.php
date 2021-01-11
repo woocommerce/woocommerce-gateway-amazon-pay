@@ -63,7 +63,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		exit;
 	}
 
-	public function do_order_action( $order, $id, $action, $version ) {
+	public function do_order_action( WC_Order $order, $id, $action, $version ) {
 		if ( 'v2' !== strtolower( $version ) ) {
 			return;
 		}
@@ -72,6 +72,27 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		switch ( $action ) {
 			case 'capture':
 				$charge = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
+				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				break;
+			case 'refund':
+				$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
+				$order->add_meta_data( 'amazon_refund_id', $refund->refundId );
+				$order->save();
+				$wc_refund = wc_create_refund(
+					array(
+						'amount'   => $refund->refundAmount->amount,
+						'order_id' => $order->get_id(),
+					)
+				);
+
+				if ( is_wp_error( $wc_refund ) ) {
+					break;
+				}
+
+				$wc_refund->update_meta_data( 'amazon_refund_id', $refund->refundId );
+				$wc_refund->set_refunded_payment( true );
+				$wc_refund->save();
+				$charge = WC_Amazon_Payments_Advanced_API::get_charge( $refund->chargeId );
 				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 		}
@@ -143,6 +164,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
 		$charge_permission    = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
 
+		// TODO: Cache
 		$charge_permission_status_label = $this->status_details_label( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 
 		echo wpautop( sprintf( __( 'Charge Permission %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_permission_id ), esc_html( $charge_permission_status_label ) ) );
@@ -152,6 +174,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		if ( ! empty( $charge_id ) ) {
 			$charge               = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
 
+			// TODO: Cache
 			$charge_status_label = $this->status_details_label( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 
 			echo wpautop( sprintf( __( 'Charge %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_id ), esc_html( $charge_status_label ) ) );
@@ -172,6 +195,13 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					);
 					break;
 				case 'Captured':
+					// TODO: Pending refunds are not taken into account into the refundedAmount
+					if ( (float) $charge->captureAmount->amount > (float) $charge->refundedAmount->amount ) { // TODO: Cache
+						$actions['refund'] = array(
+							'id'     => $charge_id,
+							'button' => __( 'Make a refund?', 'woocommerce-gateway-amazon-payments-advanced' ),
+						);
+					}
 					break;
 				default:
 					// TODO: This is an unknown state, maybe handle?
