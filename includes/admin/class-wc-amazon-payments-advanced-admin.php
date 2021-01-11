@@ -65,10 +65,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 	 */
 	public function init_order_admin() {
 		include_once $this->path . '/class-wc-amazon-payments-advanced-order-admin.php';
-
 		$this->order_admin = new WC_Amazon_Payments_Advanced_Order_Admin();
-		$this->order_admin->add_meta_box();
-		$this->order_admin->add_ajax_handler();
 	}
 
 	/**

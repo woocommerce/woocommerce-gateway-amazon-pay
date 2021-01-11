@@ -10,25 +10,8 @@
  */
 class WC_Amazon_Payments_Advanced_Order_Admin {
 
-	/**
-	 * Add meta box related to Amazon Pay.
-	 *
-	 * This will add new meta box in edit order screen.
-	 *
-	 * @see WC_Amazon_Payments_Advanced::init_order_admin
-	 */
-	public function add_meta_box() {
+	public function __construct() {
 		add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
-	}
-
-	/**
-	 * Add ajax handler related to Amazon Pay.
-	 *
-	 * This will add ajax handler for Amazon Pay meta box.
-	 *
-	 * @see WC_Amazon_Payments_Advanced::init_order_admin
-	 */
-	public function add_ajax_handler() {
 		add_action( 'wp_ajax_amazon_order_action', array( $this, 'order_actions' ) );
 	}
 
@@ -140,7 +123,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 *
 	 * @param int $order_id Order ID.
 	 */
-	public function clear_stored_states( $order_id ) {
+	private function clear_stored_states( $order_id ) {
 		delete_post_meta( $order_id, 'amazon_reference_state' );
 		delete_post_meta( $order_id, 'amazon_capture_state' );
 		delete_post_meta( $order_id, 'amazon_authorization_state' );
@@ -158,9 +141,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			return;
 		}
 
-		if ( 'amazon_payments_advanced' === wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			add_meta_box( 'woocommerce-amazon-payments-advanced', __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ), array( $this, 'authorization_box' ), 'shop_order', 'side' );
+		if ( 'amazon_payments_advanced' !== wc_apa_get_order_prop( $order, 'payment_method' ) ) {
+			return;
 		}
+
+		add_meta_box( 'woocommerce-amazon-payments-advanced', __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ), array( $this, 'authorization_box' ), 'shop_order', 'side' );
 	}
 
 	/**
@@ -392,5 +377,3 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	}
 
 }
-
-new WC_Amazon_Payments_Advanced_Order_Admin();
