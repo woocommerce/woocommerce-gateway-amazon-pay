@@ -272,4 +272,45 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	private static function generate_uuid() {
+		return sprintf(
+			'%04x%04x%04x%04x%04x%04x%04x%04x',
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0x0fff ) | 0x4000,
+			wp_rand( 0, 0x3fff ) | 0x8000,
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff )
+		);
+	}
+
+	public static function capture_charge( $charge_id, $data = array() ) {
+		$client = self::get_client();
+		if ( empty( $data ) ) {
+			$data = array();
+		}
+		if ( empty( $data['captureAmount'] ) ) {
+			$charge = self::get_charge( $charge_id );
+			$data['captureAmount'] = (array) $charge->chargeAmount; // phpcs:ignore WordPress.NamingConventions
+		}
+
+		$result = $client->captureCharge(
+			$charge_id,
+			$data,
+			array(
+				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 202 ), true ) ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
 }
