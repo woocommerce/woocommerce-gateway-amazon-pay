@@ -344,4 +344,23 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	public static function cancel_charge( $charge_id, $reason = 'Order Cancelled' ) {
+		$client = self::get_client();
+
+		$result = $client->cancelCharge(
+			$charge_id,
+			array(
+				'cancellationReason' => $reason, // TODO: Make dynamic
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
 }

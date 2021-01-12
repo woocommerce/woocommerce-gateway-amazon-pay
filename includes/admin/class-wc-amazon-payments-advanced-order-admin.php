@@ -70,6 +70,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		$order_id = $order->get_id();
 		wc_apa()->log( __METHOD__, sprintf( 'Info: Trying to perform "%s" for order #%s', $action, $order_id ) );
 		switch ( $action ) {
+			case 'close_authorization':
+				$charge = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
+				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				break;
 			case 'capture':
 				$charge = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
 				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
@@ -183,6 +187,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 			switch ( $charge_status ) {
 				case 'AuthorizationInitiated':
+					$actions['close_authorization'] = array(
+						'id'     => $charge_id,
+						'button' => __( 'Close Authorization', 'woocommerce-gateway-amazon-payments-advanced' ),
+					);
+					break;
 				case 'CaptureInitiated':
 					break;
 				case 'Canceled':
@@ -192,6 +201,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					$actions['capture'] = array(
 						'id'     => $charge_id,
 						'button' => __( 'Capture funds', 'woocommerce-gateway-amazon-payments-advanced' ),
+					);
+
+					$actions['close_authorization'] = array(
+						'id'     => $charge_id,
+						'button' => __( 'Close Authorization', 'woocommerce-gateway-amazon-payments-advanced' ),
 					);
 					break;
 				case 'Captured':
