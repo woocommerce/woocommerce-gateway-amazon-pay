@@ -70,6 +70,25 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		$order_id = $order->get_id();
 		wc_apa()->log( __METHOD__, sprintf( 'Info: Trying to perform "%s" for order #%s', $action, $order_id ) );
 		switch ( $action ) {
+			case 'authorize':
+			case 'authorize_capture':
+				$capture_now = ( 'authorize_capture' === $action );
+
+				$can_do_async = false;
+				if ( ! $capture_now && 'async' === WC_Amazon_Payments_Advanced_API::get_settings( 'authorization_mode' ) ) {
+					$can_do_async = true;
+				}
+
+				$charge = WC_Amazon_Payments_Advanced_API::create_charge(
+					$id,
+					array(
+						'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
+						'captureNow'                    => $capture_now,
+						'canHandlePendingAuthorization' => $can_do_async,
+					)
+				);
+				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				break;
 			case 'close_authorization':
 				$charge = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
 				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
@@ -172,6 +191,28 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		$charge_permission_status_label = $this->status_details_label( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 
 		echo wpautop( sprintf( __( 'Charge Permission %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_permission_id ), esc_html( $charge_permission_status_label ) ) );
+
+		$charge_permission_status = $charge_permission->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
+
+		switch ( $charge_permission_status ) {
+			case 'Chargeable':
+				$actions['authorize'] = array(
+					'id'     => $charge_permission_id,
+					'button' => __( 'Authorize', 'woocommerce-gateway-amazon-payments-advanced' ),
+				);
+
+				$actions['authorize_capture'] = array(
+					'id'     => $charge_permission_id,
+					'button' => __( 'Authorize &amp; Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
+				);
+				break;
+			case 'Closed':
+			case 'NonChargeable':
+				break;
+			default:
+				// TODO: This is an unknown state, maybe handle?
+				break;
+		}
 
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
 

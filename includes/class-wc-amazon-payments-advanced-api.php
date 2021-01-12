@@ -374,4 +374,33 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		);
 	}
 
+	public static function create_charge( $charge_permission_id, $data ) {
+		$client = self::get_client();
+		if ( empty( $data ) ) {
+			$data = array();
+		}
+		$data['chargePermissionId'] = $charge_permission_id;
+		// TODO: Validate entered data
+		if ( empty( $data['chargeAmount'] ) ) {
+			$charge_permission = self::get_charge_permission( $charge_permission_id );
+			$data['chargeAmount'] = (array) $charge_permission->limits->amountLimit; // phpcs:ignore WordPress.NamingConventions
+			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
+		}
+
+		$result = $client->createCharge(
+			$data,
+			array(
+				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
 }

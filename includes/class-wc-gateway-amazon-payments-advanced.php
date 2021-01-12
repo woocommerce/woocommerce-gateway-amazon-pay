@@ -803,6 +803,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function log_charge_status_change( WC_Order $order, $charge ) {
+		$old_charge_id = $order->get_meta( 'amazon_charge_id' );
+		if ( $old_charge_id !== $charge->chargeId ) { // phpcs:ignore WordPress.NamingConventions
+			$order->delete_meta_data( 'amazon_charge_id' );
+			$order->delete_meta_data( 'amazon_charge_status' );
+			$order->save();
+		}
 		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
 		$old_status = $order->get_meta( 'amazon_charge_status' );
 		$charge_status = $charge->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
