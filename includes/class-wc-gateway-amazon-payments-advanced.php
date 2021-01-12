@@ -669,9 +669,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					$can_do_async = true;
 				}
 
-				/* translators: Plugin version */
-				$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
-
 				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
 					$checkout_session_id,
 					array(
@@ -684,11 +681,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 								'currencyCode' => $currency,
 							),
 						),
-						'merchantMetadata'              => array(
-							'merchantReferenceId' => $order_id,
-							'merchantStoreName'   => WC_Amazon_Payments_Advanced::get_site_name(),
-							'customInformation'   => $version_note,
-						),
+						'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
 					)
 				);
 
