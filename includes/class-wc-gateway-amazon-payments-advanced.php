@@ -779,11 +779,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
-		$order->update_meta_data( 'amazon_charge_permission_id', $response->chargePermissionId ); // phpcs:ignore WordPress.NamingConventions
+		$charge_permission_id = $response->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
+		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
 		$order->save();
 		$charge_id = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
 		if ( ! empty( $charge_id ) ) {
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
+			$order->save();
 			$charge        = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
 			$charge_status = $this->log_charge_status_change( $order, $charge );
 		} else {
@@ -802,12 +804,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		exit;
 	}
 
-	public function log_charge_status_change( WC_Order $order, $charge ) {
-		$old_charge_id = $order->get_meta( 'amazon_charge_id' );
-		if ( $old_charge_id !== $charge->chargeId ) { // phpcs:ignore WordPress.NamingConventions
+	public function log_charge_status_change( WC_Order $order, $charge = null ) {
+		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		// TODO: Maybe support multple charges to be tracked?
+		if ( ! is_null( $charge ) && $charge_id !== $charge->chargeId ) { // phpcs:ignore WordPress.NamingConventions
 			$order->delete_meta_data( 'amazon_charge_id' );
 			$order->delete_meta_data( 'amazon_charge_status' );
 			$order->save();
+			$charge_id = $charge->chargeId; // phpcs:ignore WordPress.NamingConventions
+		}
+		if ( is_null( $charge ) ) {
+			$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
 		}
 		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
 		$old_status = $this->get_cached_charge_status( $order, true )->status;
@@ -823,7 +830,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $old_status;
 		}
 		$this->refresh_cached_charge_status( $order, $charge );
-		$order->update_meta_data( 'amazon_charge_id', $charge->chargeId ); // phpcs:ignore WordPress.NamingConventions
+		$order->update_meta_data( 'amazon_charge_id', $charge_id ); // phpcs:ignore WordPress.NamingConventions
 		$order->save(); // Save early for less race conditions
 
 		// @codingStandardsIgnoreStart
