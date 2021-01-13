@@ -810,7 +810,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$order->save();
 		}
 		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
-		$old_status = $order->get_meta( 'amazon_charge_status' );
+		$old_status = $this->get_cached_charge_status( $order, true )->status;
 		$charge_status = $charge->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
 		if ( $charge_status === $old_status ) {
 			switch ( $old_status ) {
@@ -822,7 +822,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 			return $old_status;
 		}
-		$order->update_meta_data( 'amazon_charge_status', $charge_status );
+		$this->refresh_cached_charge_status( $order, $charge );
 		$order->update_meta_data( 'amazon_charge_id', $charge->chargeId ); // phpcs:ignore WordPress.NamingConventions
 		$order->save(); // Save early for less race conditions
 
@@ -935,6 +935,78 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 			parent::process_admin_options();
 		}
+	}
+
+	private function format_status_details( $status_details ) {
+		$charge_status         = $status_details->state; // phpcs:ignore WordPress.NamingConventions
+		$charge_status_reasons = $status_details->reasons; // phpcs:ignore WordPress.NamingConventions
+		if ( empty( $charge_status_reasons ) ) {
+			$charge_status_reasons = array();
+		}
+		$charge_status_reason = $status_details->reasonCode; // phpcs:ignore WordPress.NamingConventions
+
+		if ( $charge_status_reason ) {
+			$charge_status_reasons[] = (object) array(
+				'reasonCode'        => $charge_status_reason,
+				'reasonDescription' => '',
+			);
+		}
+
+		return (object) array(
+			'status'  => $charge_status,
+			'reasons' => $charge_status_reasons,
+		);
+	}
+
+	public function get_cached_charge_permission_status( WC_Order $order, $read_only = false ) {
+		$charge_permission_status = $order->get_meta( 'amazon_charge_permission_status' );
+		$charge_permission_status = json_decode( $charge_permission_status );
+		if ( ! $read_only && ! is_object( $charge_permission_status ) ) {
+			$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+			$charge_permission    = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
+
+			$charge_permission_status = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+
+			$order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
+			$order->save();
+		}
+
+		return $charge_permission_status;
+	}
+
+	public function get_cached_charge_status( WC_Order $order, $read_only = false ) {
+		$charge_status = $order->get_meta( 'amazon_charge_status' );
+		$charge_status = json_decode( $charge_status );
+		if ( ! is_object( $charge_status ) ) {
+			if ( ! $read_only ) {
+				$charge_id = $order->get_meta( 'amazon_charge_id' );
+				$charge    = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+
+				$charge_status = $this->format_status_details( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+
+				$order->update_meta_data( 'amazon_charge_status', wp_json_encode( $charge_status ) );
+				$order->save();
+			} else {
+				$charge_status = (object) array(
+					'status'  => null,
+					'reasons' => array(),
+				);
+			}
+		}
+
+		return $charge_status;
+	}
+
+	public function refresh_cached_charge_status( WC_Order $order, $charge = null ) {
+		if ( ! is_object( $charge ) ) {
+			$charge_id = $order->get_meta( 'amazon_charge_id' );
+			$charge    = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+		}
+
+		$charge_status = $this->format_status_details( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+
+		$order->update_meta_data( 'amazon_charge_status', wp_json_encode( $charge_status ) );
+		$order->save();
 	}
 
 }

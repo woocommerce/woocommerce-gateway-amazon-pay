@@ -155,23 +155,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	}
 
 	private function status_details_label( $status_details ) {
-		$charge_status         = $status_details->state; // phpcs:ignore WordPress.NamingConventions
-		$charge_status_reasons = $status_details->reasons; // phpcs:ignore WordPress.NamingConventions
-		if ( empty( $charge_status_reasons ) ) {
-			$charge_status_reasons = array();
-		}
-		$charge_status_reason  = $status_details->reasonCode; // phpcs:ignore WordPress.NamingConventions
-
-		if ( $charge_status_reason ) {
-			$charge_status_reasons[] = (object) array(
-				'reasonCode' => $charge_status_reason,
-				'reasonDescription' => '',
-			);
-		}
-
-		$charge_status_full = $charge_status;
-		if ( ! empty( $charge_status_reasons ) ) {
-			$charge_status_full .= sprintf( ' (%1$s)', implode( ', ', wp_list_pluck( $charge_status_reasons, 'reasonCode' ) ) );
+		$charge_status_full = $status_details->status;
+		if ( ! empty( $status_details->reasons ) ) {
+			$charge_status_full .= sprintf( ' (%1$s)', implode( ', ', wp_list_pluck( $status_details->reasons, 'reasonCode' ) ) );
 		}
 
 		return $charge_status_full;
@@ -185,14 +171,14 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		$actions = array();
 
 		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
-		$charge_permission    = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
 
-		// TODO: Cache
-		$charge_permission_status_label = $this->status_details_label( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order );
+
+		$charge_permission_status_label = $this->status_details_label( $charge_permission_cached_status );
 
 		echo wpautop( sprintf( __( 'Charge Permission %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_permission_id ), esc_html( $charge_permission_status_label ) ) );
 
-		$charge_permission_status = $charge_permission->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
+		$charge_permission_status = $charge_permission_cached_status->status; // phpcs:ignore WordPress.NamingConventions
 
 		switch ( $charge_permission_status ) {
 			case 'Chargeable':
@@ -217,14 +203,13 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
 
 		if ( ! empty( $charge_id ) ) {
-			$charge               = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+			$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order );
 
-			// TODO: Cache
-			$charge_status_label = $this->status_details_label( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+			$charge_status_label = $this->status_details_label( $charge_cached_status );
 
 			echo wpautop( sprintf( __( 'Charge %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_id ), esc_html( $charge_status_label ) ) );
 
-			$charge_status = $charge->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
+			$charge_status = $charge_cached_status->status; // phpcs:ignore WordPress.NamingConventions
 
 			switch ( $charge_status ) {
 				case 'AuthorizationInitiated':
@@ -250,13 +235,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					);
 					break;
 				case 'Captured':
-					// TODO: Pending refunds are not taken into account into the refundedAmount
-					if ( (float) $charge->captureAmount->amount > (float) $charge->refundedAmount->amount ) { // TODO: Cache
-						$actions['refund'] = array(
-							'id'     => $charge_id,
-							'button' => __( 'Make a refund?', 'woocommerce-gateway-amazon-payments-advanced' ),
-						);
-					}
+					// TODO: Handle fully refunded charges
+					$actions['refund'] = array(
+						'id'     => $charge_id,
+						'button' => __( 'Make a refund?', 'woocommerce-gateway-amazon-payments-advanced' ),
+					);
 					break;
 				default:
 					// TODO: This is an unknown state, maybe handle?
