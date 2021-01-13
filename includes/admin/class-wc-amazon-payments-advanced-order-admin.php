@@ -99,11 +99,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 				break;
 			case 'refund':
 				$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
-				$order->add_meta_data( 'amazon_refund_id', $refund->refundId );
+				$order->add_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
 				$order->save();
 				$wc_refund = wc_create_refund(
 					array(
-						'amount'   => $refund->refundAmount->amount,
+						'amount'   => $refund->refundAmount->amount, // phpcs:ignore WordPress.NamingConventions
 						'order_id' => $order->get_id(),
 					)
 				);
@@ -112,10 +112,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					break;
 				}
 
-				$wc_refund->update_meta_data( 'amazon_refund_id', $refund->refundId );
+				$wc_refund->update_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
 				$wc_refund->set_refunded_payment( true );
 				$wc_refund->save();
-				$charge = WC_Amazon_Payments_Advanced_API::get_charge( $refund->chargeId );
+				$charge = WC_Amazon_Payments_Advanced_API::get_charge( $refund->chargeId ); // phpcs:ignore WordPress.NamingConventions
 				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 		}

@@ -325,7 +325,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( empty( $data['refundAmount'] ) ) {
 			$charge               = self::get_charge( $charge_id );
 			$data['refundAmount'] = (array) $charge->captureAmount; // phpcs:ignore WordPress.NamingConventions
-			$data['refundAmount']['amount'] -= (float) $charge->refundedAmount->amount;
+			$data['refundAmount']['amount'] -= (float) $charge->refundedAmount->amount; // phpcs:ignore WordPress.NamingConventions
 		}
 
 		$result = $client->createRefund(
