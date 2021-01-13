@@ -115,8 +115,6 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 				$wc_refund->update_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
 				$wc_refund->set_refunded_payment( true );
 				$wc_refund->save();
-				$charge = WC_Amazon_Payments_Advanced_API::get_charge( $refund->chargeId ); // phpcs:ignore WordPress.NamingConventions
-				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 		}
 	}
