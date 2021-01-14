@@ -91,14 +91,17 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 						'canHandlePendingAuthorization' => $can_do_async,
 					)
 				);
+				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
 				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'close_authorization':
 				$charge = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
+				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
 				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'capture':
 				$charge = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
+				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
 				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'refund':
