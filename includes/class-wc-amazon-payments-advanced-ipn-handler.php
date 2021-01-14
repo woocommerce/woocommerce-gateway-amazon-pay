@@ -82,7 +82,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_notification_ipn_v2' ) );
 
 		// Do async polling action (as a fallback)
-		add_action( 'wc_amazon_async_polling', array( $this, 'handle_async_polling' ) );
+		add_action( 'wc_amazon_async_polling', array( $this, 'handle_async_polling' ), 10, 2 );
 	}
 
 	/**
