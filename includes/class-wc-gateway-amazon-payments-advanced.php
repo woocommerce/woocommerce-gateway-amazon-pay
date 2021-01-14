@@ -782,12 +782,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$charge_permission_id = $response->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
 		$order->save();
+		$charge_permission_status = $this->log_charge_permission_status_change( $order );
 		$charge_id = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
 		if ( ! empty( $charge_id ) ) {
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
 			$order->save();
-			$charge        = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
-			$charge_status = $this->log_charge_status_change( $order, $charge );
+			$charge_status = $this->log_charge_status_change( $order );
 		} else {
 			$order->update_status( 'on-hold' );
 			wc_maybe_reduce_stock_levels( $order->get_id() );
@@ -870,6 +870,67 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->save();
 
 		return $charge_status;
+	}
+
+	public function log_charge_permission_status_change( WC_Order $order, $charge_permission = null ) {
+		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+		// TODO: Maybe support multple charges to be tracked?
+		if ( ! is_null( $charge_permission ) && $charge_permission_id !== $charge_permission->chargePermissionId ) { // phpcs:ignore WordPress.NamingConventions
+			$order->delete_meta_data( 'amazon_charge_permission_id' );
+			$order->delete_meta_data( 'amazon_charge_permission_status' );
+			$order->save();
+			$charge_permission_id = $charge_permission->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
+		}
+		if ( is_null( $charge_permission ) ) {
+			if ( empty( $charge_permission_id ) ) {
+				return null;
+			}
+			$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
+		}
+		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
+		$old_status = $this->get_cached_charge_permission_status( $order, true )->status;
+		$charge_permission_status = $charge_permission->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
+		if ( $charge_permission_status === $old_status ) {
+			switch ( $charge_permission_status ) {
+				case 'Chargeable':
+				case 'NonChargeable':
+					wc_apa()->ipn_handler->schedule_hook( $order->get_id(), 'CHARGE_PERMISSION' );
+					break;
+			}
+			return $old_status;
+		}
+		$this->refresh_cached_charge_permission_status( $order, $charge_permission );
+		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id ); // phpcs:ignore WordPress.NamingConventions
+		$order->save(); // Save early for less race conditions
+
+		// @codingStandardsIgnoreStart
+		$order->add_order_note( sprintf(
+			/* translators: 1) Amazon Charge ID 2) Charge status */
+			__( 'Charge Permission %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
+			(string) $charge_permission_id,
+			(string) $charge_permission_status
+		) );
+		// @codingStandardsIgnoreEnd
+
+		switch ( $charge_permission_status ) {
+			case 'Chargeable':
+			case 'NonChargeable':
+				wc_apa()->ipn_handler->schedule_hook( $order->get_id(), 'CHARGE_PERMISSION' );
+				break;
+			case 'Closed':
+				if ( is_null( $this->get_cached_charge_status( $order, true )->status ) ) {
+					$order->update_status( 'failed' );
+					wc_maybe_increase_stock_levels( $order->get_id() );
+				}
+				break;
+			default:
+				// TODO: This is an unknown state, maybe handle?
+				break;
+		}
+
+		$order->save();
+
+		return $charge_permission_status;
 	}
 
 	public function update_js() {

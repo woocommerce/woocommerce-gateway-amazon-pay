@@ -70,6 +70,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		$order_id = $order->get_id();
 		wc_apa()->log( __METHOD__, sprintf( 'Info: Trying to perform "%s" for order #%s', $action, $order_id ) );
 		switch ( $action ) {
+			case 'refresh':
+				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order );
+				break;
 			case 'authorize':
 			case 'authorize_capture':
 				$capture_now = ( 'authorize_capture' === $action );
@@ -166,7 +170,14 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			return;
 		}
 
-		$actions = array();
+		$actions = array(
+			'refresh' => array(
+				'id'     => $order->get_id(),
+				'button' => __( 'Refresh', 'woocommerce-gateway-amazon-payments-advanced' ),
+			),
+		);
+
+		$need_refresh = false;
 
 		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
 
@@ -189,9 +200,12 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					'id'     => $charge_permission_id,
 					'button' => __( 'Authorize &amp; Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
 				);
+				$need_refresh = true;
 				break;
 			case 'Closed':
+				break;
 			case 'NonChargeable':
+				$need_refresh = true;
 				break;
 			default:
 				// TODO: This is an unknown state, maybe handle?
@@ -215,8 +229,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 						'id'     => $charge_id,
 						'button' => __( 'Close Authorization', 'woocommerce-gateway-amazon-payments-advanced' ),
 					);
+					$need_refresh = true;
 					break;
 				case 'CaptureInitiated':
+					$need_refresh = true;
 					break;
 				case 'Canceled':
 				case 'Declined':
@@ -231,6 +247,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 						'id'     => $charge_id,
 						'button' => __( 'Close Authorization', 'woocommerce-gateway-amazon-payments-advanced' ),
 					);
+					$need_refresh = true;
 					break;
 				case 'Captured':
 					// TODO: Handle fully refunded charges
@@ -243,6 +260,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					// TODO: This is an unknown state, maybe handle?
 					break;
 			}
+		}
+
+		if ( ! $need_refresh ) {
+			unset( $actions['refresh'] );
 		}
 
 		if ( ! empty( $actions ) ) {
