@@ -971,15 +971,30 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function get_cached_charge_permission_status( WC_Order $order, $read_only = false ) {
 		$charge_permission_status = $order->get_meta( 'amazon_charge_permission_status' );
 		$charge_permission_status = json_decode( $charge_permission_status );
-		if ( ! $read_only && ! is_object( $charge_permission_status ) ) {
+		if ( ! is_object( $charge_permission_status ) ) {
+			if ( ! $read_only ) {
+				$charge_permission_status = $this->refresh_cached_charge_permission_status( $order );
+			} else {
+				$charge_permission_status = (object) array(
+					'status'  => null,
+					'reasons' => array(),
+				);
+			}
+		}
+
+		return $charge_permission_status;
+	}
+
+	public function refresh_cached_charge_permission_status( WC_Order $order, $charge_permission = null ) {
+		if ( ! is_object( $charge_permission ) ) {
 			$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
 			$charge_permission    = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
-
-			$charge_permission_status = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
-
-			$order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
-			$order->save();
 		}
+
+		$charge_permission_status = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+
+		$order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
+		$order->save();
 
 		return $charge_permission_status;
 	}
@@ -989,13 +1004,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$charge_status = json_decode( $charge_status );
 		if ( ! is_object( $charge_status ) ) {
 			if ( ! $read_only ) {
-				$charge_id = $order->get_meta( 'amazon_charge_id' );
-				$charge    = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
-
-				$charge_status = $this->format_status_details( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
-
-				$order->update_meta_data( 'amazon_charge_status', wp_json_encode( $charge_status ) );
-				$order->save();
+				$charge_status = $this->refresh_cached_charge_status( $order );
 			} else {
 				$charge_status = (object) array(
 					'status'  => null,
@@ -1017,6 +1026,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order->update_meta_data( 'amazon_charge_status', wp_json_encode( $charge_status ) );
 		$order->save();
+
+		return $charge_status;
 	}
 
 }
