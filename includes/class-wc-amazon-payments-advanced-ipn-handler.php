@@ -15,7 +15,7 @@
  *
  * @since 1.8.0
  */
-class WC_Amazon_Payments_Advanced_IPN_Handler {
+class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advanced_IPN_Handler_Abstract {
 
 	/**
 	 * This constant tells you the signature version that's passed as `SignatureVersion`.
@@ -69,38 +69,6 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	);
 
 	/**
-	 * Required keys for subscription confirmation type.
-	 *
-	 * @see self::$required_data_keys.
-	 *
-	 * @since 1.8.0
-	 * @version 1.8.0
-	 *
-	 * @var array
-	 */
-	protected $required_subscription_keys = array(
-		array( 'SubscribeURL', 'SubscribeUrl' ),
-		'Token',
-	);
-
-	/**
-	 * Required keys for notification message.
-	 *
-	 * @see self::$required_data_keys.
-	 *
-	 * @since 1.8.0
-	 * @version 1.8.0
-	 *
-	 * @var array
-	 */
-	protected $required_notification_message_keys = array(
-		'NotificationType',
-		'NotificationData',
-		'NotificationReferenceId',
-		'SellerId',
-	);
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 1.8.0
@@ -111,7 +79,10 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 		add_action( 'woocommerce_api_wc_gateway_amazon_payments_advanced', array( $this, 'check_ipn_request' ) );
 
 		// Handle valid IPN message.
-		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_ipn' ) );
+		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_notification_ipn_v2' ) );
+
+		// Do async polling action (as a fallback)
+		add_action( 'wc_amazon_async_polling', array( $this, 'handle_async_polling' ) );
 	}
 
 	/**
@@ -303,18 +274,23 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 
 		$this->validate_required_keys( $message, $this->required_data_keys );
 
+		$this->validate_message( $message );
+
 		switch ( $message['Type'] ) {
 			case 'Notification':
-				$notification_message = $this->decode_raw_post_data( $message['Message'] );
-				$this->validate_required_keys( $notification_message, $this->required_notification_message_keys );
+				$message['Message']   = $this->decode_raw_post_data( $message['Message'] );
+				$notification_version = isset( $message['Message']['NotificationVersion'] ) ? strtolower( $message['Message']['NotificationVersion'] ) : 'v1';
+				do_action( 'woocommerce_amazon_payments_advanced_ipn_validate_notification_keys', $message, $notification_version );
 				break;
 			case 'SubscriptionConfirmation':
 			case 'UnsubscribeConfirmation':
-				$this->validate_required_keys( $message, $this->required_subscription_keys );
+				do_action( 'woocommerce_amazon_payments_advanced_ipn_validate_subscription_keys', $message );
 				break;
 			default:
 				throw new Exception( 'No handler for message type ' . $message['Type'] );
 		}
+
+		wc_apa()->log( __METHOD__, sprintf( 'Valid IPN message %s.', $message['MessageId'] ) );
 
 		return $message;
 	}
@@ -375,42 +351,6 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	}
 
 	/**
-	 * Validate required keys that need to be present in message.
-	 *
-	 * @since 1.8.0
-	 * @version 1.8.0
-	 *
-	 * @throws Exception Missing required key in the message.
-	 *
-	 * @param array $message Message to check.
-	 * @param array $keys    Required keys to be present.
-	 */
-	protected function validate_required_keys( $message, $keys ) {
-		foreach ( $keys as $key ) {
-			$key_has_options = is_array( $key );
-			if ( ! $key_has_options ) {
-				$found = isset( $message[ $key ] );
-			} else {
-				$found = false;
-				foreach ( $key as $option ) {
-					if ( isset( $message[ $option ] ) ) {
-						$found = true;
-						break;
-					}
-				}
-			}
-
-			if ( ! $found ) {
-				if ( $key_has_options ) {
-					$key = $key[0];
-				}
-
-				throw new Exception( $key . ' is required to verify the SNS message.' );
-			}
-		}
-	}
-
-	/**
 	 * Check incoming IPN request.
 	 *
 	 * @since 1.8.0
@@ -428,11 +368,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 
 			$message = $this->get_message_from_raw_post_data( $raw_post_data );
 
-			$this->validate_message( $message );
-
-			wc_apa()->log( __METHOD__, sprintf( 'Valid IPN message %s.', $message['MessageId'] ) );
-
-			header( 'HTTP/1.1 200 OK' );
+			status_header( 200 );
 
 			do_action( 'woocommerce_amazon_payments_advanced_handle_ipn', $message );
 			exit;
@@ -460,247 +396,92 @@ class WC_Amazon_Payments_Advanced_IPN_Handler {
 	 *
 	 * @param array $message Parsed SNS message.
 	 */
-	public function handle_ipn( $message ) {
+	public function handle_notification_ipn_v2( $message ) {
 		// Ignore non-notification type message.
 		if ( 'Notification' !== $message['Type'] ) {
 			return;
 		}
 
-		$notification      = $this->decode_raw_post_data( $message['Message'] );
-		$notification_data = $this->get_parsed_notification_data( $notification );
-		$order             = $this->get_order_from_notification_data( $notification['NotificationType'], $notification_data );
+		$notification_version = isset( $message['Message']['NotificationVersion'] ) ? strtolower( $message['Message']['NotificationVersion'] ) : 'v1';
 
-		do_action( 'woocommerce_amazon_payments_advanced_handle_ipn_order', $order );
-
-		switch ( $notification['NotificationType'] ) {
-			case 'OrderReferenceNotification':
-				$this->handle_ipn_order_reference( $order, $notification_data );
-				break;
-			case 'PaymentAuthorize':
-				$this->handle_ipn_payment_authorize( $order, $notification_data );
-				break;
-			case 'PaymentCapture':
-				$this->handle_ipn_payment_capture( $order, $notification_data );
-				break;
-			case 'PaymentRefund':
-				$this->handle_ipn_payment_refund( $order, $notification_data );
-				break;
-			default:
-				throw new Exception( 'No handler for notification with type ' . $notification['NotificationType'] );
-		}
-	}
-
-	/**
-	 * Handle IPN for order reference notification.
-	 *
-	 * Currently only log the event in the order notes.
-	 *
-	 * @since 1.8.0
-	 * @version 1.8.0
-	 *
-	 * @param WC_Order         $order             Order object.
-	 * @param SimpleXMLElement $notification_data Notification data.
-	 */
-	protected function handle_ipn_order_reference( $order, $notification_data ) {
-		// @codingStandardsIgnoreStart
-		$order->add_order_note( sprintf(
-			/* translators: 1) Amazon order reference ID 2) order reference status */
-			__( 'Received IPN for order reference %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
-			(string) $notification_data->OrderReference->AmazonOrderReferenceId,
-			(string) $notification_data->OrderReference->OrderReferenceStatus->State
-		) );
-		// @codingStandardsIgnoreEnd
-
-		if ( $order->get_meta( 'amazon_timed_out_transaction' ) ) {
-			WC_Amazon_Payments_Advanced_API::handle_async_ipn_order_reference_payload( $notification_data, $order );
-		}
-	}
-
-	/**
-	 * Handle IPN for payment authorize notification.
-	 *
-	 * Currently only log the event in the order notes.
-	 *
-	 * @since 1.8.0
-	 * @version 1.8.0
-	 *
-	 * @param WC_Order         $order             Order object.
-	 * @param SimpleXMLElement $notification_data Notification data.
-	 */
-	protected function handle_ipn_payment_authorize( $order, $notification_data ) {
-		// @codingStandardsIgnoreStart
-		$order->add_order_note( sprintf(
-			/* translators: 1) Amazon authorize ID 2) authorization status */
-			__( 'Received IPN for payment authorize %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
-			(string) $notification_data->AuthorizationDetails->AmazonAuthorizationId,
-			(string) $notification_data->AuthorizationDetails->AuthorizationStatus->State
-		) );
-		// @codingStandardsIgnoreEnd
-
-		if ( $order->get_meta( 'amazon_timed_out_transaction' ) ) {
-			WC_Amazon_Payments_Advanced_API::handle_async_ipn_payment_authorization_payload( $notification_data, $order );
-		}
-	}
-
-	/**
-	 * Handle IPN for payment capture notification.
-	 *
-	 * Currently only log the event in the order notes.
-	 *
-	 * @since 1.8.0
-	 * @version 1.8.0
-	 *
-	 * @param WC_Order         $order             Order object.
-	 * @param SimpleXMLElement $notification_data Notification data.
-	 */
-	protected function handle_ipn_payment_capture( $order, $notification_data ) {
-		// @codingStandardsIgnoreStart
-		$order->add_order_note( sprintf(
-			/* translators: 1) Amazon capture ID 2) capture status */
-			__( 'Received IPN for payment capture %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
-			(string) $notification_data->CaptureDetails->AmazonCaptureId,
-			(string) $notification_data->CaptureDetails->CaptureStatus->State
-		) );
-		// @codingStandardsIgnoreEnd
-	}
-
-	/**
-	 * Handle IPN for payment payment refund.
-	 *
-	 * Currently only log the event in the order notes.
-	 *
-	 * @since 1.8.0
-	 * @version 1.8.0
-	 *
-	 * @param WC_Order         $order             Order object.
-	 * @param SimpleXMLElement $notification_data Notification data.
-	 */
-	protected function handle_ipn_payment_refund( $order, $notification_data ) {
-		// @codingStandardsIgnoreStart
-		$refund_id     = (string) $notification_data->RefundDetails->AmazonRefundId;
-		$refund_status = (string) $notification_data->RefundDetails->RefundStatus->State;
-		$refund_amount = (float)  $notification_data->RefundDetails->RefundAmount->Amount;
-		$refund_type   = (string) $notification_data->RefundDetails->RefundType;
-		$refund_reason = (string) $notification_data->RefundDetails->SellerRefundNote;
-		// @codingStandardsIgnoreEnd
-
-		$order->add_order_note(
-			sprintf(
-				// translators: 1) Amazon refund ID 2) refund status 3) refund amount
-				__( 'Received IPN for payment refund %1$s with status %2$s. Refund amount: %3$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
-				$refund_id,
-				$refund_status,
-				wc_price( $refund_amount )
-			)
-		);
-
-		if ( 'refunded' === $order->get_status() ) {
+		if ( 'v2' !== $notification_version ) {
 			return;
 		}
 
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		if ( $order->get_total() === $refund_amount ) {
-			wc_order_fully_refunded( $order_id );
+		$notification = $message['Message'];
+
+		$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ChargePermissionId'] );
+
+		$order_id = $charge_permission->merchantMetadata->merchantReferenceId;
+		if ( is_numeric( $order_id ) ) {
+			$order = wc_get_order( $order_id );
 		} else {
-			wc_create_refund(
-				array(
-					'amount'   => $refund_amount,
-					'reason'   => $refund_reason,
-					'order_id' => $order_id,
-				)
-			);
-		}
-		add_post_meta( $order_id, 'amazon_refund_id', $refund_id );
-
-		// Buyer canceled the order.
-		if ( 'BuyerCanceled' === $refund_type ) {
-			$order->update_status( 'cancelled', __( 'Order cancelled by customer via Amazon.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-	}
-
-	/**
-	 * Get the parsed notification data (from XML).
-	 *
-	 * @since 1.8.0
-	 *
-	 * @throws Exception Failed to parse the XML.
-	 *
-	 * @param array $notification Notification message.
-	 *
-	 * @return SimpleXMLElement Parsed XML object.
-	 */
-	protected function get_parsed_notification_data( $notification ) {
-		// Chargeback notification has different notification message and it's
-		// not XML, so return as it's.
-		if ( 'ChargebackDetailedNotification' === $notification['NotificationType'] ) {
-			return $notification['NotificationData'];
-		}
-
-		$data = WC_Amazon_Payments_Advanced_API::safe_load_xml( $notification['NotificationData'], LIBXML_NOCDATA );
-		if ( ! $data ) {
-			throw new Exception( 'Failed to parse the XML in NotificationData.' );
-		}
-
-		return $data;
-	}
-
-	/**
-	 * Get order from notification data.
-	 *
-	 * @since 1.8.0
-	 *
-	 * @throws Exception Failed to get order information from notification data.
-	 *
-	 * @param string           $notification_type Notification type.
-	 * @param SimpleXMLElement $notification_data Notification data.
-	 *
-	 * @return WC_Order Order object.
-	 */
-	protected function get_order_from_notification_data( $notification_type, $notification_data ) {
-		$order_id = null;
-
-		// @codingStandardsIgnoreStart
-		switch ( $notification_type ) {
-			case 'OrderReferenceNotification':
-				$order_id = (int) $notification_data->OrderReference->SellerOrderAttributes->SellerOrderId;
-				break;
-			case 'PaymentAuthorize':
-				$auth_ref = (string) $notification_data->AuthorizationDetails->AuthorizationReferenceId;
-				$auth_ref = explode( '-', $auth_ref );
-				$order_id = $auth_ref[0];
-				break;
-			case 'PaymentCapture':
-				$capture_ref = (string) $notification_data->CaptureDetails->CaptureReferenceId;
-				$capture_ref = explode( '-', $capture_ref );
-				$order_id = $capture_ref[0];
-				break;
-			case 'PaymentRefund':
-				$refund_id    = (string) $notification_data->RefundDetails->AmazonRefundId;
-				$refund_parts = explode( '-', $refund_id );
-				unset( $refund_parts[3] );
-
-				$order_ref = implode( '-', $refund_parts );
-				$order_id  = WC_Amazon_Payments_Advanced_API::get_order_id_from_reference_id( $order_ref );
-
-				// When no order stores refund reference ID, checks RefundReferenceId.
-				if ( ! $order_id ) {
-					$refund_ref = (string) $notification_data->RefundDetails->RefundReferenceId;
-					$refund_ref = explode( '-', $refund_ref );
-					$order_id   = $refund_ref[0];
-				}
-				break;
-		}
-		// @codingStandardsIgnoreEnd
-
-		if ( ! $order_id ) {
-			throw new Exception( 'Could not found order information from notification data.' );
-		}
-
-		$order = wc_get_order( $order_id );
-		if ( ! $order ) {
 			throw new Exception( 'Invalid order ID ' . $order_id );
 		}
 
-		return $order;
+		if ( 'amazon_payments_advanced' !== $order->get_payment_method() ) {
+			throw new Exception( 'Order ID ' . $order_id . ' is not paid with Amazon' );
+		}
+
+		if ( 'STATE_CHANGE' !== strtoupper( $notification['NotificationType'] ) ) {
+			throw new Exception( sprintf( __( 'Notification type "%s" not supported' ), $notification['NotificationType'] ) );
+		}
+
+		if ( ! isset( $notification['MockedIPN'] ) ) {
+			$this->unschedule_hook( $order->get_id() ); // Unshchedule just in case we're actually on real IPN, we'll schedule again if needed.
+		}
+
+		switch ( strtoupper( $notification['ObjectType'] ) ) {
+			case 'CHARGE':
+				$object = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
+				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $object );
+				break;
+			default:
+				throw new Exception( 'Not Implemented' );
+		}
+	}
+
+	public function schedule_hook( $order_id ) {
+		// Schedule action to check pending order next hour.
+		if ( doing_action( 'wc_amazon_async_polling' ) || false === as_next_scheduled_action( 'wc_amazon_async_polling', array( $order_id ), 'wc_amazon_async_polling' ) ) {
+			wc_apa()->log( __METHOD__, 'Scheduling ' . $order_id );
+			as_schedule_single_action( strtotime('next minute'), 'wc_amazon_async_polling', array( $order_id ), 'wc_amazon_async_polling' );
+		}
+	}
+
+	public function unschedule_hook( $order_id ) {
+		// Schedule action to check pending order next hour.
+		wc_apa()->log( __METHOD__, 'Unscheduling ' . $order_id );
+		as_unschedule_all_actions( 'wc_amazon_async_polling', array( $order_id ), 'wc_amazon_async_polling' );
+	}
+
+	public function handle_async_polling( $order_id ) {
+		$order = wc_get_order( $order_id );
+
+		if ( 'amazon_payments_advanced' !== $order->get_payment_method() ) {
+			return;
+		}
+
+		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+
+		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		if ( empty( $charge_id ) ) {
+			// TODO: Not possible to poll for charge_id only with charge permission id (eg: collect payment from seller central)
+			return;
+		}
+
+		$mock_ipn = array(
+			'Type' => 'Notification',
+			'Message' => array(
+				'NotificationVersion' => 'V2',
+				'ChargePermissionId'  => $charge_permission_id,
+				'NotificationType'    => 'STATE_CHANGE',
+				'ObjectType'          => 'CHARGE',
+				'ObjectId'            => $charge_id,
+				'MockedIPN'           => true,
+			),
+		);
+
+		$this->handle_notification_ipn_v2( $mock_ipn );
 	}
 }

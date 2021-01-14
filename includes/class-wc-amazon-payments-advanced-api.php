@@ -127,10 +127,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return self::$amazonpay_client;
 	}
 
-	protected static function create_checkout_session_params() {
+	protected static function create_checkout_session_params( $redirect_url = null ) {
 
 		$settings     = self::get_settings();
-		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
+		if ( is_null( $redirect_url ) ) {
+			$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
+		}
+		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
 		$payload      = array(
 			'storeId'            => $settings['store_id'],
 			'webCheckoutDetails' => array(
@@ -145,10 +148,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	}
 
-	public static function get_create_checkout_session_config() {
+	public static function get_create_checkout_session_config( $redirect_url = null ) {
 		$settings = self::get_settings();
 		$client   = self::get_client();
-		$payload  = self::create_checkout_session_params();
+		$payload  = self::create_checkout_session_params( $redirect_url );
 
 		$signature = $client->generateButtonSignature( $payload );
 		return array(
@@ -211,7 +214,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$response = json_decode( $result['response'] );
 
-		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 202 ), true ) ) {
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
@@ -241,6 +244,32 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				'ja-JP',
 			),
 		);
+	}
+
+	public static function get_charge_permission( $charge_permission_id ) {
+		$client = self::get_client();
+		$result = $client->getChargePermission( $charge_permission_id );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	public static function get_charge( $charge_id ) {
+		$client = self::get_client();
+		$result = $client->getCharge( $charge_id );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
 	}
 
 }
