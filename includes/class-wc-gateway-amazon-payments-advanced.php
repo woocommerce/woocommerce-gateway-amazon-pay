@@ -814,6 +814,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$charge_id = $charge->chargeId; // phpcs:ignore WordPress.NamingConventions
 		}
 		if ( is_null( $charge ) ) {
+			if ( empty( $charge_id ) ) {
+				return null;
+			}
 			$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
 		}
 		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
@@ -837,7 +840,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->add_order_note( sprintf(
 			/* translators: 1) Amazon Charge ID 2) Charge status */
 			__( 'Charge %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
-			(string) $charge->chargeId,
+			(string) $charge_id,
 			(string) $charge_status
 		) );
 		// @codingStandardsIgnoreEnd
