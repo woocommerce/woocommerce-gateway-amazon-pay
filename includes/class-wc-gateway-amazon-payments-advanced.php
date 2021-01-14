@@ -824,7 +824,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				case 'AuthorizationInitiated':
 				case 'Authorized':
 				case 'CaptureInitiated':
-					wc_apa()->ipn_handler->schedule_hook( $order->get_id() );
+					wc_apa()->ipn_handler->schedule_hook( $order->get_id(), 'CHARGE' );
 					break;
 			}
 			return $old_status;
@@ -849,7 +849,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				// Mark as on-hold.
 				$order->update_status( 'on-hold' );
 				wc_maybe_reduce_stock_levels( $order->get_id() );
-				wc_apa()->ipn_handler->schedule_hook( $order->get_id() );
+				wc_apa()->ipn_handler->schedule_hook( $order->get_id(), 'CHARGE' );
 				break;
 			case 'Canceled':
 			case 'Declined':
