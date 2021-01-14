@@ -106,23 +106,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 				break;
 			case 'refund':
 				$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
-				$order->add_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
-				$order->save();
-				$wc_refund = wc_create_refund(
-					array(
-						'amount'   => $refund->refundAmount->amount, // phpcs:ignore WordPress.NamingConventions
-						'order_id' => $order->get_id(),
-					)
-				);
-
-				if ( is_wp_error( $wc_refund ) ) {
-					break;
-				}
-
-				$wc_refund->update_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
-				$wc_refund->set_refunded_payment( true );
-				$wc_refund->save();
-				break;
+				$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $refund );
 		}
 	}
 

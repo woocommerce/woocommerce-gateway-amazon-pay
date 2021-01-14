@@ -272,6 +272,19 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	public static function get_refund( $refund_id ) {
+		$client = self::get_client();
+		$result = $client->getRefund( $refund_id );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
 	private static function generate_uuid() {
 		return sprintf(
 			'%04x%04x%04x%04x%04x%04x%04x%04x',

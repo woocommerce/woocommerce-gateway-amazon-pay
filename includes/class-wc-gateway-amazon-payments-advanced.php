@@ -1091,4 +1091,43 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return $charge_status;
 	}
 
+	public function handle_refund( WC_Order $order, $refund, $wc_refund_id = null ) {
+		$wc_refund = null;
+		if ( empty( $wc_refund_id ) ) {
+			$previous_refunds = $order->get_meta( 'amazon_refund_id', false );
+			if ( ! empty( $previous_refunds ) ) {
+				$refunds = $order->get_refunds();
+				foreach ( $refunds as $this_wc_refund ) {
+					$this_refund_id = $this_wc_refund->get_meta( 'amazon_refund_id' );
+					if ( $this_refund_id === $refund->refundId ) {
+						$wc_refund = $this_wc_refund;
+					}
+				}
+			}
+			if ( empty( $wc_refund ) ) {
+				$wc_refund = wc_create_refund(
+					array(
+						'amount'   => $refund->refundAmount->amount, // phpcs:ignore WordPress.NamingConventions
+						'order_id' => $order->get_id(),
+					)
+				);
+
+				if ( is_wp_error( $wc_refund ) ) {
+					return false;
+				}
+
+				$order->add_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
+				$order->save();
+			}
+			$wc_refund_id = $wc_refund->get_id();
+		} else {
+			$wc_refund = wc_get_order( $wc_refund_id );
+		}
+
+		$wc_refund->update_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
+		$wc_refund->set_refunded_payment( true );
+		$wc_refund->save();
+		return true;
+	}
+
 }
