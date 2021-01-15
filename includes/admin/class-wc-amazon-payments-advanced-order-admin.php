@@ -241,6 +241,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					$actions['refund'] = array(
 						'id'     => $charge_id,
 						'button' => __( 'Make a refund?', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'href'   => '#toggle-refunds',
 					);
 					break;
 				default:
@@ -263,6 +264,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 						'security'      => wp_create_nonce( 'amazon_order_action' ),
 					)
 				);
+				$actions[ $action_name ]['url'] = $url;
+				if ( isset( $action['href'] ) ) {
+					$url = $action['href'];
+				}
+
 				echo '<a href="' . $url . '" class="button">' . esc_html( $action['button'] ) . '</a> ';
 			}
 			echo '</p>';

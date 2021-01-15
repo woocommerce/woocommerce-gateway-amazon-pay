@@ -327,4 +327,18 @@
 			window.onbeforeunload = null;
 		} );
 	}
+	if ( $( 'body' ).hasClass( 'post-type-shop_order' ) ) {
+		jQuery( '#woocommerce-amazon-payments-advanced.postbox' ).each( function() {
+			var thisPostBox = $( this );
+
+			thisPostBox.on( 'click', 'a[href="#toggle-refunds"]', function() {
+				var body = $( 'html, body' );
+				var targetAfter = jQuery( '.woocommerce_order_items_wrapper' );
+				body.stop().animate( { scrollTop: targetAfter.offset().top - 100 }, 1000, 'swing', function() {
+					$( '#woocommerce-order-items .refund-items' ).click();
+				} );
+				return false;
+			} );
+		} );
+	}
 } )( jQuery );
