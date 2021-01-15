@@ -12,6 +12,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	protected $checkout_session;
 
+	protected $current_refund;
+
 	/**
 	 * Constructor
 	 */
@@ -20,6 +22,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Init Handlers
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
+		add_action( 'woocommerce_create_refund', array( $this, 'current_refund_set' ) );
 	}
 
 	/**
@@ -1093,8 +1096,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	public function handle_refund( WC_Order $order, $refund, $wc_refund_id = null ) {
 		$wc_refund = null;
+		$previous_refunds = wp_list_pluck( $order->get_meta( 'amazon_refund_id', false ), 'value' );
 		if ( empty( $wc_refund_id ) ) {
-			$previous_refunds = $order->get_meta( 'amazon_refund_id', false );
 			if ( ! empty( $previous_refunds ) ) {
 				$refunds = $order->get_refunds();
 				foreach ( $refunds as $this_wc_refund ) {
@@ -1115,19 +1118,39 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				if ( is_wp_error( $wc_refund ) ) {
 					return false;
 				}
-
-				$order->add_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
-				$order->save();
 			}
 			$wc_refund_id = $wc_refund->get_id();
 		} else {
 			$wc_refund = wc_get_order( $wc_refund_id );
 		}
 
+		if ( ! in_array( $refund->refundId, $previous_refunds, true ) ) { // phpcs:ignore WordPress.NamingConventions
+			$order->add_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
+			$order->save();
+		}
+
 		$wc_refund->update_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
 		$wc_refund->set_refunded_payment( true );
 		$wc_refund->save();
 		return true;
+	}
+
+	public function process_refund( $order_id, $amount = null, $reason = '') {
+		$order = wc_get_order( $order_id );
+		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		if ( empty( $charge_id ) ) {
+			wc_apa()->log( __METHOD__, 'Order #' . $order_id .' doesnt have a charge' );
+			return new WP_Error( 'no_charge', 'No charge to refund on this order' );
+		}
+		wc_apa()->log( __METHOD__, 'Processing refund from admin for order #' . $order_id );
+		wc_apa()->log( __METHOD__, 'Processing refund from admin for order #' . $order_id . '. Temporary refund ID #' . $this->current_refund->get_id() );
+		$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $charge_id, $amount );
+		$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $refund, $this->current_refund->get_id() );
+		return true;
+	}
+
+	public function current_refund_set( $wc_refund ) {
+		$this->current_refund = $wc_refund; // Cache refund object in a hook before process_refund is called
 	}
 
 }

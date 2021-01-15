@@ -328,7 +328,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
-	public static function refund_charge( $charge_id, $data = array() ) {
+	public static function refund_charge( $charge_id, $amount = null, $data = array() ) {
 		$client = self::get_client();
 		if ( empty( $data ) ) {
 			$data = array();
@@ -339,6 +339,9 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$charge               = self::get_charge( $charge_id );
 			$data['refundAmount'] = (array) $charge->captureAmount; // phpcs:ignore WordPress.NamingConventions
 			$data['refundAmount']['amount'] -= (float) $charge->refundedAmount->amount; // phpcs:ignore WordPress.NamingConventions
+		}
+		if ( ! is_null( $amount ) ) {
+			$data['refundAmount']['amount'] = $amount;
 		}
 
 		$result = $client->createRefund(
