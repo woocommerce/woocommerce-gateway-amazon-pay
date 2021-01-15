@@ -272,4 +272,151 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	public static function get_refund( $refund_id ) {
+		$client = self::get_client();
+		$result = $client->getRefund( $refund_id );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	private static function generate_uuid() {
+		return sprintf(
+			'%04x%04x%04x%04x%04x%04x%04x%04x',
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0x0fff ) | 0x4000,
+			wp_rand( 0, 0x3fff ) | 0x8000,
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff )
+		);
+	}
+
+	public static function capture_charge( $charge_id, $data = array() ) {
+		$client = self::get_client();
+		if ( empty( $data ) ) {
+			$data = array();
+		}
+		// TODO: Validate entered data
+		if ( empty( $data['captureAmount'] ) ) {
+			$charge = self::get_charge( $charge_id );
+			$data['captureAmount'] = (array) $charge->chargeAmount; // phpcs:ignore WordPress.NamingConventions
+			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
+		}
+
+		$result = $client->captureCharge(
+			$charge_id,
+			$data,
+			array(
+				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	public static function refund_charge( $charge_id, $amount = null, $data = array() ) {
+		$client = self::get_client();
+		if ( empty( $data ) ) {
+			$data = array();
+		}
+		$data['chargeId'] = $charge_id;
+		// TODO: Validate entered data
+		if ( empty( $data['refundAmount'] ) ) {
+			$charge               = self::get_charge( $charge_id );
+			$data['refundAmount'] = (array) $charge->captureAmount; // phpcs:ignore WordPress.NamingConventions
+			$data['refundAmount']['amount'] -= (float) $charge->refundedAmount->amount; // phpcs:ignore WordPress.NamingConventions
+		}
+		if ( ! is_null( $amount ) ) {
+			$data['refundAmount']['amount'] = $amount;
+		}
+
+		$result = $client->createRefund(
+			$data,
+			array(
+				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	public static function cancel_charge( $charge_id, $reason = 'Order Cancelled' ) {
+		$client = self::get_client();
+
+		$result = $client->cancelCharge(
+			$charge_id,
+			array(
+				'cancellationReason' => $reason, // TODO: Make dynamic
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	public static function get_merchant_metadata( $order_id ) {
+		/* translators: Plugin version */
+		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
+
+		return array(
+			'merchantReferenceId' => $order_id,
+			'merchantStoreName'   => WC_Amazon_Payments_Advanced::get_site_name(),
+			'customInformation'   => $version_note,
+		);
+	}
+
+	public static function create_charge( $charge_permission_id, $data ) {
+		$client = self::get_client();
+		if ( empty( $data ) ) {
+			$data = array();
+		}
+		$data['chargePermissionId'] = $charge_permission_id;
+		// TODO: Validate entered data
+		if ( empty( $data['chargeAmount'] ) ) {
+			$charge_permission = self::get_charge_permission( $charge_permission_id );
+			$data['chargeAmount'] = (array) $charge_permission->limits->amountLimit; // phpcs:ignore WordPress.NamingConventions
+			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
+		}
+
+		$result = $client->createCharge(
+			$data,
+			array(
+				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
 }

@@ -65,10 +65,9 @@ class WC_Amazon_Payments_Advanced_Admin {
 	 */
 	public function init_order_admin() {
 		include_once $this->path . '/class-wc-amazon-payments-advanced-order-admin.php';
-
 		$this->order_admin = new WC_Amazon_Payments_Advanced_Order_Admin();
-		$this->order_admin->add_meta_box();
-		$this->order_admin->add_ajax_handler();
+		include_once $this->path . '/legacy/class-wc-amazon-payments-advanced-order-admin-legacy.php';
+		new WC_Amazon_Payments_Advanced_Order_Admin_Legacy();
 	}
 
 	/**
@@ -304,8 +303,18 @@ class WC_Amazon_Payments_Advanced_Admin {
 	public function admin_scripts( $hook ) {
 		global $current_section;
 
-		if ( 'woocommerce_page_wc-settings' !== $hook || 'amazon_payments_advanced' !== $current_section ) {
-			return;
+		$current_screen = get_current_screen()->id;
+
+		if ( 'woocommerce_page_wc-settings' === $hook && 'amazon_payments_advanced' === $current_section ) {
+			$current_screen = 'wc_apa_settings';
+		}
+
+		switch ( $current_screen ) {
+			case 'shop_order':
+			case 'wc_apa_settings':
+				break;
+			default:
+				return;
 		}
 
 		$js_suffix = '.min.js';

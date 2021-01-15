@@ -23,7 +23,7 @@
 		poll_timer: false,
 		poll_interval: 3000,
 		main_setting_form: $( '#mainform' ),
-		init: function() {
+		init_settings: function() {
 			wc_simple_path_form.button_language_input.children( 'option' ).each( function() {
 				var key = $( this ).prop( 'value' ).replace( '-', '_' );
 				wc_simple_path_form.button_languages[ key ] = $( this ).text();
@@ -320,9 +320,25 @@
 			$( $( this ).data( 'toggle' ) ).toggleClass( 'hidden' );
 		}
 	};
-	wc_simple_path_form.init();
+	if ( $( 'body' ).hasClass( 'woocommerce_page_wc-settings' ) ) {
+		wc_simple_path_form.init_settings();
 
-	$( '#import_submit' ).click( function( e ) {
-		window.onbeforeunload = null;
-	} );
+		$( '#import_submit' ).click( function( e ) {
+			window.onbeforeunload = null;
+		} );
+	}
+	if ( $( 'body' ).hasClass( 'post-type-shop_order' ) ) {
+		jQuery( '#woocommerce-amazon-payments-advanced.postbox' ).each( function() {
+			var thisPostBox = $( this );
+
+			thisPostBox.on( 'click', 'a[href="#toggle-refunds"]', function() {
+				var body = $( 'html, body' );
+				var targetAfter = jQuery( '.woocommerce_order_items_wrapper' );
+				body.stop().animate( { scrollTop: targetAfter.offset().top - 100 }, 1000, 'swing', function() {
+					$( '#woocommerce-order-items .refund-items' ).click();
+				} );
+				return false;
+			} );
+		} );
+	}
 } )( jQuery );

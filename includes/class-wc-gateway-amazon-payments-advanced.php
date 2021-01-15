@@ -12,6 +12,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	protected $checkout_session;
 
+	protected $current_refund;
+
 	/**
 	 * Constructor
 	 */
@@ -20,6 +22,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Init Handlers
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
+		add_action( 'woocommerce_create_refund', array( $this, 'current_refund_set' ) );
 	}
 
 	/**
@@ -669,9 +672,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					$can_do_async = true;
 				}
 
-				/* translators: Plugin version */
-				$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
-
 				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
 					$checkout_session_id,
 					array(
@@ -684,11 +684,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 								'currencyCode' => $currency,
 							),
 						),
-						'merchantMetadata'              => array(
-							'merchantReferenceId' => $order_id,
-							'merchantStoreName'   => WC_Amazon_Payments_Advanced::get_site_name(),
-							'customInformation'   => $version_note,
-						),
+						'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
 					)
 				);
 
@@ -786,13 +782,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
-		$order->update_meta_data( 'amazon_charge_permission_id', $response->chargePermissionId ); // phpcs:ignore WordPress.NamingConventions
+		$charge_permission_id = $response->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
+		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
 		$order->save();
+		$charge_permission_status = $this->log_charge_permission_status_change( $order );
 		$charge_id = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
 		if ( ! empty( $charge_id ) ) {
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
-			$charge        = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
-			$charge_status = $this->log_charge_status_change( $order, $charge );
+			$order->save();
+			$charge_status = $this->log_charge_status_change( $order );
 		} else {
 			$order->update_status( 'on-hold' );
 			wc_maybe_reduce_stock_levels( $order->get_id() );
@@ -809,29 +807,43 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		exit;
 	}
 
-	public function log_charge_status_change( WC_Order $order, $charge ) {
+	public function log_charge_status_change( WC_Order $order, $charge = null ) {
+		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		// TODO: Maybe support multple charges to be tracked?
+		if ( ! is_null( $charge ) && $charge_id !== $charge->chargeId ) { // phpcs:ignore WordPress.NamingConventions
+			$order->delete_meta_data( 'amazon_charge_id' );
+			$order->delete_meta_data( 'amazon_charge_status' );
+			$order->save();
+			$charge_id = $charge->chargeId; // phpcs:ignore WordPress.NamingConventions
+		}
+		if ( is_null( $charge ) ) {
+			if ( empty( $charge_id ) ) {
+				return null;
+			}
+			$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+		}
 		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
-		$old_status = $order->get_meta( 'amazon_charge_status' );
+		$old_status = $this->get_cached_charge_status( $order, true )->status;
 		$charge_status = $charge->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
 		if ( $charge_status === $old_status ) {
 			switch ( $old_status ) {
 				case 'AuthorizationInitiated':
 				case 'Authorized':
 				case 'CaptureInitiated':
-					wc_apa()->ipn_handler->schedule_hook( $order->get_id() );
+					wc_apa()->ipn_handler->schedule_hook( $order->get_id(), 'CHARGE' );
 					break;
 			}
 			return $old_status;
 		}
-		$order->update_meta_data( 'amazon_charge_status', $charge_status );
-		$order->update_meta_data( 'amazon_charge_id', $charge->chargeId ); // phpcs:ignore WordPress.NamingConventions
+		$this->refresh_cached_charge_status( $order, $charge );
+		$order->update_meta_data( 'amazon_charge_id', $charge_id ); // phpcs:ignore WordPress.NamingConventions
 		$order->save(); // Save early for less race conditions
 
 		// @codingStandardsIgnoreStart
 		$order->add_order_note( sprintf(
 			/* translators: 1) Amazon Charge ID 2) Charge status */
 			__( 'Charge %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
-			(string) $charge->chargeId,
+			(string) $charge_id,
 			(string) $charge_status
 		) );
 		// @codingStandardsIgnoreEnd
@@ -843,7 +855,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				// Mark as on-hold.
 				$order->update_status( 'on-hold' );
 				wc_maybe_reduce_stock_levels( $order->get_id() );
-				wc_apa()->ipn_handler->schedule_hook( $order->get_id() );
+				wc_apa()->ipn_handler->schedule_hook( $order->get_id(), 'CHARGE' );
 				break;
 			case 'Canceled':
 			case 'Declined':
@@ -861,6 +873,67 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->save();
 
 		return $charge_status;
+	}
+
+	public function log_charge_permission_status_change( WC_Order $order, $charge_permission = null ) {
+		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+		// TODO: Maybe support multple charges to be tracked?
+		if ( ! is_null( $charge_permission ) && $charge_permission_id !== $charge_permission->chargePermissionId ) { // phpcs:ignore WordPress.NamingConventions
+			$order->delete_meta_data( 'amazon_charge_permission_id' );
+			$order->delete_meta_data( 'amazon_charge_permission_status' );
+			$order->save();
+			$charge_permission_id = $charge_permission->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
+		}
+		if ( is_null( $charge_permission ) ) {
+			if ( empty( $charge_permission_id ) ) {
+				return null;
+			}
+			$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
+		}
+		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
+		$old_status = $this->get_cached_charge_permission_status( $order, true )->status;
+		$charge_permission_status = $charge_permission->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
+		if ( $charge_permission_status === $old_status ) {
+			switch ( $charge_permission_status ) {
+				case 'Chargeable':
+				case 'NonChargeable':
+					wc_apa()->ipn_handler->schedule_hook( $order->get_id(), 'CHARGE_PERMISSION' );
+					break;
+			}
+			return $old_status;
+		}
+		$this->refresh_cached_charge_permission_status( $order, $charge_permission );
+		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id ); // phpcs:ignore WordPress.NamingConventions
+		$order->save(); // Save early for less race conditions
+
+		// @codingStandardsIgnoreStart
+		$order->add_order_note( sprintf(
+			/* translators: 1) Amazon Charge ID 2) Charge status */
+			__( 'Charge Permission %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
+			(string) $charge_permission_id,
+			(string) $charge_permission_status
+		) );
+		// @codingStandardsIgnoreEnd
+
+		switch ( $charge_permission_status ) {
+			case 'Chargeable':
+			case 'NonChargeable':
+				wc_apa()->ipn_handler->schedule_hook( $order->get_id(), 'CHARGE_PERMISSION' );
+				break;
+			case 'Closed':
+				if ( is_null( $this->get_cached_charge_status( $order, true )->status ) ) {
+					$order->update_status( 'failed' );
+					wc_maybe_increase_stock_levels( $order->get_id() );
+				}
+				break;
+			default:
+				// TODO: This is an unknown state, maybe handle?
+				break;
+		}
+
+		$order->save();
+
+		return $charge_permission_status;
 	}
 
 	public function update_js() {
@@ -936,6 +1009,148 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 			parent::process_admin_options();
 		}
+	}
+
+	private function format_status_details( $status_details ) {
+		$charge_status         = $status_details->state; // phpcs:ignore WordPress.NamingConventions
+		$charge_status_reasons = $status_details->reasons; // phpcs:ignore WordPress.NamingConventions
+		if ( empty( $charge_status_reasons ) ) {
+			$charge_status_reasons = array();
+		}
+		$charge_status_reason = $status_details->reasonCode; // phpcs:ignore WordPress.NamingConventions
+
+		if ( $charge_status_reason ) {
+			$charge_status_reasons[] = (object) array(
+				'reasonCode'        => $charge_status_reason,
+				'reasonDescription' => '',
+			);
+		}
+
+		return (object) array(
+			'status'  => $charge_status,
+			'reasons' => $charge_status_reasons,
+		);
+	}
+
+	public function get_cached_charge_permission_status( WC_Order $order, $read_only = false ) {
+		$charge_permission_status = $order->get_meta( 'amazon_charge_permission_status' );
+		$charge_permission_status = json_decode( $charge_permission_status );
+		if ( ! is_object( $charge_permission_status ) ) {
+			if ( ! $read_only ) {
+				$charge_permission_status = $this->refresh_cached_charge_permission_status( $order );
+			} else {
+				$charge_permission_status = (object) array(
+					'status'  => null,
+					'reasons' => array(),
+				);
+			}
+		}
+
+		return $charge_permission_status;
+	}
+
+	public function refresh_cached_charge_permission_status( WC_Order $order, $charge_permission = null ) {
+		if ( ! is_object( $charge_permission ) ) {
+			$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+			$charge_permission    = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
+		}
+
+		$charge_permission_status = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+
+		$order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
+		$order->save();
+
+		return $charge_permission_status;
+	}
+
+	public function get_cached_charge_status( WC_Order $order, $read_only = false ) {
+		$charge_status = $order->get_meta( 'amazon_charge_status' );
+		$charge_status = json_decode( $charge_status );
+		if ( ! is_object( $charge_status ) ) {
+			if ( ! $read_only ) {
+				$charge_status = $this->refresh_cached_charge_status( $order );
+			} else {
+				$charge_status = (object) array(
+					'status'  => null,
+					'reasons' => array(),
+				);
+			}
+		}
+
+		return $charge_status;
+	}
+
+	public function refresh_cached_charge_status( WC_Order $order, $charge = null ) {
+		if ( ! is_object( $charge ) ) {
+			$charge_id = $order->get_meta( 'amazon_charge_id' );
+			$charge    = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+		}
+
+		$charge_status = $this->format_status_details( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+
+		$order->update_meta_data( 'amazon_charge_status', wp_json_encode( $charge_status ) );
+		$order->save();
+
+		return $charge_status;
+	}
+
+	public function handle_refund( WC_Order $order, $refund, $wc_refund_id = null ) {
+		$wc_refund = null;
+		$previous_refunds = wp_list_pluck( $order->get_meta( 'amazon_refund_id', false ), 'value' );
+		if ( empty( $wc_refund_id ) ) {
+			if ( ! empty( $previous_refunds ) ) {
+				$refunds = $order->get_refunds();
+				foreach ( $refunds as $this_wc_refund ) {
+					$this_refund_id = $this_wc_refund->get_meta( 'amazon_refund_id' );
+					if ( $this_refund_id === $refund->refundId ) {
+						$wc_refund = $this_wc_refund;
+					}
+				}
+			}
+			if ( empty( $wc_refund ) ) {
+				$wc_refund = wc_create_refund(
+					array(
+						'amount'   => $refund->refundAmount->amount, // phpcs:ignore WordPress.NamingConventions
+						'order_id' => $order->get_id(),
+					)
+				);
+
+				if ( is_wp_error( $wc_refund ) ) {
+					return false;
+				}
+			}
+			$wc_refund_id = $wc_refund->get_id();
+		} else {
+			$wc_refund = wc_get_order( $wc_refund_id );
+		}
+
+		if ( ! in_array( $refund->refundId, $previous_refunds, true ) ) { // phpcs:ignore WordPress.NamingConventions
+			$order->add_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
+			$order->save();
+		}
+
+		$wc_refund->update_meta_data( 'amazon_refund_id', $refund->refundId ); // phpcs:ignore WordPress.NamingConventions
+		$wc_refund->set_refunded_payment( true );
+		$wc_refund->save();
+		return true;
+	}
+
+	public function process_refund( $order_id, $amount = null, $reason = '') {
+		$order = wc_get_order( $order_id );
+		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		if ( empty( $charge_id ) ) {
+			wc_apa()->log( __METHOD__, 'Order #' . $order_id .' doesnt have a charge' );
+			return new WP_Error( 'no_charge', 'No charge to refund on this order' );
+		}
+		wc_apa()->log( __METHOD__, 'Processing refund from admin for order #' . $order_id );
+		wc_apa()->log( __METHOD__, 'Processing refund from admin for order #' . $order_id . '. Temporary refund ID #' . $this->current_refund->get_id() );
+		$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $charge_id, $amount );
+		$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $refund, $this->current_refund->get_id() );
+		return true;
+	}
+
+	public function current_refund_set( $wc_refund ) {
+		$this->current_refund = $wc_refund; // Cache refund object in a hook before process_refund is called
 	}
 
 }
