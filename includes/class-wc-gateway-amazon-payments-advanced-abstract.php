@@ -275,17 +275,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					'no'  => __( 'No', 'woocommerce-gateway-amazon-payments-advanced' ),
 				),
 			),
-			'subscriptions_enabled'         => array(
-				'title'       => __( 'Subscriptions support', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'label'       => __( 'Enable Subscriptions for carts that contain Subscription items (requires WooCommerce Subscriptions to be installed)', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'type'        => 'select',
-				'description' => __( 'This will enable support for Subscriptions and make transactions more securely', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'default'     => 'yes',
-				'options'     => array(
-					'yes' => __( 'Yes', 'woocommerce-gateway-amazon-payments-advanced' ),
-					'no'  => __( 'No', 'woocommerce-gateway-amazon-payments-advanced' ),
-				),
-			),
 			'advanced_configuration'        => array(
 				'title'       => __( 'Advanced configurations', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',

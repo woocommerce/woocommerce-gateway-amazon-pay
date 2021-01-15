@@ -34,6 +34,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		// WC Subscription Hook
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
+
+		add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( $this, 'add_enable_subscriptions_field' ) );
 	}
 
 	/**
@@ -748,5 +750,52 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		);
 
 		return $supports;
+	}
+
+	public static function array_insert( $array, $element, $key, $operation = 1 ) {
+		$keys = array_keys( $array );
+		$pos  = array_search( $key, $keys, true );
+
+		switch ( $operation ) {
+			case 1:
+				$read_until = $pos + $operation;
+				$read_from  = $pos + $operation;
+				break;
+			case 0:
+				$read_until = $pos;
+				$read_from  = $pos + 1;
+				break;
+			case -1:
+				$read_until = $pos;
+				$read_from  = $pos;
+				break;
+		}
+
+		$first = array_slice( $array, 0, $read_until, true );
+		$last  = array_slice( $array, $read_from, null, true );
+		return $first + $element + $last;
+	}
+
+	public function add_enable_subscriptions_field( $fields ) {
+		$fields = self::array_insert(
+			$fields,
+			array(
+				'subscriptions_enabled'         => array(
+					'title'       => __( 'Subscriptions support', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'label'       => __( 'Enable Subscriptions for carts that contain Subscription items (requires WooCommerce Subscriptions to be installed)', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'type'        => 'select',
+					'description' => __( 'This will enable support for Subscriptions and make transactions more securely', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'default'     => 'yes',
+					'options'     => array(
+						'yes' => __( 'Yes', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'no'  => __( 'No', 'woocommerce-gateway-amazon-payments-advanced' ),
+					),
+				),
+			),
+			'advanced_configuration',
+			-1
+		);
+
+		return $fields;
 	}
 }
