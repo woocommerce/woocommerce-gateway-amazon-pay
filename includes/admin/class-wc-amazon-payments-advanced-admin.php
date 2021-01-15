@@ -303,8 +303,18 @@ class WC_Amazon_Payments_Advanced_Admin {
 	public function admin_scripts( $hook ) {
 		global $current_section;
 
-		if ( 'woocommerce_page_wc-settings' !== $hook || 'amazon_payments_advanced' !== $current_section ) {
-			return;
+		$current_screen = get_current_screen()->id;
+
+		if ( 'woocommerce_page_wc-settings' === $hook && 'amazon_payments_advanced' === $current_section ) {
+			$current_screen = 'wc_apa_settings';
+		}
+
+		switch ( $current_screen ) {
+			case 'shop_order':
+			case 'wc_apa_settings':
+				break;
+			default:
+				return;
 		}
 
 		$js_suffix = '.min.js';

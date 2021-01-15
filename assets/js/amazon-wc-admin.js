@@ -23,7 +23,7 @@
 		poll_timer: false,
 		poll_interval: 3000,
 		main_setting_form: $( '#mainform' ),
-		init: function() {
+		init_settings: function() {
 			wc_simple_path_form.button_language_input.children( 'option' ).each( function() {
 				var key = $( this ).prop( 'value' ).replace( '-', '_' );
 				wc_simple_path_form.button_languages[ key ] = $( this ).text();
@@ -320,9 +320,11 @@
 			$( $( this ).data( 'toggle' ) ).toggleClass( 'hidden' );
 		}
 	};
-	wc_simple_path_form.init();
+	if ( $( 'body' ).hasClass( 'woocommerce_page_wc-settings' ) ) {
+		wc_simple_path_form.init_settings();
 
-	$( '#import_submit' ).click( function( e ) {
-		window.onbeforeunload = null;
-	} );
+		$( '#import_submit' ).click( function( e ) {
+			window.onbeforeunload = null;
+		} );
+	}
 } )( jQuery );
