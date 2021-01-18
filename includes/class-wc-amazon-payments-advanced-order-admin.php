@@ -167,6 +167,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	public function authorization_box() {
 		global $post, $wpdb, $theorder;
 
+		if ( empty( $post->ID ) ) {
+			return;
+		}
 		$actions  = array();
 		$order_id = absint( $post->ID );
 
