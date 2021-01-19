@@ -136,7 +136,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$region = WC_Amazon_Payments_Advanced_API::get_region();
 
 		$url = false;
-		switch ( $region ) {
+		switch ( strtolower( $region ) ) {
 			case 'us':
 				$url = 'https://static-na.payments-amazon.com/checkout.js';
 				break;
