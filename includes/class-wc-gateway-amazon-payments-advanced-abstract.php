@@ -684,7 +684,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$settings = get_option( $this->get_option_key() );
 
 		$clean_settings = array();
-		foreach ( $this->form_fields as $key => $field ) {
+		foreach ( $this->get_form_fields() as $key => $field ) {
 			if ( 'title' === $field['type'] || 'custom' === $field['type'] || 'file' === $field['type'] ) {
 				continue;
 			}
