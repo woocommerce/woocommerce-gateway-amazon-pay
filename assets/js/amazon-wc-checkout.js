@@ -49,10 +49,12 @@
 		}
 
 		function activateChange( button_id, action ) {
-			if ( 0 === $( button_id ).length ) {
+			var $btn = $( button_id );
+			if ( 0 === $btn.length || $btn.data( 'wc_apa_chage_bind' ) === action ) {
 				return;
 			}
-			$( button_id ).on( 'click', function( e ) {
+			$btn.data( 'wc_apa_chage_bind', action );
+			$btn.on( 'click', function( e ) {
 				e.preventDefault();
 			} );
 			amazon.Pay.bindChangeAction( button_id, {
@@ -77,18 +79,15 @@
 		}
 
 		function initAmazonPaymentFields() {
+			if ( ! isAmazonCheckout() ) {
+				return;
+			}
 			toggleDetailsVisibility( 'woocommerce-billing-fields' );
 			toggleDetailsVisibility( 'woocommerce-shipping-fields' );
 			toggleDetailsVisibility( 'woocommerce-additional-fields' );
 			activateChange( '#payment_method_widget_change', 'changePayment' );
 			activateChange( '#shipping_address_widget_change', 'changeAddress' );
-		}
 
-		$( 'body' ).on( 'updated_checkout', function() {
-			initAmazonPaymentFields();
-			if ( ! isAmazonCheckout() ) {
-				return;
-			}
 			if ( $( '.woocommerce-billing-fields .woocommerce-billing-fields__field-wrapper > *' ).length > 0 ) {
 				$( '.woocommerce-billing-fields' ).insertBefore( '#payment' );
 			}
@@ -99,6 +98,10 @@
 				$( '.woocommerce-shipping-fields' ).insertBefore( '#payment' );
 			}
 			$( '.woocommerce-additional-fields' ).insertBefore( '#payment' );
-		} );
+		}
+
+		initAmazonPaymentFields();
+
+		$( 'body' ).on( 'updated_checkout', initAmazonPaymentFields );
 	} );
 } )( jQuery );
