@@ -91,6 +91,11 @@
 			if ( $( '.woocommerce-billing-fields .woocommerce-billing-fields__field-wrapper > *' ).length > 0 ) {
 				$( '.woocommerce-billing-fields' ).insertBefore( '#payment' );
 			}
+
+			if ( $( '.woocommerce-account-fields' ).length > 0 ) {
+				$( '.woocommerce-account-fields' ).insertBefore( '#wc-apa-account-fields-anchor' );
+			}
+
 			if ( $( '.woocommerce-shipping-fields .woocommerce-shipping-fields__field-wrapper > *' ).length > 0 ) {
 				var title = $( '#ship-to-different-address' );
 				title.find( ':checkbox#ship-to-different-address-checkbox' ).hide();
