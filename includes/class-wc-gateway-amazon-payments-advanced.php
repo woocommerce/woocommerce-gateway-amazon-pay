@@ -140,7 +140,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			case 'us':
 				$url = 'https://static-na.payments-amazon.com/checkout.js';
 				break;
-			case 'uk':
+			case 'gb':
 			case 'eu':
 				$url = 'https://static-eu.payments-amazon.com/checkout.js';
 				break;
