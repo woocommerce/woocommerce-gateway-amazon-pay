@@ -38,6 +38,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function is_available() {
 		$is_available = parent::is_available() && ! empty( $this->settings['merchant_id'] );
 
+		if ( ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) { // TODO: Check with multicurrency implementation
+			$is_available = false;
+		}
+
 		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) { // TODO: Implement order pay view.
 			$is_available = false;
 		}
@@ -100,6 +104,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ),
 			'checkout_session_id'            => $this->get_checkout_session_id(),
 			'button_language'                => $this->settings['button_language'],
+			'ledger_currency'                => $this->get_ledger_currency(), // TODO: Implement multicurrency
 		);
 
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
@@ -150,6 +155,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return $url;
+	}
+
+	protected function get_ledger_currency() {
+		$region = WC_Amazon_Payments_Advanced_API::get_region();
+
+		switch ( strtolower( $region ) ) {
+			case 'us':
+				return 'USD';
+			case 'gb':
+				return 'GBP';
+			case 'eu':
+				return 'EUR';
+			case 'jp':
+				return 'JPY';
+		}
+
+		return false;
 	}
 
 	/**
