@@ -220,6 +220,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		unset( WC()->session->amazon_checkout_session_id );
 	}
 
+	protected function do_force_refresh( $reason ) {
+		WC()->session->force_refresh_message = $reason;
+	}
+
+	protected function get_force_refresh() {
+		return WC()->session->force_refresh_message;
+	}
+
+	protected function unset_force_refresh() {
+		unset( WC()->session->force_refresh_message );
+	}
+
+	protected function need_to_force_refresh() {
+		return ! is_null( WC()->session->force_refresh_message );
+	}
+
 	public function maybe_handle_apa_action() {
 
 		if ( empty( $_GET['amazon_payments_advanced'] ) ) {
@@ -240,6 +256,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		if ( isset( $_GET['amazon_login'] ) && isset( $_GET['amazonCheckoutSessionId'] ) ) {
 			WC()->session->set( 'amazon_checkout_session_id', $_GET['amazonCheckoutSessionId'] );
+			$this->unset_force_refresh();
 			wp_safe_redirect( $redirect_url );
 			exit;
 		}
@@ -437,6 +454,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function display_amazon_customer_info() {
+
+		if ( $this->need_to_force_refresh() ) {
+			$this->render_login_button_again( $this->get_force_refresh() );
+			return;
+		}
 
 		$checkout_session = $this->get_checkout_session();
 
@@ -744,7 +766,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 						break;
 				}
 
-				$this->do_logout();
+				$this->do_force_refresh( __( 'Click the button below to select another payment method', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			} else {
 				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $response->get_error_message(), 'error' );
 			}
@@ -924,7 +946,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return WC()->cart->needs_shipping() ? 'PayAndShip' : 'PayOnly';
 	}
 
-	public function render_login_button_again() {
+	public function render_login_button_again( $message = null ) {
 		?>
 		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
 			<div class="col2-set">
@@ -934,7 +956,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 							<?php esc_html_e( 'Confirm payment method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 						</h3>
 						<div class="shipping_address_display">
-							<p>Your cart changed, and you need to confirm your selected payment method again.</p>
+							<p>
+							<?php
+							if ( empty( $message ) ) {
+								$message = __( 'Your cart changed, and you need to confirm your selected payment method again.', 'woocommerce-gateway-amazon-payments-advanced' );
+							}
+
+							echo esc_html( $message );
+							?>
+							</p>
 							<?php $this->checkout_button(); ?>
 						</div>
 					</div>
