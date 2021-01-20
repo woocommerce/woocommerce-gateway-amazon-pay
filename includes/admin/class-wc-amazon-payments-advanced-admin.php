@@ -125,10 +125,10 @@ class WC_Amazon_Payments_Advanced_Admin {
 		if ( class_exists( 'WooCommerce' ) && ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) {
 			$notices[] = array(
 				'dismiss_action' => 'amazon_pay_dismiss_currency_notice',
-				'class'          => 'amazon-pay-currency-notice',
+				'class'          => 'amazon-pay-currency-notice notice notice-error',
 				// translators: 1) The current shop currency.
-				'text'           => sprintf( __( 'Your shop currency <strong>%1$s</strong> does not match with Amazon payment region <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), get_woocommerce_currency(), WC_Amazon_Payments_Advanced_API::get_region_label() ),
-				'is_dismissable' => true,
+				'text'           => sprintf( __( 'Your shop currency <strong>%1$s</strong> does not match with Amazon payment region <strong>%2$s</strong>. Amazon Pay will <strong>not</strong> be available. Please use a seller account from the appropiate region.', 'woocommerce-gateway-amazon-payments-advanced' ), get_woocommerce_currency(), WC_Amazon_Payments_Advanced_API::get_region_label() ),
+				'is_dismissable' => false,
 			);
 		}
 
