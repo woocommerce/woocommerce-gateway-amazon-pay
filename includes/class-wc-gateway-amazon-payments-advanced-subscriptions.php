@@ -17,25 +17,32 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 */
 	public function __construct() {
 
-		$this->id = 'amazon_payments_advanced';
+		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 12 );
 
 		add_filter( 'woocommerce_amazon_pa_supports', array( $this, 'add_subscription_support' ) );
-
-		add_action( 'woocommerce_scheduled_subscription_payment_' . $this->id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
-
-		add_action( 'woocommerce_subscription_cancelled_' . $this->id, array( $this, 'cancelled_subscription' ) );
-
-		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $this->id, array( $this, 'update_failing_payment_method' ), 10, 2 );
-
-		add_filter( 'woocommerce_amazon_pa_process_payment', array( $this, 'process_payment' ), 10, 2 );
-		add_filter( 'woocommerce_amazon_pa_handle_sca_success', array( $this, 'handle_sca_success' ), 10, 3 );
-		add_filter( 'woocommerce_amazon_pa_handle_sca_failure', array( $this, 'handle_sca_failure' ), 10, 4 );
-		add_filter( 'woocommerce_amazon_pa_get_amazon_order_details', array( $this, 'get_amazon_order_details' ), 10, 2 );
 
 		// WC Subscription Hook
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
 
 		add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( $this, 'add_enable_subscriptions_field' ) );
+	}
+
+	public function init_handlers() {
+		$id      = wc_apa()->get_gateway()->id;
+		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
+
+		// Legacy methods needed when dealing with legacy subscriptions
+		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
+		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
+		// TODO: Check if needed, may be able to upgrade subscription to use v2 at this point
+		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $id, array( $this, 'update_failing_payment_method' ), 10, 2 );
+
+		if ( 'v1' === strtolower( $version ) ) { // These are only needed when legacy is the active gateway (prior to migration)
+			add_filter( 'woocommerce_amazon_pa_process_payment', array( $this, 'process_payment' ), 10, 2 );
+			add_filter( 'woocommerce_amazon_pa_get_amazon_order_details', array( $this, 'get_amazon_order_details' ), 10, 2 );
+			add_filter( 'woocommerce_amazon_pa_handle_sca_success', array( $this, 'handle_sca_success' ), 10, 3 );
+			add_filter( 'woocommerce_amazon_pa_handle_sca_failure', array( $this, 'handle_sca_failure' ), 10, 4 );
+		}
 	}
 
 	/**
@@ -374,6 +381,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *                                   the subscription was purchased in.
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v1' !== strtolower( $version ) ) {
+			return;
+		}
+
 		$order_id                    = wc_apa_get_order_prop( $order, 'id' );
 		$amazon_billing_agreement_id = get_post_meta( $order_id, 'amazon_billing_agreement_id', true );
 		$currency                    = wc_apa_get_order_prop( $order, 'currency' );
@@ -482,6 +494,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param WC_Order $order Order object.
 	 */
 	public function cancelled_subscription( $order ) {
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v1' !== strtolower( $version ) ) {
+			return;
+		}
+
 		$order_id                    = wc_apa_get_order_prop( $order, 'id' );
 		$amazon_billing_agreement_id = get_post_meta( $order_id, 'amazon_billing_agreement_id', true );
 
@@ -563,6 +580,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *                                       automatic payment).
 	 */
 	public function update_failing_payment_method( $subscription, $renewal_order ) {
+		$version = version_compare( $renewal_order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v1' !== strtolower( $version ) ) {
+			return;
+		}
+
 		$meta_keys_to_copy = array(
 			'amazon_billing_agreement_id',
 			'_billing_first_name',
