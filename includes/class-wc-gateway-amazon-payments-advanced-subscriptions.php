@@ -48,11 +48,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Check if order contains subscriptions.
 	 *
-	 * @param  int $order_id Order ID.
+	 * @param  WC_Order/int $order Order / Order ID.
 	 * @return bool Returns true of order contains subscription.
 	 */
-	protected function order_contains_subscription( $order_id ) {
-		return function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order_id ) || wcs_order_contains_renewal( $order_id ) );
+	protected function order_contains_subscription( $order ) {
+		return function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order ) || wcs_order_contains_renewal( $order ) );
 	}
 
 	/**
@@ -62,7 +62,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 */
 	public function process_payment( $process, $order_id ) {
 
-		if ( ! $this->order_contains_subscription( $order_id ) && ! wcs_is_subscription( $order_id ) ) {
+		$order   = wc_get_order( $order_id );
+
+		if ( ! $this->order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
 			return $process;
 		}
 
@@ -80,7 +82,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				throw new Exception( __( 'An Amazon Pay payment method was not chosen.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 
-			$order       = wc_get_order( $order_id );
 			$order_total = $order->get_total();
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
@@ -666,7 +667,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param string $amazon_reference_id
 	 */
 	public function handle_sca_success( $process, $order, $amazon_reference_id ) {
-		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
+		if ( ! $this->order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
 			return $process;
 		}
 		$redirect = wc_apa()->get_gateway()->get_return_url( $order );
@@ -705,7 +706,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param string $authorization_status
 	 */
 	public function handle_sca_failure( $process, $order, $amazon_reference_id, $authorization_status ) {
-		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
+		if ( ! $this->order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
 			return $process;
 		}
 		$redirect = wc_get_checkout_url();
