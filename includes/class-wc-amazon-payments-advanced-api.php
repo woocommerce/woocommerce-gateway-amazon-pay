@@ -142,6 +142,21 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			),
 		);
 
+		$countries     = WC()->countries->get_shipping_countries();
+		$all_countries = WC()->countries->get_countries();
+		if ( count( $countries ) !== count( $all_countries ) ) {
+			$restrictions = array();
+			foreach ( $countries as $country => $name ) {
+				$restrictions[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
+			}
+			$payload['deliverySpecifications'] = array(
+				'addressRestrictions' => array(
+					'type'         => 'Allowed',
+					'restrictions' => $restrictions,
+				),
+			);
+		}
+
 		$payload = wp_json_encode( $payload, JSON_UNESCAPED_SLASHES );
 
 		return $payload;
