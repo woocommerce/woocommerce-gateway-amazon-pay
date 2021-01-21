@@ -691,20 +691,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					$can_do_async = true;
 				}
 
+				$payload = array(
+					'paymentDetails'                => array(
+						'paymentIntent' => $payment_intent, // TODO: Check Authorize, and Confirm flows.
+						'canHandlePendingAuthorization' => $can_do_async,
+						// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
+						'chargeAmount'  => array(
+							'amount'       => $order_total,
+							'currencyCode' => $currency,
+						),
+					),
+					'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
+				);
+
+				wc_apa()->log( __METHOD__, "Updating checkout session data for #{$order_id}. Checkout Session ID: {$checkout_session_id}.\n" . wp_json_encode( $payload, JSON_PRETTY_PRINT ) );
+
 				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
 					$checkout_session_id,
-					array(
-						'paymentDetails'                => array(
-							'paymentIntent' => $payment_intent, // TODO: Check Authorize, and Confirm flows.
-							'canHandlePendingAuthorization' => $can_do_async,
-							// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
-							'chargeAmount'  => array(
-								'amount'       => $order_total,
-								'currencyCode' => $currency,
-							),
-						),
-						'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
-					)
+					$payload
 				);
 
 				if ( is_wp_error( $response ) ) {
