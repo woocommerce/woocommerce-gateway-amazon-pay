@@ -251,6 +251,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
 		$payload      = array(
 			'storeId'            => $settings['store_id'],
+			'platformId'         => 'A1BVJDFFHQ7US4',
 			'webCheckoutDetails' => array(
 				'checkoutReviewReturnUrl' => add_query_arg( 'amazon_login', '1', $redirect_url ),
 				'checkoutResultReturnUrl' => add_query_arg( 'amazon_return', '1', $redirect_url ),
