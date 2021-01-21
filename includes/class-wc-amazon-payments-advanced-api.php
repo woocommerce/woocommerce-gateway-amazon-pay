@@ -127,6 +127,121 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return self::$amazonpay_client;
 	}
 
+	/**
+	 * Location type detection.
+	 *
+	 * @param  object $location Location to check.
+	 * @return boolean
+	 */
+	private static function location_is_continent( $location ) {
+		return 'continent' === $location->type;
+	}
+
+	/**
+	 * Location type detection.
+	 *
+	 * @param  object $location Location to check.
+	 * @return boolean
+	 */
+	private static function location_is_country( $location ) {
+		return 'country' === $location->type;
+	}
+
+	/**
+	 * Location type detection.
+	 *
+	 * @param  object $location Location to check.
+	 * @return boolean
+	 */
+	private static function location_is_state( $location ) {
+		return 'state' === $location->type;
+	}
+
+	/**
+	 * Location type detection.
+	 *
+	 * @param  object $location Location to check.
+	 * @return boolean
+	 */
+	private static function location_is_postcode( $location ) {
+		return 'postcode' === $location->type;
+	}
+
+	protected static function get_shipping_restrictions() {
+		$data_store = WC_Data_Store::load( 'shipping-zone' );
+		$raw_zones  = $data_store->get_zones();
+		$zones      = array();
+
+		$all_continents = WC()->countries->get_continents();
+		$all_countries  = WC()->countries->get_countries();
+		$all_states     = WC()->countries->get_states();
+
+		$row_zone = new WC_Shipping_Zone( 0 );
+		$methods  = $row_zone->get_shipping_methods( true, 'json' );
+		if ( ! empty( $methods ) ) {
+			// Rest of the World has shipping methods, so we can assume we can ship to all shipping countries
+			// Skip the whole thing
+			$countries  = WC()->countries->get_shipping_countries();
+			if ( count( $countries ) !== count( $all_countries ) ) {
+				foreach ( $countries as $country => $name ) {
+					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
+				}
+				return $zones;
+			} else {
+				return false; // No restrictions
+			}
+		}
+
+		foreach ( $raw_zones as $raw_zone ) {
+			$zone       = new WC_Shipping_Zone( $raw_zone );
+			$methods    = $zone->get_shipping_methods( true, 'json' );
+			if ( empty( $methods ) ) {
+				continue; // If no shipping methods, we assume no support on this region
+			}
+
+			$locations  = $zone->get_zone_locations( 'json' );
+			$continents = array_filter( $locations, array( __CLASS__, 'location_is_continent' ) );
+			$countries  = array_filter( $locations, array( __CLASS__, 'location_is_country' ) );
+			$states     = array_filter( $locations, array( __CLASS__, 'location_is_state' ) );
+			$postcodes  = array_filter( $locations, array( __CLASS__, 'location_is_postcode' ) ); // HARD TODO: Postcode wildcards can't be implemented afaik
+
+			foreach ( $continents as $location ) {
+				foreach ( $all_continents[ $location->code ]['countries'] as $country ) {
+					if ( ! isset( $zones[ $country ] ) ) {
+						$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
+					}
+				}
+			}
+
+			foreach ( $countries as $location ) {
+				$country = $location->code;
+				if ( ! isset( $zones[ $country ] ) ) {
+					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
+				}
+			}
+
+			foreach ( $states as $location ) {
+				$location_codes   = explode( ':', $location->code );
+				$country          = strtoupper( $location_codes[0] );
+				$state            = $location_codes[1];
+				if ( ! isset( $zones[ $country ] ) ) {
+					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
+				}
+
+				if ( ! isset( $zones[ $country ]->statesOrRegions ) ) {
+					$zones[ $country ]->statesOrRegions = array();
+				}
+
+				$zones[ $country ]->statesOrRegions[] = $state;
+				if ( 'US' !== $country ) {
+					$zones[ $country ]->statesOrRegions[] = $all_states[ $country ][ $state ];
+				}
+			}
+		}
+
+		return $zones;
+	}
+
 	protected static function create_checkout_session_params( $redirect_url = null ) {
 
 		$settings     = self::get_settings();
@@ -142,7 +257,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			),
 		);
 
-		$payload = wp_json_encode( $payload, JSON_UNESCAPED_SLASHES );
+		$restrictions = self::get_shipping_restrictions();
+		if ( $restrictions ) {
+			$payload['deliverySpecifications'] = array(
+				'addressRestrictions' => array(
+					'type'         => 'Allowed',
+					'restrictions' => $restrictions,
+				),
+			);
+		}
+
+		$payload = wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 
 		return $payload;
 
