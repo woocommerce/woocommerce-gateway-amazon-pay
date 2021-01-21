@@ -473,7 +473,7 @@ class WC_Amazon_Payments_Advanced {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @return WC_Gateway_Amazon_Payments_Advanced/WC_Gateway_Amazon_Payments_Advanced_Subscriptions
+	 * @return WC_Gateway_Amazon_Payments_Advanced
 	 */
 	public function get_gateway() {
 		return $this->gateway;

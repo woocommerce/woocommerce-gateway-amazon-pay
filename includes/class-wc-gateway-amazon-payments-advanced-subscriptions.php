@@ -175,7 +175,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @return WP_Error|array WP_Error or parsed response array.
 	 */
-	public function set_billing_agreement_details( $order, $amazon_billing_agreement_id ) {
+	private function set_billing_agreement_details( $order, $amazon_billing_agreement_id ) {
 
 		$site_name     = WC_Amazon_Payments_Advanced::get_site_name();
 		$subscriptions = wcs_get_subscriptions_for_order( $order );
@@ -225,7 +225,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @return WP_Error|array WP_Error or parsed response array
 	 */
-	public function confirm_billing_agreement( $order_id, $amazon_billing_agreement_id, $is_sca = false ) {
+	private function confirm_billing_agreement( $order_id, $amazon_billing_agreement_id, $is_sca = false ) {
 		$confirm_args = array(
 			'Action'                   => 'ConfirmBillingAgreement',
 			'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
@@ -259,7 +259,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @return WP_Error|array WP_Error or parsed response array
 	 */
-	public function validate_billing_agreement( $amazon_billing_agreement_id ) {
+	private function validate_billing_agreement( $amazon_billing_agreement_id ) {
 		$response = WC_Amazon_Payments_Advanced_API::request(
 			array(
 				'Action'                   => 'ValidateBillingAgreement',
@@ -292,7 +292,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @return array Array value for process_payment method.
 	 */
-	public function authorize_payment( $order, $amazon_billing_agreement_id ) {
+	private function authorize_payment( $order, $amazon_billing_agreement_id ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
@@ -448,7 +448,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @return WP_Error|array WP_Error or parsed response array.
 	 */
-	public function get_billing_agreement_details( $order_id, $amazon_billing_agreement_id ) {
+	private function get_billing_agreement_details( $order_id, $amazon_billing_agreement_id ) {
 		$response = WC_Amazon_Payments_Advanced_API::request(
 			array(
 				'Action'                   => 'GetBillingAgreementDetails',
@@ -469,7 +469,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param int    $order_id Order ID.
 	 * @param object $response SetBillingAgreementDetails response object.
 	 */
-	public function store_subscription_destination( $order_id, $response ) {
+	private function store_subscription_destination( $order_id, $response ) {
 
 		// @codingStandardsIgnoreStart
 		if ( ! is_wp_error( $response ) && isset( $response->GetBillingAgreementDetailsResult->BillingAgreementDetails->Destination->PhysicalDestination ) ) {
@@ -548,7 +548,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param int    $order_id                    Order ID.
 	 * @param string $amazon_billing_agreement_id Billing agreement ID.
 	 */
-	protected function handle_generic_api_response_errors( $context, $response, $order_id, $amazon_billing_agreement_id ) {
+	private function handle_generic_api_response_errors( $context, $response, $order_id, $amazon_billing_agreement_id ) {
 
 		if ( is_wp_error( $response ) ) {
 
