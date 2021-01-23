@@ -265,14 +265,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// FROM: WC_Checkout->process_customer
 		if ( ! is_user_logged_in() && ( $checkout->is_registration_required() || ! empty( $data['createaccount'] ) ) ) {
+			$checkout_session = $this->get_checkout_session();
+			$buyer_id = $checkout_session->buyer->buyerId;
+			$buyer_email = $checkout_session->buyer->email;
+			$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 
 			if ( isset( $data['amazon_validate'] ) ) {
-				$checkout_session = $this->get_checkout_session();
-				$buyer_id = $checkout_session->buyer->buyerId;
-				$buyer_email = $checkout_session->buyer->email;
-
-				$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
-
 				if ( is_user_logged_in() ) {
 					return; // We shouldn't be here anyways
 				}
