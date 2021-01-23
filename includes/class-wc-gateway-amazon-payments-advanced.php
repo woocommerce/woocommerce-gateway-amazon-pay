@@ -322,10 +322,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function hijack_checkout_fields( $checkout ) {
-		$has_billing_fields = ( isset( $checkout->checkout_fields['billing'] ) && is_array( $checkout->checkout_fields['billing'] ) );
-		if ( $has_billing_fields ) {
-			$this->hijack_checkout_field_account( $checkout );
-		}
+		$this->hijack_checkout_field_account( $checkout );
 
 		// During an Amazon checkout, the standard billing and shipping fields need to be
 		// "removed" so that we don't trigger a false negative on form validation -
@@ -412,14 +409,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param WC_Checkout $checkout WC_Checkout instance.
 	 */
 	protected function hijack_checkout_field_account( $checkout ) {
-		$billing_fields_to_copy = array(
-			'billing_first_name' => '',
-			'billing_last_name'  => '',
-			'billing_email'      => '',
-		);
-
-		$billing_fields_to_merge = array_intersect_key( $checkout->checkout_fields['billing'], $billing_fields_to_copy );
-
 		/**
 		 * WC 3.0 changes a bit a way to retrieve fields.
 		 *
@@ -440,12 +429,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$checkout_fields['account'] = ! empty( $checkout_fields['account'] )
 			? $checkout_fields['account']
 			: array();
-
-		$checkout_fields['account'] = array_merge( $billing_fields_to_merge, $checkout_fields['account'] );
-
-		if ( isset( $checkout_fields['account']['billing_email']['class'] ) ) {
-			$checkout_fields['account']['billing_email']['class'] = array();
-		}
 
 		$checkout->checkout_fields = $checkout_fields;
 	}
