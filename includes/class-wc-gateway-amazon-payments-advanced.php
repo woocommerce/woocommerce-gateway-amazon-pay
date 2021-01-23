@@ -607,10 +607,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $ret;
 		}
 
-		$session = $this->get_woocommerce_data();
+		switch ( $input ) {
+			default:
+				$session = $this->get_woocommerce_data();
 
-		if ( isset( $session[ $input ] ) ) {
-			return $session[ $input ];
+				if ( isset( $session[ $input ] ) ) {
+					return $session[ $input ];
+				}
+				break;
 		}
 
 		return $ret;
