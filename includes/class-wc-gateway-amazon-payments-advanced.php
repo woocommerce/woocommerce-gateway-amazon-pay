@@ -271,10 +271,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 
 			if ( isset( $data['amazon_validate'] ) ) {
-				if ( is_user_logged_in() ) {
-					return; // We shouldn't be here anyways
-				}
-
 				if ( $buyer_user_id ) {
 					return; // We shouldn't be here anyways
 				}
