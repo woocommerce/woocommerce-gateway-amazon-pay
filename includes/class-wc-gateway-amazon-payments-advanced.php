@@ -185,6 +185,40 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
+	public function maybe_create_index_table() {
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		global $wpdb;
+
+		$collate = '';
+
+		if ( $wpdb->has_cap( 'collation' ) ) {
+			$collate = $wpdb->get_charset_collate();
+		}
+
+		$query = "
+		CREATE TABLE {$wpdb->prefix}woocommerce_amazon_buyer_index (
+			buyer_id varchar(100) NOT NULL,
+			customer_id bigint(20) NOT NULL,
+			PRIMARY KEY (buyer_id,customer_id),
+			UNIQUE KEY customer_id (customer_id)
+		  ) $collate;";
+
+		$queries = dbDelta( $query, false );
+
+		if ( ! empty( $queries ) ) {
+			dbDelta( $query );
+		}
+	}
+
+	public function get_customer_id_from_buyer( $buyer_id ) {
+		global $wpdb;
+		$this->maybe_create_index_table();
+
+		$customer_id = $wpdb->get_var( $wpdb->prepare( "SELECT customer_id FROM {$wpdb->prefix}woocommerce_amazon_buyer_index WHERE buyer_id = %s", $buyer_id ) );
+
+		return ! empty( $customer_id ) ? intval( $customer_id ) : false;
+	}
+
 	public function checkout_init( $checkout ) {
 
 		/**
@@ -279,6 +313,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( isset( $_GET['amazon_login'] ) && isset( $_GET['amazonCheckoutSessionId'] ) ) {
 			WC()->session->set( 'amazon_checkout_session_id', $_GET['amazonCheckoutSessionId'] );
 			$this->unset_force_refresh();
+			WC()->session->save_data();
+
+			if ( ! is_user_logged_in() ) {
+				$checkout_session = $this->get_checkout_session();
+				$buyer_id = $checkout_session->buyer->buyerId;
+				$buyer_email = $checkout_session->buyer->email;
+
+				$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
+
+				if ( ! empty( $buyer_user_id ) ) {
+					wc_set_customer_auth_cookie( $buyer_user_id );
+				}
+			}
+
 			wp_safe_redirect( $redirect_url );
 			exit;
 		}
