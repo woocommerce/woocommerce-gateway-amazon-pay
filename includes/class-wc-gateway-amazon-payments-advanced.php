@@ -299,6 +299,27 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				delete_user_meta( $user_id, 'wc_apa_ownership_verification_code' );
 			}
 
+			if ( ! $customer_id ) {
+				$username    = ! empty( $data['account_username'] ) ? $data['account_username'] : '';
+				$password    = ! empty( $data['account_password'] ) ? $data['account_password'] : '';
+
+				$customer_id = wc_create_new_customer(
+					$data['billing_email'],
+					$username,
+					$password,
+					array(
+						'first_name' => ! empty( $data['billing_first_name'] ) ? $data['billing_first_name'] : '',
+						'last_name'  => ! empty( $data['billing_last_name'] ) ? $data['billing_last_name'] : '',
+					)
+				);
+
+				if ( is_wp_error( $customer_id ) ) {
+					throw new Exception( $customer_id->get_error_message() );
+				}
+
+				$this->set_customer_id_for_buyer( $buyer_id, $customer_id );
+			}
+
 			wc_set_customer_auth_cookie( $customer_id );
 
 			// As we are now logged in, checkout will need to refresh to show logged in data.
