@@ -251,7 +251,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		if ( $customer_id && ! empty( $data['amazon_link'] ) ) {
 			$checkout_session = $this->get_checkout_session();
-			$buyer_id = $checkout_session->buyer->buyerId;
+			$buyer_id         = $checkout_session->buyer->buyerId;
 
 			$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 			if ( ! $buyer_user_id ) {
@@ -266,9 +266,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// FROM: WC_Checkout->process_customer
 		if ( ! is_user_logged_in() && ( $checkout->is_registration_required() || ! empty( $data['createaccount'] ) ) ) {
 			$checkout_session = $this->get_checkout_session();
-			$buyer_id = $checkout_session->buyer->buyerId;
-			$buyer_email = $checkout_session->buyer->email;
-			$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
+			$buyer_id         = $checkout_session->buyer->buyerId;
+			$buyer_email      = $checkout_session->buyer->email;
+			$buyer_user_id    = $this->get_customer_id_from_buyer( $buyer_id );
 
 			if ( isset( $data['amazon_validate'] ) ) {
 				if ( $buyer_user_id ) {
@@ -300,8 +300,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 
 			if ( ! $customer_id ) {
-				$username    = ! empty( $data['account_username'] ) ? $data['account_username'] : '';
-				$password    = ! empty( $data['account_password'] ) ? $data['account_password'] : '';
+				$username = ! empty( $data['account_username'] ) ? $data['account_username'] : '';
+				$password = ! empty( $data['account_password'] ) ? $data['account_password'] : '';
 
 				$customer_id = wc_create_new_customer(
 					$data['billing_email'],
@@ -452,8 +452,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			if ( ! is_user_logged_in() ) {
 				$checkout_session = $this->get_checkout_session();
-				$buyer_id = $checkout_session->buyer->buyerId;
-				$buyer_email = $checkout_session->buyer->email;
+				$buyer_id         = $checkout_session->buyer->buyerId;
+				$buyer_email      = $checkout_session->buyer->email;
 
 				$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 
@@ -481,8 +481,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		if ( isset( $_GET['amazon_validate_ownership'] ) && $this->is_logged_in() ) {
 			$checkout_session = $this->get_checkout_session();
-			$buyer_id = $checkout_session->buyer->buyerId;
-			$buyer_email = $checkout_session->buyer->email;
+			$buyer_id         = $checkout_session->buyer->buyerId;
+			$buyer_email      = $checkout_session->buyer->email;
 
 			$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 
@@ -502,7 +502,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$code    = wp_rand( 1111, 9999 );
 			update_user_meta( $user_id, 'wc_apa_ownership_verification_code', $code );
 
-			$mailer  = WC()->mailer();
+			$mailer = WC()->mailer();
 
 			// Buffer.
 			ob_start();
@@ -643,8 +643,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		$checkout_session = $this->get_checkout_session();
-		$buyer_id = $checkout_session->buyer->buyerId;
-		$buyer_email = $checkout_session->buyer->email;
+		$buyer_id         = $checkout_session->buyer->buyerId;
+		$buyer_email      = $checkout_session->buyer->email;
 
 		$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 
@@ -673,9 +673,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		);
 
 		$checkout_fields['account']['amazon_validate'] = array(
-			'type'        => 'text',
-			'label'       => __( 'Verification Code', 'woocommerce-gateway-amazon-payments-advanced' ),
-			'required'    => true,
+			'type'     => 'text',
+			'label'    => __( 'Verification Code', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'required' => true,
 		);
 
 		$checkout->checkout_fields = $checkout_fields;
@@ -776,8 +776,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				<?php if ( is_user_logged_in() ) : ?>
 					<?php
 					$checkout_session = $this->get_checkout_session();
-					$buyer_id = $checkout_session->buyer->buyerId;
-					$buyer_email = $checkout_session->buyer->email;
+					$buyer_id         = $checkout_session->buyer->buyerId;
+					$buyer_email      = $checkout_session->buyer->email;
 
 					$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 					?>
@@ -789,8 +789,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 								woocommerce_form_field(
 									$key,
 									array(
-										'type'        => 'checkbox',
-										'label'       => __( 'Link Amazon Pay Account', 'woocommerce-gateway-amazon-payments-advanced' ),
+										'type'  => 'checkbox',
+										'label' => __( 'Link Amazon Pay Account', 'woocommerce-gateway-amazon-payments-advanced' ),
 									),
 									$checkout->get_value( $key )
 								);
