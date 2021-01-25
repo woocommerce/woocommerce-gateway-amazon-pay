@@ -4,6 +4,8 @@
 		simple_path_form_id: 'simple_path',
 		payment_region_input: $( '#woocommerce_amazon_payments_advanced_payment_region' ),
 		button_language_input: $( '#woocommerce_amazon_payments_advanced_button_language' ),
+		authorization_mode: $( '#woocommerce_amazon_payments_advanced_authorization_mode' ),
+		payment_capture: $( '#woocommerce_amazon_payments_advanced_payment_capture' ),
 		action_url: '#',
 		spId: '',
 		register_now_link: $( 'a.register_now' ),
@@ -56,6 +58,11 @@
 			} );
 
 			wc_simple_path_form.init_dynamic_options( wc_simple_path_form.button_language_input, wc_simple_path_form.payment_region_input, amazon_admin_params.language_combinations );
+			wc_simple_path_form.init_dynamic_options( wc_simple_path_form.authorization_mode, wc_simple_path_form.payment_capture, {
+				'': [ 'sync' ],
+				authorize: true,
+				manual: true,
+			} );
 
 			// Init values if region is already selected
 			wc_simple_path_form.payment_region_on_change();
