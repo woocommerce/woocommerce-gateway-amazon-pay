@@ -171,6 +171,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$data_store = WC_Data_Store::load( 'shipping-zone' );
 		$raw_zones  = $data_store->get_zones();
 		$zones      = array();
+		$shipping_countries  = WC()->countries->get_shipping_countries();
 
 		$all_continents = WC()->countries->get_continents();
 		$all_countries  = WC()->countries->get_countries();
@@ -181,9 +182,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( ! empty( $methods ) ) {
 			// Rest of the World has shipping methods, so we can assume we can ship to all shipping countries
 			// Skip the whole thing
-			$countries  = WC()->countries->get_shipping_countries();
-			if ( count( $countries ) !== count( $all_countries ) ) {
-				foreach ( $countries as $country => $name ) {
+			if ( count( $shipping_countries ) !== count( $all_countries ) ) {
+				foreach ( $shipping_countries as $country => $name ) {
 					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
 				}
 				return $zones;
@@ -238,6 +238,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				}
 			}
 		}
+
+		$zones = array_intersect_key( $zones, $shipping_countries );
 
 		return $zones;
 	}
