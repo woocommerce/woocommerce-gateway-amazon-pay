@@ -186,6 +186,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function maybe_create_index_table() {
+		// TODO: Do a better check here to make this less heavy.
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		global $wpdb;
 
