@@ -78,6 +78,58 @@
 			}
 		}
 
+		function is_blocked( $node ) {
+			return $node.is( '.processing' ) || $node.parents( '.processing' ).length;
+		}
+
+		function block( $node ) {
+			if ( ! is_blocked( $node ) ) {
+				$node.addClass( 'processing' ).block( {
+					message: null,
+					overlayCSS: {
+						background: '#fff',
+						opacity: 0.6
+					}
+				} );
+			}
+		}
+
+		function unblock( $node ) {
+			$node.removeClass( 'processing' ).unblock();
+		}
+
+		function sendConfirmationCode( e ) {
+			var $this = $( this );
+			e.preventDefault();
+
+			if ( $this.data( 'sending' ) ) {
+				return;
+			}
+
+			$this.data( 'sending', true );
+
+			var $thisArea = $this.parents('.create-account');
+
+			block( $thisArea );
+
+			$.ajax(
+				{
+					type: 'post',
+					url: $this.prop( 'href' ),
+					success: function( result ) {
+						unblock( $thisArea );
+						$this.data( 'sending', false );
+						// TODO: Maybe display some feedback
+					},
+					error:	function( jqXHR, textStatus, errorThrown ) {
+						unblock( $thisArea );
+						$this.data( 'sending', false );
+						// TODO: Maybe display some feedback about what went wrong?
+					}
+				}
+			);
+		}
+
 		function initAmazonPaymentFields() {
 			if ( ! isAmazonCheckout() ) {
 				return;
@@ -103,6 +155,8 @@
 				$( '.woocommerce-shipping-fields' ).insertBefore( '#payment' );
 			}
 			$( '.woocommerce-additional-fields' ).insertBefore( '#payment' );
+
+			$( '.wc-apa-send-confirm-ownership-code' ).on( 'click', sendConfirmationCode );
 		}
 
 		initAmazonPaymentFields();

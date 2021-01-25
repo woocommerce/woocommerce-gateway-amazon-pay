@@ -185,6 +185,173 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
+	public function maybe_create_index_table() {
+		// TODO: Do a better check here to make this less heavy.
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		global $wpdb;
+
+		$collate = '';
+
+		if ( $wpdb->has_cap( 'collation' ) ) {
+			$collate = $wpdb->get_charset_collate();
+		}
+
+		$query = "
+		CREATE TABLE {$wpdb->prefix}woocommerce_amazon_buyer_index (
+			buyer_id varchar(100) NOT NULL,
+			customer_id bigint(20) NOT NULL,
+			PRIMARY KEY (buyer_id,customer_id),
+			UNIQUE KEY customer_id (customer_id)
+		  ) $collate;";
+
+		$queries = dbDelta( $query, false );
+
+		if ( ! empty( $queries ) ) {
+			dbDelta( $query );
+		}
+	}
+
+	public function get_customer_id_from_buyer( $buyer_id ) {
+		global $wpdb;
+		$this->maybe_create_index_table();
+
+		$customer_id = $wpdb->get_var( $wpdb->prepare( "SELECT customer_id FROM {$wpdb->prefix}woocommerce_amazon_buyer_index WHERE buyer_id = %s", $buyer_id ) );
+
+		return ! empty( $customer_id ) ? intval( $customer_id ) : false;
+	}
+
+	public function set_customer_id_for_buyer( $buyer_id, $customer_id ) {
+		global $wpdb;
+		$this->maybe_create_index_table();
+
+		$inserted = $wpdb->insert(
+			"{$wpdb->prefix}woocommerce_amazon_buyer_index",
+			array(
+				'buyer_id'    => $buyer_id,
+				'customer_id' => $customer_id,
+			)
+		);
+
+		if ( ! $inserted ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function signal_account_hijack() {
+		add_filter( 'woocommerce_checkout_customer_id', array( $this, 'handle_account_registration' ) );
+	}
+
+	public function handle_account_registration( $customer_id ) {
+		// unhook ourselves, since we only need this after checkout started, not every time
+		remove_filter( 'woocommerce_checkout_customer_id', array( $this, 'handle_account_registration' ) );
+
+		$checkout = WC()->checkout();
+		$data     = $checkout->get_posted_data();
+
+		if ( $customer_id && ! empty( $data['amazon_link'] ) ) {
+			$checkout_session = $this->get_checkout_session();
+			$buyer_id         = $checkout_session->buyer->buyerId;
+
+			$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
+			if ( ! $buyer_user_id ) {
+				$this->set_customer_id_for_buyer( $buyer_id, $customer_id );
+			}
+		}
+
+		if ( $customer_id ) { // Already registered, or logged in. Return normally
+			return $customer_id;
+		}
+
+		// FROM: WC_Checkout->process_customer
+		if ( ! is_user_logged_in() && ( $checkout->is_registration_required() || ! empty( $data['createaccount'] ) ) ) {
+			$checkout_session = $this->get_checkout_session();
+			$buyer_id         = $checkout_session->buyer->buyerId;
+			$buyer_email      = $checkout_session->buyer->email;
+			$buyer_user_id    = $this->get_customer_id_from_buyer( $buyer_id );
+
+			if ( isset( $data['amazon_validate'] ) ) {
+				if ( $buyer_user_id ) {
+					return; // We shouldn't be here anyways
+				}
+				$user_id = email_exists( $buyer_email );
+				if ( ! $user_id ) {
+					return; // We shouldn't be here anyways
+				}
+
+				$code = get_user_meta( $user_id, 'wc_apa_ownership_verification_code', true );
+				if ( empty( $code ) ) {
+					throw new Exception( __( 'You have to send yourself a code before attempting to claim an account. If you want, you can continue as guest.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+				}
+
+				if ( empty( $data['amazon_validate'] ) ) {
+					throw new Exception( __( 'You did not enter the code to validate your account. If you want, you can continue as guest.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+				}
+
+				if ( $code !== $data['amazon_validate'] ) { // TODO: Rotate code after 5 failed attempts
+					throw new Exception( __( 'The code you entered did not match. Try again, or continue as guest.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+				}
+
+				$customer_id = $user_id;
+
+				$this->set_customer_id_for_buyer( $buyer_id, $customer_id );
+
+				delete_user_meta( $user_id, 'wc_apa_ownership_verification_code' );
+			}
+
+			if ( ! $customer_id ) {
+				$username = ! empty( $data['account_username'] ) ? $data['account_username'] : '';
+				$password = ! empty( $data['account_password'] ) ? $data['account_password'] : '';
+
+				$customer_id = wc_create_new_customer(
+					$data['billing_email'],
+					$username,
+					$password,
+					array(
+						'first_name' => ! empty( $data['billing_first_name'] ) ? $data['billing_first_name'] : '',
+						'last_name'  => ! empty( $data['billing_last_name'] ) ? $data['billing_last_name'] : '',
+					)
+				);
+
+				if ( is_wp_error( $customer_id ) ) {
+					throw new Exception( $customer_id->get_error_message() );
+				}
+
+				$this->set_customer_id_for_buyer( $buyer_id, $customer_id );
+			}
+
+			wc_set_customer_auth_cookie( $customer_id );
+
+			// As we are now logged in, checkout will need to refresh to show logged in data.
+			WC()->session->set( 'reload_checkout', true );
+
+			// Also, recalculate cart totals to reveal any role-based discounts that were unavailable before registering.
+			WC()->cart->calculate_totals();
+		}
+
+		return $customer_id;
+	}
+
+	public function get_amazon_validate_ownership_url() {
+		return add_query_arg(
+			array(
+				'amazon_payments_advanced'  => 'true',
+				'amazon_validate_ownership' => 'true',
+			),
+			get_permalink( wc_get_page_id( 'checkout' ) )
+		);
+	}
+
+	public function print_validate_button( $html, $key, $field, $value ) {
+		$html  = '<p class="form-row" id="amazon_validate_notice_field" data-priority="">';
+		$html .= __( 'An account with your Amazon Pay email address exists already. Is that you?', 'woocommerce-gateway-amazon-payments-advanced' );
+		$html .= ' ';
+		$html .= sprintf( __( 'Click %shere%s to send a code to your email, which will help you validate the ownership of the account.', 'woocommerce-gateway-amazon-payments-advanced' ), '<a href="' . esc_url( $this->get_amazon_validate_ownership_url() ) . '" class="wc-apa-send-confirm-ownership-code" target="_blank">', '</a>' );
+		$html .= '</p>';
+		return $html;
+	}
+
 	public function checkout_init( $checkout ) {
 
 		/**
@@ -203,6 +370,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
 			return;
 		}
+
+		add_action( 'woocommerce_checkout_process', array( $this, 'signal_account_hijack' ) );
+		add_filter( 'woocommerce_form_field_amazon_validate_notice', array( $this, 'print_validate_button' ), 10, 4 );
 
 		// If all prerequisites are meet to be an amazon checkout.
 		do_action( 'woocommerce_amazon_checkout_init' );
@@ -279,6 +449,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( isset( $_GET['amazon_login'] ) && isset( $_GET['amazonCheckoutSessionId'] ) ) {
 			WC()->session->set( 'amazon_checkout_session_id', $_GET['amazonCheckoutSessionId'] );
 			$this->unset_force_refresh();
+			WC()->session->save_data();
+
+			if ( ! is_user_logged_in() ) {
+				$checkout_session = $this->get_checkout_session();
+				$buyer_id         = $checkout_session->buyer->buyerId;
+				$buyer_email      = $checkout_session->buyer->email;
+
+				$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
+
+				if ( ! empty( $buyer_user_id ) ) {
+					wc_set_customer_auth_cookie( $buyer_user_id );
+				}
+			}
+
 			wp_safe_redirect( $redirect_url );
 			exit;
 		}
@@ -293,6 +477,52 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$this->handle_return();
 			// If we didn't redirect and quit yet, lets force redirect to checkout.
 			wp_safe_redirect( $redirect_url );
+			exit;
+		}
+
+		if ( isset( $_GET['amazon_validate_ownership'] ) && $this->is_logged_in() ) {
+			$checkout_session = $this->get_checkout_session();
+			$buyer_id         = $checkout_session->buyer->buyerId;
+			$buyer_email      = $checkout_session->buyer->email;
+
+			$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
+
+			if ( is_user_logged_in() ) {
+				return; // We shouldn't be here anyways
+			}
+
+			if ( $buyer_user_id ) {
+				return; // We shouldn't be here anyways
+			}
+			$user_id = email_exists( $buyer_email );
+			if ( ! $user_id ) {
+				return; // We shouldn't be here anyways
+			}
+
+			$subject = 'Link your account with Amazon Pay';
+			$code    = wp_rand( 1111, 9999 );
+			update_user_meta( $user_id, 'wc_apa_ownership_verification_code', $code );
+
+			$mailer = WC()->mailer();
+
+			// Buffer.
+			ob_start();
+
+			do_action( 'woocommerce_email_header', $subject, null );
+
+			?>
+			<p><?php esc_html_e( 'It seems that someone is trying to make an order on your behalf. If that is the case, please use the code below to link your Amazon Pay account to your account upon checkout.', 'woocommerce' ); ?></p>
+			<p style="vertical-align: top; word-wrap: break-word; -ms-hyphens: none; hyphens: none; border-collapse: collapse; -moz-hyphens: none; -webkit-hyphens: none; color: #222222; font-family: Lato, Arial, sans-serif; font-weight: normal; letter-spacing: 10px; line-height: 2; font-size: 48px; text-align: center;"><?php echo esc_html( $code ); ?></p>
+			<p><?php esc_html_e( 'If this is not you, you can ignore this message.', 'woocommerce' ); ?></p>
+			<?php
+
+			do_action( 'woocommerce_email_footer', null );
+
+			// Get contents.
+			$message = ob_get_clean();
+
+			$mailer->send( $buyer_email, wp_strip_all_tags( $subject ), $message );
+
 			exit;
 		}
 
@@ -322,10 +552,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function hijack_checkout_fields( $checkout ) {
-		$has_billing_fields = ( isset( $checkout->checkout_fields['billing'] ) && is_array( $checkout->checkout_fields['billing'] ) );
-		if ( $has_billing_fields ) {
-			$this->hijack_checkout_field_account( $checkout );
-		}
+		$this->hijack_checkout_field_account( $checkout );
 
 		// During an Amazon checkout, the standard billing and shipping fields need to be
 		// "removed" so that we don't trigger a false negative on form validation -
@@ -412,13 +639,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param WC_Checkout $checkout WC_Checkout instance.
 	 */
 	protected function hijack_checkout_field_account( $checkout ) {
-		$billing_fields_to_copy = array(
-			'billing_first_name' => '',
-			'billing_last_name'  => '',
-			'billing_email'      => '',
-		);
+		if ( is_user_logged_in() ) {
+			return; // There's nothing to do here if the user is logged in
+		}
 
-		$billing_fields_to_merge = array_intersect_key( $checkout->checkout_fields['billing'], $billing_fields_to_copy );
+		$checkout_session = $this->get_checkout_session();
+		$buyer_id         = $checkout_session->buyer->buyerId;
+		$buyer_email      = $checkout_session->buyer->email;
+
+		$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
+
+		if ( $buyer_user_id ) {
+			return; // We shouldn't be here anyways
+		}
+
+		$user_id = email_exists( $buyer_email );
+		if ( ! $user_id ) {
+			return; // We shouldn't be here anyways
+		}
 
 		/**
 		 * WC 3.0 changes a bit a way to retrieve fields.
@@ -429,23 +667,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			? $checkout->get_checkout_fields()
 			: $checkout->checkout_fields;
 
-		/**
-		 * Before 3.0.0, account fields may not set at all if guest checkout is
-		 * disabled with account and password generated automatically.
-		 *
-		 * @see https://github.com/woocommerce/woocommerce/blob/2.6.14/includes/class-wc-checkout.php#L92-L132
-		 * @see https://github.com/woocommerce/woocommerce/blob/master/includes/class-wc-checkout.php#L187-L197
-		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/228
-		 */
-		$checkout_fields['account'] = ! empty( $checkout_fields['account'] )
-			? $checkout_fields['account']
-			: array();
+		$checkout_fields['account'] = array();
 
-		$checkout_fields['account'] = array_merge( $billing_fields_to_merge, $checkout_fields['account'] );
+		$checkout_fields['account']['amazon_validate_notice'] = array(
+			'type' => 'amazon_validate_notice',
+		);
 
-		if ( isset( $checkout_fields['account']['billing_email']['class'] ) ) {
-			$checkout_fields['account']['billing_email']['class'] = array();
-		}
+		$checkout_fields['account']['amazon_validate'] = array(
+			'type'     => 'text',
+			'label'    => __( 'Verification Code', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'required' => true,
+		);
 
 		$checkout->checkout_fields = $checkout_fields;
 	}
@@ -541,6 +773,34 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					<div id="wc-apa-account-fields-anchor"></div>
 
 				<?php endif; ?>
+
+				<?php if ( is_user_logged_in() ) : ?>
+					<?php
+					$checkout_session = $this->get_checkout_session();
+					$buyer_id         = $checkout_session->buyer->buyerId;
+					$buyer_email      = $checkout_session->buyer->email;
+
+					$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
+					?>
+					<?php if ( ! $buyer_user_id ) : ?>
+						<div class="woocommerce-account-fields">
+							<div class="link-account">
+								<?php
+								$key = 'amazon_link';
+								woocommerce_form_field(
+									$key,
+									array(
+										'type'  => 'checkbox',
+										'label' => __( 'Link Amazon Pay Account', 'woocommerce-gateway-amazon-payments-advanced' ),
+									),
+									$checkout->get_value( $key )
+								);
+								?>
+								<div class="clear"></div>
+							</div>
+						</div>
+					<?php endif; ?>
+				<?php endif; ?>
 			</div>
 		</div>
 
@@ -601,6 +861,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$data = array_merge( $data, array_intersect_key( $formatted_session_data, $data ) ); // only set data that exists in data
 
+		if ( isset( $_REQUEST['amazon_link'] ) ) {
+			$data['amazon_link'] = $_REQUEST['amazon_link'];
+		}
+
 		return $data;
 	}
 
@@ -624,10 +888,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $ret;
 		}
 
-		$session = $this->get_woocommerce_data();
+		switch ( $input ) {
+			case 'amazon_link':
+				if ( isset( $_REQUEST[ $input ] ) ) {
+					return $_REQUEST[ $input ];
+				}
+				break;
+			default:
+				$session = $this->get_woocommerce_data();
 
-		if ( isset( $session[ $input ] ) ) {
-			return $session[ $input ];
+				if ( isset( $session[ $input ] ) ) {
+					return $session[ $input ];
+				}
+				break;
 		}
 
 		return $ret;
