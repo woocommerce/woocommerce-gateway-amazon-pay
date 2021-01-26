@@ -20,6 +20,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	}
 
 	public function init_handlers( $version ) {
-		$id      = wc_apa()->get_gateway()->id;
+		$id = wc_apa()->get_gateway()->id;
 	}
 }
