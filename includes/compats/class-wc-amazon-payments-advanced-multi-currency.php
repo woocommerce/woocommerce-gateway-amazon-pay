@@ -151,8 +151,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 			$match = false;
 			if ( 0 === strpos( $definition_name, 'global' ) ) {
 				$global_name = str_replace( 'global_', '', $definition_name );
-				global ${$global_name};
-				if ( ${$global_name} ) {
+
+				if ( $GLOBALS[ $global_name ] ) {
 					$match = true;
 				}
 			} elseif ( 0 === strpos( $definition_name, 'class' ) ) {
