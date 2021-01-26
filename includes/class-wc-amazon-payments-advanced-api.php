@@ -1968,7 +1968,7 @@ class WC_Amazon_Payments_Advanced_API {
 	 *
 	 * @return boolean
 	 */
-	public function maybe_subscription_is_shippable( WC_Order $order ) {
+	public static function maybe_subscription_is_shippable( WC_Order $order ) {
 
 		if ( ! class_exists( 'WC_Subscriptions_Product' ) ) {
 			return;
