@@ -1976,7 +1976,7 @@ class WC_Amazon_Payments_Advanced_API {
 
 		$items = $order->get_items();
 		if ( empty( $items ) ) {
-			return;
+			return false;
 		}
 
 		$order_shippable = false;
