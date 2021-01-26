@@ -41,42 +41,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	/**
-	 * Use 'ValidateBillingAgreement' action to validate the billing agreement.
-	 *
-	 * @see https://payments.amazon.com/documentation/automatic/201752090#201757360
-	 *
-	 * @throws Exception Error from API response.
-	 *
-	 * @param string $amazon_billing_agreement_id Billing agreement ID.
-	 *
-	 * @return WP_Error|array WP_Error or parsed response array
-	 */
-	private function validate_billing_agreement( $amazon_billing_agreement_id ) {
-		$response = WC_Amazon_Payments_Advanced_API::request(
-			array(
-				'Action'                   => 'ValidateBillingAgreement',
-				'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
-			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			throw new Exception( $response->get_error_message() );
-		}
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->Error->Message ) ) {
-			throw new Exception( (string) $response->Error->Message );
-		}
-
-		if ( isset( $response->ValidateBillingAgreementResult->FailureReasonCode ) ) {
-			throw new Exception( (string) $response->ValidateBillingAgreementResult->FailureReasonCode );
-		}
-		// @codingStandardsIgnoreEnd
-
-		return $response;
-	}
-
-	/**
 	 * Process a scheduled subscription payment.
 	 *
 	 * @param float    $amount_to_charge The amount to charge.
