@@ -21,13 +21,21 @@
 		<exclude name="WordPress.Security.NonceVerification"/>
 		<exclude name="WordPress.Security.EscapeOutput"/>
 		<exclude name="WordPress.Security.ValidatedSanitizedInput"/>
-		<exclude name="WordPress.WP.I18n"/>
+		<exclude name="WordPress.WP.I18n.MissingTranslatorsComment"/>
 		<exclude name="Squiz.Commenting"/>
 		<exclude name="Generic.Commenting"/>
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode"/>
 		<exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited"/>
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode"/>
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode"/>
+		<exclude name="Squiz.PHP.CommentedOutCode.Found"/>
+	</rule>
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="woocommerce-gateway-amazon-payments-advanced"/>
+			</property>
+		</properties>
 	</rule>
 	<rule ref="PHPCompatibility">
 		<exclude-pattern>tests/</exclude-pattern>

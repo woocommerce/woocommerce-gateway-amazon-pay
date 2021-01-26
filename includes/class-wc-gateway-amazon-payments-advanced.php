@@ -101,7 +101,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'action'                         => $this->get_current_cart_action(),
 			'sandbox'                        => 'yes' === $this->settings['sandbox'],
 			'merchant_id'                    => $this->settings['merchant_id'],
-			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ),
+			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
 			'checkout_session_id'            => $this->get_checkout_session_id(),
 			'button_language'                => $this->settings['button_language'],
 			'ledger_currency'                => $this->get_ledger_currency(), // TODO: Implement multicurrency
@@ -347,7 +347,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$html  = '<p class="form-row" id="amazon_validate_notice_field" data-priority="">';
 		$html .= __( 'An account with your Amazon Pay email address exists already. Is that you?', 'woocommerce-gateway-amazon-payments-advanced' );
 		$html .= ' ';
-		$html .= sprintf( __( 'Click %shere%s to send a code to your email, which will help you validate the ownership of the account.', 'woocommerce-gateway-amazon-payments-advanced' ), '<a href="' . esc_url( $this->get_amazon_validate_ownership_url() ) . '" class="wc-apa-send-confirm-ownership-code" target="_blank">', '</a>' );
+		$html .= sprintf( __( 'Click %1$shere%2$s to send a code to your email, which will help you validate the ownership of the account.', 'woocommerce-gateway-amazon-payments-advanced' ), '<a href="' . esc_url( $this->get_amazon_validate_ownership_url() ) . '" class="wc-apa-send-confirm-ownership-code" target="_blank">', '</a>' );
 		$html .= '</p>';
 		return $html;
 	}
@@ -511,9 +511,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			do_action( 'woocommerce_email_header', $subject, null );
 
 			?>
-			<p><?php esc_html_e( 'It seems that someone is trying to make an order on your behalf. If that is the case, please use the code below to link your Amazon Pay account to your account upon checkout.', 'woocommerce' ); ?></p>
+			<p><?php esc_html_e( 'It seems that someone is trying to make an order on your behalf. If that is the case, please use the code below to link your Amazon Pay account to your account upon checkout.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 			<p style="vertical-align: top; word-wrap: break-word; -ms-hyphens: none; hyphens: none; border-collapse: collapse; -moz-hyphens: none; -webkit-hyphens: none; color: #222222; font-family: Lato, Arial, sans-serif; font-weight: normal; letter-spacing: 10px; line-height: 2; font-size: 48px; text-align: center;"><?php echo esc_html( $code ); ?></p>
-			<p><?php esc_html_e( 'If this is not you, you can ignore this message.', 'woocommerce' ); ?></p>
+			<p><?php esc_html_e( 'If this is not you, you can ignore this message.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 			<?php
 
 			do_action( 'woocommerce_email_footer', null );
@@ -965,16 +965,16 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				}
 
 				$payload = array(
-					'paymentDetails'                => array(
-						'paymentIntent' => $payment_intent, // TODO: Check Authorize, and Confirm flows.
+					'paymentDetails'   => array(
+						'paymentIntent'                 => $payment_intent, // TODO: Check Authorize, and Confirm flows.
 						'canHandlePendingAuthorization' => $can_do_async,
 						// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
-						'chargeAmount'  => array(
+						'chargeAmount'                  => array(
 							'amount'       => $order_total,
 							'currencyCode' => $currency,
 						),
 					),
-					'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
+					'merchantMetadata' => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
 				);
 
 				wc_apa()->log( __METHOD__, "Updating checkout session data for #{$order_id}. Checkout Session ID: {$checkout_session_id}.\n" . wp_json_encode( $payload, JSON_PRETTY_PRINT ) );
@@ -1082,7 +1082,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
 		$order->save();
 		$charge_permission_status = $this->log_charge_permission_status_change( $order );
-		$charge_id = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
+		$charge_id                = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
 		if ( ! empty( $charge_id ) ) {
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
 			$order->save();
@@ -1119,7 +1119,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
 		}
 		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
-		$old_status = $this->get_cached_charge_status( $order, true )->status;
+		$old_status    = $this->get_cached_charge_status( $order, true )->status;
 		$charge_status = $charge->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
 		if ( $charge_status === $old_status ) {
 			switch ( $old_status ) {
@@ -1187,7 +1187,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
 		}
 		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
-		$old_status = $this->get_cached_charge_permission_status( $order, true )->status;
+		$old_status               = $this->get_cached_charge_permission_status( $order, true )->status;
 		$charge_permission_status = $charge_permission->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
 		if ( $charge_permission_status === $old_status ) {
 			switch ( $charge_permission_status ) {
@@ -1399,14 +1399,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function handle_refund( WC_Order $order, $refund, $wc_refund_id = null ) {
-		$wc_refund = null;
+		$wc_refund        = null;
 		$previous_refunds = wp_list_pluck( $order->get_meta( 'amazon_refund_id', false ), 'value' );
 		if ( empty( $wc_refund_id ) ) {
 			if ( ! empty( $previous_refunds ) ) {
 				$refunds = $order->get_refunds();
 				foreach ( $refunds as $this_wc_refund ) {
 					$this_refund_id = $this_wc_refund->get_meta( 'amazon_refund_id' );
-					if ( $this_refund_id === $refund->refundId ) {
+					if ( $this_refund_id === $refund->refundId ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						$wc_refund = $this_wc_refund;
 					}
 				}
@@ -1439,16 +1439,16 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return true;
 	}
 
-	public function process_refund( $order_id, $amount = null, $reason = '') {
-		$order = wc_get_order( $order_id );
+	public function process_refund( $order_id, $amount = null, $reason = '' ) {
+		$order     = wc_get_order( $order_id );
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
 		if ( empty( $charge_id ) ) {
-			wc_apa()->log( __METHOD__, 'Order #' . $order_id .' doesnt have a charge' );
+			wc_apa()->log( __METHOD__, 'Order #' . $order_id . ' doesnt have a charge' );
 			return new WP_Error( 'no_charge', 'No charge to refund on this order' );
 		}
 		wc_apa()->log( __METHOD__, 'Processing refund from admin for order #' . $order_id );
 		wc_apa()->log( __METHOD__, 'Processing refund from admin for order #' . $order_id . '. Temporary refund ID #' . $this->current_refund->get_id() );
-		$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $charge_id, $amount );
+		$refund           = WC_Amazon_Payments_Advanced_API::refund_charge( $charge_id, $amount );
 		$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $refund, $this->current_refund->get_id() );
 		return true;
 	}

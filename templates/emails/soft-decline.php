@@ -30,7 +30,7 @@ $url_link = "<a href='$url' target='_blank'>$url</a>";
 ?>
 
 <p><?php _e( 'Valued customer', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>
-<p><?php printf( _( 'Thank you very much for your order at %s.', 'woocommerce-gateway-amazon-payments-advanced' ), get_bloginfo( 'name' ) ); ?></p>
+<p><?php printf( __( 'Thank you very much for your order at %s.', 'woocommerce-gateway-amazon-payments-advanced' ), get_bloginfo( 'name' ) ); ?></p>
 <p><?php _e( 'Amazon Pay was not able to process your payment.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 <p><?php printf( __( 'Please go to %s and update the payment information for your order. Afterwards we will automatically request payment again from Amazon Pay and you will receive a confirmation email.', 'woocommerce-gateway-amazon-payments-advanced' ), $url_link ); ?></p>
 <p><?php _e( 'Kind regards', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>

@@ -434,7 +434,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 						'type'        => 'hidden',
 						'description' => '<strong>' . $this->settings['redirect_authentication'] . '</strong><br>' . sprintf(
 							/* translators: Redirect URL to copy and paste */
-							__( 'Optimal mode requires setting the Allowed Return URLs and Allowed Javascript Origins in Amazon Seller Central. Click the Configure/Register Now button and sign in with your existing account to update the configuration and automatically set these values. If the URL is not added automatically to the Allowed Return URLs field in Amazon Seller Central, please copy and paste the one below manually. <br> <code>%1$s</code>' ),
+							__( 'Optimal mode requires setting the Allowed Return URLs and Allowed Javascript Origins in Amazon Seller Central. Click the Configure/Register Now button and sign in with your existing account to update the configuration and automatically set these values. If the URL is not added automatically to the Allowed Return URLs field in Amazon Seller Central, please copy and paste the one below manually. <br> <code>%1$s</code>', 'woocommerce-gateway-amazon-payments-advanced' ),
 							$redirect_url
 						),
 					),
@@ -505,7 +505,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		<h2>
 			<?php
 			echo esc_html( $this->get_method_title() );
-			wc_back_link( __( 'Return to payments', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) );
+			wc_back_link( __( 'Return to payments', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
 			?>
 		</h2>
 		<table class="form-table">
@@ -725,7 +725,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					<div class="postbox">
 						<h3><span><?php esc_html_e( 'Export Settings', 'woocommerce-gateway-amazon-payments-advanced' ); ?></span></h3>
 						<div class="inside">
-							<p><?php esc_html_e( 'Export the plugin settings for this site as a .json file. This allows you to easily import the configuration into another site.' ); ?></p>
+							<p><?php esc_html_e( 'Export the plugin settings for this site as a .json file. This allows you to easily import the configuration into another site.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 							<form method="post">
 								<p><input type="hidden" name="amazon_pay_action" value="export_settings" /></p>
 								<p>

@@ -1836,7 +1836,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		$params['multi_currency_nonce']         = wp_create_nonce( 'multi_currency_nonce' );
 		$params['multi_currency_reload_wallet'] = ( $multi_currency ) ? WC_Amazon_Payments_Advanced_Multi_Currency::reload_wallet_widget() : false;
 		$params['current_currency']             = ( $multi_currency ) ? WC_Amazon_Payments_Advanced_Multi_Currency::get_selected_currency() : '';
-		$params['shipping_title']               = esc_html__( 'Shipping details', 'woocommerce' );
+		$params['shipping_title']               = esc_html__( 'Shipping details', 'woocommerce' ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
 		$params['redirect_authentication']      = $this->settings['redirect_authentication'];
 
 		$params = array_map( 'esc_js', apply_filters( 'woocommerce_amazon_pa_widgets_params', $params ) );
