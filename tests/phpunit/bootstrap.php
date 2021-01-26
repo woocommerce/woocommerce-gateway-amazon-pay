@@ -13,31 +13,35 @@ function _manually_load_plugin() {
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
-tests_add_filter( 'shutdown', function() {
-	global $wpdb;
+tests_add_filter(
+	'shutdown',
+	function() {
+		global $wpdb;
 
-	$tables = array_merge(
-		array_values( $wpdb->tables() ),
-		array(
-			$wpdb->prefix . 'woocommerce_api_keys',
-			$wpdb->prefix . 'woocommerce_attribute_taxonomies',
-			$wpdb->prefix . 'woocommerce_downloadable_product_permissions',
-			$wpdb->prefix . 'woocommerce_order_items',
-			$wpdb->prefix . 'woocommerce_payment_tokens',
-			$wpdb->prefix . 'woocommerce_payment_tokens',
-			$wpdb->prefix . 'woocommerce_shipping_zone_locations',
-			$wpdb->prefix . 'woocommerce_sessions',
-			$wpdb->prefix . 'woocommerce_shipping_zones',
-			$wpdb->prefix . 'woocommerce_shipping_zone_methods',
-			$wpdb->prefix . 'woocommerce_tax_rates',
-			$wpdb->prefix . 'woocommerce_tax_rate_locations',
-		)
-	);
+		$tables = array_merge(
+			array_values( $wpdb->tables() ),
+			array(
+				$wpdb->prefix . 'woocommerce_api_keys',
+				$wpdb->prefix . 'woocommerce_attribute_taxonomies',
+				$wpdb->prefix . 'woocommerce_downloadable_product_permissions',
+				$wpdb->prefix . 'woocommerce_order_items',
+				$wpdb->prefix . 'woocommerce_payment_tokens',
+				$wpdb->prefix . 'woocommerce_payment_tokens',
+				$wpdb->prefix . 'woocommerce_shipping_zone_locations',
+				$wpdb->prefix . 'woocommerce_sessions',
+				$wpdb->prefix . 'woocommerce_shipping_zones',
+				$wpdb->prefix . 'woocommerce_shipping_zone_methods',
+				$wpdb->prefix . 'woocommerce_tax_rates',
+				$wpdb->prefix . 'woocommerce_tax_rate_locations',
+			)
+		);
 
-	foreach ( $tables as $table ) {
-		$wpdb->query( "DROP TABLE IF EXISTS $table;" );
-	}
-}, 9999 );
+		foreach ( $tables as $table ) {
+			$wpdb->query( "DROP TABLE IF EXISTS $table;" );
+		}
+	},
+	9999
+);
 
 require $_tests_dir . '/includes/bootstrap.php';
 
