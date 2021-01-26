@@ -780,7 +780,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$fields = self::array_insert(
 			$fields,
 			array(
-				'subscriptions_enabled'         => array(
+				'subscriptions_enabled' => array(
 					'title'       => __( 'Subscriptions support', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'label'       => __( 'Enable Subscriptions for carts that contain Subscription items (requires WooCommerce Subscriptions to be installed)', 'woocommerce-gateway-amazon-payments-advanced' ),
 					'type'        => 'select',

@@ -168,10 +168,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	}
 
 	protected static function get_shipping_restrictions() {
-		$data_store = WC_Data_Store::load( 'shipping-zone' );
-		$raw_zones  = $data_store->get_zones();
-		$zones      = array();
-		$shipping_countries  = WC()->countries->get_shipping_countries();
+		$data_store         = WC_Data_Store::load( 'shipping-zone' );
+		$raw_zones          = $data_store->get_zones();
+		$zones              = array();
+		$shipping_countries = WC()->countries->get_shipping_countries();
 
 		$all_continents = WC()->countries->get_continents();
 		$all_countries  = WC()->countries->get_countries();
@@ -193,8 +193,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		}
 
 		foreach ( $raw_zones as $raw_zone ) {
-			$zone       = new WC_Shipping_Zone( $raw_zone );
-			$methods    = $zone->get_shipping_methods( true, 'json' );
+			$zone    = new WC_Shipping_Zone( $raw_zone );
+			$methods = $zone->get_shipping_methods( true, 'json' );
 			if ( empty( $methods ) ) {
 				continue; // If no shipping methods, we assume no support on this region
 			}
@@ -221,9 +221,9 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			}
 
 			foreach ( $states as $location ) {
-				$location_codes   = explode( ':', $location->code );
-				$country          = strtoupper( $location_codes[0] );
-				$state            = $location_codes[1];
+				$location_codes = explode( ':', $location->code );
+				$country        = strtoupper( $location_codes[0] );
+				$state          = $location_codes[1];
 				if ( ! isset( $zones[ $country ] ) ) {
 					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
 				}
@@ -246,7 +246,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	protected static function create_checkout_session_params( $redirect_url = null ) {
 
-		$settings     = self::get_settings();
+		$settings = self::get_settings();
 		if ( is_null( $redirect_url ) ) {
 			$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
 		}
@@ -434,7 +434,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		}
 		// TODO: Validate entered data
 		if ( empty( $data['captureAmount'] ) ) {
-			$charge = self::get_charge( $charge_id );
+			$charge                = self::get_charge( $charge_id );
 			$data['captureAmount'] = (array) $charge->chargeAmount; // phpcs:ignore WordPress.NamingConventions
 			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
 		}
@@ -464,8 +464,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$data['chargeId'] = $charge_id;
 		// TODO: Validate entered data
 		if ( empty( $data['refundAmount'] ) ) {
-			$charge               = self::get_charge( $charge_id );
-			$data['refundAmount'] = (array) $charge->captureAmount; // phpcs:ignore WordPress.NamingConventions
+			$charge                          = self::get_charge( $charge_id );
+			$data['refundAmount']            = (array) $charge->captureAmount; // phpcs:ignore WordPress.NamingConventions
 			$data['refundAmount']['amount'] -= (float) $charge->refundedAmount->amount; // phpcs:ignore WordPress.NamingConventions
 		}
 		if ( ! is_null( $amount ) ) {
@@ -526,7 +526,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$data['chargePermissionId'] = $charge_permission_id;
 		// TODO: Validate entered data
 		if ( empty( $data['chargeAmount'] ) ) {
-			$charge_permission = self::get_charge_permission( $charge_permission_id );
+			$charge_permission    = self::get_charge_permission( $charge_permission_id );
 			$data['chargeAmount'] = (array) $charge_permission->limits->amountLimit; // phpcs:ignore WordPress.NamingConventions
 			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
 		}

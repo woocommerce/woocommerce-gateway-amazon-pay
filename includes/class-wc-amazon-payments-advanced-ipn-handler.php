@@ -433,15 +433,15 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		switch ( strtoupper( $notification['ObjectType'] ) ) {
 			case 'CHARGE':
-				$object = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
+				$object        = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
 				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $object );
 				break;
 			case 'CHARGE_PERMISSION':
-				$object = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ObjectId'] );
+				$object        = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ObjectId'] );
 				$charge_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order, $object );
 				break;
 			case 'REFUND':
-				$object = WC_Amazon_Payments_Advanced_API::get_refund( $notification['ObjectId'] );
+				$object           = WC_Amazon_Payments_Advanced_API::get_refund( $notification['ObjectId'] );
 				$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $object );
 				break;
 			default:

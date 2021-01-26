@@ -54,8 +54,8 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
 
-		$id       = isset( $_GET['amazon_id'] ) ? wc_clean( $_GET['amazon_id'] ) : '';
-		$action   = sanitize_title( $_GET['amazon_action'] );
+		$id     = isset( $_GET['amazon_id'] ) ? wc_clean( $_GET['amazon_id'] ) : '';
+		$action = sanitize_title( $_GET['amazon_action'] );
 
 		do_action( 'wc_amazon_do_order_action', $order, $id, $action, $version );
 
@@ -72,7 +72,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		switch ( $action ) {
 			case 'refresh':
 				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order );
+				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order );
 				break;
 			case 'authorize':
 			case 'authorize_capture':
@@ -83,7 +83,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					$can_do_async = true;
 				}
 
-				$charge = WC_Amazon_Payments_Advanced_API::create_charge(
+				$charge                   = WC_Amazon_Payments_Advanced_API::create_charge(
 					$id,
 					array(
 						'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
@@ -92,20 +92,20 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					)
 				);
 				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'close_authorization':
-				$charge = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
+				$charge                   = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
 				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'capture':
-				$charge = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
+				$charge                   = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
 				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'refund':
-				$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
+				$refund           = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
 				$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $refund );
 		}
 	}
@@ -187,7 +187,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					'id'     => $charge_permission_id,
 					'button' => __( 'Authorize &amp; Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
 				);
-				$need_refresh = true;
+				$need_refresh                 = true;
 				break;
 			case 'Closed':
 				break;
@@ -216,7 +216,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 						'id'     => $charge_id,
 						'button' => __( 'Close Authorization', 'woocommerce-gateway-amazon-payments-advanced' ),
 					);
-					$need_refresh = true;
+					$need_refresh                   = true;
 					break;
 				case 'CaptureInitiated':
 					$need_refresh = true;
@@ -234,7 +234,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 						'id'     => $charge_id,
 						'button' => __( 'Close Authorization', 'woocommerce-gateway-amazon-payments-advanced' ),
 					);
-					$need_refresh = true;
+					$need_refresh                   = true;
 					break;
 				case 'Captured':
 					// TODO: Handle fully refunded charges
@@ -257,7 +257,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		if ( ! empty( $actions ) ) {
 			echo '<p class="buttons">';
 			foreach ( $actions as $action_name => $action ) {
-				$url = add_query_arg(
+				$url                            = add_query_arg(
 					array(
 						'amazon_action' => $action_name,
 						'amazon_id'     => $action['id'],
