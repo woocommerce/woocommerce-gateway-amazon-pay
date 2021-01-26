@@ -35,38 +35,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	/**
-	 * Convenience method to process generic Amazon API response errors.
-	 *
-	 * @throws Exception Error from API response.
-	 *
-	 * @param string $context                     Context.
-	 * @param object $response                    API response from self::request().
-	 * @param int    $order_id                    Order ID.
-	 * @param string $amazon_billing_agreement_id Billing agreement ID.
-	 */
-	private function handle_generic_api_response_errors( $context, $response, $order_id, $amazon_billing_agreement_id ) {
-
-		if ( is_wp_error( $response ) ) {
-
-			$error_message = $response->get_error_message();
-
-			wc_apa()->log( $context, "Error: WP_Error '{$error_message}' for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
-
-			throw new Exception( $error_message );
-
-		}
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->Error->Message ) ) {
-			$error_message = (string) $response->Error->Message;
-			wc_apa()->log( $context, "Error: API Error '{$error_message}' for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
-
-			throw new Exception( $error_message );
-		}
-		// @codingStandardsIgnoreEnd
-	}
-
-	/**
 	 * Set redirect URL if the result redirect URL is empty
 	 *
 	 * @param mixed $result
