@@ -101,7 +101,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'action'                         => $this->get_current_cart_action(),
 			'sandbox'                        => 'yes' === $this->settings['sandbox'],
 			'merchant_id'                    => $this->settings['merchant_id'],
-			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ),
+			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
 			'checkout_session_id'            => $this->get_checkout_session_id(),
 			'button_language'                => $this->settings['button_language'],
 			'ledger_currency'                => $this->get_ledger_currency(), // TODO: Implement multicurrency
@@ -511,9 +511,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			do_action( 'woocommerce_email_header', $subject, null );
 
 			?>
-			<p><?php esc_html_e( 'It seems that someone is trying to make an order on your behalf. If that is the case, please use the code below to link your Amazon Pay account to your account upon checkout.', 'woocommerce' ); ?></p>
+			<p><?php esc_html_e( 'It seems that someone is trying to make an order on your behalf. If that is the case, please use the code below to link your Amazon Pay account to your account upon checkout.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 			<p style="vertical-align: top; word-wrap: break-word; -ms-hyphens: none; hyphens: none; border-collapse: collapse; -moz-hyphens: none; -webkit-hyphens: none; color: #222222; font-family: Lato, Arial, sans-serif; font-weight: normal; letter-spacing: 10px; line-height: 2; font-size: 48px; text-align: center;"><?php echo esc_html( $code ); ?></p>
-			<p><?php esc_html_e( 'If this is not you, you can ignore this message.', 'woocommerce' ); ?></p>
+			<p><?php esc_html_e( 'If this is not you, you can ignore this message.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 			<?php
 
 			do_action( 'woocommerce_email_footer', null );
@@ -1406,7 +1406,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$refunds = $order->get_refunds();
 				foreach ( $refunds as $this_wc_refund ) {
 					$this_refund_id = $this_wc_refund->get_meta( 'amazon_refund_id' );
-					if ( $this_refund_id === $refund->refundId ) {
+					if ( $this_refund_id === $refund->refundId ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 						$wc_refund = $this_wc_refund;
 					}
 				}

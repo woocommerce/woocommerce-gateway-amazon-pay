@@ -178,7 +178,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				foreach ( $amazon_refund_ids as $amazon_refund_id ) {
 
 					if ( isset( $refunds[ $amazon_refund_id ] ) ) {
-						echo wpautop( sprintf( __( 'Refund %1$s of %2$s is <strong>%s</strong> (%3$s).', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_refund_id, wc_price( $refunds[ $amazon_refund_id ]['amount'] ), $refunds[ $amazon_refund_id ]['state'], $refunds[ $amazon_refund_id ]['note'] ) );
+						echo wpautop( sprintf( __( 'Refund %1$s of %2$s is <strong>%3$s</strong> (%4$s).', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_refund_id, wc_price( $refunds[ $amazon_refund_id ]['amount'] ), $refunds[ $amazon_refund_id ]['state'], $refunds[ $amazon_refund_id ]['note'] ) );
 					} else {
 
 						$response = WC_Amazon_Payments_Advanced_API::request(
@@ -196,7 +196,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 							$amount = (string) $response->GetRefundDetailsResult->RefundDetails->RefundAmount->Amount;
 							// @codingStandardsIgnoreEnd
 
-							echo wpautop( sprintf( __( 'Refund %1$s of %2$s is <strong>%s</strong> (%3$s).', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_refund_id ), wc_price( $amount ), esc_html( $state ), esc_html( $note ) ) );
+							echo wpautop( sprintf( __( 'Refund %1$s of %2$s is <strong>%3$s</strong> (%4$s).', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_refund_id ), wc_price( $amount ), esc_html( $state ), esc_html( $note ) ) );
 
 							if ( 'Completed' === $state ) {
 								$refunds[ $amazon_refund_id ] = array(

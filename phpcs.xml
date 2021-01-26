@@ -28,6 +28,7 @@
 		<exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited"/>
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode"/>
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode"/>
+		<exclude name="Squiz.PHP.CommentedOutCode.Found"/>
 	</rule>
 	<rule ref="WordPress.WP.I18n">
 		<properties>

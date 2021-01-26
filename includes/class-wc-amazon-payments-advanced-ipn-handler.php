@@ -412,7 +412,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ChargePermissionId'] );
 
-		$order_id = $charge_permission->merchantMetadata->merchantReferenceId;
+		$order_id = $charge_permission->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		if ( is_numeric( $order_id ) ) {
 			$order = wc_get_order( $order_id );
 		} else {
@@ -424,7 +424,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		}
 
 		if ( 'STATE_CHANGE' !== strtoupper( $notification['NotificationType'] ) ) {
-			throw new Exception( sprintf( __( 'Notification type "%s" not supported' ), $notification['NotificationType'] ) );
+			throw new Exception( sprintf( __( 'Notification type "%s" not supported', 'woocommerce-gateway-amazon-payments-advanced' ), $notification['NotificationType'] ) );
 		}
 
 		if ( ! isset( $notification['MockedIPN'] ) ) {
