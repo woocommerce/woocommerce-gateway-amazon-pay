@@ -220,8 +220,10 @@ class WC_Amazon_Payments_Advanced {
 		if ( $subscriptions_installed && 'yes' === WC_Amazon_Payments_Advanced_API::get_settings( 'subscriptions_enabled' ) ) {
 
 			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-subscriptions.php';
+			include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-subscriptions-legacy.php';
 
 			$this->subscriptions = new WC_Gateway_Amazon_Payments_Advanced_Subscriptions();
+			new WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy();
 
 		}
 

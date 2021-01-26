@@ -31,6 +31,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$id      = wc_apa()->get_gateway()->id;
 		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
 
+		do_action( 'woocommerce_amazon_pa_subscriptions_init', $version );
+
 		// Legacy methods needed when dealing with legacy subscriptions
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
 		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
