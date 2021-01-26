@@ -37,16 +37,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	}
 
 	/**
-	 * Check if order contains subscriptions.
-	 *
-	 * @param  WC_Order/int $order Order / Order ID.
-	 * @return bool Returns true of order contains subscription.
-	 */
-	protected function order_contains_subscription( $order ) {
-		return function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order ) || wcs_order_contains_renewal( $order ) );
-	}
-
-	/**
 	 * Process payment
 	 *
 	 * @param int $order_id Order ID.
@@ -55,7 +45,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 		$order = wc_get_order( $order_id );
 
-		if ( ! $this->order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
+		if ( ! WC_Gateway_Amazon_Payments_Advanced_Subscriptions::order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
 			return $process;
 		}
 
@@ -465,7 +455,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @param string $amazon_reference_id
 	 */
 	public function handle_sca_success( $process, $order, $amazon_reference_id ) {
-		if ( ! $this->order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
+		if ( ! WC_Gateway_Amazon_Payments_Advanced_Subscriptions::order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
 			return $process;
 		}
 		$redirect = wc_apa()->get_gateway()->get_return_url( $order );
@@ -504,7 +494,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @param string $authorization_status
 	 */
 	public function handle_sca_failure( $process, $order, $amazon_reference_id, $authorization_status ) {
-		if ( ! $this->order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
+		if ( ! WC_Gateway_Amazon_Payments_Advanced_Subscriptions::order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
 			return $process;
 		}
 		$redirect = wc_get_checkout_url();

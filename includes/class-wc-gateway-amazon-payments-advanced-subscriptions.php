@@ -112,4 +112,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		return $fields;
 	}
+
+	/**
+	 * Check if order contains subscriptions.
+	 *
+	 * @param  WC_Order/int $order Order / Order ID.
+	 * @return bool Returns true of order contains subscription.
+	 */
+	public static function order_contains_subscription( $order ) {
+		return function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order ) || wcs_order_contains_renewal( $order ) );
+	}
 }
