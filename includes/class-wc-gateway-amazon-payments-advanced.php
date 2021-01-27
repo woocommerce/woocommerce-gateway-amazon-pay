@@ -946,7 +946,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
 
 			if ( empty( $checkout_session->paymentDetails ) || empty( $checkout_session->paymentDetails->chargeAmount ) || $checkout_session->paymentDetails->chargeAmount->amount !== $order_total ) { // phpcs:ignore WordPress.NamingConventions
-				$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // TODO: ask if WC 2.6 support is still needed (it's a 2017 release)
+				$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // ASK: ask if WC 2.6 support is still needed (it's a 2017 release)
 				$order->update_meta_data( 'woocommerce_version', WC()->version );
 
 				$payment_intent = 'AuthorizeWithCapture';
@@ -1073,7 +1073,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( 'Completed' !== $response->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions
-			// TODO: Handle error. Ask for posibilities of status not to be completed at this stage.
+			// TODO: Handle error.
+			// ASK: Ask for posibilities of status not to be completed at this stage.
 			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' <pre>' . wp_json_encode( $response->statusDetails, JSON_PRETTY_PRINT ) . '</pre>', 'error' ); // phpcs:ignore WordPress.NamingConventions
 			return;
 		}
@@ -1096,7 +1097,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// Remove cart.
 		WC()->cart->empty_cart();
 
-		// TODO: Maybe log out with JS. Ask.
+		// ASK: Maybe log out with JS. Ask.
 		$this->do_logout();
 
 		wp_safe_redirect( $order->get_checkout_order_received_url() );
