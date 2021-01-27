@@ -1948,6 +1948,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 				if ( ! in_array( $uc_state, $valid_state_values, true ) ) {
 					$formatted['state'] = null;
+				} else {
+					$formatted['state'] = $uc_state;
 				}
 			}
 		}
