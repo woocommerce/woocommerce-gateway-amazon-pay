@@ -123,6 +123,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		wp_enqueue_style( 'amazon_payments_advanced' );
 		wp_enqueue_script( 'amazon_payments_advanced_checkout' );
 		wp_enqueue_script( 'amazon_payments_advanced' );
+		if ( WC()->session->amazon_checkout_do_logout ) {
+			wp_add_inline_script( 'amazon_payments_advanced', 'amazon.Pay.signout();' );
+			unset( WC()->session->amazon_checkout_do_logout );
+		}
 	}
 
 	protected function get_current_placement() {
@@ -410,6 +414,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	protected function do_logout() {
 		unset( WC()->session->amazon_checkout_session_id );
+		WC()->session->amazon_checkout_do_logout = true;
 	}
 
 	protected function do_force_refresh( $reason ) {
@@ -1097,7 +1102,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// Remove cart.
 		WC()->cart->empty_cart();
 
-		// ASK: Maybe log out with JS. Ask.
 		$this->do_logout();
 
 		wp_safe_redirect( $order->get_checkout_order_received_url() );
