@@ -454,6 +454,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		// Schedule action to check pending order next hour.
 		if ( doing_action( 'wc_amazon_async_polling' ) || false === as_next_scheduled_action( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
 			wc_apa()->log( __METHOD__, sprintf( 'Scheduling %s for %s', $type, $order_id ) );
+			// TODO: Change time to a more stable timeframe
 			as_schedule_single_action( strtotime( 'next minute' ), 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 		}
 	}

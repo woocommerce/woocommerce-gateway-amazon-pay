@@ -93,6 +93,13 @@ class WC_Amazon_Payments_Advanced {
 	private $logger;
 
 	/**
+	 * Logger prefix for the whole transaction
+	 *
+	 * @var string
+	 */
+	private $logger_prefix;
+
+	/**
 	 * Amazon Pay compat handler.
 	 *
 	 * @since 1.6.0
@@ -295,7 +302,7 @@ class WC_Amazon_Payments_Advanced {
 	 * @param string $context Context for the log.
 	 * @param string $message Log message.
 	 */
-	public function log( $context, $message ) {
+	public function log( $context, $message, $object = null ) {
 		if ( empty( $this->settings['debug'] ) ) {
 			return;
 		}
@@ -309,6 +316,23 @@ class WC_Amazon_Payments_Advanced {
 		}
 
 		$log_message = $context . ' - ' . $message;
+
+		if ( ! is_null( $object ) ) {
+			if ( is_array( $object ) || is_object( $object ) ) {
+				$log_message .= "\n";
+				$log_message .= wp_json_encode( $object, JSON_PRETTY_PRINT );
+			} elseif ( is_string( $object ) || is_numeric( $object ) ) {
+				$log_message .= ' | ' . $object;
+			} else {
+				$log_message .= ' | ' . var_export( $object, true ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
+			}
+		}
+
+		if ( ! isset( $this->logger_prefix ) ) {
+			$this->logger_prefix = wp_generate_password( 6, false, false );
+		}
+
+		$log_message = $this->logger_prefix . ' - ' . $log_message;
 
 		$this->logger->add( 'woocommerce-gateway-amazon-payments-advanced', $log_message );
 
