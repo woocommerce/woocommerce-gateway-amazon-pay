@@ -798,9 +798,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 										'type'  => 'checkbox',
 										'label' => __( 'Link Amazon Pay Account', 'woocommerce-gateway-amazon-payments-advanced' ),
 									),
-									$checkout->get_value( $key )
+									$checkout->get_value( $key ) || true
 								);
 								?>
+								<p><?php _e( 'By checking this box, every time you will log in with the same Amazon account, you will also be logged in with your existing shop account.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 								<div class="clear"></div>
 							</div>
 						</div>
