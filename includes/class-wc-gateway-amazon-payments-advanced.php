@@ -888,52 +888,48 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
 
-			if ( empty( $checkout_session->paymentDetails ) || empty( $checkout_session->paymentDetails->chargeAmount ) || $checkout_session->paymentDetails->chargeAmount->amount !== $order_total ) { // phpcs:ignore WordPress.NamingConventions
-				$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // ASK: ask if WC 2.6 support is still needed (it's a 2017 release)
-				$order->update_meta_data( 'woocommerce_version', WC()->version );
+			$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // ASK: ask if WC 2.6 support is still needed (it's a 2017 release)
+			$order->update_meta_data( 'woocommerce_version', WC()->version );
 
-				$payment_intent = 'AuthorizeWithCapture';
-				switch ( $this->settings['payment_capture'] ) {
-					case 'authorize':
-						$payment_intent = 'Authorize';
-						break;
-					case 'manual':
-						$payment_intent = 'Confirm';
-						break;
-				}
+			$payment_intent = 'AuthorizeWithCapture';
+			switch ( $this->settings['payment_capture'] ) {
+				case 'authorize':
+					$payment_intent = 'Authorize';
+					break;
+				case 'manual':
+					$payment_intent = 'Confirm';
+					break;
+			}
 
-				$can_do_async = false;
-				if ( 'async' === $this->settings['authorization_mode'] && 'authorize' === $this->settings['payment_capture'] ) {
-					$can_do_async = true;
-				}
+			$can_do_async = false;
+			if ( 'async' === $this->settings['authorization_mode'] && 'authorize' === $this->settings['payment_capture'] ) {
+				$can_do_async = true;
+			}
 
-				$payload = array(
-					'paymentDetails'   => array(
-						'paymentIntent'                 => $payment_intent, // TODO: Check Authorize, and Confirm flows.
-						'canHandlePendingAuthorization' => $can_do_async,
-						// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
-						'chargeAmount'                  => array(
-							'amount'       => $order_total,
-							'currencyCode' => $currency,
-						),
+			$payload = array(
+				'paymentDetails'   => array(
+					'paymentIntent'                 => $payment_intent, // TODO: Check Authorize, and Confirm flows.
+					'canHandlePendingAuthorization' => $can_do_async,
+					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
+					'chargeAmount'                  => array(
+						'amount'       => $order_total,
+						'currencyCode' => $currency,
 					),
-					'merchantMetadata' => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
-				);
+				),
+				'merchantMetadata' => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
+			);
 
-				wc_apa()->log( __METHOD__, "Updating checkout session data for #{$order_id}." );
+			wc_apa()->log( __METHOD__, "Updating checkout session data for #{$order_id}." );
 
-				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
-					$checkout_session_id,
-					$payload
-				);
+			$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
+				$checkout_session_id,
+				$payload
+			);
 
-				if ( is_wp_error( $response ) ) {
-					wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}", $response );
-					wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-					return;
-				}
-			} else {
-				$response = $checkout_session;
+			if ( is_wp_error( $response ) ) {
+				wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}", $response );
+				wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+				return;
 			}
 
 			if ( ! empty( $response->constraints ) ) {
