@@ -478,6 +478,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 				$amazon_id = $order->get_meta( 'amazon_charge_id' );
 				if ( empty( $amazon_id ) ) {
 					// TODO: Not possible to poll for charge_id only with charge permission id (eg: collect payment from seller central)
+					// TIP: Suggested by Federico, use the charge_permission amounts change to infer a charge being made.
 					return;
 				}
 				break;
