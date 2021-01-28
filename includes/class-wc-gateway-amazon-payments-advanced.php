@@ -284,24 +284,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					return; // We shouldn't be here anyways
 				}
 
-				$code = get_user_meta( $user_id, 'wc_apa_ownership_verification_code', true );
-				if ( empty( $code ) ) {
-					throw new Exception( __( 'You have to send yourself a code before attempting to claim an account. If you want, you can continue as guest.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-				}
-
 				if ( empty( $data['amazon_validate'] ) ) {
-					throw new Exception( __( 'You did not enter the code to validate your account. If you want, you can continue as guest.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+					throw new Exception( __( 'You did not enter the password to validate your account. If you want, you can continue as guest.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 				}
 
-				if ( $code !== $data['amazon_validate'] ) { // TODO: Rotate code after 5 failed attempts
-					throw new Exception( __( 'The code you entered did not match. Try again, or continue as guest.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+				$user = get_user_by( 'id', $user_id );
+
+				if ( ! wp_check_password( $data['amazon_validate'], $user->user_pass, $user->ID ) ) { // TODO: Rotate code after 5 failed attempts
+					throw new Exception( __( 'The password you entered did not match the one on the account. Try again, or continue as guest.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 				}
 
 				$customer_id = $user_id;
 
 				$this->set_customer_id_for_buyer( $buyer_id, $customer_id );
-
-				delete_user_meta( $user_id, 'wc_apa_ownership_verification_code' );
 			}
 
 			if ( ! $customer_id ) {
@@ -337,21 +332,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return $customer_id;
 	}
 
-	public function get_amazon_validate_ownership_url() {
-		return add_query_arg(
-			array(
-				'amazon_payments_advanced'  => 'true',
-				'amazon_validate_ownership' => 'true',
-			),
-			get_permalink( wc_get_page_id( 'checkout' ) )
-		);
-	}
-
 	public function print_validate_button( $html, $key, $field, $value ) {
 		$html  = '<p class="form-row" id="amazon_validate_notice_field" data-priority="">';
-		$html .= __( 'An account with your Amazon Pay email address exists already. Is that you?', 'woocommerce-gateway-amazon-payments-advanced' );
-		$html .= ' ';
-		$html .= sprintf( __( 'Click %1$shere%2$s to send a code to your email, which will help you validate the ownership of the account.', 'woocommerce-gateway-amazon-payments-advanced' ), '<a href="' . esc_url( $this->get_amazon_validate_ownership_url() ) . '" class="wc-apa-send-confirm-ownership-code" target="_blank">', '</a>' );
+		$html .= __( 'An account with your Amazon Pay email address exists already. Is that you? If so, enter your password below.', 'woocommerce-gateway-amazon-payments-advanced' );
 		$html .= '</p>';
 		return $html;
 	}
@@ -482,52 +465,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$this->handle_return();
 			// If we didn't redirect and quit yet, lets force redirect to checkout.
 			wp_safe_redirect( $redirect_url );
-			exit;
-		}
-
-		if ( isset( $_GET['amazon_validate_ownership'] ) && $this->is_logged_in() ) {
-			$checkout_session = $this->get_checkout_session();
-			$buyer_id         = $checkout_session->buyer->buyerId;
-			$buyer_email      = $checkout_session->buyer->email;
-
-			$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
-
-			if ( is_user_logged_in() ) {
-				return; // We shouldn't be here anyways
-			}
-
-			if ( $buyer_user_id ) {
-				return; // We shouldn't be here anyways
-			}
-			$user_id = email_exists( $buyer_email );
-			if ( ! $user_id ) {
-				return; // We shouldn't be here anyways
-			}
-
-			$subject = 'Link your account with Amazon Pay';
-			$code    = wp_rand( 1111, 9999 );
-			update_user_meta( $user_id, 'wc_apa_ownership_verification_code', $code );
-
-			$mailer = WC()->mailer();
-
-			// Buffer.
-			ob_start();
-
-			do_action( 'woocommerce_email_header', $subject, null );
-
-			?>
-			<p><?php esc_html_e( 'It seems that someone is trying to make an order on your behalf. If that is the case, please use the code below to link your Amazon Pay account to your account upon checkout.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
-			<p style="vertical-align: top; word-wrap: break-word; -ms-hyphens: none; hyphens: none; border-collapse: collapse; -moz-hyphens: none; -webkit-hyphens: none; color: #222222; font-family: Lato, Arial, sans-serif; font-weight: normal; letter-spacing: 10px; line-height: 2; font-size: 48px; text-align: center;"><?php echo esc_html( $code ); ?></p>
-			<p><?php esc_html_e( 'If this is not you, you can ignore this message.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
-			<?php
-
-			do_action( 'woocommerce_email_footer', null );
-
-			// Get contents.
-			$message = ob_get_clean();
-
-			$mailer->send( $buyer_email, wp_strip_all_tags( $subject ), $message );
-
 			exit;
 		}
 
@@ -679,8 +616,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		);
 
 		$checkout_fields['account']['amazon_validate'] = array(
-			'type'     => 'text',
-			'label'    => __( 'Verification Code', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'type'     => 'password',
+			'label'    => __( 'Password', 'woocommerce' ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
 			'required' => true,
 		);
 
@@ -798,9 +735,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 										'type'  => 'checkbox',
 										'label' => __( 'Link Amazon Pay Account', 'woocommerce-gateway-amazon-payments-advanced' ),
 									),
-									$checkout->get_value( $key )
+									$checkout->get_value( $key ) || true
 								);
 								?>
+								<p><?php _e( 'By checking this box, every time you will log in with the same Amazon account, you will also be logged in with your existing shop account.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 								<div class="clear"></div>
 							</div>
 						</div>
