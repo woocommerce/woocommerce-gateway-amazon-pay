@@ -1033,6 +1033,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order_total = $order->get_total();
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
+		wc_apa()->log( __METHOD__, "Completing checkout session data for #{$order_id}." );
+
 		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session(
 			$checkout_session_id,
 			array(

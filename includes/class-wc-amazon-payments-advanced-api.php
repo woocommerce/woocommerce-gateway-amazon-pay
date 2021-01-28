@@ -342,13 +342,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	public static function complete_checkout_session( $checkout_session_id, $data = array() ) {
 		$client = self::get_client();
+		wc_apa()->log( __METHOD__, sprintf( 'Checkout Session ID %s', $checkout_session_id ), $data );
 		$result = $client->completeCheckoutSession( $checkout_session_id, $data );
 
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 202 ), true ) ) {
+			wc_apa()->log( __METHOD__, sprintf( 'ERROR. Checkout Session ID %s.', $checkout_session_id ), $result );
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
+
+		wc_apa()->log( __METHOD__, sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), $response );
 
 		return $response;
 	}
