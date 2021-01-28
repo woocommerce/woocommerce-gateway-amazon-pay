@@ -506,6 +506,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	public static function cancel_charge( $charge_id, $reason = 'Order Cancelled' ) {
 		$client = self::get_client();
+		wc_apa()->log( __METHOD__, sprintf( 'Charge ID %s.', $charge_id ) );
 
 		$result = $client->cancelCharge(
 			$charge_id,
@@ -517,8 +518,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			wc_apa()->log( __METHOD__, sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
+
+		wc_apa()->log( __METHOD__, sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
 
 		return $response;
 	}
