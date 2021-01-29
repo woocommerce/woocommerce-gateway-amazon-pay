@@ -1971,7 +1971,7 @@ class WC_Amazon_Payments_Advanced_API {
 	public static function maybe_subscription_is_shippable( WC_Order $order ) {
 
 		if ( ! class_exists( 'WC_Subscriptions_Product' ) ) {
-			return;
+			return false;
 		}
 
 		$items = $order->get_items();
