@@ -793,7 +793,11 @@ class WC_Amazon_Payments_Advanced {
 	}
 
 	public function get_amazon_payments_checkout_url() {
-		$url = add_query_arg( array( 'amazon_payments_advanced' => 'true' ), get_permalink( wc_get_page_id( 'checkout' ) ) );
+		$url = get_permalink( wc_get_page_id( 'checkout' ) );
+		if ( empty( $url ) ) {
+			$url = trailingslashit( home_url() );
+		}
+		$url = add_query_arg( array( 'amazon_payments_advanced' => 'true' ), $url );
 		return $url;
 	}
 
@@ -1435,6 +1439,9 @@ class WC_Amazon_Payments_Advanced {
 	public function get_amazon_logout_url( $url = null ) {
 		if ( empty( $url ) ) {
 			$url = get_permalink( wc_get_page_id( 'checkout' ) );
+		}
+		if ( empty( $url ) ) {
+			$url = trailingslashit( home_url() );
 		}
 		return add_query_arg(
 			array(
