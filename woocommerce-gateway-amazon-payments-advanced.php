@@ -1422,13 +1422,16 @@ class WC_Amazon_Payments_Advanced {
 	 *
 	 * @return string Amazon logout URL
 	 */
-	public function get_amazon_logout_url() {
+	public function get_amazon_logout_url( $url = null ) {
+		if ( empty( $url ) ) {
+			$url = get_permalink( wc_get_page_id( 'checkout' ) );
+		}
 		return add_query_arg(
 			array(
 				'amazon_payments_advanced' => 'true',
 				'amazon_logout'            => 'true',
 			),
-			get_permalink( wc_get_page_id( 'checkout' ) )
+			$url
 		);
 	}
 

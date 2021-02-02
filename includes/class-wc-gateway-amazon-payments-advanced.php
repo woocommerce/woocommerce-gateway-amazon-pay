@@ -1388,13 +1388,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Payment_Gateway {
 			WC_Amazon_Payments_Advanced_API::cancel_order_reference( $order, 'MFA Failure' );
 
 			// Redirect to cart and amazon logout.
-			$redirect = add_query_arg(
-				array(
-					'amazon_payments_advanced' => 'true',
-					'amazon_logout'            => 'true',
-				),
-				wc_get_cart_url()
-			);
+			$redirect = wc_apa()->get_amazon_logout_url( wc_get_cart_url() );
 
 			// Adds notice and logging.
 			wc_add_notice( __( 'There was a problem authorizing your transaction using Amazon Pay. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
