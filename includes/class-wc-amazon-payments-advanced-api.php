@@ -463,7 +463,7 @@ class WC_Amazon_Payments_Advanced_API {
 	 */
 	public static function get_selected_currencies() {
 		$settings = self::get_settings();
-		return isset( $settings['currencies_supported'] ) ? $settings['currencies_supported'] : array();
+		return isset( $settings['currencies_supported'] ) && is_array( $settings['currencies_supported'] ) ? $settings['currencies_supported'] : array();
 	}
 
 	/**
