@@ -769,10 +769,13 @@ class WC_Amazon_Payments_Advanced_API {
 		$args     = wp_parse_args(
 			$args,
 			array(
-				'amazon_reference_id' => get_post_meta( $order_id, 'amazon_reference_id', true ),
 				'capture_now'         => false,
 			)
 		);
+
+		if ( empty( $args['amazon_reference_id'] ) ) {
+			$args['amazon_reference_id'] = get_post_meta( $order_id, 'amazon_reference_id', true );
+		}
 
 		if ( ! $args['amazon_reference_id'] ) {
 			return new WP_Error( 'order_missing_reference_id', __( 'Order missing Amazon order reference ID.', 'woocommerce-gateway-amazon-payments-advanced' ) );
