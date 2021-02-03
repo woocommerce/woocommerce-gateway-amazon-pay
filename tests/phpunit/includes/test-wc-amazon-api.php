@@ -947,6 +947,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 				'TransactionTimeout'                  => 0,
 				'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
 				'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
+				'InheritShippingAddress'              => false,
 			),
 			WC_Amazon_Payments_Advanced_API::get_authorize_recurring_request_args( $order, array(
 				'amazon_billing_agreement_id' => '123',
