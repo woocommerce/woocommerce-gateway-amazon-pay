@@ -31,6 +31,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$id      = wc_apa()->get_gateway()->id;
 		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
 
+		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
+			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
+			add_filter( 'wcs_renewal_order_meta', array( $this, 'copy_meta_from_sub' ), 10, 3 );
+		}
+
 		do_action( 'woocommerce_amazon_pa_subscriptions_init', $version );
 	}
 
@@ -121,5 +126,42 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 */
 	public static function order_contains_subscription( $order ) {
 		return function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order ) || wcs_order_contains_renewal( $order ) );
+	}
+
+	public function copy_meta_to_sub( $order, $response ) {
+		if ( ! self::order_contains_subscription( $order ) ) {
+			return;
+		}
+
+		$meta_keys_to_copy = array(
+			'amazon_charge_permission_id',
+			'amazon_payment_advanced_version',
+			'woocommerce_version',
+		);
+
+		$subscriptions = wcs_get_subscriptions_for_order( $order );
+		foreach ( $subscriptions as $subscription ) {
+			foreach ( $meta_keys_to_copy as $key ) {
+				$subscription->update_meta_data( $key, $order->get_meta( $key ) );
+			}
+			$subscription->save();
+			$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription );
+		}
+	}
+
+	public function copy_meta_from_sub( $meta, $order, $subscription ) {
+		$meta_keys_to_copy = array(
+			'amazon_charge_permission_id',
+			'amazon_payment_advanced_version',
+			'woocommerce_version',
+		);
+
+		foreach ( $meta_keys_to_copy as $key ) {
+			$meta[] = array(
+				'meta_key'   => $key, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value' => $subscription->get_meta( $key ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			);
+		}
+		return $meta;
 	}
 }

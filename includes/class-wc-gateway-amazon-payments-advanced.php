@@ -1034,6 +1034,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 		$order->save();
 
+		do_action( 'woocommerce_amazon_pa_processed_order', $order, $response );
+
 		// Remove cart.
 		WC()->cart->empty_cart();
 
