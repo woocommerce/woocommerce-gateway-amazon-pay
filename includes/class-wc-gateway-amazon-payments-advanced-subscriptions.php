@@ -32,6 +32,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
+			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
+			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
 			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
 			add_filter( 'wcs_renewal_order_meta', array( $this, 'copy_meta_from_sub' ), 10, 3 );
 		}
@@ -126,6 +128,126 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 */
 	public static function order_contains_subscription( $order ) {
 		return function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order ) || wcs_order_contains_renewal( $order ) );
+	}
+
+	private function get_recurring_frequency() {
+		$apa_period    = null;
+		$apa_interval  = null;
+		$apa_timeframe = PHP_INT_MAX;
+
+		foreach ( WC()->cart->recurring_carts as $key => $recurring_cart ) {
+			$contents = $recurring_cart->get_cart_contents();
+			$first    = reset( $contents );
+			if ( ! isset( $first['data'] ) || ! is_a( $first['data'], 'WC_Product' ) ) {
+				// Weird, but ok.
+				continue;
+			}
+			$product = $first['data'];
+
+			$interval = WC_Subscriptions_Product::get_interval( $product );
+			$period   = WC_Subscriptions_Product::get_period( $product );
+
+			$this_timeframe = PHP_INT_MAX;
+
+			switch ( strtolower( $period ) ) {
+				case 'year':
+					$this_timeframe = YEAR_IN_SECONDS * $interval;
+					break;
+				case 'month':
+					$this_timeframe = MONTH_IN_SECONDS * $interval;
+					break;
+				case 'week':
+					$this_timeframe = WEEK_IN_SECONDS * $interval;
+					break;
+				case 'day':
+					$this_timeframe = DAY_IN_SECONDS * $interval;
+					break;
+			}
+
+			if ( $this_timeframe < $apa_timeframe ) {
+				$apa_timeframe = $this_timeframe;
+				$apa_period    = $period;
+				$apa_interval  = $interval;
+			}
+		}
+
+		switch ( strtolower( $apa_period ) ) {
+			case 'year':
+			case 'month':
+			case 'week':
+			case 'day':
+				$apa_period = ucfirst( strtolower( $apa_period ) );
+				break;
+			default:
+				$apa_period   = 'Variable';
+				$apa_interval = '0';
+				break;
+		}
+
+		return array(
+			'unit'  => $apa_period,
+			'value' => $apa_interval,
+		);
+	}
+
+	public function recurring_checkout_session( $payload ) {
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+			return $payload;
+		}
+
+		WC()->cart->calculate_totals();
+
+		$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
+
+		if ( 0 === $subscriptions_in_cart ) {
+			// Weird, but ok.
+			return $payload;
+		}
+
+		$payload['chargePermissionType'] = 'Recurring';
+
+		$payload['recurringMetadata'] = array(
+			'frequency' => $this->get_recurring_frequency(),
+			'amount'    => null,
+		);
+
+		if ( 1 === $subscriptions_in_cart ) {
+			$payload['recurringMetadata']['amount'] = array(
+				'amount'       => WC()->cart->get_total( 'edit' ),
+				'currencyCode' => get_woocommerce_currency(),
+			);
+		}
+
+		return $payload;
+	}
+
+	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order ) {
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+			return $payload;
+		}
+
+		WC()->cart->calculate_totals();
+
+		$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
+
+		if ( 0 === $subscriptions_in_cart ) {
+			// Weird, but ok.
+			return $payload;
+		}
+
+		$payload['recurringMetadata'] = array(
+			'frequency' => $this->get_recurring_frequency(),
+			'amount'    => null,
+		);
+
+		if ( 1 === $subscriptions_in_cart ) {
+			$payload['recurringMetadata']['amount'] = array(
+				'amount'       => $order->get_total(),
+				'currencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
+			);
+		}
+
+		return $payload;
 	}
 
 	public function copy_meta_to_sub( $order, $response ) {

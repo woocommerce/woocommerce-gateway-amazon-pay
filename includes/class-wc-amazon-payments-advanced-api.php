@@ -270,6 +270,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			);
 		}
 
+		$payload = apply_filters( 'woocommerce_amazon_pa_create_checkout_session_params', $payload, $redirect_url );
+
 		$payload = wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 
 		return $payload;

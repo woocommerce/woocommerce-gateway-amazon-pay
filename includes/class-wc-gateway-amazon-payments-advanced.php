@@ -919,6 +919,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'merchantMetadata' => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
 			);
 
+			$payload = apply_filters( 'woocommerce_amazon_pa_update_checkout_session_payload', $payload, $checkout_session_id, $order );
+
 			wc_apa()->log( __METHOD__, "Updating checkout session data for #{$order_id}." );
 
 			$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
