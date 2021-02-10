@@ -31,6 +31,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$id      = wc_apa()->get_gateway()->id;
 		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
 
+		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
+
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
 			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
@@ -285,5 +287,60 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			);
 		}
 		return $meta;
+	}
+
+	/**
+	 * Process a scheduled subscription payment.
+	 *
+	 * @param float    $amount_to_charge The amount to charge.
+	 * @param WC_Order $order            The WC_Order object of the order which
+	 *                                   the subscription was purchased in.
+	 */
+	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v2' !== strtolower( $version ) ) {
+			return;
+		}
+
+		$order_id = $order->get_id();
+
+		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+
+		$capture_now = true;
+		switch ( WC_Amazon_Payments_Advanced_API::get_settings( 'payment_capture' ) ) {
+			case 'authorize':
+			case 'manual': // Force manual to be authorize as well
+				$capture_now = false;
+				break;
+		}
+
+		$can_do_async = false;
+		if ( ! $capture_now && 'async' === WC_Amazon_Payments_Advanced_API::get_settings( 'authorization_mode' ) ) {
+			$can_do_async = true;
+		}
+
+		$currency = wc_apa_get_order_prop( $order, 'order_currency' );
+
+		$response = WC_Amazon_Payments_Advanced_API::create_charge(
+			$charge_permission_id,
+			array(
+				'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
+				'captureNow'                    => $capture_now,
+				'canHandlePendingAuthorization' => $can_do_async,
+				'chargeAmount'                  => array(
+					'amount'       => $amount_to_charge,
+					'currencyCode' => $currency,
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			wc_apa()->log( __METHOD__, "Error processing payment for renewal order #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
+			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
+			return;
+		}
+
+		$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+		$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $response );
 	}
 }
