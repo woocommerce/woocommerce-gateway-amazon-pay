@@ -549,8 +549,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		// TODO: Validate entered data
 		if ( empty( $data['chargeAmount'] ) ) {
 			$charge_permission    = self::get_charge_permission( $charge_permission_id );
-			$data['chargeAmount'] = (array) $charge_permission->limits->amountLimit; // phpcs:ignore WordPress.NamingConventions
-			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
+			$data['chargeAmount'] = (array) $charge_permission->limits->amountBalance; // phpcs:ignore WordPress.NamingConventions
 		}
 		wc_apa()->log( __METHOD__, sprintf( 'Charge Permission ID %s.', $charge_permission_id ), $data );
 
