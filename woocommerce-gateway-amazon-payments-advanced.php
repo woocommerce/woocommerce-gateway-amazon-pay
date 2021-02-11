@@ -792,11 +792,25 @@ class WC_Amazon_Payments_Advanced {
 		return $methods;
 	}
 
+	public function get_amazon_payments_checkout_url() {
+		$url = get_permalink( wc_get_page_id( 'checkout' ) );
+		if ( empty( $url ) ) {
+			$url = trailingslashit( home_url() );
+		}
+		$url = add_query_arg( array( 'amazon_payments_advanced' => 'true' ), $url );
+		return $url;
+	}
+
+	public function get_amazon_payments_clean_logout_url() {
+		$url = add_query_arg( array( 'amazon_payments_advanced' => 'true', 'amazon_logout' => false ) );
+		return $url;
+	}
+
 	/**
 	 * Init Amazon login app widget.
 	 */
 	public function init_amazon_login_app_widget() {
-		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg( array( 'amazon_payments_advanced' => 'true', 'amazon_logout' => false ) );
+		$redirect_page = is_cart() ? $this->get_amazon_payments_checkout_url() : $this->get_amazon_payments_clean_logout_url();
 		?>
 		<script type='text/javascript'>
 		  	function getURLParameter(name, source) {
@@ -854,7 +868,7 @@ class WC_Amazon_Payments_Advanced {
 			'ajax_url'              => admin_url( 'admin-ajax.php' ),
 			'credentials_nonce'     => wp_create_nonce( 'amazon_pay_check_credentials' ),
 			'manual_exchange_nonce' => wp_create_nonce( 'amazon_pay_manual_exchange' ),
-			'login_redirect_url'    => add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ),
+			'login_redirect_url'    => $this->get_amazon_payments_checkout_url(),
 		);
 
 		wp_register_script( 'amazon_payments_admin', plugins_url( 'assets/js/amazon-wc-admin' . $js_suffix, __FILE__ ), array(), $this->version, true );
@@ -886,7 +900,7 @@ class WC_Amazon_Payments_Advanced {
 		wp_enqueue_script( 'amazon_payments_advanced_widgets', WC_Amazon_Payments_Advanced_API::get_widgets_url(), array(), $this->version, true );
 		wp_enqueue_script( 'amazon_payments_advanced', plugins_url( 'assets/js/amazon-' . $type . '-widgets' . $js_suffix, __FILE__ ), array(), $this->version, true );
 
-		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg( array( 'amazon_payments_advanced' => 'true', 'amazon_logout' => false ) );
+		$redirect_page = is_cart() ? $this->get_amazon_payments_checkout_url() : $this->get_amazon_payments_clean_logout_url();
 
 		$params = array(
 			'ajax_url'              => admin_url( 'admin-ajax.php' ),
@@ -1422,13 +1436,19 @@ class WC_Amazon_Payments_Advanced {
 	 *
 	 * @return string Amazon logout URL
 	 */
-	public function get_amazon_logout_url() {
+	public function get_amazon_logout_url( $url = null ) {
+		if ( empty( $url ) ) {
+			$url = get_permalink( wc_get_page_id( 'checkout' ) );
+		}
+		if ( empty( $url ) ) {
+			$url = trailingslashit( home_url() );
+		}
 		return add_query_arg(
 			array(
 				'amazon_payments_advanced' => 'true',
 				'amazon_logout'            => 'true',
 			),
-			get_permalink( wc_get_page_id( 'checkout' ) )
+			$url
 		);
 	}
 
