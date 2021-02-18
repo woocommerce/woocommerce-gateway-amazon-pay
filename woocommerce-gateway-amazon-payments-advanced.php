@@ -304,7 +304,7 @@ class WC_Amazon_Payments_Advanced {
 	 * @param string $context Context for the log.
 	 * @param string $message Log message.
 	 */
-	public function log( $context, $message, $object = null ) {
+	public function log( $message, $object = null, $context = null ) {
 		if ( empty( $this->settings['debug'] ) ) {
 			return;
 		}
@@ -315,6 +315,17 @@ class WC_Amazon_Payments_Advanced {
 
 		if ( ! is_a( $this->logger, 'WC_Logger' ) ) {
 			$this->logger = new WC_Logger();
+		}
+
+		if ( empty( $context ) ) {
+			$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+			array_shift( $backtrace ); // drop current
+
+			$context = isset( $backtrace[0]['function'] ) ? $backtrace[0]['function'] : '';
+
+			if ( isset( $backtrace[0]['class'] ) ) {
+				$context = $backtrace[0]['class'] . '::' . $context;
+			}
 		}
 
 		$log_message = $context . ' - ' . $message;

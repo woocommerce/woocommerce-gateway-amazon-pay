@@ -498,7 +498,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$endpoint = self::get_endpoint( 'yes' === $settings['sandbox'] );
 
 		$url = self::get_signed_amazon_url( $endpoint . '?' . http_build_query( $args, '', '&' ), $settings['secret_key'] );
-		wc_apa()->log( __METHOD__, sprintf( 'GET: %s', wc_apa()->sanitize_remote_request_log( $url ) ) );
+		wc_apa()->log( sprintf( 'GET: %s', wc_apa()->sanitize_remote_request_log( $url ) ) );
 
 		$response = wp_remote_get(
 			$url,
@@ -511,9 +511,9 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			$response        = self::safe_load_xml( $response['body'], LIBXML_NOCDATA );
 			$logged_response = wc_apa()->sanitize_remote_response_log( $response );
 
-			wc_apa()->log( __METHOD__, sprintf( 'Response: %s', $logged_response ) );
+			wc_apa()->log( sprintf( 'Response: %s', $logged_response ) );
 		} else {
-			wc_apa()->log( __METHOD__, sprintf( 'Error: %s', $response->get_error_message() ) );
+			wc_apa()->log( sprintf( 'Error: %s', $response->get_error_message() ) );
 		}
 
 		return $response;
@@ -785,7 +785,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 						in_array( $result->get_error_code(), array( 'invalid_order', 'order_missing_amazon_reference_id' ), true )
 					);
 					if ( $failed_before_api_request ) {
-						wc_apa()->log( __METHOD__, sprintf( 'Failed to cancel order reference: %s', $result->get_error_message() ) );
+						wc_apa()->log( sprintf( 'Failed to cancel order reference: %s', $result->get_error_message() ) );
 					}
 
 					$redirect_url = add_query_arg(
@@ -1056,7 +1056,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
 					$message = wc_get_template_html( 'emails/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-					wc_apa()->log( __METHOD__, 'EMAILL ' . $message );
+					wc_apa()->log( 'EMAILL ' . $message );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
 					// Hard decline
@@ -1107,7 +1107,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		update_post_meta( $order_id, 'amazon_authorization_id', $auth_id );
 
 		$authorization_status = self::get_auth_state_from_reponse( $response );
-		wc_apa()->log( __METHOD__, sprintf( 'Found authorization status of %s on pending synchronous payment', $authorization_status ) );
+		wc_apa()->log( sprintf( 'Found authorization status of %s on pending synchronous payment', $authorization_status ) );
 
 		switch ( $authorization_status ) {
 			case 'open':
@@ -1136,7 +1136,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
 					$message = wc_get_template_html( 'emails/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-					wc_apa()->log( __METHOD__, 'EMAILL ' . $message );
+					wc_apa()->log( 'EMAILL ' . $message );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
 					// Hard decline

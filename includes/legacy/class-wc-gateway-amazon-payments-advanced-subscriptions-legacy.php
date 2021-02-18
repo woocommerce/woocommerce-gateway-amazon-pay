@@ -68,7 +68,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			update_post_meta( $order_id, 'amazon_reference_id', $amazon_reference_id );
 
-			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for (subscription) order {$order_id} for the amount of {$order_total} {$currency}." );
+			wc_apa()->log( "Info: Beginning processing of payment for (subscription) order {$order_id} for the amount of {$order_total} {$currency}." );
 			update_post_meta( $order_id, 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION );
 			update_post_meta( $order_id, 'woocommerce_version', WC()->version );
 
@@ -92,9 +92,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			$result = update_post_meta( $order_id, 'amazon_billing_agreement_id', $amazon_billing_agreement_id );
 
 			if ( $result ) {
-				wc_apa()->log( __METHOD__, "Info: Successfully stored billing agreement in meta for order {$order_id}." );
+				wc_apa()->log( "Info: Successfully stored billing agreement in meta for order {$order_id}." );
 			} else {
-				wc_apa()->log( __METHOD__, "Error: Failed to store billing agreement in meta for order {$order_id}." );
+				wc_apa()->log( "Error: Failed to store billing agreement in meta for order {$order_id}." );
 			}
 
 			$subscriptions = wcs_get_subscriptions_for_order( $order_id );
@@ -103,9 +103,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 				$result          = update_post_meta( $subscription_id, 'amazon_billing_agreement_id', $amazon_billing_agreement_id );
 
 				if ( $result ) {
-					wc_apa()->log( __METHOD__, "Info: Successfully stored billing agreement in meta for subscription {$subscription_id} (parent order {$order_id})." );
+					wc_apa()->log( "Info: Successfully stored billing agreement in meta for subscription {$subscription_id} (parent order {$order_id})." );
 				} else {
-					wc_apa()->log( __METHOD__, "Error: Failed to store billing agreement in meta for subscription {$subscription_id} (parent order {$order_id})." );
+					wc_apa()->log( "Error: Failed to store billing agreement in meta for subscription {$subscription_id} (parent order {$order_id})." );
 				}
 			}
 
@@ -125,7 +125,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			// No payment needed now, free trial or coupon used - mark order as complete.
 			$order->payment_complete();
 
-			wc_apa()->log( __METHOD__, "Info: Zero-total initial payment for (subscription) order {$order_id}. Payment marked as complete." );
+			wc_apa()->log( "Info: Zero-total initial payment for (subscription) order {$order_id}. Payment marked as complete." );
 
 			// Remove items from cart.
 			WC()->cart->empty_cart();
@@ -137,7 +137,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			);
 		} catch ( Exception $e ) {
 
-			wc_apa()->log( __METHOD__, "Error: Exception encountered: {$e->getMessage()}" );
+			wc_apa()->log( "Error: Exception encountered: {$e->getMessage()}" );
 			wc_add_notice( sprintf( __( 'Error: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ), 'error' );
 			return false;
 		}
@@ -187,7 +187,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
-		wc_apa()->log( __METHOD__, "Info: SetBillingAgreementDetails for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
+		wc_apa()->log( "Info: SetBillingAgreementDetails for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
 
 		return $response;
 
@@ -223,7 +223,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
-		wc_apa()->log( __METHOD__, "Info: ConfirmBillingAgreement for Billing Agreement ID: {$amazon_billing_agreement_id}." );
+		wc_apa()->log( "Info: ConfirmBillingAgreement for Billing Agreement ID: {$amazon_billing_agreement_id}." );
 
 		return $response;
 
@@ -255,7 +255,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 					wc_reduce_stock_levels( $order->get_id() );
 				}
 
-				wc_apa()->log( __METHOD__, "Info: 'manual' payment_capture processed for (subscription) order {$order_id}." );
+				wc_apa()->log( "Info: 'manual' payment_capture processed for (subscription) order {$order_id}." );
 
 				break;
 
@@ -275,13 +275,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 						wc_reduce_stock_levels( $order->get_id() );
 					}
 
-					wc_apa()->log( __METHOD__, "Info: 'authorize' payment_capture processed for (subscription) order {$order_id}." );
+					wc_apa()->log( "Info: 'authorize' payment_capture processed for (subscription) order {$order_id}." );
 
 				} else {
 
 					$order->update_status( 'failed', __( 'Could not authorize Amazon payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 
-					wc_apa()->log( __METHOD__, "Error: 'authorize' payment_capture failed for (subscription) order {$order_id}." );
+					wc_apa()->log( "Error: 'authorize' payment_capture failed for (subscription) order {$order_id}." );
 
 				}
 
@@ -296,13 +296,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 					// Payment complete.
 					$order->payment_complete();
 
-					wc_apa()->log( __METHOD__, "Info: authorize and capture processed for (subscription) order {$order_id}." );
+					wc_apa()->log( "Info: authorize and capture processed for (subscription) order {$order_id}." );
 
 				} else {
 
 					$order->update_status( 'failed', __( 'Could not authorize Amazon payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 
-					wc_apa()->log( __METHOD__, "Error: authorize and capture failed for (subscription) order {$order_id}." );
+					wc_apa()->log( "Error: authorize and capture failed for (subscription) order {$order_id}." );
 
 				}
 
@@ -341,7 +341,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
-		wc_apa()->log( __METHOD__, "Info: GetBillingAgreementDetails for Billing Agreement ID: {$amazon_billing_agreement_id}." );
+		wc_apa()->log( "Info: GetBillingAgreementDetails for Billing Agreement ID: {$amazon_billing_agreement_id}." );
 		return $response;
 	}
 
@@ -387,7 +387,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			$error_message = $response->get_error_message();
 
-			wc_apa()->log( $context, "Error: WP_Error '{$error_message}' for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
+			wc_apa()->log( "Error: WP_Error '{$error_message}' for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}.", null, $context );
 
 			throw new Exception( $error_message );
 
@@ -396,7 +396,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		// @codingStandardsIgnoreStart
 		if ( isset( $response->Error->Message ) ) {
 			$error_message = (string) $response->Error->Message;
-			wc_apa()->log( $context, "Error: API Error '{$error_message}' for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
+			wc_apa()->log( "Error: API Error '{$error_message}' for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}.", null, $context );
 
 			throw new Exception( $error_message );
 		}
@@ -517,13 +517,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			// Adds notice and logging.
 			wc_add_notice( __( 'There was a problem authorizing your transaction using Amazon Pay. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-			wc_apa()->log( __METHOD__, 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Failure", reference ' . $amazon_reference_id );
+			wc_apa()->log( 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Failure", reference ' . $amazon_reference_id );
 			WC()->session->set( 'amazon_billing_agreement_details', 'false' );
 		}
 
 		if ( 'Abandoned' === $authorization_status ) {
 			wc_add_notice( __( 'Authentication for the transaction was not completed, please try again selecting another payment instrument from your Amazon wallet.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-			wc_apa()->log( __METHOD__, 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Abandoned", reference ' . $amazon_reference_id );
+			wc_apa()->log( 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Abandoned", reference ' . $amazon_reference_id );
 			WC()->session->set( 'amazon_billing_agreement_details', 'skip' );
 		}
 
@@ -559,7 +559,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 				throw new Exception( sprintf( __( 'An Amazon Billing Agreement ID was not found in order #%s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id ) );
 			}
 
-			wc_apa()->log( __METHOD__, "Info: Begin recurring payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
+			wc_apa()->log( "Info: Begin recurring payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
 
 			/**
 			 * 'AuthorizeOnBillingAgreement' has a maximum request quota of 10
@@ -580,16 +580,16 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 				// Payment complete.
 				$order->payment_complete();
 
-				wc_apa()->log( __METHOD__, "Info: Successful recurring payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
+				wc_apa()->log( "Info: Successful recurring payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
 			} else {
 				$order->update_status( 'failed', __( 'Could not authorize Amazon Pay payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 
-				wc_apa()->log( __METHOD__, "Error: Could not authorize Amazon Pay payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
+				wc_apa()->log( "Error: Could not authorize Amazon Pay payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
 			}
 		} catch ( Exception $e ) {
 			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );
 
-			wc_apa()->log( __METHOD__, "Error: Exception encountered: {$e->getMessage()}" );
+			wc_apa()->log( "Error: Exception encountered: {$e->getMessage()}" );
 		}
 	}
 
@@ -631,15 +631,15 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 				$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
-				wc_apa()->log( __METHOD__, "Info: CloseBillingAgreement for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
+				wc_apa()->log( "Info: CloseBillingAgreement for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
 			} catch ( Exception $e ) {
-				wc_apa()->log( __METHOD__, "Error: Exception encountered: {$e->getMessage()}" );
+				wc_apa()->log( "Error: Exception encountered: {$e->getMessage()}" );
 
 				/* translators: placeholder is error message from Amazon Pay API */
 				$order->add_order_note( sprintf( __( "Exception encountered in 'CloseBillingAgreement': %s", 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );
 			}
 		} else {
-			wc_apa()->log( __METHOD__, "Error: No Amazon Pay billing agreement found for order {$order_id}." );
+			wc_apa()->log( "Error: No Amazon Pay billing agreement found for order {$order_id}." );
 		}
 	}
 

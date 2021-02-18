@@ -337,7 +337,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			wc_apa()->log( __METHOD__, "Error processing payment for renewal order #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
+			wc_apa()->log( "Error processing payment for renewal order #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
 			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
 			return;
 		}
@@ -370,7 +370,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$response = WC_Amazon_Payments_Advanced_API::close_charge_permission( $charge_permission_id, 'Subscription Cancelled' );
 
 		if ( is_wp_error( $response ) ) {
-			wc_apa()->log( __METHOD__, "Error processing cancellation for subscription #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
+			wc_apa()->log( "Error processing cancellation for subscription #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
 			return;
 		}
 

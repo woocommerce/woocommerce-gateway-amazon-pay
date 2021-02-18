@@ -68,7 +68,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			return;
 		}
 		$order_id = $order->get_id();
-		wc_apa()->log( __METHOD__, sprintf( 'Info: Trying to perform "%s" for order #%s', $action, $order_id ) );
+		wc_apa()->log( sprintf( 'Info: Trying to perform "%s" for order #%s', $action, $order_id ) );
 		switch ( $action ) {
 			case 'refresh':
 				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );

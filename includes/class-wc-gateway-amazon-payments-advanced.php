@@ -886,7 +886,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$order_total = $order->get_total();
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
-			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
+			wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
 
 			$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // ASK: ask if WC 2.6 support is still needed (it's a 2017 release)
 			$order->update_meta_data( 'woocommerce_version', WC()->version );
@@ -921,7 +921,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			$payload = apply_filters( 'woocommerce_amazon_pa_update_checkout_session_payload', $payload, $checkout_session_id, $order );
 
-			wc_apa()->log( __METHOD__, "Updating checkout session data for #{$order_id}." );
+			wc_apa()->log( "Updating checkout session data for #{$order_id}." );
 
 			$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
 				$checkout_session_id,
@@ -929,13 +929,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			);
 
 			if ( is_wp_error( $response ) ) {
-				wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}", $response );
+				wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}", $response );
 				wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 				return;
 			}
 
 			if ( ! empty( $response->constraints ) ) {
-				wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $response->constraints );
+				wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $response->constraints );
 				wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 				return;
 			}
@@ -959,7 +959,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order_id = isset( WC()->session->order_awaiting_payment ) ? absint( WC()->session->order_awaiting_payment ) : 0;
 
 		if ( empty( $order_id ) ) {
-			wc_apa()->log( __METHOD__, "Error: Order could not be found. Checkout Session ID: {$checkout_session_id}." );
+			wc_apa()->log( "Error: Order could not be found. Checkout Session ID: {$checkout_session_id}." );
 			wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 			return;
 		}
@@ -969,7 +969,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order_total = $order->get_total();
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
-		wc_apa()->log( __METHOD__, "Completing checkout session data for #{$order_id}." );
+		wc_apa()->log( "Completing checkout session data for #{$order_id}." );
 
 		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session(
 			$checkout_session_id,
@@ -998,7 +998,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 							'error_code'       => $error_code,
 							'checkout_session' => $checkout_session,
 						);
-						wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $detail_debug );
+						wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $detail_debug );
 						wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
 				}
@@ -1013,7 +1013,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( 'Completed' !== $response->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions
 			// TODO: Handle error.
 			// ASK: Ask for posibilities of status not to be completed at this stage.
-			wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $response->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+			wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $response->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 			wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 			return;
 		}
@@ -1385,11 +1385,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order     = wc_get_order( $order_id );
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
 		if ( empty( $charge_id ) ) {
-			wc_apa()->log( __METHOD__, 'Order #' . $order_id . ' doesnt have a charge' );
+			wc_apa()->log( 'Order #' . $order_id . ' doesnt have a charge' );
 			return new WP_Error( 'no_charge', 'No charge to refund on this order' );
 		}
-		wc_apa()->log( __METHOD__, 'Processing refund from admin for order #' . $order_id );
-		wc_apa()->log( __METHOD__, 'Processing refund from admin for order #' . $order_id . '. Temporary refund ID #' . $this->current_refund->get_id() );
+		wc_apa()->log( 'Processing refund from admin for order #' . $order_id );
+		wc_apa()->log( 'Processing refund from admin for order #' . $order_id . '. Temporary refund ID #' . $this->current_refund->get_id() );
 		$refund           = WC_Amazon_Payments_Advanced_API::refund_charge( $charge_id, $amount );
 		$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $refund, $this->current_refund->get_id() );
 		return true;
