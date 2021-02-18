@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 5.6
-Stable tag: 1.12.2
+Stable tag: 1.13.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -61,7 +61,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 1.13.0 - 2021-xx-xx =
+= 1.13.0 - 2021-02-18 =
 * Update - WP tested up to 5.6.
 * Update - WC tested up to 5.0.
 * Fix - Fatal checkout error when changing subscription's payment method if user is logged out of Amazon account.
