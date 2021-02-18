@@ -410,6 +410,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		$notification = $message['Message'];
 
+		wc_apa()->log( 'Received IPN', $notification );
+
 		$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ChargePermissionId'] );
 
 		$order_id = $charge_permission->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
