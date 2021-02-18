@@ -61,6 +61,17 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 1.13.0 - 2021-xx-xx =
+* Update - WP tested up to 5.6.
+* Update - WC tested up to 5.0.
+* Fix - Fatal checkout error when changing subscription's payment method if user is logged out of Amazon account.
+* Fix - Checkout error when address book state does not match WooCommerce state data.
+* Fix - Multi-currency compatibility is not detected when Price Based on Country and WMPL is active.
+* Fix - PHP error when the currencies_supported option is not set.
+* Fix - Add InheritShippingAddress to AuthorizeOnBillingAgreement. InheritShippingAddress = True when orders are shipping physical products.
+* Fix - Missing order ID in session.
+* Fix - Normalize and refactor URL handling when checkout page url is not set.
+
 = 1.12.2 - 2020-05-05 =
 * Fix - Fatal checkout error when submitting orders that do not need shipping.
 
