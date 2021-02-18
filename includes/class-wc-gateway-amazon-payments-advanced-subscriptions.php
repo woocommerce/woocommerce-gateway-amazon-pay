@@ -279,6 +279,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	public function copy_meta_from_sub( $meta, $order, $subscription ) {
 		$meta_keys_to_copy = array(
 			'amazon_charge_permission_id',
+			'amazon_charge_permission_status',
 			'amazon_payment_advanced_version',
 			'woocommerce_version',
 		);
