@@ -893,10 +893,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		$amazon_reference_id = $order->get_meta( 'amazon_reference_id', true );
 		WC()->session->set( 'amazon_reference_id', $amazon_reference_id );
 
-		wc_apa()->log(
-			__METHOD__,
-			sprintf( 'Info: Continuing payment processing for order %s. Reference ID %s', $order_id, $amazon_reference_id )
-		);
+		wc_apa()->log( __METHOD__, sprintf( 'Info: Continuing payment processing for order %s. Reference ID %s', $order_id, $amazon_reference_id ) );
 
 		$authorization_status = wc_clean( $_GET['AuthenticationStatus'] );
 		switch ( $authorization_status ) {

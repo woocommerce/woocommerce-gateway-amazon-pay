@@ -994,14 +994,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 						wc_add_notice( __( 'The transaction was canceled by you. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
 					default:
-						wc_apa()->log(
-							__METHOD__,
-							"Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.",
-							array(
-								'error_code'       => $error_code,
-								'checkout_session' => $checkout_session,
-							)
+						$detail_debug = array(
+							'error_code'       => $error_code,
+							'checkout_session' => $checkout_session,
 						);
+						wc_apa()->log( __METHOD__, "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $detail_debug );
 						wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
 				}

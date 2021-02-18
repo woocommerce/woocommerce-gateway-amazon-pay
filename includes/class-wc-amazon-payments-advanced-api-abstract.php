@@ -1107,10 +1107,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		update_post_meta( $order_id, 'amazon_authorization_id', $auth_id );
 
 		$authorization_status = self::get_auth_state_from_reponse( $response );
-		wc_apa()->log(
-			__METHOD__,
-			sprintf( 'Found authorization status of %s on pending synchronous payment', $authorization_status )
-		);
+		wc_apa()->log( __METHOD__, sprintf( 'Found authorization status of %s on pending synchronous payment', $authorization_status ) );
 
 		switch ( $authorization_status ) {
 			case 'open':
