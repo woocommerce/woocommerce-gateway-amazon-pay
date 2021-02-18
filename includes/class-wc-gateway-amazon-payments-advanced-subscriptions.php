@@ -262,6 +262,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$meta_keys_to_copy = array(
 			'amazon_charge_permission_id',
+			'amazon_charge_permission_status',
 			'amazon_payment_advanced_version',
 			'woocommerce_version',
 		);
@@ -272,7 +273,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				$subscription->update_meta_data( $key, $order->get_meta( $key ) );
 			}
 			$subscription->save();
-			$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription );
 		}
 	}
 
