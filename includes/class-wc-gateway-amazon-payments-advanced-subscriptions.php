@@ -35,6 +35,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
 		add_filter( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', array( $this, 'dont_fail_cancelled_subscriptions_on_charge_permission_closed' ), 10, 2 );
 		add_filter( 'woocommerce_amazon_pa_ipn_charge_permission_order', array( $this, 'maybe_switch_subscription_to_parent' ) );
+		add_action( 'woocommerce_amazon_pa_refresh_cached_charge_permission_status', array( $this, 'propagate_status_update_to_related' ), 10, 3 );
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
@@ -397,5 +398,37 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$parent = reset( $related );
 
 		return $parent;
+	}
+
+	public function propagate_status_update_to_related( WC_Order $_order, $charge_permission_id, $charge_permission_status ) {
+		$order = $_order;
+
+		if ( wcs_is_subscription( $order ) ) {
+			$related = $order->get_related_orders( 'all', array( 'parent' ) ); // TODO: Test resubscription, upgrade/downgrade
+			$order   = reset( $related );
+		}
+
+		$subs = wcs_get_subscriptions_for_order( $order ); // TODO: Test with multiple subs
+
+		foreach ( $subs as $subscription ) {
+			$this->handle_order_propagation( $subscription, $charge_permission_id, $charge_permission_status );
+
+			$related_orders = $subscription->get_related_orders( 'all', array( 'renewal' ) ); // TODO: Test resubscription, upgrade/downgrade
+			foreach ( $related_orders as $rel_order ) {
+				$this->handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status );
+			}
+		}
+	}
+
+	protected function handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status ) {
+		$old_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $rel_order, true )->status;
+		$new_status = $charge_permission_status->status; // phpcs:ignore WordPress.NamingConventions
+		$need_note  = $new_status !== $old_status;
+		$rel_order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
+		$rel_order->save();
+
+		if ( $need_note ) {
+			wc_apa()->get_gateway()->add_status_change_note( $rel_order, $charge_permission_id, $new_status );
+		}
 	}
 }

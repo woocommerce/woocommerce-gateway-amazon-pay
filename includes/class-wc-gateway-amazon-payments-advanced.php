@@ -1303,12 +1303,16 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( ! is_object( $charge_permission ) ) {
 			$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
 			$charge_permission    = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
+		} else {
+			$charge_permission_id = $charge_permission->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		}
 
 		$charge_permission_status = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 
 		$order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
 		$order->save();
+
+		do_action( 'woocommerce_amazon_pa_refresh_cached_charge_permission_status', $order, $charge_permission_id, $charge_permission_status );
 
 		return $charge_permission_status;
 	}
