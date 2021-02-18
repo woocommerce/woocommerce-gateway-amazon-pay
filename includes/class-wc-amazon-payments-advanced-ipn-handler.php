@@ -451,10 +451,23 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		}
 	}
 
+	private function is_next_scheduled( $hook, $args = null, $group = '' ) {
+		$actions = as_get_scheduled_actions(
+			array(
+				'hook'   => $hook,
+				'args'   => $args,
+				'group'  => $group,
+				'status' => ActionScheduler_Store::STATUS_PENDING,
+			),
+			'ids'
+		);
+		return count( $actions ) > 0;
+	}
+
 	public function schedule_hook( $order_id, $type ) {
 		$args = array( $order_id, $type );
 		// Schedule action to check pending order next hour.
-		if ( doing_action( 'wc_amazon_async_polling' ) || false === as_next_scheduled_action( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
+		if ( false === $this->is_next_scheduled( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
 			wc_apa()->log( sprintf( 'Scheduling %s for %s', $type, $order_id ) );
 			// TODO: Change time to a more stable timeframe
 			as_schedule_single_action( strtotime( 'next minute' ), 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
