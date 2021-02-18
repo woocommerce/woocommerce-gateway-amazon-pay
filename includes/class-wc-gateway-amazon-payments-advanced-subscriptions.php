@@ -34,6 +34,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
 		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
 		add_filter( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', array( $this, 'dont_fail_cancelled_subscriptions_on_charge_permission_closed' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_ipn_charge_permission_order', array( $this, 'maybe_switch_subscription_to_parent' ) );
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
@@ -383,5 +384,17 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		return false;
+	}
+
+	public function maybe_switch_subscription_to_parent( $order ) {
+		if ( ! wcs_is_subscription( $order ) ) {
+			return $order;
+		}
+
+		$related = $order->get_related_orders( 'all', array( 'parent' ) ); // TODO: Test resubscription, upgrade/downgrade
+
+		$parent = reset( $related );
+
+		return $parent;
 	}
 }
