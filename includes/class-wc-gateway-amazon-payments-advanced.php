@@ -1143,14 +1143,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id ); // phpcs:ignore WordPress.NamingConventions
 		$order->save(); // Save early for less race conditions
 
-		// @codingStandardsIgnoreStart
-		$order->add_order_note( sprintf(
-			/* translators: 1) Amazon Charge ID 2) Charge status */
-			__( 'Charge Permission %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
-			(string) $charge_permission_id,
-			(string) $charge_permission_status
-		) );
-		// @codingStandardsIgnoreEnd
+		$this->add_status_change_note( $order, (string) $charge_permission_id, (string) $charge_permission_status );
 
 		switch ( $charge_permission_status ) {
 			case 'Chargeable':
@@ -1172,6 +1165,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->save();
 
 		return $charge_permission_status;
+	}
+
+	public function add_status_change_note( WC_Order $order, $charge_permission_id, $new_status ) {
+		// @codingStandardsIgnoreStart
+		$order->add_order_note( sprintf(
+			/* translators: 1) Amazon Charge ID 2) Charge status */
+			__( 'Charge Permission %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
+			(string) $charge_permission_id,
+			(string) $new_status
+		) );
+		// @codingStandardsIgnoreEnd
 	}
 
 	public function update_js() {
