@@ -572,4 +572,27 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	public static function close_charge_permission( $charge_permission_id, $reason = 'Subscription Cancelled' ) {
+		$client = self::get_client();
+		wc_apa()->log( __METHOD__, sprintf( 'Charge Permission ID %s.', $charge_permission_id ) );
+
+		$result = $client->closeChargePermission(
+			$charge_permission_id,
+			array(
+				'closureReason' => $reason, // TODO: Make dynamic
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			wc_apa()->log( __METHOD__, sprintf( 'ERROR. Charge Permission ID %s.', $charge_permission_id ), $result );
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		wc_apa()->log( __METHOD__, sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), $response );
+
+		return $response;
+	}
+
 }

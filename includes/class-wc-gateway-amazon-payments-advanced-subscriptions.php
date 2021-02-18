@@ -32,6 +32,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
 
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
+		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
+		add_filter( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', array( $this, 'dont_fail_cancelled_subscriptions_on_charge_permission_closed' ), 10, 2 );
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
@@ -342,5 +344,44 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
 		$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $response );
+	}
+
+	/**
+	 * @param WC_Subscription $subscription Subscription object.
+	 */
+	public function cancelled_subscription( $subscription ) {
+		$version = version_compare( $subscription->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v2' !== strtolower( $version ) ) {
+			return;
+		}
+
+		// Prevent double running. WCS Bug.
+		// TODO: Report bug. PR that introduced this in WCS https://github.com/woocommerce/woocommerce-subscriptions/pull/2777
+		if ( isset( $subscription->handled_cancel ) ) {
+			return;
+		}
+
+		$subscription->handled_cancel = true;
+
+		$order_id = $subscription->get_id();
+
+		$charge_permission_id = $subscription->get_meta( 'amazon_charge_permission_id' );
+
+		$response = WC_Amazon_Payments_Advanced_API::close_charge_permission( $charge_permission_id, 'Subscription Cancelled' );
+
+		if ( is_wp_error( $response ) ) {
+			wc_apa()->log( __METHOD__, "Error processing cancellation for subscription #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
+			return;
+		}
+
+		$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription );
+	}
+
+	public function dont_fail_cancelled_subscriptions_on_charge_permission_closed( $fail, $order ) {
+		if ( ! is_a( $order, 'WC_Subscription' ) ) {
+			return $fail;
+		}
+
+		return false;
 	}
 }

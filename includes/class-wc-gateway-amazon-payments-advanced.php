@@ -1161,7 +1161,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				wc_apa()->ipn_handler->schedule_hook( $order->get_id(), 'CHARGE_PERMISSION' );
 				break;
 			case 'Closed':
-				if ( is_null( $this->get_cached_charge_status( $order, true )->status ) ) {
+				$order_has_charge = is_null( $this->get_cached_charge_status( $order, true )->status );
+				if ( apply_filters( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', $order_has_charge, $order ) ) {
 					$order->update_status( 'failed' );
 					wc_maybe_increase_stock_levels( $order->get_id() );
 				}
