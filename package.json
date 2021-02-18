@@ -1,5 +1,5 @@
 {
-  "name": "woocommerce-gateway-amazon-payments-advanced",
+  "name": "woocommerce-gateway-amazon-pay",
   "description": "Amazon Pay Gateway for WooCommerce",
   "version": "1.12.2",
   "title": "WooCommerce Gateway Amazon Pay",
