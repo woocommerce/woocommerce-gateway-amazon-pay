@@ -2,7 +2,7 @@
 Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
-Tested up to: 5.5
+Tested up to: 5.6
 Stable tag: 1.12.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -60,6 +60,17 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 2. Picking billing and shipping addresses on the checkout page.
 
 == Changelog ==
+
+= 1.13.0 - 2021-xx-xx =
+* Update - WP tested up to 5.6.
+* Update - WC tested up to 5.0.
+* Fix - Fatal checkout error when changing subscription's payment method if user is logged out of Amazon account.
+* Fix - Checkout error when address book state does not match WooCommerce state data.
+* Fix - Multi-currency compatibility is not detected when Price Based on Country and WMPL is active.
+* Fix - PHP error when the currencies_supported option is not set.
+* Fix - Add InheritShippingAddress to AuthorizeOnBillingAgreement. InheritShippingAddress = True when orders are shipping physical products.
+* Fix - Missing order ID in session.
+* Fix - Normalize and refactor URL handling when checkout page url is not set.
 
 = 1.12.2 - 2020-05-05 =
 * Fix - Fatal checkout error when submitting orders that do not need shipping.
