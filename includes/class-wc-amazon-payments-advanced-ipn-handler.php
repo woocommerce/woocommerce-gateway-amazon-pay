@@ -410,7 +410,9 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		$notification = $message['Message'];
 
-		wc_apa()->log( 'Received IPN', $notification );
+		if ( ! isset( $notification['MockedIPN'] ) ) { // Only log real IPNs received
+			wc_apa()->log( 'Received IPN', $notification );
+		}
 
 		switch ( strtoupper( $notification['ObjectType'] ) ) {
 			case 'CHARGE':
