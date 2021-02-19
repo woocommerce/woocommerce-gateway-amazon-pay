@@ -452,7 +452,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
-		$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
+		$parts        = wp_parse_url( home_url() );
+		$redirect_url = "{$parts['scheme']}://{$parts['host']}" . remove_query_arg( array( 'amazon_payments_advanced', 'amazon_logout', 'amazon_login', 'amazon_return' ) );
 
 		if ( isset( $_GET['amazon_logout'] ) ) {
 			$this->do_logout();
