@@ -412,9 +412,25 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		wc_apa()->log( 'Received IPN', $notification );
 
-		$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ChargePermissionId'] );
+		switch ( strtoupper( $notification['ObjectType'] ) ) {
+			case 'CHARGE':
+				$object = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
+				$order_id = $object->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				break;
+			case 'CHARGE_PERMISSION':
+				$object = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ObjectId'] );
+				$order_id = $object->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				break;
+			case 'REFUND':
+				// on refunds, order_id can be fetched from the charge
+				$object   = WC_Amazon_Payments_Advanced_API::get_refund( $notification['ObjectId'] );
+				$charge   = WC_Amazon_Payments_Advanced_API::get_charge( $object->chargeId ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				$order_id = $charge->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				break;
+			default:
+				throw new Exception( 'Not Implemented' );
+		}
 
-		$order_id = $charge_permission->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		if ( is_numeric( $order_id ) ) {
 			$order = wc_get_order( $order_id );
 		} else {
@@ -437,15 +453,12 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		switch ( strtoupper( $notification['ObjectType'] ) ) {
 			case 'CHARGE':
-				$object        = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
 				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $object );
 				break;
 			case 'CHARGE_PERMISSION':
-				$object        = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ObjectId'] );
 				$charge_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order, $object );
 				break;
 			case 'REFUND':
-				$object           = WC_Amazon_Payments_Advanced_API::get_refund( $notification['ObjectId'] );
 				$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $object );
 				break;
 			default:
