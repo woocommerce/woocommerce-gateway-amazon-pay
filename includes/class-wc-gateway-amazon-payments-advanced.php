@@ -43,10 +43,36 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) { // TODO: Implement order pay view.
-			$is_available = false;
+			$is_available = true;
 		}
 
 		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $is_available );
+	}
+
+	/**
+	 * Has fields.
+	 *
+	 * @return bool
+	 */
+	public function has_fields() {
+		$has_fields = false;
+
+		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) { // TODO: Implement order pay view.
+			$has_fields = true;
+		}
+
+		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $has_fields );
+	}
+
+	/**
+	 * Payment form on checkout page
+	 */
+	public function payment_fields() {
+		if ( $this->has_fields() ) :
+			?>
+			<?php $this->checkout_button(); ?>
+			<?php
+		endif;
 	}
 
 	/**
