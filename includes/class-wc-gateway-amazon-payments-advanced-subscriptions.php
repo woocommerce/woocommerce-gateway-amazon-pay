@@ -34,7 +34,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
 		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
 		add_filter( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', array( $this, 'dont_fail_cancelled_subscriptions_on_charge_permission_closed' ), 10, 2 );
-		add_filter( 'woocommerce_amazon_pa_ipn_charge_permission_order', array( $this, 'maybe_switch_subscription_to_parent' ) );
+		add_filter( 'woocommerce_amazon_pa_ipn_notification_order', array( $this, 'maybe_switch_subscription_to_parent' ), 10, 2 );
 		add_action( 'woocommerce_amazon_pa_refresh_cached_charge_permission_status', array( $this, 'propagate_status_update_to_related' ), 10, 3 );
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
@@ -388,7 +388,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return false;
 	}
 
-	public function maybe_switch_subscription_to_parent( $order ) {
+	public function maybe_switch_subscription_to_parent( $order, $notification ) {
+		if ( 'CHARGE_PERMISSION' !== strtoupper( $notification['ObjectType'] ) ) {
+			return $order;
+		}
+
 		if ( ! wcs_is_subscription( $order ) ) {
 			return $order;
 		}
