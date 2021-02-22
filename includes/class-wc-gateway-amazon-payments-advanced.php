@@ -68,11 +68,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Payment form on checkout page
 	 */
 	public function payment_fields() {
-		if ( $this->has_fields() ) :
-			?>
-			<?php $this->checkout_button(); ?>
-			<?php
-		endif;
+		if ( $this->has_fields() ) {
+			if ( $this->is_logged_in() ) {
+				$this->display_payment_method_selected();
+			} else {
+				$this->checkout_button();
+			}
+		}
 	}
 
 	/**
@@ -676,6 +678,30 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 	}
 
+	public function display_payment_method_selected( $checkout_session = null ) {
+		if ( is_null( $checkout_session ) ) {
+			$checkout_session = $this->get_checkout_session();
+		}
+		?>
+		<div id="payment_method_widget">
+			<?php
+			$payments     = $checkout_session->paymentPreferences;
+			$change_label = esc_html__( 'Change', 'woocommerce-gateway-amazon-payments-advanced' );
+			if ( empty( $payments ) ) {
+				$change_label = esc_html__( 'Select', 'woocommerce-gateway-amazon-payments-advanced' );
+			}
+			?>
+			<h3>
+				<a href="#" class="wc-apa-widget-change" id="payment_method_widget_change"><?php echo $change_label; ?></a>
+				<?php esc_html_e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+			</h3>
+			<div class="payment_method_display">
+				<span class="wc-apa-amazon-logo"></span><?php esc_html_e( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+			</div>
+		</div>
+		<?php
+	}
+
 	public function display_amazon_customer_info() {
 
 		if ( $this->need_to_force_refresh() ) {
@@ -709,22 +735,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					<?php endif; ?>
 				</div>
 				<div class="col-2">
-					<div id="payment_method_widget">
-						<?php
-						$payments     = $checkout_session->paymentPreferences;
-						$change_label = esc_html__( 'Change', 'woocommerce-gateway-amazon-payments-advanced' );
-						if ( empty( $payments ) ) {
-							$change_label = esc_html__( 'Select', 'woocommerce-gateway-amazon-payments-advanced' );
-						}
-						?>
-						<h3>
-							<a href="#" class="wc-apa-widget-change" id="payment_method_widget_change"><?php echo $change_label; ?></a>
-							<?php esc_html_e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
-						</h3>
-						<div class="payment_method_display">
-							<span class="wc-apa-amazon-logo"></span><?php esc_html_e( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
-						</div>
-					</div>
+					<?php $this->display_payment_method_selected( $checkout_session ); ?>
 					<?php if ( ! empty( $checkout_session->billingAddress ) ) : ?>
 						<div id="billing_address_widget">
 							<h3>
