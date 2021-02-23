@@ -1285,6 +1285,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function maybe_render_login_button_again( $checkout_session, $wrap = true ) {
+		if ( 'Open' !== $checkout_session->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			$this->render_login_button_again( __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ), $wrap );
+			return;
+		}
+
 		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
 			$this->render_login_button_again( null, $wrap );
 			return;
