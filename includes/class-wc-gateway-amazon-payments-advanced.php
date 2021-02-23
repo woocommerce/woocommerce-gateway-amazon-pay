@@ -423,8 +423,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		echo apply_filters( 'woocommerce_amazon_payments_logout_checkout_message_html', $logout_msg_html );
 	}
 
+	protected function get_checkout_session_key() {
+		return apply_filters( 'woocommerce_amazon_pa_checkout_session_key', 'amazon_checkout_session_id' );
+	}
+
 	protected function do_logout() {
-		unset( WC()->session->amazon_checkout_session_id );
+		$session_key = $this->get_checkout_session_key();
+		unset( WC()->session->$session_key );
 		WC()->session->amazon_checkout_do_logout = true;
 	}
 
@@ -466,7 +471,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		if ( isset( $_GET['amazon_login'] ) && isset( $_GET['amazonCheckoutSessionId'] ) ) {
 			$redirect_url = remove_query_arg( array( 'amazon_login', 'amazonCheckoutSessionId' ), $redirect_url );
-			WC()->session->set( 'amazon_checkout_session_id', $_GET['amazonCheckoutSessionId'] );
+			$session_key  = $this->get_checkout_session_key();
+			WC()->session->set( $session_key, $_GET['amazonCheckoutSessionId'] );
 			$this->unset_force_refresh();
 			WC()->session->save_data();
 
@@ -503,7 +509,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	protected function get_checkout_session_id() {
-		return WC()->session->get( 'amazon_checkout_session_id', false );
+		$session_key = $this->get_checkout_session_key();
+		return WC()->session->get( $session_key, false );
 	}
 
 	protected function get_checkout_session( $force = false ) {
