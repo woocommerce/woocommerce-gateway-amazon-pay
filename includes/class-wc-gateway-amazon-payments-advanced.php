@@ -105,6 +105,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
 		add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
+
+		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
 	}
 
 	/**
@@ -1453,6 +1455,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	public function current_refund_set( $wc_refund ) {
 		$this->current_refund = $wc_refund; // Cache refund object in a hook before process_refund is called
+	}
+
+	public function maybe_change_session_key( $session_key ) {
+		if ( is_wc_endpoint_url( 'order-pay' ) ) {
+			$order_id = get_query_var( 'order-pay' );
+			return 'amazon_checkout_session_id_order_pay_' . $order_id;
+		}
+		return $session_key;
 	}
 
 }
