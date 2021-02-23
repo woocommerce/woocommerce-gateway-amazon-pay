@@ -1007,6 +1007,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$checkout_session_id = $this->get_checkout_session_id();
 
 		$order_id = isset( WC()->session->order_awaiting_payment ) ? absint( WC()->session->order_awaiting_payment ) : 0;
+		if ( is_wc_endpoint_url( 'order-pay' ) ) {
+			$order_id = absint( get_query_var( 'order-pay' ) );
+		}
 
 		if ( empty( $order_id ) ) {
 			wc_apa()->log( "Error: Order could not be found. Checkout Session ID: {$checkout_session_id}." );
