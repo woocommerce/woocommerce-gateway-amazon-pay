@@ -70,7 +70,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function payment_fields() {
 		if ( $this->has_fields() ) {
 			if ( $this->is_logged_in() ) {
-				$this->display_payment_method_selected();
+				$checkout_session = $this->get_checkout_session();
+				if ( ! $this->maybe_render_login_button_again( $checkout_session, false ) ) {
+					return;
+				}
+				$this->display_payment_method_selected( $checkout_session );
 			} else {
 				$this->checkout_button();
 			}
@@ -723,8 +727,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$checkout_session = $this->get_checkout_session();
 
-		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
-			$this->render_login_button_again();
+		if ( ! $this->maybe_render_login_button_again( $checkout_session ) ) {
 			return;
 		}
 
@@ -1253,34 +1256,41 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return apply_filters( 'woocommerce_amazon_pa_current_cart_action', $needs_shipping ? 'PayAndShip' : 'PayOnly' );
 	}
 
-	public function render_login_button_again( $message = null ) {
+	public function render_login_button_again( $message = null, $col_wrap = true ) {
 		?>
-		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
-			<div class="col2-set">
-				<div class="col-1">
-					<div id="shipping_address_widget">
-						<h3>
-							<?php esc_html_e( 'Confirm payment method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
-						</h3>
-						<div class="shipping_address_display">
-							<p>
-							<?php
-							if ( empty( $message ) ) {
-								$message = __( 'Your cart changed, and you need to confirm your selected payment method again.', 'woocommerce-gateway-amazon-payments-advanced' );
-							}
+		<?php if ( $col_wrap ) : ?>
+			<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated"><div class="col2-set"><div class="col-1">
+		<?php endif; ?>
+		<div id="shipping_address_widget">
+			<h3>
+				<?php esc_html_e( 'Confirm payment method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+			</h3>
+			<div class="shipping_address_display">
+				<p class="wc_apa_login_again_text">
+				<?php
+				if ( empty( $message ) ) {
+					$message = __( 'Your cart changed, and you need to confirm your selected payment method again.', 'woocommerce-gateway-amazon-payments-advanced' );
+				}
 
-							echo esc_html( $message );
-							?>
-							</p>
-							<?php $this->checkout_button(); ?>
-						</div>
-					</div>
-				</div>
-				<div class="col-2">
-				</div>
+				echo esc_html( $message );
+				?>
+				</p>
+				<?php $this->checkout_button(); ?>
 			</div>
 		</div>
+		<?php if ( $col_wrap ) : ?>
+			</div><div class="col-2"></div></div></div>
+		<?php endif; ?>
 		<?php
+	}
+
+	public function maybe_render_login_button_again( $checkout_session, $wrap = true ) {
+		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
+			$this->render_login_button_again( null, $wrap );
+			return;
+		}
+
+		return true;
 	}
 
 	public function override_billing_fields( $fields ) {
