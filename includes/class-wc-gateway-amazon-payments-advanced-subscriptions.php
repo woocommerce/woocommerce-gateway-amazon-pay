@@ -43,6 +43,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
 			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
 			add_filter( 'wcs_renewal_order_meta', array( $this, 'copy_meta_from_sub' ), 10, 3 );
+			add_filter( 'woocommerce_subscriptions_update_payment_via_pay_shortcode', array( $this, 'maybe_not_update_payment_method' ), 10, 2 );
 		}
 
 		do_action( 'woocommerce_amazon_pa_subscriptions_init', $version );
@@ -478,5 +479,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			return 'amazon_checkout_session_id_order_pay_' . $order_id;
 		}
 		return $session_key;
+	}
+
+	public function maybe_not_update_payment_method( $update, $method ) {
+		$id      = wc_apa()->get_gateway()->id;
+		if ( $method === $id ) {
+			return false;
+		}
+		return $id;
 	}
 }
