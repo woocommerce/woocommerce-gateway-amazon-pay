@@ -36,6 +36,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_filter( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', array( $this, 'dont_fail_cancelled_subscriptions_on_charge_permission_closed' ), 10, 2 );
 		add_filter( 'woocommerce_amazon_pa_ipn_notification_order', array( $this, 'maybe_switch_subscription_to_parent' ), 10, 2 );
 		add_action( 'woocommerce_amazon_pa_refresh_cached_charge_permission_status', array( $this, 'propagate_status_update_to_related' ), 10, 3 );
+		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
@@ -469,5 +470,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			wc_apa()->log( sprintf( 'Adding status change note for order #%d', $rel_order->get_id() ) );
 			wc_apa()->get_gateway()->add_status_change_note( $rel_order, $charge_permission_id, $new_status );
 		}
+	}
+
+	public function maybe_change_session_key( $session_key ) {
+		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) ) {
+			$order_id = absint( $_POST['woocommerce_change_payment'] );
+			return 'amazon_checkout_session_id_order_pay_' . $order_id;
+		}
+		return $session_key;
 	}
 }
