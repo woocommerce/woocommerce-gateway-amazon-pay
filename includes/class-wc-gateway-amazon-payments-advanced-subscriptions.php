@@ -33,7 +33,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
 		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
-		add_filter( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', array( $this, 'dont_fail_cancelled_subscriptions_on_charge_permission_closed' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', array( $this, 'subs_not_on_hold' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_no_charge_order_on_hold', array( $this, 'subs_not_on_hold' ), 10, 2 );
 		add_filter( 'woocommerce_amazon_pa_ipn_notification_order', array( $this, 'maybe_switch_subscription_to_parent' ), 10, 2 );
 		add_action( 'woocommerce_amazon_pa_refresh_cached_charge_permission_status', array( $this, 'propagate_status_update_to_related' ), 10, 3 );
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
@@ -415,12 +416,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription );
 	}
 
-	public function dont_fail_cancelled_subscriptions_on_charge_permission_closed( $fail, $order ) {
-		if ( ! is_a( $order, 'WC_Subscription' ) ) {
-			return $fail;
+	public function subs_not_on_hold( $fail, $order ) {
+		if ( is_a( $order, 'WC_Subscription' ) ) {
+			return false;
 		}
-
-		return false;
+		return $fail;
 	}
 
 	public function maybe_switch_subscription_to_parent( $order, $notification ) {
