@@ -475,6 +475,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	protected function handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status ) {
+		$current_charge_permission_id = $rel_order->get_meta( 'amazon_charge_permission_id' );
+		if ( $current_charge_permission_id !== $charge_permission_id ) {
+			wc_apa()->log( sprintf( 'Skipping updating status for order #%d', $rel_order->get_id() ) );
+			return;
+		}
 		$old_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $rel_order, true )->status;
 		$new_status = $charge_permission_status->status; // phpcs:ignore WordPress.NamingConventions
 		$need_note  = $new_status !== $old_status;
