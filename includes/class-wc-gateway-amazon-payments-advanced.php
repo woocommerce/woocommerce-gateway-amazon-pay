@@ -1100,7 +1100,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$this->do_logout();
 
-		wp_safe_redirect( $order->get_checkout_order_received_url() );
+		$redirect_url = apply_filters( 'woocommerce_amazon_pa_processed_order_redirect', $order->get_checkout_order_received_url(), $order, $response );
+
+		wp_safe_redirect( $redirect_url );
 		exit;
 	}
 

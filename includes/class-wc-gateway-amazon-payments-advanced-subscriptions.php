@@ -39,6 +39,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_action( 'woocommerce_amazon_pa_refresh_cached_charge_permission_status', array( $this, 'propagate_status_update_to_related' ), 10, 3 );
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
 		add_action( 'woocommerce_amazon_pa_before_processed_order', array( $this, 'maybe_change_payment_method' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_processed_order_redirect', array( $this, 'maybe_redirect_to_subscription' ), 10, 2 );
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
@@ -513,5 +514,17 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		WC_Subscriptions_Change_Payment_Gateway::update_payment_method( $order, wc_apa()->get_gateway()->id );
+	}
+
+	public function maybe_redirect_to_subscription( $redirect, $order ) {
+		if ( ! isset( $_GET['change_payment_method'] ) ) {
+			return $redirect;
+		}
+
+		if ( ! is_a( $order, 'WC_Subscription' ) ) {
+			return $redirect;
+		}
+
+		return $order->get_view_order_url();
 	}
 }
