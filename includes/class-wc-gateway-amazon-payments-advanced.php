@@ -1078,8 +1078,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$order->save();
 			$charge_status = $this->log_charge_status_change( $order );
 		} else {
-			$order->update_status( 'on-hold' );
-			wc_maybe_reduce_stock_levels( $order->get_id() );
+			if ( apply_filters( 'woocommerce_amazon_pa_no_charge_order_on_hold', true, $order ) ) {
+				$order->update_status( 'on-hold' );
+				wc_maybe_reduce_stock_levels( $order->get_id() );
+			}
 		}
 		$order->save();
 
