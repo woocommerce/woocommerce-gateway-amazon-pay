@@ -177,6 +177,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			}
 		}
 
+		return $this->parse_interval_to_apa_frequency( $apa_period, $apa_interval );
+	}
+
+	public function parse_interval_to_apa_frequency( $apa_period = null, $apa_interval = null ) {
 		switch ( strtolower( $apa_period ) ) {
 			case 'year':
 			case 'month':
@@ -190,6 +194,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				break;
 		}
 
+		if ( is_null( $apa_interval ) ) {
+			$apa_interval = '1';
+		}
+
 		return array(
 			'unit'  => $apa_period,
 			'value' => $apa_interval,
@@ -197,30 +205,55 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	public function recurring_checkout_session( $payload ) {
-		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+		if ( ! class_exists( 'WC_Subscriptions_Cart' ) ) {
 			return $payload;
 		}
 
-		WC()->cart->calculate_totals();
-
-		$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
-
-		if ( 0 === $subscriptions_in_cart ) {
-			// Weird, but ok.
+		if ( 'yes' === get_option( 'woocommerce_subscriptions_turn_off_automatic_payments' ) ) {
 			return $payload;
 		}
 
-		$payload['chargePermissionType'] = 'Recurring';
+		$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription() || wcs_cart_contains_renewal();
+		$change_payment_for_subscription = isset( $_GET['change_payment_method'] ) && wcs_is_subscription( absint( $_GET['change_payment_method'] ) );
 
-		$payload['recurringMetadata'] = array(
-			'frequency' => $this->get_recurring_frequency(),
-			'amount'    => null,
-		);
+		if ( ! $cart_contains_subscription && ! $change_payment_for_subscription ) {
+			return $payload;
+		}
 
-		if ( 1 === $subscriptions_in_cart ) {
-			$payload['recurringMetadata']['amount'] = array(
-				'amount'       => WC()->cart->get_total( 'edit' ),
-				'currencyCode' => get_woocommerce_currency(),
+		if ( $cart_contains_subscription ) {
+			WC()->cart->calculate_totals();
+
+			$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
+
+			if ( 0 === $subscriptions_in_cart ) {
+				// Weird, but ok.
+				return $payload;
+			}
+
+			$payload['chargePermissionType'] = 'Recurring';
+
+			$payload['recurringMetadata'] = array(
+				'frequency' => $this->get_recurring_frequency(),
+				'amount'    => null,
+			);
+
+			if ( 1 === $subscriptions_in_cart ) {
+				$payload['recurringMetadata']['amount'] = array(
+					'amount'       => WC()->cart->get_total( 'edit' ),
+					'currencyCode' => get_woocommerce_currency(),
+				);
+			}
+		} elseif ( $change_payment_for_subscription ) {
+			$subscription = wcs_get_subscription( absint( $_GET['change_payment_method'] ) );
+
+			$payload['chargePermissionType'] = 'Recurring';
+
+			$payload['recurringMetadata'] = array(
+				'frequency' => $this->parse_interval_to_apa_frequency( $subscription->get_billing_period( 'edit' ), $subscription->get_billing_interval( 'edit' ) ),
+				'amount'    => array(
+					'amount'       => $subscription->get_total(),
+					'currencyCode' => wc_apa_get_order_prop( $subscription, 'order_currency' ),
+				),
 			);
 		}
 
