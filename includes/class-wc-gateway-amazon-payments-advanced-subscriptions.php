@@ -462,13 +462,20 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$order   = reset( $related );
 		}
 
+		wc_apa()->log( sprintf( 'Propagating status change on Order ID #%d.', $order->get_id() ) );
+		if ( $order->get_id() !== $_order->get_id() ) {
+			wc_apa()->log( sprintf( 'Source Order ID #%d.', $_order->get_id() ) );
+		}
+
 		$subs = wcs_get_subscriptions_for_order( $order ); // TODO: Test with multiple subs
 
 		foreach ( $subs as $subscription ) {
+			wc_apa()->log( sprintf( 'Propagating to subscription ID #%d.', $subscription->get_id() ) );
 			$this->handle_order_propagation( $subscription, $charge_permission_id, $charge_permission_status );
 
 			$related_orders = $subscription->get_related_orders( 'all', array( 'renewal' ) ); // TODO: Test resubscription, upgrade/downgrade
 			foreach ( $related_orders as $rel_order ) {
+				wc_apa()->log( sprintf( 'Propagating to related order ID #%d.', $rel_order->get_id() ) );
 				$this->handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status );
 			}
 		}
