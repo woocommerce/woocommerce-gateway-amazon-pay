@@ -83,3 +83,26 @@ span.wc-apa-amazon-logo {
 #billing_address_widget {
 	margin-bottom: 1.618em;
 }
+
+
+.woocommerce-order-pay {
+	#pay_with_amazon {
+		margin: 0px auto;
+		max-width: 100%;
+	}
+	.wc_apa_login_again_text + #pay_with_amazon {
+		margin-top: 1em;
+	}
+	#order_review {
+		#payment {
+			.payment_box.payment_method_amazon_payments_advanced {
+				#payment_method_widget, #shipping_address_widget {
+					margin-bottom: 0;
+					h3 {
+						padding: 0;
+					}
+				}
+			}
+		}
+	}
+}
