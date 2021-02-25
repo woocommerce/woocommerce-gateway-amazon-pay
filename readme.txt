@@ -61,6 +61,9 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 1.13.1 - 2021-xx-xx =
+* Fix - Avoid hiding default shipping fields at checkout.
+
 = 1.13.0 - 2021-02-18 =
 * Update - WP tested up to 5.6.
 * Update - WC tested up to 5.0.
