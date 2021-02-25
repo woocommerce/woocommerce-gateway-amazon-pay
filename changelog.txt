@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 1.13.1 - 2021-xx-xx =
+= 1.13.1 - 2021-02-25 =
 * Fix - Avoid hiding default shipping fields at checkout.
 
 = 1.13.0 - 2021-02-18 =

@@ -10,7 +10,7 @@
  * Tested up to: 5.6
  * WC tested up to: 5.0
  * WC requires at least: 2.6
- * Version: 1.13.0
+ * Version: 1.13.1
  *
  * Copyright: © 2021 WooCommerce
  * License: GNU General Public License v3.0
@@ -19,7 +19,7 @@
  * @package WC_Gateway_Amazon_Pay
  */
 
-define( 'WC_AMAZON_PAY_VERSION', '1.13.0' ); // WRCS: DEFINED_VERSION.
+define( 'WC_AMAZON_PAY_VERSION', '1.13.1' ); // WRCS: DEFINED_VERSION.
 
 /**
  * Amazon Pay main class
