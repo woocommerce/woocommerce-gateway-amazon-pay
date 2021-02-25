@@ -429,6 +429,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription );
+
+		unset( $subscription->handled_cancel );
 	}
 
 	public function subs_not_on_hold( $fail, $order ) {
