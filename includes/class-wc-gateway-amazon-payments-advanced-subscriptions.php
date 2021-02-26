@@ -218,10 +218,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			return $payload;
 		}
 
-		$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription() || wcs_cart_contains_renewal();
+		$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription();
+		$cart_contains_renewal           = wcs_cart_contains_renewal();
 		$change_payment_for_subscription = isset( $_GET['change_payment_method'] ) && wcs_is_subscription( absint( $_GET['change_payment_method'] ) );
 
-		if ( ! $cart_contains_subscription && ! $change_payment_for_subscription ) {
+		if ( ! $cart_contains_renewal && ! $cart_contains_subscription && ! $change_payment_for_subscription ) {
 			return $payload;
 		}
 
@@ -248,8 +249,22 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 					'currencyCode' => get_woocommerce_currency(),
 				);
 			}
-		} elseif ( $change_payment_for_subscription ) {
-			$subscription = wcs_get_subscription( absint( $_GET['change_payment_method'] ) );
+		} elseif ( $cart_contains_renewal || $change_payment_for_subscription ) {
+			if ( $cart_contains_renewal ) {
+				if ( ! isset( $cart_contains_renewal['subscription_renewal'] ) || ! isset( $cart_contains_renewal['subscription_renewal']['subscription_id'] ) ) {
+					return $payload;
+				}
+
+				$subscription = wcs_get_subscription( $cart_contains_renewal['subscription_renewal']['subscription_id'] );
+			} elseif ( $change_payment_for_subscription ) {
+				if ( ! isset( $_GET['change_payment_method'] ) ) {
+					return $payload;
+				}
+
+				$subscription = wcs_get_subscription( absint( $_GET['change_payment_method'] ) );
+			} else {
+				return $payload;
+			}
 
 			$payload['chargePermissionType'] = 'Recurring';
 
