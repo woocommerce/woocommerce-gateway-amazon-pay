@@ -546,6 +546,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		);
 	}
 
+	protected static function get_extra_headers( $type ) {
+		$headers = array();
+
+		switch ( strtolower( $type ) ) {
+			case 'create_charge':
+				break;
+		}
+
+		return $headers;
+	}
+
 	public static function create_charge( $charge_permission_id, $data ) {
 		$client = self::get_client();
 		if ( empty( $data ) ) {
@@ -557,12 +568,18 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$charge_permission    = self::get_charge_permission( $charge_permission_id );
 			$data['chargeAmount'] = (array) $charge_permission->limits->amountBalance; // phpcs:ignore WordPress.NamingConventions
 		}
-		wc_apa()->log( sprintf( 'Charge Permission ID %s.', $charge_permission_id ), $data );
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log( sprintf( 'Charge Permission ID %s.', $charge_permission_id ), array( 'data' => $data, 'headers' => $headers ) );
 
 		$result = $client->createCharge(
 			$data,
-			array(
-				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			array_merge(
+				$headers,
+				array(
+					'x-amz-pay-idempotency-key' => self::generate_uuid(),
+				)
 			)
 		);
 
