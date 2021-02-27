@@ -38,7 +38,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_action( 'woocommerce_amazon_pa_refresh_cached_charge_permission_status', array( $this, 'propagate_status_update_to_related' ), 10, 3 );
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
 		add_action( 'woocommerce_amazon_pa_before_processed_order', array( $this, 'maybe_change_payment_method' ), 10, 2 );
-		add_action( 'woocommerce_amazon_pa_ipn_async_fallback_schedule_order_id', array( $this, 'schedule_check_for_subscription' ), 10, 2 );
 		add_filter( 'woocommerce_amazon_pa_processed_order_redirect', array( $this, 'maybe_redirect_to_subscription' ), 10, 2 );
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
@@ -546,19 +545,5 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		return $order->get_view_order_url();
-	}
-
-	public function schedule_check_for_subscription( $order_ids, $type ) {
-		$new_ids = array();
-		foreach ( $order_ids as $order_id ) {
-			$subscriptions = wcs_get_subscriptions_for_order( $order_id, array( 'order_type' => 'any' ) );
-			if ( empty( $subscriptions ) ) {
-				$new_ids[] = $order_id;
-				continue;
-			}
-			$new_ids = array_merge( $new_ids, array_map( 'absint', array_keys( $subscriptions ) ) );
-		}
-
-		return array_unique( $new_ids );
 	}
 }

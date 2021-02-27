@@ -451,7 +451,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		}
 
 		if ( ! isset( $notification['MockedIPN'] ) ) {
-			$this->unschedule_hook( $order->get_id(), $notification['ObjectType'] ); // Unshchedule just in case we're actually on real IPN, we'll schedule again if needed.
+			$this->unschedule_hook( $notification['ObjectId'], $notification['ObjectType'] ); // Unshchedule just in case we're actually on real IPN, we'll schedule again if needed.
 		}
 
 		switch ( strtoupper( $notification['ObjectType'] ) ) {
@@ -482,54 +482,35 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		return count( $actions ) > 0;
 	}
 
-	public function schedule_hook( $order_ids, $type ) {
-		if ( ! is_array( $order_ids ) ) {
-			$order_ids = array( $order_ids );
-		}
-		$order_ids = apply_filters( 'woocommerce_amazon_pa_ipn_async_fallback_schedule_order_id', $order_ids, $type );
-		foreach ( $order_ids as $order_id ) {
-			$args = array( $order_id, $type );
-			// Schedule action to check pending order next hour.
-			if ( false === $this->is_next_scheduled( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
-				wc_apa()->log( sprintf( 'Scheduling %s for %s', $type, $order_id ) );
-				// TODO: Change time to a more stable timeframe
-				as_schedule_single_action( strtotime( 'next minute' ), 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
-			}
+	public function schedule_hook( $id, $type ) {
+		$args = array( $id, $type );
+		// Schedule action to check pending order next hour.
+		if ( false === $this->is_next_scheduled( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
+			wc_apa()->log( sprintf( 'Scheduling check for %s %s', $type, $id ) );
+			// TODO: Change time to a more stable timeframe
+			as_schedule_single_action( strtotime( 'next minute' ), 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 		}
 	}
 
-	public function unschedule_hook( $order_ids, $type ) {
-		if ( ! is_array( $order_ids ) ) {
-			$order_ids = array( $order_ids );
-		}
-		$order_ids = apply_filters( 'woocommerce_amazon_pa_ipn_async_fallback_unschedule_order_id', $order_ids, $type );
-		foreach ( $order_ids as $order_id ) {
-			$args = array( $order_id, $type );
-			wc_apa()->log( sprintf( 'Unscheduling %s for %s', $type, $order_id ) );
-			as_unschedule_all_actions( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
-		}
+	public function unschedule_hook( $id, $type ) {
+		$args = array( $id, $type );
+		wc_apa()->log( sprintf( 'Unscheduling check for %s %s', $type, $id ) );
+		as_unschedule_all_actions( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 	}
 
-	public function handle_async_polling( $order_id, $type ) {
-		$order = wc_get_order( $order_id );
-
-		if ( 'amazon_payments_advanced' !== $order->get_payment_method() ) {
-			return;
-		}
-
-		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
-
+	public function handle_async_polling( $amazon_id, $type ) {
 		switch ( strtoupper( $type ) ) {
 			case 'CHARGE':
-				$amazon_id = $order->get_meta( 'amazon_charge_id' );
 				if ( empty( $amazon_id ) ) {
 					// TODO: Not possible to poll for charge_id only with charge permission id (eg: collect payment from seller central)
 					// TIP: Suggested by Federico, use the charge_permission amounts change to infer a charge being made.
 					return;
 				}
+				$object               = WC_Amazon_Payments_Advanced_API::get_charge( $amazon_id );
+				$charge_permission_id = $object->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 				break;
 			case 'CHARGE_PERMISSION':
-				$amazon_id = $charge_permission_id;
+				$charge_permission_id = $amazon_id;
 				break;
 		}
 
