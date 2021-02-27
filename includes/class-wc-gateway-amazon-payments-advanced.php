@@ -1110,6 +1110,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
 		// TODO: Maybe support multple charges to be tracked?
 		if ( ! is_null( $charge ) && $charge_id !== $charge->chargeId ) { // phpcs:ignore WordPress.NamingConventions
+			wc_apa()->log( sprintf( 'Changing ChargeId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_id, $charge->chargeId ) ); // phpcs:ignore WordPress.NamingConventions
 			$order->delete_meta_data( 'amazon_charge_id' );
 			$order->delete_meta_data( 'amazon_charge_status' );
 			$order->save();
@@ -1178,6 +1179,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
 		// TODO: Maybe support multple charges to be tracked?
 		if ( ! is_null( $charge_permission ) && $charge_permission_id !== $charge_permission->chargePermissionId ) { // phpcs:ignore WordPress.NamingConventions
+			wc_apa()->log( sprintf( 'Changing chargePermissionId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
 			$order->delete_meta_data( 'amazon_charge_permission_id' );
 			$order->delete_meta_data( 'amazon_charge_permission_status' );
 			$order->save();
@@ -1390,6 +1392,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$charge_permission_status = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 
+		wc_apa()->log( sprintf( 'Caching amazon_charge_permission_status on #%1$d', $order->get_id() ), $charge_permission_status ); // phpcs:ignore WordPress.NamingConventions
+
 		$order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
 		$order->save();
 
@@ -1422,6 +1426,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		$charge_status = $this->format_status_details( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+
+		wc_apa()->log( sprintf( 'Caching amazon_charge_status on #%1$d', $order->get_id() ), $charge_status ); // phpcs:ignore WordPress.NamingConventions
 
 		$order->update_meta_data( 'amazon_charge_status', wp_json_encode( $charge_status ) );
 		$order->save();
