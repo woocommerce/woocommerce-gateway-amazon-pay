@@ -334,7 +334,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			'woocommerce_version',
 		);
 
-		$subscriptions = wcs_get_subscriptions_for_order( $order );
+		$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'any' ) );
 		foreach ( $subscriptions as $subscription ) {
 			foreach ( $meta_keys_to_copy as $key ) {
 				$subscription->update_meta_data( $key, $order->get_meta( $key ) );
