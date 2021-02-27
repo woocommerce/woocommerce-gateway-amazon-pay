@@ -479,40 +479,44 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$order   = reset( $related );
 		}
 
-		wc_apa()->log( sprintf( 'Propagating status change on Order ID #%d.', $order->get_id() ) );
+		$log_note = sprintf( 'Propagating status change on Order ID #%d.', $order->get_id() );
 		if ( $order->get_id() !== $_order->get_id() ) {
-			wc_apa()->log( sprintf( 'Source Order ID #%d.', $_order->get_id() ) );
+			$log_note .= ' ' . sprintf( 'Source Order ID #%d.', $_order->get_id() );
 		}
+
+		wc_apa()->log( $log_note );
 
 		$subs = wcs_get_subscriptions_for_order( $order ); // TODO: Test with multiple subs
 
 		foreach ( $subs as $subscription ) {
-			wc_apa()->log( sprintf( 'Propagating to subscription ID #%d.', $subscription->get_id() ) );
 			$this->handle_order_propagation( $subscription, $charge_permission_id, $charge_permission_status );
 
 			$related_orders = $subscription->get_related_orders( 'all', array( 'renewal' ) ); // TODO: Test resubscription, upgrade/downgrade
 			foreach ( $related_orders as $rel_order ) {
-				wc_apa()->log( sprintf( 'Propagating to related order ID #%d.', $rel_order->get_id() ) );
 				$this->handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status );
 			}
 		}
 	}
 
 	protected function handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status ) {
+		$rel_type = 'order';
+		if ( is_a( $rel_order, 'WC_Subscription' ) ) {
+			$rel_type = 'subscription';
+		}
 		$current_charge_permission_id = $rel_order->get_meta( 'amazon_charge_permission_id' );
 		if ( $current_charge_permission_id !== $charge_permission_id ) {
-			wc_apa()->log( sprintf( 'Skipping updating status for order #%d', $rel_order->get_id() ) );
+			wc_apa()->log( sprintf( 'Skipping status propagation to %2$s ID #%1$d', $rel_order->get_id(), $rel_type ) );
 			return;
 		}
 		$old_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $rel_order, true )->status;
 		$new_status = $charge_permission_status->status; // phpcs:ignore WordPress.NamingConventions
 		$need_note  = $new_status !== $old_status;
-		wc_apa()->log( sprintf( 'Updating status for order #%d', $rel_order->get_id() ) );
+		wc_apa()->log( sprintf( 'Propagating status to %2$s ID #%1$d.', $rel_order->get_id(), $rel_type ) );
 		$rel_order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
 		$rel_order->save();
 
 		if ( $need_note ) {
-			wc_apa()->log( sprintf( 'Adding status change note for order #%d', $rel_order->get_id() ) );
+			wc_apa()->log( sprintf( 'Adding status change note for %2$s #%1$d', $rel_order->get_id(), $rel_type ) );
 			wc_apa()->get_gateway()->add_status_change_note( $rel_order, $charge_permission_id, $new_status );
 		}
 	}
