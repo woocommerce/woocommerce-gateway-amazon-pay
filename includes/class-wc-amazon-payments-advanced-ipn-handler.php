@@ -440,6 +440,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		}
 
 		$order = apply_filters( 'woocommerce_amazon_pa_ipn_notification_order', $order, $notification );
+		$order_id = $order->get_id(); // Refresh variable, in case it changed.
 
 		if ( 'amazon_payments_advanced' !== $order->get_payment_method() ) {
 			throw new Exception( 'Order ID ' . $order_id . ' is not paid with Amazon' );
