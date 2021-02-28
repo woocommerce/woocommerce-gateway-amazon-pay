@@ -438,6 +438,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$charge_permission_id = $subscription->get_meta( 'amazon_charge_permission_id' );
 
+		if ( empty( $charge_permission_id ) ) {
+			return;
+		}
+
 		$response = WC_Amazon_Payments_Advanced_API::close_charge_permission( $charge_permission_id, 'Subscription Cancelled' );
 
 		if ( is_wp_error( $response ) ) {
