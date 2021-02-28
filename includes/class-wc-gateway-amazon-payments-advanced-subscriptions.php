@@ -327,14 +327,17 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		$meta_keys_to_copy = array(
-			'amazon_charge_permission_id',
-			'amazon_charge_permission_status',
 			'amazon_payment_advanced_version',
 			'woocommerce_version',
 		);
 
 		$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'any' ) );
 		foreach ( $subscriptions as $subscription ) {
+			$perm_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $subscription, true );
+			if ( isset( $perm_status->status ) && 'Closed' !== $perm_status->status ) {
+				$this->cancelled_subscription( $subscription );
+			}
+			wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription, $response->chargePermissionId );
 			foreach ( $meta_keys_to_copy as $key ) {
 				$subscription->update_meta_data( $key, $order->get_meta( $key ) );
 			}
