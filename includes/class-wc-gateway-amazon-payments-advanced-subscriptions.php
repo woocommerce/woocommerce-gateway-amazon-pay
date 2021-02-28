@@ -479,11 +479,15 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$subs = wcs_get_subscriptions_for_order( $order ); // TODO: Test with multiple subs
 
 		foreach ( $subs as $subscription ) {
-			$this->handle_order_propagation( $subscription, $charge_permission_id, $charge_permission_status );
+			if ( $_order->get_id() !== $subscription->get_id() ) {
+				$this->handle_order_propagation( $subscription, $charge_permission_id, $charge_permission_status );
+			}
 
 			$related_orders = $subscription->get_related_orders( 'all', array( 'renewal' ) ); // TODO: Test resubscription, upgrade/downgrade
 			foreach ( $related_orders as $rel_order ) {
-				$this->handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status );
+				if ( $_order->get_id() !== $rel_order->get_id() ) {
+					$this->handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status );
+				}
 			}
 		}
 	}
@@ -495,7 +499,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 		$current_charge_permission_id = $rel_order->get_meta( 'amazon_charge_permission_id' );
 		if ( $current_charge_permission_id !== $charge_permission_id ) {
-			wc_apa()->log( sprintf( 'Skipping status propagation to %2$s ID #%1$d', $rel_order->get_id(), $rel_type ) );
 			return;
 		}
 		$old_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $rel_order, true )->status;
