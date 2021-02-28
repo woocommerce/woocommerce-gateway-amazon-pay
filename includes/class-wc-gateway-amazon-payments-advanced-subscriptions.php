@@ -439,6 +439,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$charge_permission_id = $subscription->get_meta( 'amazon_charge_permission_id' );
 
 		if ( empty( $charge_permission_id ) ) {
+			unset( $subscription->handled_cancel );
 			return;
 		}
 
@@ -446,6 +447,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		if ( is_wp_error( $response ) ) {
 			wc_apa()->log( "Error processing cancellation for subscription #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
+			unset( $subscription->handled_cancel );
 			return;
 		}
 
