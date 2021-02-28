@@ -1110,6 +1110,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
 		// TODO: Maybe support multple charges to be tracked?
 		if ( ! is_null( $charge ) ) {
+			if ( is_string( $charge ) ) {
+				$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge );
+			}
 			if ( ! empty( $charge_id ) && $charge_id !== $charge->chargeId ) { // phpcs:ignore WordPress.NamingConventions
 				wc_apa()->log( sprintf( 'Changing ChargeId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_id, $charge->chargeId ) ); // phpcs:ignore WordPress.NamingConventions
 				$order->delete_meta_data( 'amazon_charge_id' );
@@ -1181,6 +1184,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
 		// TODO: Maybe support multple charges to be tracked?
 		if ( ! is_null( $charge_permission ) ) {
+			if ( is_string( $charge_permission ) ) {
+				$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission );
+			}
 			if ( ! empty( $charge_permission_id ) && $charge_permission_id !== $charge_permission->chargePermissionId ) { // phpcs:ignore WordPress.NamingConventions
 				wc_apa()->log( sprintf( 'Changing chargePermissionId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
 				$order->delete_meta_data( 'amazon_charge_permission_id' );
