@@ -450,6 +450,18 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			throw new Exception( sprintf( __( 'Notification type "%s" not supported', 'woocommerce-gateway-amazon-payments-advanced' ), $notification['NotificationType'] ) );
 		}
 
+		if ( ! wc_apa()->get_gateway()->get_lock_for_order( $order_id ) ) {
+			if ( ! isset( $notification['MockedIPN'] ) ) {
+				wc_apa()->log( sprintf( 'Refusing IPN due to concurrency on order #%d', $order_id ) );
+				status_header( 100 );
+				header( 'Retry-After: 120' );
+				exit;
+			} else {
+				wc_apa()->log( sprintf( 'Delaying for concurrency on order #%d', $order_id ) );
+				$this->schedule_hook( $notification['ObjectId'], $notification['ObjectType'] );
+			}
+		}
+
 		if ( ! isset( $notification['MockedIPN'] ) ) {
 			$this->unschedule_hook( $notification['ObjectId'], $notification['ObjectType'] ); // Unshchedule just in case we're actually on real IPN, we'll schedule again if needed.
 		}
@@ -465,8 +477,11 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 				$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $object );
 				break;
 			default:
+				wc_apa()->get_gateway()->release_lock_for_order( $order_id );
 				throw new Exception( 'Not Implemented' );
 		}
+
+		wc_apa()->get_gateway()->release_lock_for_order( $order_id );
 	}
 
 	private function is_next_scheduled( $hook, $args = null, $group = '' ) {

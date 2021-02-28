@@ -1027,6 +1027,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		wc_apa()->log( "Completing checkout session data for #{$order_id}." );
 
+		$this->get_lock_for_order( $order_id, true );
+
 		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session(
 			$checkout_session_id,
 			array(
@@ -1063,6 +1065,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			} else {
 				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $response->get_error_message(), 'error' );
 			}
+			$this->release_lock_for_order( $order_id );
 			return;
 		}
 
@@ -1071,6 +1074,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			// ASK: Ask for posibilities of status not to be completed at this stage.
 			wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $response->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 			wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+			$this->release_lock_for_order( $order_id );
 			return;
 		}
 
@@ -1094,6 +1098,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->save();
 
 		do_action( 'woocommerce_amazon_pa_processed_order', $order, $response );
+
+		$this->release_lock_for_order( $order_id );
 
 		// Remove cart.
 		WC()->cart->empty_cart();
@@ -1510,6 +1516,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return 'amazon_checkout_session_id_order_pay_' . $order_id;
 		}
 		return $session_key;
+	}
+
+	public function get_lock_for_order( $order, $force = false ) {
+		$key = 'amazon_processing_order_' . $order;
+
+		if ( false === $force ) {
+			$transient = get_transient( $key );
+			if ( false !== $transient ) {
+				return false;
+			}
+		}
+		set_transient( $key, 'yes', 2 * MINUTE_IN_SECONDS ); // This is shortlived to avoid issues
+		return true;
+	}
+
+	public function release_lock_for_order( $order ) {
+		$key = 'amazon_processing_order_' . $order;
+		delete_transient( $key );
 	}
 
 }
