@@ -333,8 +333,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	public static function update_checkout_session_data( $checkout_session_id, $data = array() ) {
 		$client = self::get_client();
-		wc_apa()->log( sprintf( 'Checkout Session ID %s', $checkout_session_id ), $data );
-		$result = $client->updateCheckoutSession( $checkout_session_id, $data );
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log( sprintf( 'Checkout Session ID %s', $checkout_session_id ), array( 'data' => $data, 'headers' => $headers ) );
+
+		$result = $client->updateCheckoutSession( $checkout_session_id, $data, $headers );
 
 		$response = json_decode( $result['response'] );
 
@@ -454,13 +458,19 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$data['captureAmount'] = (array) $charge->chargeAmount; // phpcs:ignore WordPress.NamingConventions
 			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
 		}
-		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ), $data );
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ), array( 'data' => $data, 'headers' => $headers ) );
 
 		$result = $client->captureCharge(
 			$charge_id,
 			$data,
-			array(
-				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			array_merge(
+				$headers,
+				array(
+					'x-amz-pay-idempotency-key' => self::generate_uuid(),
+				)
 			)
 		);
 
@@ -491,12 +501,18 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( ! is_null( $amount ) ) {
 			$data['refundAmount']['amount'] = $amount;
 		}
-		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ), $data );
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ), array( 'data' => $data, 'headers' => $headers ) );
 
 		$result = $client->createRefund(
 			$data,
-			array(
-				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			array_merge(
+				$headers,
+				array(
+					'x-amz-pay-idempotency-key' => self::generate_uuid(),
+				)
 			)
 		);
 
@@ -597,13 +613,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	public static function close_charge_permission( $charge_permission_id, $reason = 'Subscription Cancelled' ) {
 		$client = self::get_client();
-		wc_apa()->log( sprintf( 'Charge Permission ID %s.', $charge_permission_id ) );
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log( sprintf( 'Charge Permission ID %s.', $charge_permission_id ), array( 'headers' => $headers ) );
 
 		$result = $client->closeChargePermission(
 			$charge_permission_id,
 			array(
 				'closureReason' => $reason, // TODO: Make dynamic
-			)
+			),
+			$headers
 		);
 
 		$response = json_decode( $result['response'] );
