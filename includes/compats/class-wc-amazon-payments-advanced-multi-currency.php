@@ -23,6 +23,9 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 		'class_WC_Product_Price_Based_Country' => 'Price Based on Country for WooCommerce',
 		'global_woocommerce_wpml'              => 'WPML WooCommerce Multilingual',
 		'class_WC_Currency_Converter'          => 'Currency Converter Widget',
+		// Aelia Currency Switcher
+		// @author Aelia <support@aelia.co>
+		'class_Aelia\WC\CurrencySwitcher\WC_Aelia_CurrencySwitcher' => 'Aelia Currency Switcher',
 	);
 
 	/**
@@ -68,6 +71,12 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 						require_once 'class-wc-amazon-payments-advanced-multi-currency-wccw.php';
 						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_Converted_Widget();
 						break;
+					// Aelia Currency Switcher
+					// @author Aelia <support@aelia.co>
+					case 'class_Aelia\WC\CurrencySwitcher\WC_Aelia_CurrencySwitcher':
+						require_once 'class-wc-amazon-payments-advanced-multi-currency-aelia-currency-switcher.php';
+						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_Aelia_Currency_Switcher();
+						break;
 				}
 			}
 		}
@@ -87,7 +96,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 	/**
 	 * Singleton to get if there is a compatible instance running. Region can be injected.
-	 * 
+	 *
 	 * @param bool $region
 	 *
 	 * @return WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
