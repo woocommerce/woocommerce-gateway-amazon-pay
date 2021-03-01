@@ -701,7 +701,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		?>
 		<div id="payment_method_widget">
 			<?php
-			$payments     = $checkout_session->paymentPreferences;
+			$payments     = $checkout_session->paymentPreferences; // phpcs:ignore WordPress.NamingConventions
 			$change_label = esc_html__( 'Change', 'woocommerce-gateway-amazon-payments-advanced' );
 			if ( empty( $payments ) ) {
 				$change_label = esc_html__( 'Select', 'woocommerce-gateway-amazon-payments-advanced' );

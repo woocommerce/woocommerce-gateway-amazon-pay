@@ -318,7 +318,7 @@ class WC_Amazon_Payments_Advanced {
 		}
 
 		if ( empty( $context ) ) {
-			$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+			$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );  // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
 			array_shift( $backtrace ); // drop current
 
 			$context = isset( $backtrace[0]['function'] ) ? $backtrace[0]['function'] : '';

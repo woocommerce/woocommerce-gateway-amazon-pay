@@ -77,7 +77,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				'subscription_cancellation',
 				'multiple_subscriptions',
 				'subscription_payment_method_change_customer',
-				 // TODO: Implement upgrades/downgrades
+				// TODO: Implement upgrades/downgrades
 			)
 		);
 
@@ -289,7 +289,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
 			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
 
-			$payload['paymentDetails']['chargeAmount'] = $checkout_session->recurringMetadata->amount;
+			$payload['paymentDetails']['chargeAmount'] = $checkout_session->recurringMetadata->amount; // phpcs:ignore WordPress.NamingConventions
 
 			return $payload;
 		}
@@ -338,7 +338,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			if ( isset( $perm_status->status ) && 'Closed' !== $perm_status->status ) {
 				$this->cancelled_subscription( $subscription );
 			}
-			wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription, $response->chargePermissionId );
+			wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription, $response->chargePermissionId ); // phpcs:ignore WordPress.NamingConventions
 			foreach ( $meta_keys_to_copy as $key ) {
 				$subscription->update_meta_data( $key, $order->get_meta( $key ) );
 			}
