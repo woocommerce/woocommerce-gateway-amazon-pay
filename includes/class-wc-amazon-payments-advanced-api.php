@@ -565,9 +565,35 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	protected static function get_extra_headers( $type ) {
 		$headers = array();
 
-		switch ( strtolower( $type ) ) {
-			case 'create_charge':
-				break;
+		$simluation_codes_stack = get_option( 'amazon_pay_simulation_stack', array() );
+
+		if ( empty( $simluation_codes_stack ) || ! is_array( $simluation_codes_stack ) ) {
+			$simluation_codes_stack = array(
+				/**
+				 * Define here things in the following form
+				 *
+				 * array( 'create_charge', 'HardDeclined' ),
+				 *
+				 * where:
+				 *  * create_charge is the name of the call to add the header to (function name on this class)
+				 *  * HardDeclined is the simulation code to use in that function
+				 */
+			);
+		}
+
+		foreach ( $simluation_codes_stack as $i => $simulation ) {
+			list( $function, $code ) = $simulation;
+			if ( strtolower( $function ) === strtolower( $type ) ) {
+				$headers['x-amz-pay-simulation-code'] = $code;
+				unset( $simluation_codes_stack[ $i ] );
+			}
+		}
+
+		if ( empty( $simluation_codes_stack ) ) {
+			delete_option( 'amazon_pay_simulation_stack' );
+		} else {
+			$simluation_codes_stack = array_values( $simluation_codes_stack );
+			update_option( 'amazon_pay_simulation_stack', $simluation_codes_stack, false );
 		}
 
 		return $headers;
