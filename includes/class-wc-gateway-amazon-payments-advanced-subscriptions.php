@@ -481,6 +481,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		wc_apa()->log( $log_note );
 
+		if ( $order->get_id() !== $_order->get_id() ) {
+			$this->handle_order_propagation( $order, $charge_permission_id, $charge_permission_status );
+		}
+
 		$subs = wcs_get_subscriptions_for_order( $order ); // TODO: Test with multiple subs
 
 		foreach ( $subs as $subscription ) {
