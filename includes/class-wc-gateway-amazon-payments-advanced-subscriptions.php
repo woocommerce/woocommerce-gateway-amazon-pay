@@ -331,7 +331,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			'woocommerce_version',
 		);
 
-		$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => 'any' ) );
+		$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => array( 'parent', 'renewal' ) ) );
 		foreach ( $subscriptions as $subscription ) {
 			$perm_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $subscription, true );
 			if ( isset( $perm_status->status ) && 'Closed' !== $perm_status->status ) {
