@@ -77,6 +77,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				'subscription_cancellation',
 				'multiple_subscriptions',
 				'subscription_payment_method_change_customer',
+				 // TODO: Implement upgrades/downgrades
 			)
 		);
 
@@ -470,7 +471,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$order = $_order;
 
 		if ( wcs_is_subscription( $order ) ) {
-			$related = $order->get_related_orders( 'all', array( 'parent' ) ); // TODO: Test upgrade/downgrade
+			$related = $order->get_related_orders( 'all', array( 'parent' ) );
 			$order   = reset( $related );
 		}
 
@@ -492,7 +493,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				$this->handle_order_propagation( $subscription, $charge_permission_id, $charge_permission_status );
 			}
 
-			$related_orders = $subscription->get_related_orders( 'all', array( 'renewal' ) ); // TODO: Test upgrade/downgrade
+			$related_orders = $subscription->get_related_orders( 'all', array( 'renewal' ) );
 			foreach ( $related_orders as $rel_order ) {
 				if ( $_order->get_id() !== $rel_order->get_id() ) {
 					$this->handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status );
