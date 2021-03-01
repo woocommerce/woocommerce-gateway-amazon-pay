@@ -25,7 +25,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		// Legacy methods needed when dealing with legacy subscriptions
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
 		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
-		// TODO: Check if needed, may be able to upgrade subscription to use v2 at this point
 		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $id, array( $this, 'update_failing_payment_method' ), 10, 2 );
 
 		if ( 'v1' === strtolower( $version ) ) { // These are only needed when legacy is the active gateway (prior to migration)

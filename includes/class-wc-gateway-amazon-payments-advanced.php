@@ -42,7 +42,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$is_available = false;
 		}
 
-		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) { // TODO: Implement order pay view.
+		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
 			$is_available = true;
 		}
 
@@ -57,7 +57,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function has_fields() {
 		$has_fields = false;
 
-		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) { // TODO: Implement order pay view.
+		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
 			$has_fields = true;
 		}
 
@@ -324,7 +324,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 				$user = get_user_by( 'id', $user_id );
 
-				if ( ! wp_check_password( $data['amazon_validate'], $user->user_pass, $user->ID ) ) { // TODO: Rotate code after 5 failed attempts
+				if ( ! wp_check_password( $data['amazon_validate'], $user->user_pass, $user->ID ) ) {
 					throw new Exception( __( 'The password you entered did not match the one on the account. Try again, or continue as guest.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 				}
 
@@ -961,7 +961,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			$payload = array(
 				'paymentDetails'   => array(
-					'paymentIntent'                 => $payment_intent, // TODO: Check Authorize, and Confirm flows.
+					'paymentIntent'                 => $payment_intent,
 					'canHandlePendingAuthorization' => $can_do_async,
 					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
 					'chargeAmount'                  => array(
@@ -1070,7 +1070,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( 'Completed' !== $response->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions
-			// TODO: Handle error.
 			// ASK: Ask for posibilities of status not to be completed at this stage.
 			wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $response->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 			wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
