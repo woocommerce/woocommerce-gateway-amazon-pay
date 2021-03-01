@@ -284,7 +284,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$is_change_payment = false;
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) && $order->get_id() === absint( $_POST['woocommerce_change_payment'] ) ) {
 			$is_change_payment = true;
-			$checkout_session = wc_apa()->get_gateway()->get_checkout_session();
+			$checkout_session  = wc_apa()->get_gateway()->get_checkout_session();
 
 			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
 			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
@@ -533,7 +533,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	public function maybe_not_update_payment_method( $update, $method ) {
-		$id      = wc_apa()->get_gateway()->id;
+		$id = wc_apa()->get_gateway()->id;
 		if ( $method === $id ) {
 			return false;
 		}

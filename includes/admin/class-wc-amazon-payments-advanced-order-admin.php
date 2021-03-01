@@ -83,7 +83,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					$can_do_async = true;
 				}
 
-				$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
+				$currency = wc_apa_get_order_prop( $order, 'order_currency' );
 
 				$charge                   = WC_Amazon_Payments_Advanced_API::create_charge(
 					$id,

@@ -336,7 +336,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$headers = self::get_extra_headers( __FUNCTION__ );
 
-		wc_apa()->log( sprintf( 'Checkout Session ID %s', $checkout_session_id ), array( 'data' => $data, 'headers' => $headers ) );
+		wc_apa()->log(
+			sprintf( 'Checkout Session ID %s', $checkout_session_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
 
 		$result = $client->updateCheckoutSession( $checkout_session_id, $data, $headers );
 
@@ -461,7 +467,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$headers = self::get_extra_headers( __FUNCTION__ );
 
-		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ), array( 'data' => $data, 'headers' => $headers ) );
+		wc_apa()->log(
+			sprintf( 'Charge ID %s.', $charge_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
 
 		$result = $client->captureCharge(
 			$charge_id,
@@ -504,7 +516,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$headers = self::get_extra_headers( __FUNCTION__ );
 
-		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ), array( 'data' => $data, 'headers' => $headers ) );
+		wc_apa()->log(
+			sprintf( 'Charge ID %s.', $charge_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
 
 		$result = $client->createRefund(
 			$data,
@@ -613,7 +631,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$headers = self::get_extra_headers( __FUNCTION__ );
 
-		wc_apa()->log( sprintf( 'Charge Permission ID %s.', $charge_permission_id ), array( 'data' => $data, 'headers' => $headers ) );
+		wc_apa()->log(
+			sprintf( 'Charge Permission ID %s.', $charge_permission_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
 
 		$result = $client->createCharge(
 			$data,

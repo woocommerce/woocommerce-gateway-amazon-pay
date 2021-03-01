@@ -416,11 +416,11 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		switch ( strtoupper( $notification['ObjectType'] ) ) {
 			case 'CHARGE':
-				$object = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
+				$object   = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
 				$order_id = $object->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				break;
 			case 'CHARGE_PERMISSION':
-				$object = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ObjectId'] );
+				$object   = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ObjectId'] );
 				$order_id = $object->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				break;
 			case 'REFUND':
@@ -439,7 +439,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			throw new Exception( 'Invalid order ID ' . $order_id );
 		}
 
-		$order = apply_filters( 'woocommerce_amazon_pa_ipn_notification_order', $order, $notification );
+		$order    = apply_filters( 'woocommerce_amazon_pa_ipn_notification_order', $order, $notification );
 		$order_id = $order->get_id(); // Refresh variable, in case it changed.
 
 		if ( 'amazon_payments_advanced' !== $order->get_payment_method() ) {
