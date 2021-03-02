@@ -440,6 +440,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$session_key = $this->get_checkout_session_key();
 		unset( WC()->session->$session_key );
 		WC()->session->amazon_checkout_do_logout = true;
+		do_action( 'woocommerce_amazon_pa_logout' );
 	}
 
 	protected function do_force_refresh( $reason ) {

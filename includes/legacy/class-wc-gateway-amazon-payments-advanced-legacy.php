@@ -1090,6 +1090,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			</script>
 			<?php
 		}
+		do_action( 'woocommerce_amazon_pa_logout' );
 	}
 
 	/**

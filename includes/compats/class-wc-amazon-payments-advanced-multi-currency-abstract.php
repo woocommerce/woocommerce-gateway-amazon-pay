@@ -41,11 +41,11 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		// Currency switching observer.
 		add_action( 'woocommerce_amazon_checkout_init', array( $this, 'capture_original_checkout_currency' ) );
 		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'delete_currency_session' ) );
-		add_action( 'init', array( $this, 'is_amazon_logout' ), 999 );
 
 		// Add AJAX call to retrieve current currency on frontend
 		add_action( 'wp_ajax_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
 		add_action( 'wp_ajax_nopriv_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
+		add_action( 'woocommerce_amazon_pa_logout', array( $this, 'delete_currency_session' ) );
 	}
 
 	/**
@@ -142,15 +142,6 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 */
 	public function bypass_currency_session() {
 		WC()->session->set( self::CURRENCY_BYPASS_SESSION, true );
-	}
-
-	/**
-	 * If Amazon is logging out, delete currency session.
-	 */
-	public function is_amazon_logout() {
-		if ( ! empty( $_GET['amazon_payments_advanced'] ) && ! empty( $_GET['amazon_logout'] ) ) {
-			$this->delete_currency_session();
-		}
 	}
 
 	/**
