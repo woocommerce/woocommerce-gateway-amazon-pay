@@ -33,7 +33,7 @@
 			select.data( 'wc-apa-all-options', allOptions );
 
 			select.children( 'option' ).each( function() {
-				var key = $( this ).prop( 'value' ).replace( '-', '_' );
+				var key = $( this ).prop( 'value' );
 				allOptions[ key ] = $( this ).text();
 			} );
 
@@ -51,9 +51,6 @@
 		init_settings: function() {
 			$.each( amazon_admin_params.language_combinations, function( i, langs ) {
 				langs.unshift( '' );
-				langs = $.map( langs, function( item ) {
-					return item.replace( '-', '_' );
-				} );
 				amazon_admin_params.language_combinations[ i ] = langs;
 			} );
 
