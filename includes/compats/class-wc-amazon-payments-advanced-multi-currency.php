@@ -19,13 +19,20 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 * List of compatible plugins, with its global variable name or main class.
 	 */
 	const COMPATIBLE_PLUGINS = array(
+		// Aelia Currency Switcher
+		//
+		// Note
+		// The Aelia Currency Switcher integration must come before the WooCommerce Multilingual one.
+		// This is needed because this integration class stops as soon as it finds one of the supported
+		// plugins. If it finds the WooCommerce Multilingual, it will not look for any other, even if
+		// the multi-currency features in WCML are disabled. In that case, the integration with the
+		// Aelia Currency Switcher would not be loaded, even though the plugin is active and running.
+		// @author Aelia <support@aelia.co>
+		'class_Aelia\WC\CurrencySwitcher\WC_Aelia_CurrencySwitcher' => 'Aelia Currency Switcher',
 		'global_WOOCS'                         => 'WOOCS – Currency Switcher for WooCommerce',
 		'class_WC_Product_Price_Based_Country' => 'Price Based on Country for WooCommerce',
 		'global_woocommerce_wpml'              => 'WPML WooCommerce Multilingual',
 		'class_WC_Currency_Converter'          => 'Currency Converter Widget',
-		// Aelia Currency Switcher
-		// @author Aelia <support@aelia.co>
-		'class_Aelia\WC\CurrencySwitcher\WC_Aelia_CurrencySwitcher' => 'Aelia Currency Switcher',
 	);
 
 	/**
