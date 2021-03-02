@@ -110,6 +110,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
 		add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 
+		// Maybe Hide Cart Buttons
+		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
+
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
 	}
 
@@ -1533,6 +1536,29 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function release_lock_for_order( $order ) {
 		$key = 'amazon_processing_order_' . $order;
 		delete_transient( $key );
+	}
+
+	/**
+	 * Maybe hides Amazon Pay buttons on cart or checkout pages if hide button mode
+	 * is enabled.
+	 *
+	 * @since 1.6.0
+	 */
+	public function maybe_hide_amazon_buttons() {
+		$hide_button_mode_enabled = 'yes' === $this->settings['hide_button_mode'];
+		$hide_button_mode_enabled = apply_filters( 'woocommerce_amazon_payments_hide_amazon_buttons', $hide_button_mode_enabled );
+
+		if ( ! $hide_button_mode_enabled ) {
+			return;
+		}
+
+		?>
+		<style type="text/css">
+			.wc-apa-button-separator, .wc-amazon-payments-advanced-info, #pay_with_amazon {
+				display: none;
+			}
+		</style>
+		<?php
 	}
 
 }
