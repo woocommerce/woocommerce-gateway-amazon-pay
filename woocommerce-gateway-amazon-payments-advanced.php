@@ -220,8 +220,10 @@ class WC_Amazon_Payments_Advanced {
 		if ( $subscriptions_installed && 'yes' === WC_Amazon_Payments_Advanced_API::get_settings( 'subscriptions_enabled' ) ) {
 
 			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-subscriptions.php';
+			include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-subscriptions-legacy.php';
 
 			$this->subscriptions = new WC_Gateway_Amazon_Payments_Advanced_Subscriptions();
+			new WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy();
 
 		}
 
@@ -302,7 +304,7 @@ class WC_Amazon_Payments_Advanced {
 	 * @param string $context Context for the log.
 	 * @param string $message Log message.
 	 */
-	public function log( $context, $message, $object = null ) {
+	public function log( $message, $object = null, $context = null ) {
 		if ( empty( $this->settings['debug'] ) ) {
 			return;
 		}
@@ -313,6 +315,17 @@ class WC_Amazon_Payments_Advanced {
 
 		if ( ! is_a( $this->logger, 'WC_Logger' ) ) {
 			$this->logger = new WC_Logger();
+		}
+
+		if ( empty( $context ) ) {
+			$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );  // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
+			array_shift( $backtrace ); // drop current
+
+			$context = isset( $backtrace[0]['function'] ) ? $backtrace[0]['function'] : '';
+
+			if ( isset( $backtrace[0]['class'] ) ) {
+				$context = $backtrace[0]['class'] . '::' . $context;
+			}
 		}
 
 		$log_message = $context . ' - ' . $message;
@@ -473,7 +486,7 @@ class WC_Amazon_Payments_Advanced {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @return WC_Gateway_Amazon_Payments_Advanced/WC_Gateway_Amazon_Payments_Advanced_Subscriptions
+	 * @return WC_Gateway_Amazon_Payments_Advanced
 	 */
 	public function get_gateway() {
 		return $this->gateway;

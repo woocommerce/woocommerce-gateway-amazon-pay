@@ -290,7 +290,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 				throw new Exception( 'No handler for message type ' . $message['Type'] );
 		}
 
-		wc_apa()->log( __METHOD__, sprintf( 'Valid IPN message %s.', $message['MessageId'] ) );
+		wc_apa()->log( sprintf( 'Valid IPN message %s.', $message['MessageId'] ) );
 
 		return $message;
 	}
@@ -359,7 +359,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	public function check_ipn_request() {
 		$raw_post_data = $this->get_raw_post_data();
 
-		wc_apa()->log( __METHOD__, 'Received IPN request.' );
+		wc_apa()->log( 'Received IPN request.' );
 
 		try {
 			if ( empty( $raw_post_data ) ) {
@@ -373,7 +373,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			do_action( 'woocommerce_amazon_payments_advanced_handle_ipn', $message );
 			exit;
 		} catch ( Exception $e ) {
-			wc_apa()->log( __METHOD__, 'Failed to handle IPN request: ' . $e->getMessage() );
+			wc_apa()->log( 'Failed to handle IPN request: ' . $e->getMessage() );
 			wp_die(
 				$e->getMessage(),
 				'Bad request',
@@ -410,14 +410,37 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		$notification = $message['Message'];
 
-		$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ChargePermissionId'] );
+		if ( ! isset( $notification['MockedIPN'] ) ) { // Only log real IPNs received
+			wc_apa()->log( 'Received IPN', $notification );
+		}
 
-		$order_id = $charge_permission->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		switch ( strtoupper( $notification['ObjectType'] ) ) {
+			case 'CHARGE':
+				$object   = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
+				$order_id = $object->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				break;
+			case 'CHARGE_PERMISSION':
+				$object   = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ObjectId'] );
+				$order_id = $object->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				break;
+			case 'REFUND':
+				// on refunds, order_id can be fetched from the charge
+				$object   = WC_Amazon_Payments_Advanced_API::get_refund( $notification['ObjectId'] );
+				$charge   = WC_Amazon_Payments_Advanced_API::get_charge( $object->chargeId ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				$order_id = $charge->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				break;
+			default:
+				throw new Exception( 'Not Implemented' );
+		}
+
 		if ( is_numeric( $order_id ) ) {
 			$order = wc_get_order( $order_id );
 		} else {
 			throw new Exception( 'Invalid order ID ' . $order_id );
 		}
+
+		$order    = apply_filters( 'woocommerce_amazon_pa_ipn_notification_order', $order, $notification );
+		$order_id = $order->get_id(); // Refresh variable, in case it changed.
 
 		if ( 'amazon_payments_advanced' !== $order->get_payment_method() ) {
 			throw new Exception( 'Order ID ' . $order_id . ' is not paid with Amazon' );
@@ -427,64 +450,82 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			throw new Exception( sprintf( __( 'Notification type "%s" not supported', 'woocommerce-gateway-amazon-payments-advanced' ), $notification['NotificationType'] ) );
 		}
 
+		if ( ! wc_apa()->get_gateway()->get_lock_for_order( $order_id ) ) {
+			if ( ! isset( $notification['MockedIPN'] ) ) {
+				wc_apa()->log( sprintf( 'Refusing IPN due to concurrency on order #%d', $order_id ) );
+				status_header( 100 );
+				header( 'Retry-After: 120' );
+				exit;
+			} else {
+				wc_apa()->log( sprintf( 'Delaying for concurrency on order #%d', $order_id ) );
+				$this->schedule_hook( $notification['ObjectId'], $notification['ObjectType'] );
+			}
+		}
+
 		if ( ! isset( $notification['MockedIPN'] ) ) {
-			$this->unschedule_hook( $order->get_id(), $notification['ObjectType'] ); // Unshchedule just in case we're actually on real IPN, we'll schedule again if needed.
+			$this->unschedule_hook( $notification['ObjectId'], $notification['ObjectType'] ); // Unshchedule just in case we're actually on real IPN, we'll schedule again if needed.
 		}
 
 		switch ( strtoupper( $notification['ObjectType'] ) ) {
 			case 'CHARGE':
-				$object        = WC_Amazon_Payments_Advanced_API::get_charge( $notification['ObjectId'] );
-				$charge_status = wc_apa()->get_gateway()->log_charge_status_change( $order, $object );
+				wc_apa()->get_gateway()->log_charge_status_change( $order, $object );
 				break;
 			case 'CHARGE_PERMISSION':
-				$object        = WC_Amazon_Payments_Advanced_API::get_charge_permission( $notification['ObjectId'] );
-				$charge_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order, $object );
+				wc_apa()->get_gateway()->log_charge_permission_status_change( $order, $object );
 				break;
 			case 'REFUND':
-				$object           = WC_Amazon_Payments_Advanced_API::get_refund( $notification['ObjectId'] );
-				$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $object );
+				wc_apa()->get_gateway()->handle_refund( $order, $object );
 				break;
 			default:
+				wc_apa()->get_gateway()->release_lock_for_order( $order_id );
 				throw new Exception( 'Not Implemented' );
 		}
+
+		wc_apa()->get_gateway()->release_lock_for_order( $order_id );
 	}
 
-	public function schedule_hook( $order_id, $type ) {
-		$args = array( $order_id, $type );
+	private function is_next_scheduled( $hook, $args = null, $group = '' ) {
+		$actions = as_get_scheduled_actions(
+			array(
+				'hook'   => $hook,
+				'args'   => $args,
+				'group'  => $group,
+				'status' => ActionScheduler_Store::STATUS_PENDING,
+			),
+			'ids'
+		);
+		return count( $actions ) > 0;
+	}
+
+	public function schedule_hook( $id, $type ) {
+		$args = array( $id, $type );
 		// Schedule action to check pending order next hour.
-		if ( doing_action( 'wc_amazon_async_polling' ) || false === as_next_scheduled_action( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
-			wc_apa()->log( __METHOD__, sprintf( 'Scheduling %s for %s', $type, $order_id ) );
+		if ( false === $this->is_next_scheduled( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
+			wc_apa()->log( sprintf( 'Scheduling check for %s %s', $type, $id ) );
 			// TODO: Change time to a more stable timeframe
 			as_schedule_single_action( strtotime( 'next minute' ), 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 		}
 	}
 
-	public function unschedule_hook( $order_id, $type ) {
-		$args = array( $order_id, $type );
-		wc_apa()->log( __METHOD__, sprintf( 'Unscheduling %s for %s', $type, $order_id ) );
+	public function unschedule_hook( $id, $type ) {
+		$args = array( $id, $type );
+		wc_apa()->log( sprintf( 'Unscheduling check for %s %s', $type, $id ) );
 		as_unschedule_all_actions( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 	}
 
-	public function handle_async_polling( $order_id, $type ) {
-		$order = wc_get_order( $order_id );
-
-		if ( 'amazon_payments_advanced' !== $order->get_payment_method() ) {
-			return;
-		}
-
-		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
-
+	public function handle_async_polling( $amazon_id, $type ) {
 		switch ( strtoupper( $type ) ) {
 			case 'CHARGE':
-				$amazon_id = $order->get_meta( 'amazon_charge_id' );
 				if ( empty( $amazon_id ) ) {
 					// TODO: Not possible to poll for charge_id only with charge permission id (eg: collect payment from seller central)
 					// TIP: Suggested by Federico, use the charge_permission amounts change to infer a charge being made.
 					return;
 				}
+				$object               = WC_Amazon_Payments_Advanced_API::get_charge( $amazon_id );
+				$charge_permission_id = $object->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 				break;
 			case 'CHARGE_PERMISSION':
-				$amazon_id = $charge_permission_id;
+				$charge_permission_id = $amazon_id;
 				break;
 		}
 

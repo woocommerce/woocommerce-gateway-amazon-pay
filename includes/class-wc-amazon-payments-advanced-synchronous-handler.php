@@ -34,10 +34,7 @@ class WC_Amazon_Payments_Advanced_Synchronous_Handler {
 	 */
 	public function process_pending_syncro_payments( $order_id, $amazon_authorization_id ) {
 
-		wc_apa()->log(
-			__METHOD__,
-			sprintf( 'Processing pending synchronous payment. Order: %s, Auth ID: %s', $order_id, $amazon_authorization_id )
-		);
+		wc_apa()->log( sprintf( 'Processing pending synchronous payment. Order: %s, Auth ID: %s', $order_id, $amazon_authorization_id ) );
 		$order = wc_get_order( $order_id );
 		if ( ! $order ) {
 			return new WP_Error( 'invalid_order', __( 'Invalid order.', 'woocommerce-gateway-amazon-payments-advanced' ) );

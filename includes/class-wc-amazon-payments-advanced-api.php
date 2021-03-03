@@ -248,7 +248,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$settings = self::get_settings();
 		if ( is_null( $redirect_url ) ) {
-			$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
+			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
+				$parts        = wp_parse_url( home_url() );
+				$current_uri  = "{$parts['scheme']}://{$parts['host']}" . add_query_arg( null, null );
+				$redirect_url = $current_uri;
+			} else {
+				$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
+			}
 		}
 		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
 		$payload      = array(
@@ -269,6 +275,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				),
 			);
 		}
+
+		$payload = apply_filters( 'woocommerce_amazon_pa_create_checkout_session_params', $payload, $redirect_url );
 
 		$payload = wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 
@@ -325,34 +333,44 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	public static function update_checkout_session_data( $checkout_session_id, $data = array() ) {
 		$client = self::get_client();
-		wc_apa()->log( __METHOD__, sprintf( 'Checkout Session ID %s', $checkout_session_id ), $data );
-		$result = $client->updateCheckoutSession( $checkout_session_id, $data );
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log(
+			sprintf( 'Checkout Session ID %s', $checkout_session_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->updateCheckoutSession( $checkout_session_id, $data, $headers );
 
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
-			wc_apa()->log( __METHOD__, sprintf( 'ERROR. Checkout Session ID %s.', $checkout_session_id ), $result );
+			wc_apa()->log( sprintf( 'ERROR. Checkout Session ID %s.', $checkout_session_id ), $result );
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( __METHOD__, sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), $response );
 
 		return $response;
 	}
 
 	public static function complete_checkout_session( $checkout_session_id, $data = array() ) {
 		$client = self::get_client();
-		wc_apa()->log( __METHOD__, sprintf( 'Checkout Session ID %s', $checkout_session_id ), $data );
+		wc_apa()->log( sprintf( 'Checkout Session ID %s', $checkout_session_id ), $data );
 		$result = $client->completeCheckoutSession( $checkout_session_id, $data );
 
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 202 ), true ) ) {
-			wc_apa()->log( __METHOD__, sprintf( 'ERROR. Checkout Session ID %s.', $checkout_session_id ), $result );
+			wc_apa()->log( sprintf( 'ERROR. Checkout Session ID %s.', $checkout_session_id ), $result );
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( __METHOD__, sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), $response );
 
 		return $response;
 	}
@@ -446,24 +464,36 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$data['captureAmount'] = (array) $charge->chargeAmount; // phpcs:ignore WordPress.NamingConventions
 			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
 		}
-		wc_apa()->log( __METHOD__, sprintf( 'Charge ID %s.', $charge_id ), $data );
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log(
+			sprintf( 'Charge ID %s.', $charge_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
 
 		$result = $client->captureCharge(
 			$charge_id,
 			$data,
-			array(
-				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			array_merge(
+				$headers,
+				array(
+					'x-amz-pay-idempotency-key' => self::generate_uuid(),
+				)
 			)
 		);
 
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
-			wc_apa()->log( __METHOD__, sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
+			wc_apa()->log( sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( __METHOD__, sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
 
 		return $response;
 	}
@@ -483,30 +513,42 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( ! is_null( $amount ) ) {
 			$data['refundAmount']['amount'] = $amount;
 		}
-		wc_apa()->log( __METHOD__, sprintf( 'Charge ID %s.', $charge_id ), $data );
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log(
+			sprintf( 'Charge ID %s.', $charge_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
 
 		$result = $client->createRefund(
 			$data,
-			array(
-				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			array_merge(
+				$headers,
+				array(
+					'x-amz-pay-idempotency-key' => self::generate_uuid(),
+				)
 			)
 		);
 
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
-			wc_apa()->log( __METHOD__, sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
+			wc_apa()->log( sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( __METHOD__, sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
 
 		return $response;
 	}
 
 	public static function cancel_charge( $charge_id, $reason = 'Order Cancelled' ) {
 		$client = self::get_client();
-		wc_apa()->log( __METHOD__, sprintf( 'Charge ID %s.', $charge_id ) );
+		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ) );
 
 		$result = $client->cancelCharge(
 			$charge_id,
@@ -518,11 +560,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
-			wc_apa()->log( __METHOD__, sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
+			wc_apa()->log( sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( __METHOD__, sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
 
 		return $response;
 	}
@@ -538,6 +580,43 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		);
 	}
 
+	protected static function get_extra_headers( $type ) {
+		$headers = array();
+
+		$simluation_codes_stack = get_option( 'amazon_pay_simulation_stack', array() );
+
+		if ( empty( $simluation_codes_stack ) || ! is_array( $simluation_codes_stack ) ) {
+			$simluation_codes_stack = array(
+				/**
+				 * Define here things in the following form
+				 *
+				 * array( 'create_charge', 'HardDeclined' ),
+				 *
+				 * where:
+				 *  * create_charge is the name of the call to add the header to (function name on this class)
+				 *  * HardDeclined is the simulation code to use in that function
+				 */
+			);
+		}
+
+		foreach ( $simluation_codes_stack as $i => $simulation ) {
+			list( $function, $code ) = $simulation;
+			if ( strtolower( $function ) === strtolower( $type ) ) {
+				$headers['x-amz-pay-simulation-code'] = $code;
+				unset( $simluation_codes_stack[ $i ] );
+			}
+		}
+
+		if ( empty( $simluation_codes_stack ) ) {
+			delete_option( 'amazon_pay_simulation_stack' );
+		} else {
+			$simluation_codes_stack = array_values( $simluation_codes_stack );
+			update_option( 'amazon_pay_simulation_stack', $simluation_codes_stack, false );
+		}
+
+		return $headers;
+	}
+
 	public static function create_charge( $charge_permission_id, $data ) {
 		$client = self::get_client();
 		if ( empty( $data ) ) {
@@ -547,26 +626,64 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		// TODO: Validate entered data
 		if ( empty( $data['chargeAmount'] ) ) {
 			$charge_permission    = self::get_charge_permission( $charge_permission_id );
-			$data['chargeAmount'] = (array) $charge_permission->limits->amountLimit; // phpcs:ignore WordPress.NamingConventions
-			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
+			$data['chargeAmount'] = (array) $charge_permission->limits->amountBalance; // phpcs:ignore WordPress.NamingConventions
 		}
-		wc_apa()->log( __METHOD__, sprintf( 'Charge Permission ID %s.', $charge_permission_id ), $data );
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log(
+			sprintf( 'Charge Permission ID %s.', $charge_permission_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
 
 		$result = $client->createCharge(
 			$data,
-			array(
-				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			array_merge(
+				$headers,
+				array(
+					'x-amz-pay-idempotency-key' => self::generate_uuid(),
+				)
 			)
 		);
 
 		$response = json_decode( $result['response'] );
 
 		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
-			wc_apa()->log( __METHOD__, sprintf( 'ERROR. Charge Permission ID %s.', $charge_permission_id ), $result );
+			wc_apa()->log( sprintf( 'ERROR. Charge Permission ID %s.', $charge_permission_id ), $result );
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( __METHOD__, sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), $response );
+
+		return $response;
+	}
+
+	public static function close_charge_permission( $charge_permission_id, $reason = 'Subscription Cancelled' ) {
+		$client = self::get_client();
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log( sprintf( 'Charge Permission ID %s.', $charge_permission_id ), array( 'headers' => $headers ) );
+
+		$result = $client->closeChargePermission(
+			$charge_permission_id,
+			array(
+				'closureReason' => $reason, // TODO: Make dynamic
+			),
+			$headers
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			wc_apa()->log( sprintf( 'ERROR. Charge Permission ID %s.', $charge_permission_id ), $result );
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		wc_apa()->log( sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), $response );
 
 		return $response;
 	}

@@ -39,7 +39,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 * Check Onboarding Request.
 	 */
 	public function check_onboarding_request() {
-		wc_apa()->log( __METHOD__, 'Received Onboarding Key Exchage request.' );
+		wc_apa()->log( 'Received Onboarding Key Exchage request.' );
 
 		$headers              = $this->get_all_headers();
 		$registration_country = $this->get_country_origin_from_header( $headers );
@@ -77,7 +77,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 			header( 'Access-Control-Allow-Headers: Content-Type' );
 			wp_send_json( array( 'result' => 'success' ), 200 );
 		} catch ( Exception $e ) {
-			wc_apa()->log( __METHOD__, 'Failed to handle automatic key exchange request: ' . $e->getMessage() );
+			wc_apa()->log( 'Failed to handle automatic key exchange request: ' . $e->getMessage() );
 			wp_send_json(
 				array(
 					'result'  => 'error',

@@ -68,11 +68,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			return;
 		}
 		$order_id = $order->get_id();
-		wc_apa()->log( __METHOD__, sprintf( 'Info: Trying to perform "%s" for order #%s', $action, $order_id ) );
+		wc_apa()->log( sprintf( 'Info: Trying to perform "%s" for order #%s', $action, $order_id ) );
 		switch ( $action ) {
 			case 'refresh':
-				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_status_change( $order );
 				break;
 			case 'authorize':
 			case 'authorize_capture':
@@ -83,30 +83,36 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					$can_do_async = true;
 				}
 
-				$charge                   = WC_Amazon_Payments_Advanced_API::create_charge(
+				$currency = wc_apa_get_order_prop( $order, 'order_currency' );
+
+				$charge = WC_Amazon_Payments_Advanced_API::create_charge(
 					$id,
 					array(
 						'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
 						'captureNow'                    => $capture_now,
 						'canHandlePendingAuthorization' => $can_do_async,
+						'chargeAmount'                  => array(
+							'amount'       => $order->get_total(),
+							'currencyCode' => $currency,
+						),
 					)
 				);
-				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'close_authorization':
-				$charge                   = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
-				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				$charge = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
+				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'capture':
-				$charge                   = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
-				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				$charge = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
+				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'refund':
-				$refund           = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
-				$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $refund );
+				$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
+				wc_apa()->get_gateway()->handle_refund( $order, $refund );
 		}
 	}
 
@@ -174,7 +180,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		echo wpautop( sprintf( __( 'Charge Permission %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_permission_id ), esc_html( $charge_permission_status_label ) ) );
 
-		$charge_permission_status = $charge_permission_cached_status->status; // phpcs:ignore WordPress.NamingConventions
+		$charge_permission_status = $charge_permission_cached_status->status;
 
 		switch ( $charge_permission_status ) {
 			case 'Chargeable':
@@ -208,7 +214,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 			echo wpautop( sprintf( __( 'Charge %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_id ), esc_html( $charge_status_label ) ) );
 
-			$charge_status = $charge_cached_status->status; // phpcs:ignore WordPress.NamingConventions
+			$charge_status = $charge_cached_status->status;
 
 			switch ( $charge_status ) {
 				case 'AuthorizationInitiated':

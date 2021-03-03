@@ -302,7 +302,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			$order_total = $order->get_total();
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
-			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Amazon reference ID: {$amazon_reference_id}." );
+			wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Amazon reference ID: {$amazon_reference_id}." );
 			update_post_meta( $order_id, 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION );
 			update_post_meta( $order_id, 'woocommerce_version', WC()->version );
 
@@ -363,11 +363,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			update_post_meta( $order_id, '_transaction_id', $amazon_reference_id );
 			update_post_meta( $order_id, 'amazon_order_language', $order_language );
 
-			wc_apa()->log( __METHOD__, sprintf( 'Info: Payment Capture method is %s', $this->payment_capture ? $this->payment_capture : 'authorize and capture' ) );
+			wc_apa()->log( sprintf( 'Info: Payment Capture method is %s', $this->payment_capture ? $this->payment_capture : 'authorize and capture' ) );
 
 			// Stop execution if this is being processed by SCA.
 			if ( $is_sca ) {
-				wc_apa()->log( __METHOD__, sprintf( 'Info: SCA processing enabled. Transaction will be captured asynchronously' ) );
+				wc_apa()->log( sprintf( 'Info: SCA processing enabled. Transaction will be captured asynchronously' ) );
 				return array(
 					'result'   => 'success',
 					'redirect' => '',
@@ -461,7 +461,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @param string   $amazon_reference_id Amazon Order Reference ID.
 	 */
 	protected function process_payment_with_manual( $order, $amazon_reference_id ) {
-		wc_apa()->log( __METHOD__, 'Info: No Authorize or Capture call.' );
+		wc_apa()->log( 'Info: No Authorize or Capture call.' );
 
 		// Mark as on-hold.
 		$order->update_status( 'on-hold', __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
@@ -488,7 +488,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @throws Exception Declined transaction.
 	 */
 	protected function process_payment_with_authorize( $order, $amazon_reference_id ) {
-		wc_apa()->log( __METHOD__, 'Info: Trying to authorize payment in order reference ' . $amazon_reference_id );
+		wc_apa()->log( 'Info: Trying to authorize payment in order reference ' . $amazon_reference_id );
 
 		// Authorize only.
 		$authorize_args = array(
@@ -515,11 +515,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 				wc_reduce_stock_levels( $order->get_id() );
 			}
 
-			wc_apa()->log( __METHOD__, 'Info: Successfully authorized in order reference ' . $amazon_reference_id );
+			wc_apa()->log( 'Info: Successfully authorized in order reference ' . $amazon_reference_id );
 		} else {
 			$order->update_status( 'failed', __( 'Could not authorize Amazon payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 
-			wc_apa()->log( __METHOD__, 'Error: Failed to authorize in order reference ' . $amazon_reference_id );
+			wc_apa()->log( 'Error: Failed to authorize in order reference ' . $amazon_reference_id );
 		}
 	}
 
@@ -534,7 +534,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @return SimpleXMLElement Response.
 	 */
 	public function process_payment_with_async_authorize( $order, $amazon_reference_id ) {
-		wc_apa()->log( __METHOD__, 'Info: Trying to ASYNC authorize payment in order reference ' . $amazon_reference_id );
+		wc_apa()->log( 'Info: Trying to ASYNC authorize payment in order reference ' . $amazon_reference_id );
 
 		$authorize_args = array(
 			'amazon_reference_id' => $amazon_reference_id,
@@ -556,7 +556,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @throws Exception Declined transaction.
 	 */
 	protected function process_payment_with_capture( $order, $amazon_reference_id ) {
-		wc_apa()->log( __METHOD__, 'Info: Trying to capture payment in order reference ' . $amazon_reference_id );
+		wc_apa()->log( 'Info: Trying to capture payment in order reference ' . $amazon_reference_id );
 
 		// Authorize and capture.
 		$authorize_args = array(
@@ -579,12 +579,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			// Close order reference.
 			WC_Amazon_Payments_Advanced_API::close_order_reference( $order_id );
 
-			wc_apa()->log( __METHOD__, 'Info: Successfully captured in order reference ' . $amazon_reference_id );
+			wc_apa()->log( 'Info: Successfully captured in order reference ' . $amazon_reference_id );
 
 		} else {
 			$order->update_status( 'failed', __( 'Could not authorize Amazon payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 
-			wc_apa()->log( __METHOD__, 'Error: Failed to capture in order reference ' . $amazon_reference_id );
+			wc_apa()->log( 'Error: Failed to capture in order reference ' . $amazon_reference_id );
 		}
 	}
 
@@ -636,7 +636,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @return WP_Error|boolean True or false based on success, or a WP_Error object.
 	 */
 	public function process_refund( $order_id, $refund_amount = null, $reason = '' ) {
-		wc_apa()->log( __METHOD__, 'Info: Trying to refund for order ' . $order_id );
+		wc_apa()->log( 'Info: Trying to refund for order ' . $order_id );
 
 		$amazon_capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
 		if ( empty( $amazon_capture_id ) ) {
@@ -893,10 +893,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		$amazon_reference_id = $order->get_meta( 'amazon_reference_id', true );
 		WC()->session->set( 'amazon_reference_id', $amazon_reference_id );
 
-		wc_apa()->log(
-			__METHOD__,
-			sprintf( 'Info: Continuing payment processing for order %s. Reference ID %s', $order_id, $amazon_reference_id )
-		);
+		wc_apa()->log( sprintf( 'Info: Continuing payment processing for order %s. Reference ID %s', $order_id, $amazon_reference_id ) );
 
 		$authorization_status = wc_clean( $_GET['AuthenticationStatus'] );
 		switch ( $authorization_status ) {
@@ -977,12 +974,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 			// Adds notice and logging.
 			wc_add_notice( __( 'There was a problem authorizing your transaction using Amazon Pay. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-			wc_apa()->log( __METHOD__, 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Failure", reference ' . $amazon_reference_id );
+			wc_apa()->log( 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Failure", reference ' . $amazon_reference_id );
 		}
 
 		if ( 'Abandoned' === $authorization_status ) {
 			wc_add_notice( __( 'Authentication for the transaction was not completed, please try again selecting another payment instrument from your Amazon wallet.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-			wc_apa()->log( __METHOD__, 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Abandoned", reference ' . $amazon_reference_id );
+			wc_apa()->log( 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Abandoned", reference ' . $amazon_reference_id );
 		}
 
 		wp_safe_redirect( $redirect );
@@ -1000,7 +997,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	public function log( $context, $message ) {
 		_deprecated_function( 'WC_Gateway_Amazon_Payments_Advanced::log', '1.6.0', 'wc_apa()->log()' );
 
-		wc_apa()->log( $context, $message );
+		wc_apa()->log( $message, null, $context );
 	}
 
 	/**
