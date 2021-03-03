@@ -61,7 +61,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$has_fields = true;
 		}
 
-		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $has_fields );
+		return apply_filters( 'woocommerce_amazon_pa_gateway_has_fields', $has_fields );
 	}
 
 	/**
