@@ -71,8 +71,8 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		wc_apa()->log( sprintf( 'Info: Trying to perform "%s" for order #%s', $action, $order_id ) );
 		switch ( $action ) {
 			case 'refresh':
-				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_status_change( $order );
 				break;
 			case 'authorize':
 			case 'authorize_capture':
@@ -85,7 +85,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 				$currency = wc_apa_get_order_prop( $order, 'order_currency' );
 
-				$charge                   = WC_Amazon_Payments_Advanced_API::create_charge(
+				$charge = WC_Amazon_Payments_Advanced_API::create_charge(
 					$id,
 					array(
 						'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
@@ -97,22 +97,22 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 						),
 					)
 				);
-				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'close_authorization':
-				$charge                   = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
-				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				$charge = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
+				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'capture':
-				$charge                   = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
-				$charge_permission_status = wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				$charge_status            = wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				$charge = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
+				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+				wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
 				break;
 			case 'refund':
-				$refund           = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
-				$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $refund );
+				$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
+				wc_apa()->get_gateway()->handle_refund( $order, $refund );
 		}
 	}
 

@@ -1082,12 +1082,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$charge_permission_id = $response->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
 		$order->save();
-		$charge_permission_status = $this->log_charge_permission_status_change( $order );
-		$charge_id                = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
+		$this->log_charge_permission_status_change( $order );
+		$charge_id = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
 		if ( ! empty( $charge_id ) ) {
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
 			$order->save();
-			$charge_status = $this->log_charge_status_change( $order );
+			$this->log_charge_status_change( $order );
 		} else {
 			if ( apply_filters( 'woocommerce_amazon_pa_no_charge_order_on_hold', true, $order ) ) {
 				$order->update_status( 'on-hold' );
@@ -1500,8 +1500,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 		wc_apa()->log( 'Processing refund from admin for order #' . $order_id );
 		wc_apa()->log( 'Processing refund from admin for order #' . $order_id . '. Temporary refund ID #' . $this->current_refund->get_id() );
-		$refund           = WC_Amazon_Payments_Advanced_API::refund_charge( $charge_id, $amount );
-		$wc_refund_status = wc_apa()->get_gateway()->handle_refund( $order, $refund, $this->current_refund->get_id() );
+		$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $charge_id, $amount );
+		wc_apa()->get_gateway()->handle_refund( $order, $refund, $this->current_refund->get_id() );
 		return true;
 	}
 
