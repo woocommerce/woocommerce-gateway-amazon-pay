@@ -1056,7 +1056,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
 					$message = wc_get_template_html( 'emails/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-					wc_apa()->log( 'EMAILL ' . $message );
+					wc_apa()->log( 'EMAIL ' . $message );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
 					// Hard decline
@@ -1136,7 +1136,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
 					$message = wc_get_template_html( 'emails/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-					wc_apa()->log( 'EMAILL ' . $message );
+					wc_apa()->log( 'EMAIL ' . $message );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
 					// Hard decline
