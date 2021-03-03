@@ -721,7 +721,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				<?php esc_html_e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 			</h3>
 			<div class="payment_method_display">
-				<span class="wc-apa-amazon-logo"></span><?php echo $selected_label; ?>
+				<span class="wc-apa-amazon-logo"></span><?php echo esc_html( $selected_label ); ?>
 			</div>
 		</div>
 		<?php
