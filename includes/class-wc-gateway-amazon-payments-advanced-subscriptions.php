@@ -281,9 +281,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order ) {
-		$is_change_payment = false;
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) && $order->get_id() === absint( $_POST['woocommerce_change_payment'] ) ) {
-			$is_change_payment = true;
 			$checkout_session  = wc_apa()->get_gateway()->get_checkout_session();
 
 			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
