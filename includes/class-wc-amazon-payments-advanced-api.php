@@ -248,7 +248,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		$settings = self::get_settings();
 		if ( is_null( $redirect_url ) ) {
-			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) { // TODO: Implement order pay view.
+			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
 				$parts        = wp_parse_url( home_url() );
 				$current_uri  = "{$parts['scheme']}://{$parts['host']}" . add_query_arg( null, null );
 				$redirect_url = $current_uri;
