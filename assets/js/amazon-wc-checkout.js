@@ -11,6 +11,9 @@
 			button_count++;
 			$( button_id ).each( function() {
 				var thisButton = $( this );
+				if ( ! thisButton.is( ':visible' ) ) {
+					return;
+				}
 				var thisId = thisButton.attr( 'id' );
 				if ( typeof thisId === 'undefined' ) {
 					thisId = 'pay_with_amazon_' + button_count;
