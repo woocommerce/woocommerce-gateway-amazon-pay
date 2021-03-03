@@ -1146,7 +1146,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $old_status;
 		}
 		$this->refresh_cached_charge_status( $order, $charge );
-		$order->update_meta_data( 'amazon_charge_id', $charge_id ); // phpcs:ignore WordPress.NamingConventions
+		$order->update_meta_data( 'amazon_charge_id', $charge_id );
 		$order->save(); // Save early for less race conditions
 
 		// @codingStandardsIgnoreStart
@@ -1213,7 +1213,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			switch ( $charge_permission_status ) {
 				case 'Chargeable':
 				case 'NonChargeable':
-					wc_apa()->ipn_handler->schedule_hook( $charge_permission_id, 'CHARGE_PERMISSION' ); // phpcs:ignore WordPress.NamingConventions
+					wc_apa()->ipn_handler->schedule_hook( $charge_permission_id, 'CHARGE_PERMISSION' );
 					break;
 			}
 			return $old_status;
@@ -1227,7 +1227,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		switch ( $charge_permission_status ) {
 			case 'Chargeable':
 			case 'NonChargeable':
-				wc_apa()->ipn_handler->schedule_hook( $charge_permission_id, 'CHARGE_PERMISSION' ); // phpcs:ignore WordPress.NamingConventions
+				wc_apa()->ipn_handler->schedule_hook( $charge_permission_id, 'CHARGE_PERMISSION' );
 				break;
 			case 'Closed':
 				$order_has_charge = is_null( $this->get_cached_charge_status( $order, true )->status );
@@ -1407,7 +1407,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$charge_permission_status = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 
-		wc_apa()->log( sprintf( 'Caching amazon_charge_permission_status on #%1$d', $order->get_id() ), $charge_permission_status ); // phpcs:ignore WordPress.NamingConventions
+		wc_apa()->log( sprintf( 'Caching amazon_charge_permission_status on #%1$d', $order->get_id() ), $charge_permission_status );
 
 		$order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
 		$order->save();
@@ -1442,7 +1442,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$charge_status = $this->format_status_details( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 
-		wc_apa()->log( sprintf( 'Caching amazon_charge_status on #%1$d', $order->get_id() ), $charge_status ); // phpcs:ignore WordPress.NamingConventions
+		wc_apa()->log( sprintf( 'Caching amazon_charge_status on #%1$d', $order->get_id() ), $charge_status );
 
 		$order->update_meta_data( 'amazon_charge_status', wp_json_encode( $charge_status ) );
 		$order->save();

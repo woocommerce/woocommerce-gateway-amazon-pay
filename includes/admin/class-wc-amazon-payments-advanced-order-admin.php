@@ -180,7 +180,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		echo wpautop( sprintf( __( 'Charge Permission %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_permission_id ), esc_html( $charge_permission_status_label ) ) );
 
-		$charge_permission_status = $charge_permission_cached_status->status; // phpcs:ignore WordPress.NamingConventions
+		$charge_permission_status = $charge_permission_cached_status->status;
 
 		switch ( $charge_permission_status ) {
 			case 'Chargeable':
@@ -214,7 +214,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 			echo wpautop( sprintf( __( 'Charge %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_id ), esc_html( $charge_status_label ) ) );
 
-			$charge_status = $charge_cached_status->status; // phpcs:ignore WordPress.NamingConventions
+			$charge_status = $charge_cached_status->status;
 
 			switch ( $charge_status ) {
 				case 'AuthorizationInitiated':
