@@ -104,11 +104,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
 		add_filter( 'woocommerce_checkout_posted_data', array( $this, 'use_checkout_session_data' ) );
 		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
+		add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 
 		// Cart
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
-		add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
+		add_action( 'woocommerce_review_order_before_order_total', array( $this, 'update_js' ) );
 
 		// Maybe Hide Cart Buttons
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
@@ -130,9 +131,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		wp_register_script( 'amazon_payments_advanced_checkout', $this->get_region_script(), array(), wc_apa()->version, true );
 		wp_register_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-wc-checkout' . $js_suffix, array(), wc_apa()->version, true );
 
+		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+
 		$params = array(
 			'ajax_url'                       => admin_url( 'admin-ajax.php' ),
-			'create_checkout_session_config' => WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config(),
+			'create_checkout_session_config' => $checkout_session_config,
+			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
 			'button_color'                   => $this->settings['button_color'],
 			'placement'                      => $this->get_current_placement(),
 			'action'                         => $this->get_current_cart_action(),
@@ -1268,8 +1272,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function update_js() {
+		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+
 		$data = array(
-			'action' => $this->get_current_cart_action(),
+			'action'                         => $this->get_current_cart_action(),
+			'create_checkout_session_config' => $checkout_session_config,
+			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
 		);
 		?>
 		<script type="text/template" id="wc-apa-update-vals" data-value="<?php echo esc_attr( wp_json_encode( $data ) ); ?>"></script>
