@@ -709,13 +709,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			if ( empty( $payments ) ) {
 				$change_label = esc_html__( 'Select', 'woocommerce-gateway-amazon-payments-advanced' );
 			}
+			$selected_label = esc_html__( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' );
+			foreach ( $checkout_session->paymentPreferences as $pref ) { // phpcs:ignore WordPress.NamingConventions
+				if ( isset( $pref->paymentDescriptor ) ) { // phpcs:ignore WordPress.NamingConventions
+					$selected_label = $pref->paymentDescriptor; // phpcs:ignore WordPress.NamingConventions
+				}
+			}
 			?>
 			<h3>
 				<a href="#" class="wc-apa-widget-change" id="payment_method_widget_change"><?php echo $change_label; ?></a>
 				<?php esc_html_e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 			</h3>
 			<div class="payment_method_display">
-				<span class="wc-apa-amazon-logo"></span><?php esc_html_e( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+				<span class="wc-apa-amazon-logo"></span><?php echo esc_html( $selected_label ); ?>
 			</div>
 		</div>
 		<?php
