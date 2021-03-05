@@ -24,11 +24,6 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 			return;
 		}
 
-		// If selected currency is not compatible with Amazon.
-		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
-			add_filter( 'woocommerce_amazon_payments_init', '__return_false' );
-		}
-
 		// Currency switching observer.
 		add_action( 'woocommerce_amazon_checkout_init', array( $this, 'capture_original_checkout_currency' ) );
 		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'delete_currency_session' ) );
@@ -37,6 +32,12 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		add_action( 'wp_ajax_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
 		add_action( 'wp_ajax_nopriv_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
 		add_action( 'woocommerce_amazon_pa_logout', array( $this, 'delete_currency_session' ) );
+
+		// If selected currency is not compatible with Amazon.
+		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
+			add_filter( 'woocommerce_amazon_payments_init', '__return_false' );
+			return;
+		}
 	}
 
 	/**
