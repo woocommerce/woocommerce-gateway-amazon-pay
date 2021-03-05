@@ -104,12 +104,16 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
 		add_filter( 'woocommerce_checkout_posted_data', array( $this, 'use_checkout_session_data' ) );
 		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
-		add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
+		if ( wp_doing_ajax() ) {
+			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
+		}
 
 		// Cart
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
-		add_action( 'woocommerce_review_order_before_order_total', array( $this, 'update_js' ) );
+		if ( wp_doing_ajax() ) {
+			add_action( 'woocommerce_review_order_before_order_total', array( $this, 'update_js' ) );
+		}
 
 		// Maybe Hide Cart Buttons
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
