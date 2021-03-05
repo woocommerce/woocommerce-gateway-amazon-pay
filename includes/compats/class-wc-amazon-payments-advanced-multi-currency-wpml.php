@@ -23,7 +23,11 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_WPML extends WC_Amazon_Payments
 	public function __construct() {
 		global $woocommerce_wpml;
 		$this->wpml = $woocommerce_wpml;
-		add_filter( 'init', array( $this, 'remove_currency_switcher_on_order_reference_suspended' ), 100 );
+
+		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
+		if ( 'v1' === $version ) {
+			add_filter( 'init', array( $this, 'remove_currency_switcher_on_order_reference_suspended' ), 100 );
+		}
 
 		parent::__construct();
 	}
@@ -36,6 +40,10 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_WPML extends WC_Amazon_Payments
 	public function get_selected_currency() {
 		return ( WC()->session ) ? WC()->session->get( 'client_currency' ) : get_woocommerce_currency();
 	}
+
+	/**
+	 * LEGACY v1 METHODS AND HOOKS
+	 */
 
 	/**
 	 * On OrderReferenceStatus === Suspended, hide currency switcher.
