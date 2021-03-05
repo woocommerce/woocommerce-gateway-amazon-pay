@@ -1315,14 +1315,25 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
-	public function maybe_render_login_button_again( $checkout_session, $wrap = true ) {
+	public function is_checkout_session_still_valid( $checkout_session ) {
+		if ( $this->need_to_force_refresh() ) {
+			return new WP_Error( 'force_refresh', $this->get_force_refresh() );
+		}
+
 		if ( 'Open' !== $checkout_session->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			$this->render_login_button_again( __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ), $wrap );
-			return;
+			return new WP_Error( 'not_open', __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 		}
 
 		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
-			$this->render_login_button_again( null, $wrap );
+			return new WP_Error( 'product_type_changed', __( 'Your cart changed, and you need to confirm your selected payment method again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+		return true;
+	}
+
+	public function maybe_render_login_button_again( $checkout_session, $wrap = true ) {
+		$is_valid = $this->is_checkout_session_still_valid( $checkout_session );
+		if ( is_wp_error( $is_valid ) ) {
+			$this->render_login_button_again( $is_valid->get_error_message(), $wrap );
 			return;
 		}
 
