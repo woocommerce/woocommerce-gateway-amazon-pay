@@ -34,7 +34,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 				}
 			);
 			add_action( 'woocommerce_checkout_init', array( $this, 'remove_amazon_functionality' ), 99 );
-			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
+			add_filter( 'woocommerce_available_payment_gateways', array( wc_apa()->get_gateway(), 'remove_amazon_gateway' ) );
 			add_filter( 'woocommerce_pa_hijack_checkout_fields', '__return_false' );
 		}
 
@@ -80,23 +80,6 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	public function is_currency_compatible( $currency_selected ) {
 		$amazon_selected_currencies = WC_Amazon_Payments_Advanced_API::get_selected_currencies();
 		return ( false !== ( array_search( $currency_selected, $amazon_selected_currencies, true ) ) );
-	}
-
-	/**
-	 * Remove amazon gateway.
-	 *
-	 * @param $gateways
-	 *
-	 * @return array
-	 */
-	public function remove_amazon_gateway( $gateways ) {
-		foreach ( $gateways as $gateway_key => $gateway ) {
-			if ( 'amazon_payments_advanced' === $gateway_key ) {
-				unset( $gateways[ $gateway_key ] );
-			}
-		}
-
-		return $gateways;
 	}
 
 	/**
