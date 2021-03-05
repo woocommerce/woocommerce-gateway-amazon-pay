@@ -26,16 +26,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 		// If selected currency is not compatible with Amazon.
 		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
-			add_filter( 'woocommerce_amazon_payments_hide_amazon_buttons', '__return_true' );
-			add_filter(
-				'woocommerce_amazon_payments_logout_checkout_message_html',
-				function() {
-					return '';
-				}
-			);
-			add_action( 'woocommerce_checkout_init', array( $this, 'remove_amazon_functionality' ), 99 );
-			add_filter( 'woocommerce_available_payment_gateways', array( wc_apa()->get_gateway(), 'remove_amazon_gateway' ) );
-			add_filter( 'woocommerce_pa_hijack_checkout_fields', '__return_false' );
+			add_filter( 'woocommerce_amazon_payments_init', '__return_false' );
 		}
 
 		// Currency switching observer.
@@ -80,16 +71,6 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	public function is_currency_compatible( $currency_selected ) {
 		$amazon_selected_currencies = WC_Amazon_Payments_Advanced_API::get_selected_currencies();
 		return ( false !== ( array_search( $currency_selected, $amazon_selected_currencies, true ) ) );
-	}
-
-	/**
-	 * Remove rendering amazon widgets on checkout page.
-	 * Remove filter that removes all available payment gateways.
-	 */
-	public function remove_amazon_functionality() {
-		remove_action( 'woocommerce_checkout_before_customer_details', array( wc_apa(), 'payment_widget' ), 20 );
-		remove_action( 'woocommerce_checkout_before_customer_details', array( wc_apa(), 'address_widget' ), 10 );
-		remove_filter( 'woocommerce_available_payment_gateways', array( wc_apa(), 'remove_gateways' ), 10 );
 	}
 
 	/**
