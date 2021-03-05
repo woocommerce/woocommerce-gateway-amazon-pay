@@ -38,6 +38,8 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 			add_filter( 'woocommerce_amazon_payments_init', '__return_false' );
 			return;
 		}
+
+		add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'set_presentment_currency' ) );
 	}
 
 	/**
@@ -170,6 +172,16 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 			}
 		}
 		return false;
+	}
+
+	public function set_presentment_currency( $payload ) {
+		if ( ! isset( $payload['paymentDetails'] ) ) {
+			$payload['paymentDetails'] = array();
+		}
+
+		$payload['paymentDetails']['presentmentCurrency'] = $this->get_selected_currency();
+
+		return $payload;
 	}
 
 }
