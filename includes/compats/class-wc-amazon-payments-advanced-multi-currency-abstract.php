@@ -24,13 +24,16 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 			return;
 		}
 
+		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
+		if ( 'v1' === $version ) {
+			// Add AJAX call to retrieve current currency on frontend
+			add_action( 'wp_ajax_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
+			add_action( 'wp_ajax_nopriv_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
+		}
+
 		// Currency switching observer.
 		add_action( 'woocommerce_amazon_checkout_init', array( $this, 'capture_original_checkout_currency' ) );
 		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'delete_currency_session' ) );
-
-		// Add AJAX call to retrieve current currency on frontend
-		add_action( 'wp_ajax_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
-		add_action( 'wp_ajax_nopriv_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
 		add_action( 'woocommerce_amazon_pa_logout', array( $this, 'delete_currency_session' ) );
 
 		// If selected currency is not compatible with Amazon.
@@ -53,14 +56,6 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 * @return bool
 	 */
 	public function is_front_end_compatible() {
-		return false;
-	}
-
-	/**
-	 * Flag if we need to reload Amazon wallet on frontend.
-	 * @return bool
-	 */
-	public function reload_wallet_widget() {
 		return false;
 	}
 
@@ -104,6 +99,29 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	}
 
 	/**
+	 * Get amount of times currencies have been changed.
+	 *
+	 * @return string
+	 */
+	public function get_currency_switched_times() {
+		return ( WC()->session->get( self::CURRENCY_BYPASS_SESSION ) ) ? 0 : WC()->session->get( self::CURRENCY_TIMES_SWITCHED_SESSION );
+	}
+
+	public function set_presentment_currency( $payload ) {
+		if ( ! isset( $payload['paymentDetails'] ) ) {
+			$payload['paymentDetails'] = array();
+		}
+
+		$payload['paymentDetails']['presentmentCurrency'] = $this->get_selected_currency();
+
+		return $payload;
+	}
+
+	/**
+	 * LEGACY v1 METHODS AND HOOKS
+	 */
+
+	/**
 	 * Option to bypass currency session.
 	 * This will be triggered on order reference statuses equal to pending, where is not allowed switching multicurrency.
 	 */
@@ -121,12 +139,11 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	}
 
 	/**
-	 * Get amount of times currencies have been changed.
-	 *
-	 * @return string
+	 * Flag if we need to reload Amazon wallet on frontend.
+	 * @return bool
 	 */
-	public function get_currency_switched_times() {
-		return ( WC()->session->get( self::CURRENCY_BYPASS_SESSION ) ) ? 0 : WC()->session->get( self::CURRENCY_TIMES_SWITCHED_SESSION );
+	public function reload_wallet_widget() {
+		return false;
 	}
 
 	/**
@@ -172,16 +189,6 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 			}
 		}
 		return false;
-	}
-
-	public function set_presentment_currency( $payload ) {
-		if ( ! isset( $payload['paymentDetails'] ) ) {
-			$payload['paymentDetails'] = array();
-		}
-
-		$payload['paymentDetails']['presentmentCurrency'] = $this->get_selected_currency();
-
-		return $payload;
 	}
 
 }
