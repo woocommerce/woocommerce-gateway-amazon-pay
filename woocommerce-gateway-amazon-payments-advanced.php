@@ -156,7 +156,7 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-install.php';
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
 
-		add_action( 'init', array( $this, 'init' ) );
+		add_action( 'woocommerce_init', array( $this, 'init' ) );
 
 		// REST API support.
 		add_action( 'rest_api_init', array( $this, 'rest_api_register_routes' ), 11 );
@@ -179,10 +179,6 @@ class WC_Amazon_Payments_Advanced {
 	 * @since 1.6.0
 	 */
 	public function init() {
-		if ( ! class_exists( 'WooCommerce' ) ) {
-			return;
-		}
-
 		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		$this->load_plugin_textdomain();
@@ -191,6 +187,8 @@ class WC_Amazon_Payments_Advanced {
 			$this->admin = new WC_Amazon_Payments_Advanced_Admin();
 		}
 		$this->init_gateway();
+
+		do_action( 'woocommerce_amazon_pa_init' );
 	}
 
 	/**
