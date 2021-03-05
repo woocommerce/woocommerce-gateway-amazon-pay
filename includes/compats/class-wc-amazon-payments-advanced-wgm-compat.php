@@ -120,10 +120,8 @@ class WC_Amazon_Payments_Advanced_WGM_Compat {
 	 * @since 1.6.0
 	 */
 	public function remove_ui_hooks() {
-		$apa = wc_apa();
-
-		remove_action( 'woocommerce_checkout_before_customer_details', array( $apa, 'payment_widget' ), 20 );
-		remove_action( 'woocommerce_checkout_before_customer_details', array( $apa, 'address_widget' ), 10 );
+		remove_action( 'woocommerce_checkout_before_customer_details', array( wc_apa(), 'payment_widget' ), 20 );
+		remove_action( 'woocommerce_checkout_before_customer_details', array( wc_apa(), 'address_widget' ), 10 );
 	}
 
 	/**
