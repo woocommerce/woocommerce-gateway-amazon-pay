@@ -184,18 +184,16 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		switch ( $charge_permission_status ) {
 			case 'Chargeable':
-				if ( ! isset( $charge_permission_cached_status->type ) || 'Recurring' !== $charge_permission_cached_status->type ) {
-					$actions['authorize'] = array(
-						'id'     => $charge_permission_id,
-						'button' => __( 'Authorize', 'woocommerce-gateway-amazon-payments-advanced' ),
-					);
+				$actions['authorize'] = array(
+					'id'     => $charge_permission_id,
+					'button' => __( 'Authorize', 'woocommerce-gateway-amazon-payments-advanced' ),
+				);
 
-					$actions['authorize_capture'] = array(
-						'id'     => $charge_permission_id,
-						'button' => __( 'Authorize &amp; Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
-					);
-				}
-				$need_refresh = true;
+				$actions['authorize_capture'] = array(
+					'id'     => $charge_permission_id,
+					'button' => __( 'Authorize &amp; Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
+				);
+				$need_refresh                 = true;
 				break;
 			case 'Closed':
 				break;
@@ -261,6 +259,8 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		if ( ! $need_refresh ) {
 			unset( $actions['refresh'] );
 		}
+
+		$actions = apply_filters( 'woocommerce_amazon_pa_order_admin_actions', $actions, $order );
 
 		if ( ! empty( $actions ) ) {
 			echo '<p class="buttons">';
