@@ -74,10 +74,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				if ( ! $this->maybe_render_login_button_again( $checkout_session, false ) ) {
 					return;
 				}
-				$this->display_shipping_address_selected( $checkout_session );
 				$this->display_payment_method_selected( $checkout_session );
-				$this->display_billing_address_selected( $checkout_session );
-				// TODO: Maybe fix shipping and billing state issues by displaying a custom form from WC
+				// ASK: Maybe add a note that address is not used?
+				// TODO: If using addresses from checkoutSession, maybe fix shipping and billing state issues by displaying a custom form from WC
 			} else {
 				$this->checkout_button();
 			}
@@ -969,6 +968,16 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			if ( empty( $payments ) ) {
 				throw new Exception( __( 'An Amazon Pay payment method was not chosen.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			}
+
+			if ( is_wc_endpoint_url( 'order-pay' ) ) {
+				/**
+				 * ASK: We could change billing and shipping address, but that could affect shipping costs calculation.
+				 * They can change, but that would be a big change on top of the way WC does things, and as such, could
+				 * carry compatibility issues with shipping methods, and how they do calculations.
+				 *
+				 * For now, we're keeping the billing and shipping address unchanged.
+				 */
 			}
 
 			$order_total = $order->get_total();
