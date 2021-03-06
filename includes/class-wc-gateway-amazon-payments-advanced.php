@@ -74,7 +74,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				if ( ! $this->maybe_render_login_button_again( $checkout_session, false ) ) {
 					return;
 				}
+				$this->display_shipping_address_selected( $checkout_session );
 				$this->display_payment_method_selected( $checkout_session );
+				$this->display_billing_address_selected( $checkout_session );
+				// TODO: Maybe fix shipping and billing state issues by displaying a custom form from WC
 			} else {
 				$this->checkout_button();
 			}
@@ -736,6 +739,43 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
+	public function display_billing_address_selected( $checkout_session = null ) {
+		if ( is_null( $checkout_session ) ) {
+			$checkout_session = $this->get_checkout_session();
+		}
+		if ( ! empty( $checkout_session->billingAddress ) ) : // phpcs:ignore WordPress.NamingConventions
+			?>
+			<div id="billing_address_widget">
+				<h3>
+					<?php esc_html_e( 'Billing Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+				</h3>
+				<div class="billing_address_display">
+					<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) ); // phpcs:ignore WordPress.NamingConventions ?>
+				</div>
+			</div>
+			<?php
+		endif;
+	}
+
+	public function display_shipping_address_selected( $checkout_session = null ) {
+		if ( is_null( $checkout_session ) ) {
+			$checkout_session = $this->get_checkout_session();
+		}
+		if ( ! empty( $checkout_session->shippingAddress ) ) : // phpcs:ignore WordPress.NamingConventions
+			?>
+			<div id="shipping_address_widget">
+				<h3>
+					<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change">Change</a>
+					<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+				</h3>
+				<div class="shipping_address_display">
+					<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ); // phpcs:ignore WordPress.NamingConventions ?>
+				</div>
+			</div>
+			<?php
+		endif;
+	}
+
 	public function display_amazon_customer_info() {
 
 		if ( $this->need_to_force_refresh() ) {
@@ -755,30 +795,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
 			<div class="col2-set">
 				<div class="col-1 <?php echo empty( $checkout_session->shippingAddress ) ? 'hidden' : ''; ?>">
-					<?php if ( ! empty( $checkout_session->shippingAddress ) ) : ?>
-						<div id="shipping_address_widget">
-							<h3>
-								<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change">Change</a>
-								<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
-							</h3>
-							<div class="shipping_address_display">
-								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ); ?>
-							</div>
-						</div>
-					<?php endif; ?>
+					<?php $this->display_shipping_address_selected( $checkout_session ); ?>
 				</div>
 				<div class="col-2">
 					<?php $this->display_payment_method_selected( $checkout_session ); ?>
-					<?php if ( ! empty( $checkout_session->billingAddress ) ) : ?>
-						<div id="billing_address_widget">
-							<h3>
-								<?php esc_html_e( 'Billing Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
-							</h3>
-							<div class="billing_address_display">
-								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) ); ?>
-							</div>
-						</div>
-					<?php endif; ?>
+					<?php $this->display_billing_address_selected( $checkout_session ); ?>
 				</div>
 
 				<?php if ( ! is_user_logged_in() && $checkout->is_registration_enabled() ) : ?>
