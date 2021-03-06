@@ -581,7 +581,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	}
 
 	protected static function get_extra_headers( $type ) {
-		$headers = array();
+		$settings = self::get_settings();
+		$headers  = array();
+
+		if ( 'yes' !== $settings['sandbox'] ) {
+			return $headers;
+		}
 
 		$simluation_codes_stack = get_option( 'amazon_pay_simulation_stack', array() );
 
