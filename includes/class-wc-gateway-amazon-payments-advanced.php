@@ -1163,6 +1163,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge );
 			}
 			if ( ! empty( $charge_id ) && $charge_id !== $charge->chargeId ) { // phpcs:ignore WordPress.NamingConventions
+				$old_charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+				$new_charge = $charge;
+				$old_time   = strtotime( $old_charge->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
+				$new_time   = strtotime( $new_charge->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
+				if ( $old_time > $new_time ) {
+					wc_apa()->log( sprintf( 'Discarding change of chargeId on #%1$d from "%2$s" to "%3$s". "%2$s" is actually newer and shoud stay linked to #%1$d.', $order->get_id(), $charge_id, $charge->chargeId ) ); // phpcs:ignore WordPress.NamingConventions
+					// An old charge cannot replace a newer one created for the same order
+					return;
+				}
 				wc_apa()->log( sprintf( 'Changing ChargeId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_id, $charge->chargeId ) ); // phpcs:ignore WordPress.NamingConventions
 				$order->delete_meta_data( 'amazon_charge_id' );
 				$order->delete_meta_data( 'amazon_charge_status' );
