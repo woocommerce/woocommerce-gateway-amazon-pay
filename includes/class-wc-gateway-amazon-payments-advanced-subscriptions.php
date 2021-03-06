@@ -571,13 +571,17 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 	public function remove_charge_permission_actions_on_recurring( $actions, $order ) {
 		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order );
-		if ( isset( $charge_permission_cached_status->type ) && 'Recurring' === $charge_permission_cached_status->type ) {
+		if ( ! isset( $charge_permission_cached_status->type ) || 'Recurring' !== $charge_permission_cached_status->type ) {
+			return $actions;
+		}
+		if ( 'shop_order' === $order->get_type() ) {
 			$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order, true );
-			if ( ! is_null( $charge_cached_status->status ) ) {
-				unset( $actions['authorize'] );
-				unset( $actions['authorize_capture'] );
+			if ( is_null( $charge_cached_status->status ) ) {
+				return $actions;
 			}
 		}
+		unset( $actions['authorize'] );
+		unset( $actions['authorize_capture'] );
 		return $actions;
 	}
 }
