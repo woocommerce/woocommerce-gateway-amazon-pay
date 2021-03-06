@@ -1211,6 +1211,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission );
 			}
 			if ( ! empty( $charge_permission_id ) && $charge_permission_id !== $charge_permission->chargePermissionId ) { // phpcs:ignore WordPress.NamingConventions
+				$old_charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
+				$new_charge_permission = $charge_permission;
+				$old_time              = strtotime( $old_charge_permission->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
+				$new_time              = strtotime( $new_charge_permission->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
+				if ( $old_time > $new_time ) {
+					wc_apa()->log( sprintf( 'Discarding change of chargePermissionId on #%1$d from "%2$s" to "%3$s". "%2$s" is actually newer and shoud stay linked to #%1$d.', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
+					// An old charge permission cannot replace a newer one created for the same order
+					return;
+				}
 				wc_apa()->log( sprintf( 'Changing chargePermissionId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
 				$order->delete_meta_data( 'amazon_charge_permission_id' );
 				$order->delete_meta_data( 'amazon_charge_permission_status' );
