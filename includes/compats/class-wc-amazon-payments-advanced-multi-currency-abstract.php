@@ -24,28 +24,25 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 			return;
 		}
 
-		// If selected currency is not compatible with Amazon.
-		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
-			add_filter( 'woocommerce_amazon_payments_hide_amazon_buttons', '__return_true' );
-			add_filter(
-				'woocommerce_amazon_payments_logout_checkout_message_html',
-				function() {
-					return '';
-				}
-			);
-			add_action( 'woocommerce_checkout_init', array( $this, 'remove_amazon_functionality' ), 99 );
-			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
-			add_filter( 'woocommerce_pa_hijack_checkout_fields', '__return_false' );
+		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
+		if ( 'v1' === $version ) {
+			// Add AJAX call to retrieve current currency on frontend
+			add_action( 'wp_ajax_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
+			add_action( 'wp_ajax_nopriv_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
 		}
 
 		// Currency switching observer.
 		add_action( 'woocommerce_amazon_checkout_init', array( $this, 'capture_original_checkout_currency' ) );
 		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'delete_currency_session' ) );
-		add_action( 'init', array( $this, 'is_amazon_logout' ), 999 );
+		add_action( 'woocommerce_amazon_pa_logout', array( $this, 'delete_currency_session' ) );
 
-		// Add AJAX call to retrieve current currency on frontend
-		add_action( 'wp_ajax_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
-		add_action( 'wp_ajax_nopriv_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
+		// If selected currency is not compatible with Amazon.
+		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
+			add_filter( 'woocommerce_amazon_payments_init', '__return_false' );
+			return;
+		}
+
+		add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'set_presentment_currency' ) );
 	}
 
 	/**
@@ -63,14 +60,6 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	}
 
 	/**
-	 * Flag if we need to reload Amazon wallet on frontend.
-	 * @return bool
-	 */
-	public function reload_wallet_widget() {
-		return false;
-	}
-
-	/**
 	 * Check if the $currency_selected is compatible with amazon (and has been selected on settings).
 	 *
 	 * @param string $currency_selected
@@ -80,33 +69,6 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	public function is_currency_compatible( $currency_selected ) {
 		$amazon_selected_currencies = WC_Amazon_Payments_Advanced_API::get_selected_currencies();
 		return ( false !== ( array_search( $currency_selected, $amazon_selected_currencies, true ) ) );
-	}
-
-	/**
-	 * Remove amazon gateway.
-	 *
-	 * @param $gateways
-	 *
-	 * @return array
-	 */
-	public function remove_amazon_gateway( $gateways ) {
-		foreach ( $gateways as $gateway_key => $gateway ) {
-			if ( 'amazon_payments_advanced' === $gateway_key ) {
-				unset( $gateways[ $gateway_key ] );
-			}
-		}
-
-		return $gateways;
-	}
-
-	/**
-	 * Remove rendering amazon widgets on checkout page.
-	 * Remove filter that removes all available payment gateways.
-	 */
-	public function remove_amazon_functionality() {
-		remove_action( 'woocommerce_checkout_before_customer_details', array( wc_apa(), 'payment_widget' ), 20 );
-		remove_action( 'woocommerce_checkout_before_customer_details', array( wc_apa(), 'address_widget' ), 10 );
-		remove_filter( 'woocommerce_available_payment_gateways', array( wc_apa(), 'remove_gateways' ), 10 );
 	}
 
 	/**
@@ -137,20 +99,34 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	}
 
 	/**
+	 * Get amount of times currencies have been changed.
+	 *
+	 * @return string
+	 */
+	public function get_currency_switched_times() {
+		return ( WC()->session->get( self::CURRENCY_BYPASS_SESSION ) ) ? 0 : WC()->session->get( self::CURRENCY_TIMES_SWITCHED_SESSION );
+	}
+
+	public function set_presentment_currency( $payload ) {
+		if ( ! isset( $payload['paymentDetails'] ) ) {
+			$payload['paymentDetails'] = array();
+		}
+
+		$payload['paymentDetails']['presentmentCurrency'] = $this->get_selected_currency();
+
+		return $payload;
+	}
+
+	/**
+	 * LEGACY v1 METHODS AND HOOKS
+	 */
+
+	/**
 	 * Option to bypass currency session.
 	 * This will be triggered on order reference statuses equal to pending, where is not allowed switching multicurrency.
 	 */
 	public function bypass_currency_session() {
 		WC()->session->set( self::CURRENCY_BYPASS_SESSION, true );
-	}
-
-	/**
-	 * If Amazon is logging out, delete currency session.
-	 */
-	public function is_amazon_logout() {
-		if ( ! empty( $_GET['amazon_payments_advanced'] ) && ! empty( $_GET['amazon_logout'] ) ) {
-			$this->delete_currency_session();
-		}
 	}
 
 	/**
@@ -163,12 +139,11 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	}
 
 	/**
-	 * Get amount of times currencies have been changed.
-	 *
-	 * @return string
+	 * Flag if we need to reload Amazon wallet on frontend.
+	 * @return bool
 	 */
-	public function get_currency_switched_times() {
-		return ( WC()->session->get( self::CURRENCY_BYPASS_SESSION ) ) ? 0 : WC()->session->get( self::CURRENCY_TIMES_SWITCHED_SESSION );
+	public function reload_wallet_widget() {
+		return false;
 	}
 
 	/**

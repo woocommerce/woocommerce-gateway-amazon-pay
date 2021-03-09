@@ -156,7 +156,7 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-install.php';
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
 
-		add_action( 'init', array( $this, 'init' ) );
+		add_action( 'woocommerce_init', array( $this, 'init' ) );
 
 		// REST API support.
 		add_action( 'rest_api_init', array( $this, 'rest_api_register_routes' ), 11 );
@@ -179,10 +179,6 @@ class WC_Amazon_Payments_Advanced {
 	 * @since 1.6.0
 	 */
 	public function init() {
-		if ( ! class_exists( 'WooCommerce' ) ) {
-			return;
-		}
-
 		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		$this->load_plugin_textdomain();
@@ -191,6 +187,8 @@ class WC_Amazon_Payments_Advanced {
 			$this->admin = new WC_Amazon_Payments_Advanced_Admin();
 		}
 		$this->init_gateway();
+
+		do_action( 'woocommerce_amazon_pa_init' );
 	}
 
 	/**
@@ -352,82 +350,6 @@ class WC_Amazon_Payments_Advanced {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( $log_message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
-	}
-
-	/**
-	 * Sanitize log message.
-	 *
-	 * Used to sanitize logged HTTP response message.
-	 *
-	 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/133
-	 * @since 1.6.0
-	 *
-	 * @param mixed $message Log message.
-	 *
-	 * @return string Sanitized log message.
-	 */
-	public function sanitize_remote_response_log( $message ) {
-		if ( ! is_a( $message, 'SimpleXMLElement' ) ) {
-			return (string) $message;
-		}
-
-		if ( ! is_callable( array( $message, 'asXML' ) ) ) {
-			return '';
-		}
-
-		$message = $message->asXML();
-
-		// Sanitize response message.
-		$patterns    = array();
-		$patterns[0] = '/(<Buyer>)(.+)(<\/Buyer>)/ms';
-		$patterns[1] = '/(<PhysicalDestination>)(.+)(<\/PhysicalDestination>)/ms';
-		$patterns[2] = '/(<BillingAddress>)(.+)(<\/BillingAddress>)/ms';
-		$patterns[3] = '/(<SellerNote>)(.+)(<\/SellerNote>)/ms';
-		$patterns[4] = '/(<AuthorizationBillingAddress>)(.+)(<\/AuthorizationBillingAddress>)/ms';
-		$patterns[5] = '/(<SellerAuthorizationNote>)(.+)(<\/SellerAuthorizationNote>)/ms';
-		$patterns[6] = '/(<SellerCaptureNote>)(.+)(<\/SellerCaptureNote>)/ms';
-		$patterns[7] = '/(<SellerRefundNote>)(.+)(<\/SellerRefundNote>)/ms';
-
-		$replacements    = array();
-		$replacements[0] = '$1 REMOVED $3';
-		$replacements[1] = '$1 REMOVED $3';
-		$replacements[2] = '$1 REMOVED $3';
-		$replacements[3] = '$1 REMOVED $3';
-		$replacements[4] = '$1 REMOVED $3';
-		$replacements[5] = '$1 REMOVED $3';
-		$replacements[6] = '$1 REMOVED $3';
-		$replacements[7] = '$1 REMOVED $3';
-
-		return preg_replace( $patterns, $replacements, $message );
-	}
-
-	/**
-	 * Sanitize logged request.
-	 *
-	 * Used to sanitize logged HTTP request message.
-	 *
-	 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/133
-	 * @since 1.6.0
-	 *
-	 * @param string $message Log message from stringified array structure.
-	 *
-	 * @return string Sanitized log message
-	 */
-	public function sanitize_remote_request_log( $message ) {
-		$patterns    = array();
-		$patterns[0] = '/(AWSAccessKeyId=)(.+)(&)/ms';
-		$patterns[0] = '/(SellerNote=)(.+)(&)/ms';
-		$patterns[1] = '/(SellerAuthorizationNote=)(.+)(&)/ms';
-		$patterns[2] = '/(SellerCaptureNote=)(.+)(&)/ms';
-		$patterns[3] = '/(SellerRefundNote=)(.+)(&)/ms';
-
-		$replacements    = array();
-		$replacements[0] = '$1REMOVED$3';
-		$replacements[1] = '$1REMOVED$3';
-		$replacements[2] = '$1REMOVED$3';
-		$replacements[3] = '$1REMOVED$3';
-
-		return preg_replace( $patterns, $replacements, $message );
 	}
 
 	/**

@@ -25,14 +25,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$this->supports             = apply_filters( 'woocommerce_amazon_pa_supports', $this->supports, $this );
 		$this->private_key          = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 
-		// Load multicurrency fields if compatibility. (Only on settings admin).
-		if ( is_admin() ) {
-			$compatible_region = isset( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) ? WC_Amazon_Payments_Advanced_Multi_Currency::compatible_region( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) : WC_Amazon_Payments_Advanced_Multi_Currency::compatible_region();
-			if ( $compatible_region && WC_Amazon_Payments_Advanced_Multi_Currency::get_compatible_instance( $compatible_region ) ) {
-				add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( $this, 'add_currency_fields' ) );
-			}
-		}
-
 		// Load the settings.
 		$this->init_settings();
 
@@ -90,38 +82,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$url .= '/hz/me/pmd/payment-details?orderReferenceId=%s';
 
 		return apply_filters( 'woocommerce_amazon_pa_transaction_url_format', $url );
-	}
-
-	/**
-	 * Adds multicurrency settings to form fields.
-	 */
-	public function add_currency_fields( $form_fields ) {
-		$compatible_plugin = WC_Amazon_Payments_Advanced_Multi_Currency::compatible_plugin( true );
-
-		$form_fields['multicurrency_options'] = array(
-			'title'       => __( 'Multi-Currency', 'woocommerce-gateway-amazon-payments-advanced' ),
-			'type'        => 'title',
-			/* translators: Compatible plugin */
-			'description' => sprintf( __( 'Multi-currency compatibility detected with <strong>%s</strong>', 'woocommerce-gateway-amazon-payments-advanced' ), $compatible_plugin ),
-		);
-
-		/**
-		 * Only show currency list for plugins that will use the list. Frontend plugins will be exempt.
-		 */
-		if ( ! WC_Amazon_Payments_Advanced_Multi_Currency::$compatible_instance->is_front_end_compatible() ) {
-			$form_fields['currencies_supported'] = array(
-				'title'             => __( 'Select currencies to display Amazon in your shop', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'type'              => 'multiselect',
-				'options'           => WC_Amazon_Payments_Advanced_API::get_supported_currencies( true ),
-				'css'               => 'height: auto;',
-				'custom_attributes' => array(
-					'size' => 10,
-					'name' => 'currencies_supported',
-				),
-			);
-		}
-
-		return $form_fields;
 	}
 
 	/**

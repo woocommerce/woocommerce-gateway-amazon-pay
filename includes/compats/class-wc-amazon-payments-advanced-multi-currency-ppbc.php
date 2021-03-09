@@ -28,14 +28,51 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 	 * Specify hooks where compatibility action takes place.
 	 */
 	public function __construct() {
-		// Hooks before PPBC inits to inject new zone if needed.
-		add_action( 'wc_price_based_country_before_frontend_init', array( $this, 'hook_before_ppbc_update_order_review' ) );
-		add_action( 'wc_price_based_country_before_frontend_init', array( $this, 'hook_before_ppbc_get_refreshed_fragments' ) );
+		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
+		if ( 'v1' === $version ) {
+			// Hooks before PPBC inits to inject new zone if needed.
+			add_action( 'wc_price_based_country_before_frontend_init', array( $this, 'hook_before_ppbc_update_order_review' ) );
+			add_action( 'wc_price_based_country_before_frontend_init', array( $this, 'hook_before_ppbc_get_refreshed_fragments' ) );
 
-		add_action( 'widgets_init', array( $this, 'remove_currency_switcher_on_order_reference_suspended' ) );
+			add_action( 'widgets_init', array( $this, 'remove_currency_switcher_on_order_reference_suspended' ) );
+		}
 
 		$this->ppbc = WC_Product_Price_Based_Country::instance();
 		parent::__construct();
+	}
+
+	/**
+	 * Get PPBC selected currency.
+	 *
+	 * @return string
+	 */
+	public function get_selected_currency() {
+		// This is for sandbox mode, changing countries manually.
+		if ( isset( $_REQUEST['wcpbc-manual-country'] ) ) {
+			$manual_country = wc_clean( wp_unslash( $_REQUEST['wcpbc-manual-country'] ) );
+			$selected_zone  = WCPBC_Pricing_Zones::get_zone_by_country( $manual_country );
+		} else {
+			$selected_zone = wcpbc_get_zone_by_country();
+		}
+		return ( $selected_zone ) ? $selected_zone->get_currency() : get_woocommerce_currency();
+	}
+
+	/**
+	 * LEGACY v1 METHODS AND HOOKS
+	 */
+
+	/**
+	 * Get selected currency, to be used on frontend.
+	 */
+	public function ajax_get_currency() {
+		check_ajax_referer( 'multi_currency_nonce', 'nonce' );
+		if ( $this->is_currency_compatible( $this->get_selected_currency() ) ) {
+			$currency = $this->get_selected_currency();
+		} else {
+			$currency = wcpbc_get_base_currency();
+		}
+		echo $currency;
+		wp_die();
 	}
 
 	/**
@@ -135,22 +172,6 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 	}
 
 	/**
-	 * Get PPBC selected currency.
-	 *
-	 * @return string
-	 */
-	public function get_selected_currency() {
-		// This is for sandbox mode, changing countries manually.
-		if ( isset( $_REQUEST['wcpbc-manual-country'] ) ) {
-			$manual_country = wc_clean( wp_unslash( $_REQUEST['wcpbc-manual-country'] ) );
-			$selected_zone = WCPBC_Pricing_Zones::get_zone_by_country( $manual_country );
-		} else {
-			$selected_zone = wcpbc_get_zone_by_country();
-		}
-		return ( $selected_zone ) ? $selected_zone->get_currency() : get_woocommerce_currency();
-	}
-
-	/**
 	 * Get Amazon Order Details from current Reference id.
 	 *
 	 * @return bool|SimpleXMLElement
@@ -182,20 +203,6 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 		// @codingStandardsIgnoreEnd
 
 		return false;
-	}
-
-	/**
-	 * Get selected currency, to be used on frontend.
-	 */
-	public function ajax_get_currency() {
-		check_ajax_referer( 'multi_currency_nonce', 'nonce' );
-		if ( $this->is_currency_compatible( $this->get_selected_currency() ) ) {
-			$currency = $this->get_selected_currency();
-		} else {
-			$currency = wcpbc_get_base_currency();
-		}
-		echo $currency;
-		wp_die();
 	}
 
 	/**

@@ -19,6 +19,7 @@
 					thisId = 'pay_with_amazon_' + button_count;
 					thisButton.attr( 'id', thisId );
 				}
+				var thisIdRaw = thisId;
 				thisId = '#' + thisId;
 				var separator_id = '.wc-apa-button-separator';
 				var button_settings = {
@@ -34,12 +35,29 @@
 					// configure Create Checkout Session request
 					createCheckoutSessionConfig: amazon_payments_advanced.create_checkout_session_config
 				};
+
+				var thisConfigHash = amazon_payments_advanced.create_checkout_session_hash;
+				var oldConfigHash = thisButton.data( 'amazonRenderedSettings' );
+				if ( typeof oldConfigHash !== 'undefined' ) {
+					if ( oldConfigHash === thisConfigHash ) {
+						// Avoid re rendering
+						return;
+					}
+
+					var newButton = $( '<' + thisButton.get( 0 ).tagName + '/>' ).attr( 'id', thisIdRaw );
+					newButton.insertBefore( thisButton );
+					thisButton.remove();
+					thisButton = newButton;
+				}
+				thisButton.data( 'amazonRenderedSettings', thisConfigHash );
+
 				amazon.Pay.renderButton( thisId, button_settings );
 				thisButton.siblings( separator_id ).show();
 			} );
 		}
 		renderButton();
 		$( document.body ).on( 'updated_wc_div', renderButton );
+		$( document.body ).on( 'updated_checkout', renderButton );
 
 		function attemptRefreshData() {
 			var dataCont = $( '#wc-apa-update-vals' );

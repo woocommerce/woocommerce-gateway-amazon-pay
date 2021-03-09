@@ -104,11 +104,16 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
 		add_filter( 'woocommerce_checkout_posted_data', array( $this, 'use_checkout_session_data' ) );
 		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
+		if ( wp_doing_ajax() ) {
+			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
+		}
 
 		// Cart
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
-		add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
+		if ( wp_doing_ajax() ) {
+			add_action( 'woocommerce_review_order_before_order_total', array( $this, 'update_js' ) );
+		}
 
 		// Maybe Hide Cart Buttons
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
@@ -130,9 +135,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		wp_register_script( 'amazon_payments_advanced_checkout', $this->get_region_script(), array(), wc_apa()->version, true );
 		wp_register_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-wc-checkout' . $js_suffix, array(), wc_apa()->version, true );
 
+		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+
 		$params = array(
 			'ajax_url'                       => admin_url( 'admin-ajax.php' ),
-			'create_checkout_session_config' => WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config(),
+			'create_checkout_session_config' => $checkout_session_config,
+			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
 			'button_color'                   => $this->settings['button_color'],
 			'placement'                      => $this->get_current_placement(),
 			'action'                         => $this->get_current_cart_action(),
@@ -440,6 +448,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$session_key = $this->get_checkout_session_key();
 		unset( WC()->session->$session_key );
 		WC()->session->amazon_checkout_do_logout = true;
+		do_action( 'woocommerce_amazon_pa_logout' );
 	}
 
 	protected function do_force_refresh( $reason ) {
@@ -1267,8 +1276,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function update_js() {
+		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+
 		$data = array(
-			'action' => $this->get_current_cart_action(),
+			'action'                         => $this->get_current_cart_action(),
+			'create_checkout_session_config' => $checkout_session_config,
+			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
 		);
 		?>
 		<script type="text/template" id="wc-apa-update-vals" data-value="<?php echo esc_attr( wp_json_encode( $data ) ); ?>"></script>
@@ -1314,14 +1327,25 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
-	public function maybe_render_login_button_again( $checkout_session, $wrap = true ) {
+	public function is_checkout_session_still_valid( $checkout_session ) {
+		if ( $this->need_to_force_refresh() ) {
+			return new WP_Error( 'force_refresh', $this->get_force_refresh() );
+		}
+
 		if ( 'Open' !== $checkout_session->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			$this->render_login_button_again( __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ), $wrap );
-			return;
+			return new WP_Error( 'not_open', __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 		}
 
 		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
-			$this->render_login_button_again( null, $wrap );
+			return new WP_Error( 'product_type_changed', __( 'Your cart changed, and you need to confirm your selected payment method again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+		return true;
+	}
+
+	public function maybe_render_login_button_again( $checkout_session, $wrap = true ) {
+		$is_valid = $this->is_checkout_session_still_valid( $checkout_session );
+		if ( is_wp_error( $is_valid ) ) {
+			$this->render_login_button_again( $is_valid->get_error_message(), $wrap );
 			return;
 		}
 

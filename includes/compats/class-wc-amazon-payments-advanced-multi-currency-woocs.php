@@ -25,9 +25,13 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_Woocs extends WC_Amazon_Payment
 	public function __construct() {
 		global $WOOCS; // phpcs:ignore WordPress.NamingConventions
 		$this->woocs = $WOOCS; // phpcs:ignore WordPress.NamingConventions
-		// Option woocs_restrike_on_checkout_page === 1 will hide switcher on checkout.
-		add_filter( 'option_woocs_restrike_on_checkout_page', array( $this, 'remove_currency_switcher_on_order_reference_suspended' ) );
-		add_filter( 'init', array( $this, 'remove_shortcode_currency_switcher_on_order_reference_suspended' ) );
+
+		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
+		if ( 'v1' === $version ) {
+			// Option woocs_restrike_on_checkout_page === 1 will hide switcher on checkout.
+			add_filter( 'option_woocs_restrike_on_checkout_page', array( $this, 'remove_currency_switcher_on_order_reference_suspended' ) );
+			add_filter( 'init', array( $this, 'remove_shortcode_currency_switcher_on_order_reference_suspended' ) );
+		}
 
 		parent::__construct();
 	}
@@ -53,6 +57,10 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_Woocs extends WC_Amazon_Payment
 	public function is_front_end_compatible() {
 		return get_option( 'woocs_is_multiple_allowed' ) ? false : true;
 	}
+
+	/**
+	 * LEGACY v1 METHODS AND HOOKS
+	 */
 
 	/**
 	 * On OrderReferenceStatus === Suspended, hide currency switcher.
