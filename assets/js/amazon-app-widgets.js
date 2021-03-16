@@ -405,6 +405,11 @@ jQuery( function( $ ) {
 							nonce  : amazon_payments_advanced_params.multi_currency_nonce,
 						},
 						success : function( response ) {
+						    if ( response && walletWidget !== null ) {
+						        if ( response === walletWidget.getPresentmentCurrency() ) {
+						            return;
+                                }
+                            }
 							wcAmazonWalletWidget( response );
 						}
 					}

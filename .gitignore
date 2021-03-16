@@ -8,6 +8,7 @@ Thumbs.db
 .project
 .settings*
 .vscode
+.idea/
 sftp-config.json
 /deploy/
 /wc-apidocs/
