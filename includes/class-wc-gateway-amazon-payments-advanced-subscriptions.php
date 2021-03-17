@@ -246,8 +246,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			);
 
 			if ( 1 === $subscriptions_in_cart ) {
+				$recurring_total  =  0;
+				foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
+					$recurring_total += $recurring_cart->get_total( 'edit' );
+				}
 				$payload['recurringMetadata']['amount'] = array(
-					'amount'       => WC()->cart->get_total( 'edit' ),
+					'amount'       => $recurring_total,	
 					'currencyCode' => get_woocommerce_currency(),
 				);
 			}
@@ -313,8 +317,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		);
 
 		if ( 1 === $subscriptions_in_cart ) {
+			$recurring_total  =  0;
+			foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
+				$recurring_total += $recurring_cart->get_total( 'edit' );
+			}
 			$payload['recurringMetadata']['amount'] = array(
-				'amount'       => $order->get_total(),
+				'amount'       => $recurring_total,
 				'currencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
 			);
 		}
