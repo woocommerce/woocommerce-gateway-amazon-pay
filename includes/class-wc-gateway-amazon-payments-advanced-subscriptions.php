@@ -350,7 +350,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			return $payload;
 		}
 
-		if ( 1 === $subscriptions_in_cart && '0.00' === WC()->cart->get_total() ) {
+		if ( 1 === $subscriptions_in_cart && '0.00' === WC()->cart->get_total( 'edit' ) ) {
 			$recurring_total  =  0;
 			foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
 				$recurring_total += $recurring_cart->get_total( 'edit' );
