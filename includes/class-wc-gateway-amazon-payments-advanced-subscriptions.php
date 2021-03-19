@@ -45,6 +45,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
 			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
+			add_filter( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array( $this, 'recurring_complete_checkout_session_update' ), 10, 3 );
+			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'change_status_on_free_trial' ), 10, 2 );
 			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
 			add_filter( 'wcs_renewal_order_meta', array( $this, 'copy_meta_from_sub' ), 10, 3 );
 			add_filter( 'woocommerce_subscriptions_update_payment_via_pay_shortcode', array( $this, 'maybe_not_update_payment_method' ), 10, 2 );
@@ -327,7 +329,45 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			);
 		}
 
+		if ( "0.00" === WC()->cart->get_total( 'edit' ) ) {
+			$payload['paymentDetails']['paymentIntent'] = "Confirm";
+			$payload['paymentDetails']['chargeAmount']['amount'] = $recurring_total;
+		} 
+
 		return $payload;
+	}
+
+	public function recurring_complete_checkout_session_update( $payload ) {
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) && "0.00" !== WC()->cart->get_total( 'edit' )) {
+			return $payload;
+		}
+		WC()->cart->calculate_totals();
+
+		$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
+
+		if ( 0 === $subscriptions_in_cart ) {
+			// Weird, but ok.
+			return $payload;
+		}
+
+		if ( 1 === $subscriptions_in_cart && '0.00' === WC()->cart->get_total() ) {
+			$recurring_total  =  0;
+			foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
+				$recurring_total += $recurring_cart->get_total( 'edit' );
+			}
+			$payload['chargeAmount']['amount'] = $recurring_total;
+		}
+
+		return $payload;
+	}
+
+	public function change_status_on_free_trial( $order, $response ) {
+		if ( ! self::order_contains_subscription( $order ) ) {
+			return;
+		}
+		if( '0.00' === $order->get_total() ) {
+			$order->update_status( 'processing' );
+		}
 	}
 
 	public function copy_meta_to_sub( $order, $response ) {
