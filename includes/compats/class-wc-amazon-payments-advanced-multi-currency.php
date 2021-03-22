@@ -193,6 +193,10 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 * Adds multicurrency settings to form fields.
 	 */
 	public static function add_currency_fields( $form_fields ) {
+		if ( ! self::$compatible_instance ) {
+			return $form_fields;
+		}
+
 		$compatible_plugin = self::compatible_plugin( true );
 
 		$form_fields['multicurrency_options'] = array(

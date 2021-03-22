@@ -155,6 +155,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'debug'                           => 'no',
 			'hide_button_mode'                => 'no',
 			'amazon_keys_setup_and_validated' => '0',
+			'subscriptions_enabled'			  => 'yes',
 		);
 
 		$settings = apply_filters( 'woocommerce_amazon_pa_settings', array_merge( $default, $settings ) );
@@ -1808,7 +1809,12 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 				/* Translators: 1: refund amount, 2: refund note */
 				$order->add_order_note( sprintf( __( 'Refunded %1$s (%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), wc_price( $amount ), $note ) );
-
+				$args = array(
+					'amount'         => $amount,
+					'reason'         => $note,
+					'order_id'       => $order->get_id(),
+				);
+				wc_create_refund( $args );
 				add_post_meta( $order_id, 'amazon_refund_id', $refund_id );
 
 				$ret = true;

@@ -1075,12 +1075,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session(
 			$checkout_session_id,
-			array(
+			apply_filters( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array(
 				'chargeAmount' => array(
 					'amount'       => $order_total,
 					'currencyCode' => $currency,
 				),
-			)
+			), $checkout_session_id, $order ),
 		);
 
 		if ( is_wp_error( $response ) ) {
