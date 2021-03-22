@@ -75,6 +75,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					return;
 				}
 				$this->display_payment_method_selected( $checkout_session );
+				// ASK: Maybe add a note that address is not used?
+				// TODO: If using addresses from checkoutSession, maybe fix shipping and billing state issues by displaying a custom form from WC
 			} else {
 				$this->checkout_button();
 			}
@@ -736,6 +738,43 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
+	public function display_billing_address_selected( $checkout_session = null ) {
+		if ( is_null( $checkout_session ) ) {
+			$checkout_session = $this->get_checkout_session();
+		}
+		if ( ! empty( $checkout_session->billingAddress ) ) : // phpcs:ignore WordPress.NamingConventions
+			?>
+			<div id="billing_address_widget">
+				<h3>
+					<?php esc_html_e( 'Billing Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+				</h3>
+				<div class="billing_address_display">
+					<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) ); // phpcs:ignore WordPress.NamingConventions ?>
+				</div>
+			</div>
+			<?php
+		endif;
+	}
+
+	public function display_shipping_address_selected( $checkout_session = null ) {
+		if ( is_null( $checkout_session ) ) {
+			$checkout_session = $this->get_checkout_session();
+		}
+		if ( ! empty( $checkout_session->shippingAddress ) ) : // phpcs:ignore WordPress.NamingConventions
+			?>
+			<div id="shipping_address_widget">
+				<h3>
+					<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change">Change</a>
+					<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+				</h3>
+				<div class="shipping_address_display">
+					<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ); // phpcs:ignore WordPress.NamingConventions ?>
+				</div>
+			</div>
+			<?php
+		endif;
+	}
+
 	public function display_amazon_customer_info() {
 
 		if ( $this->need_to_force_refresh() ) {
@@ -755,30 +794,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<div id="amazon_customer_details" class="wc-amazon-payments-advanced-populated">
 			<div class="col2-set">
 				<div class="col-1 <?php echo empty( $checkout_session->shippingAddress ) ? 'hidden' : ''; ?>">
-					<?php if ( ! empty( $checkout_session->shippingAddress ) ) : ?>
-						<div id="shipping_address_widget">
-							<h3>
-								<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change">Change</a>
-								<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
-							</h3>
-							<div class="shipping_address_display">
-								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ); ?>
-							</div>
-						</div>
-					<?php endif; ?>
+					<?php $this->display_shipping_address_selected( $checkout_session ); ?>
 				</div>
 				<div class="col-2">
 					<?php $this->display_payment_method_selected( $checkout_session ); ?>
-					<?php if ( ! empty( $checkout_session->billingAddress ) ) : ?>
-						<div id="billing_address_widget">
-							<h3>
-								<?php esc_html_e( 'Billing Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
-							</h3>
-							<div class="billing_address_display">
-								<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) ); ?>
-							</div>
-						</div>
-					<?php endif; ?>
+					<?php $this->display_billing_address_selected( $checkout_session ); ?>
 				</div>
 
 				<?php if ( ! is_user_logged_in() && $checkout->is_registration_enabled() ) : ?>
@@ -950,9 +970,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				throw new Exception( __( 'An Amazon Pay payment method was not chosen.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 
-			// TODO: Add shipping requirement check
-
-			// TODO: Implement Multicurrency
+			if ( is_wc_endpoint_url( 'order-pay' ) ) {
+				/**
+				 * ASK: We could change billing and shipping address, but that could affect shipping costs calculation.
+				 * They can change, but that would be a big change on top of the way WC does things, and as such, could
+				 * carry compatibility issues with shipping methods, and how they do calculations.
+				 *
+				 * For now, we're keeping the billing and shipping address unchanged.
+				 */
+			}
 
 			$order_total = $order->get_total();
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
@@ -1137,6 +1163,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge );
 			}
 			if ( ! empty( $charge_id ) && $charge_id !== $charge->chargeId ) { // phpcs:ignore WordPress.NamingConventions
+				$old_charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+				$new_charge = $charge;
+				$old_time   = strtotime( $old_charge->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
+				$new_time   = strtotime( $new_charge->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
+				if ( $old_time > $new_time ) {
+					wc_apa()->log( sprintf( 'Discarding change of chargeId on #%1$d from "%2$s" to "%3$s". "%2$s" is actually newer and shoud stay linked to #%1$d.', $order->get_id(), $charge_id, $charge->chargeId ) ); // phpcs:ignore WordPress.NamingConventions
+					// An old charge cannot replace a newer one created for the same order
+					return;
+				}
 				wc_apa()->log( sprintf( 'Changing ChargeId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_id, $charge->chargeId ) ); // phpcs:ignore WordPress.NamingConventions
 				$order->delete_meta_data( 'amazon_charge_id' );
 				$order->delete_meta_data( 'amazon_charge_status' );
@@ -1211,6 +1246,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission );
 			}
 			if ( ! empty( $charge_permission_id ) && $charge_permission_id !== $charge_permission->chargePermissionId ) { // phpcs:ignore WordPress.NamingConventions
+				$old_charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
+				$new_charge_permission = $charge_permission;
+				$old_time              = strtotime( $old_charge_permission->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
+				$new_time              = strtotime( $new_charge_permission->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
+				if ( $old_time > $new_time ) {
+					wc_apa()->log( sprintf( 'Discarding change of chargePermissionId on #%1$d from "%2$s" to "%3$s". "%2$s" is actually newer and shoud stay linked to #%1$d.', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
+					// An old charge permission cannot replace a newer one created for the same order
+					return;
+				}
 				wc_apa()->log( sprintf( 'Changing chargePermissionId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
 				$order->delete_meta_data( 'amazon_charge_permission_id' );
 				$order->delete_meta_data( 'amazon_charge_permission_status' );
@@ -1438,7 +1482,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$charge_permission_id = $charge_permission->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		}
 
-		$charge_permission_status = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+		$charge_permission_status       = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
+		$charge_permission_status->type = $charge_permission->chargePermissionType; // phpcs:ignore WordPress.NamingConventions
 
 		wc_apa()->log( sprintf( 'Caching amazon_charge_permission_status on #%1$d', $order->get_id() ), $charge_permission_status );
 

@@ -132,7 +132,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			return;
 		}
 
-		add_meta_box( 'woocommerce-amazon-payments-advanced', __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ), array( $this, 'authorization_box' ), 'shop_order', 'side' );
+		$post_types = apply_filters( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( 'shop_order' ) );
+
+		foreach ( $post_types as $post_type ) {
+			add_meta_box( 'woocommerce-amazon-payments-advanced', __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ), array( $this, 'authorization_box' ), $post_type, 'side' );
+		}
 	}
 
 	/**
@@ -259,6 +263,8 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		if ( ! $need_refresh ) {
 			unset( $actions['refresh'] );
 		}
+
+		$actions = apply_filters( 'woocommerce_amazon_pa_order_admin_actions', $actions, $order );
 
 		if ( ! empty( $actions ) ) {
 			echo '<p class="buttons">';

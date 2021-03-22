@@ -39,6 +39,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
 		add_action( 'woocommerce_amazon_pa_before_processed_order', array( $this, 'maybe_change_payment_method' ), 10, 2 );
 		add_filter( 'woocommerce_amazon_pa_processed_order_redirect', array( $this, 'maybe_redirect_to_subscription' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( $this, 'add_subscription_post_type' ) );
+		add_filter( 'woocommerce_amazon_pa_order_admin_actions', array( $this, 'remove_charge_permission_actions_on_recurring' ), 10, 2 );
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
@@ -560,5 +562,26 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		return $order->get_view_order_url();
+	}
+
+	public function add_subscription_post_type( $post_types ) {
+		$post_types[] = 'shop_subscription';
+		return $post_types;
+	}
+
+	public function remove_charge_permission_actions_on_recurring( $actions, $order ) {
+		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order );
+		if ( ! isset( $charge_permission_cached_status->type ) || 'Recurring' !== $charge_permission_cached_status->type ) {
+			return $actions;
+		}
+		if ( 'shop_order' === $order->get_type() ) {
+			$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order, true );
+			if ( is_null( $charge_cached_status->status ) ) {
+				return $actions;
+			}
+		}
+		unset( $actions['authorize'] );
+		unset( $actions['authorize_capture'] );
+		return $actions;
 	}
 }
