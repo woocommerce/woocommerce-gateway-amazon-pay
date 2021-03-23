@@ -50,7 +50,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
 			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
 			add_filter( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array( $this, 'recurring_complete_checkout_session_update' ), 10, 3 );
-			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'change_status_on_free_trial' ), 10, 2 );
 			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
 			add_filter( 'wcs_renewal_order_meta', array( $this, 'copy_meta_from_sub' ), 10, 3 );
 			add_filter( 'woocommerce_subscriptions_update_payment_via_pay_shortcode', array( $this, 'maybe_not_update_payment_method' ), 10, 2 );
@@ -252,12 +251,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			);
 
 			if ( 1 === $subscriptions_in_cart ) {
-				$recurring_total  =  0;
-				foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
-					$recurring_total += $recurring_cart->get_total( 'edit' );
-				}
+				$first_recurring = reset( WC()->cart->recurring_carts );
 				$payload['recurringMetadata']['amount'] = array(
-					'amount'       => $recurring_total,	
+					'amount'       => $first_recurring->get_total( 'edit' ),
 					'currencyCode' => get_woocommerce_currency(),
 				);
 			}
@@ -322,27 +318,32 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			'amount'    => null,
 		);
 
+		$recurring_total = 0;
+		foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
+			$recurring_total += $recurring_cart->get_total( 'edit' );
+		}
+
+		$recurring_total = wc_format_decimal( $recurring_total, '' );
+
 		if ( 1 === $subscriptions_in_cart ) {
-			$recurring_total  =  0;
-			foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
-				$recurring_total += $recurring_cart->get_total( 'edit' );
-			}
 			$payload['recurringMetadata']['amount'] = array(
 				'amount'       => $recurring_total,
 				'currencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
 			);
 		}
 
-		if ( "0.00" === WC()->cart->get_total( 'edit' ) ) {
-			$payload['paymentDetails']['paymentIntent'] = "Confirm";
+		if ( 0 <= WC()->cart->get_total( 'edit' ) ) {
+			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
+			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
+
 			$payload['paymentDetails']['chargeAmount']['amount'] = $recurring_total;
-		} 
+		}
 
 		return $payload;
 	}
 
 	public function recurring_complete_checkout_session_update( $payload ) {
-		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) && "0.00" !== WC()->cart->get_total( 'edit' )) {
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
 			return $payload;
 		}
 		WC()->cart->calculate_totals();
@@ -354,24 +355,21 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			return $payload;
 		}
 
-		if ( 1 === $subscriptions_in_cart && '0.00' === WC()->cart->get_total( 'edit' ) ) {
-			$recurring_total  =  0;
-			foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
-				$recurring_total += $recurring_cart->get_total( 'edit' );
-			}
-			$payload['chargeAmount']['amount'] = $recurring_total;
+		$amount = (float) $payload['chargeAmount']['amount'];
+		if ( 0 < $amount ) {
+			return $payload;
 		}
+
+		$recurring_total = 0;
+		foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
+			$recurring_total += $recurring_cart->get_total( 'edit' );
+		}
+
+		$recurring_total = wc_format_decimal( $recurring_total, '' );
+
+		$payload['chargeAmount']['amount'] = $recurring_total;
 
 		return $payload;
-	}
-
-	public function change_status_on_free_trial( $order, $response ) {
-		if ( ! self::order_contains_subscription( $order ) ) {
-			return;
-		}
-		if( '0.00' === $order->get_total() ) {
-			$order->update_status( 'processing' );
-		}
 	}
 
 	public function copy_meta_to_sub( $order, $response ) {

@@ -1075,12 +1075,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session(
 			$checkout_session_id,
-			apply_filters( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array(
-				'chargeAmount' => array(
-					'amount'       => $order_total,
-					'currencyCode' => $currency,
+			apply_filters(
+				'woocommerce_amazon_pa_update_complete_checkout_session_payload',
+				array(
+					'chargeAmount' => array(
+						'amount'       => $order_total,
+						'currencyCode' => $currency,
+					),
 				),
-			), $checkout_session_id, $order ),
+				$checkout_session_id,
+				$order
+			)
 		);
 
 		if ( is_wp_error( $response ) ) {
@@ -1127,8 +1132,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
 		$order->save();
 		$this->log_charge_permission_status_change( $order );
-		$charge_id = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
-		if ( ! empty( $charge_id ) ) {
+		$charge_id   = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
+		$order_total = (float) $order->get_total( 'edit' );
+		if ( 0 >= $order_total ) {
+			$order->payment_complete();
+		} elseif ( ! empty( $charge_id ) ) {
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
 			$order->save();
 			$this->log_charge_status_change( $order );
