@@ -17,14 +17,18 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 */
 	public function __construct() {
 
+		add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( $this, 'add_enable_subscriptions_field' ) );
+
+		if ( 'yes' !== WC_Amazon_Payments_Advanced_API::get_settings( 'subscriptions_enabled' ) ) {
+			return;
+		}
+
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 12 );
 
 		add_filter( 'woocommerce_amazon_pa_supports', array( $this, 'add_subscription_support' ) );
 
 		// WC Subscription Hook
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
-
-		add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( $this, 'add_enable_subscriptions_field' ) );
 	}
 
 	public function init_handlers() {
