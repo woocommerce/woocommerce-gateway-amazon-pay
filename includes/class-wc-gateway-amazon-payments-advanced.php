@@ -1411,6 +1411,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$fields['billing_state']['required'] = $old;
 
+		$checkout_session = $this->get_checkout_session();
+
+		$address = null;
+		if ( ! empty( $checkout_session->billingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+			$address = $checkout_session->billingAddress; // phpcs:ignore WordPress.NamingConventions
+		} elseif ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+			$address = $checkout_session->shippingAddress; // phpcs:ignore WordPress.NamingConventions
+		}
+
+		if ( is_null( $address ) ) {
+			return $fields;
+		}
+
+		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ), true ) ) { // phpcs:ignore WordPress.NamingConventions
+			$fields['billing_city']['required'] = false;
+		}
+
 		return $fields;
 	}
 
@@ -1420,6 +1437,21 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$fields = parent::override_shipping_fields( $fields );
 
 		$fields['shipping_state']['required'] = $old;
+
+		$checkout_session = $this->get_checkout_session();
+
+		$address = null;
+		if ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+			$address = $checkout_session->shippingAddress; // phpcs:ignore WordPress.NamingConventions
+		}
+
+		if ( is_null( $address ) ) {
+			return $fields;
+		}
+
+		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ), true ) ) { // phpcs:ignore WordPress.NamingConventions
+			$fields['shipping_city']['required'] = false;
+		}
 
 		return $fields;
 	}

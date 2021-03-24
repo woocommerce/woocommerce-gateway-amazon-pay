@@ -1969,6 +1969,18 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 			}
 
+		} elseif ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
+
+			$formatted['address_1'] = (string) $address->AddressLine1;
+
+			if ( ! empty( $address->AddressLine2 ) ) {
+				$formatted['address_2'] = (string) $address->AddressLine2;
+			}
+
+			if ( ! empty( $address->AddressLine3 ) ) {
+				$formatted['company']   = (string) $address->AddressLine3;
+			}
+
 		} else {
 
 			// Format address and map to WC fields
@@ -2003,6 +2015,11 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 		$formatted['phone'] = isset( $address->Phone ) ? (string) $address->Phone : null;
 		$formatted['city'] = isset( $address->City ) ? (string) $address->City : null;
+		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
+			if ( empty( $formatted['city'] ) ) {
+				$formatted['city'] = ''; // Force empty city
+			}
+		}
 		$formatted['postcode'] = isset( $address->PostalCode ) ? (string) $address->PostalCode : null;
 		$formatted['state'] = isset( $address->StateOrRegion ) ? (string) $address->StateOrRegion : null;
 		$formatted['country'] = isset( $address->CountryCode ) ? (string) $address->CountryCode : null;
@@ -2029,7 +2046,14 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		}
 		// @codingStandardsIgnoreEnd
 
-		return array_filter( $formatted );
+		$formatted = array_filter(
+			$formatted,
+			function( $v ) {
+				return ! is_null( $v );
+			}
+		);
+
+		return $formatted;
 
 	}
 
