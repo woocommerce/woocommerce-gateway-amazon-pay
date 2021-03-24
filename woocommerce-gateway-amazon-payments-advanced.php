@@ -25,6 +25,7 @@
  */
 
 define( 'WC_AMAZON_PAY_VERSION', '2.0.0' );
+define( 'WC_AMAZON_PAY_VERSION_CV1', '1.13.1' );
 
 /**
  * Amazon Pay main class

@@ -68,7 +68,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			update_post_meta( $order_id, 'amazon_reference_id', $amazon_reference_id );
 
 			wc_apa()->log( "Info: Beginning processing of payment for (subscription) order {$order_id} for the amount of {$order_total} {$currency}." );
-			update_post_meta( $order_id, 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION );
+			update_post_meta( $order_id, 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION_CV1 );
 			update_post_meta( $order_id, 'woocommerce_version', WC()->version );
 
 			// Check if we are under SCA.
@@ -168,7 +168,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		} else {
 			$subscription_ids = wp_list_pluck( $subscriptions, 'id' );
 		}
-		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
+		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION_CV1, WC()->version );
 
 		$request_args = array(
 			'Action'                                => 'SetBillingAgreementDetails',
