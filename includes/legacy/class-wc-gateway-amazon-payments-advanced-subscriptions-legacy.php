@@ -228,15 +228,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 	}
 
-	/**
-	 * Authorize (and potentially capture) payment for an order w/subscriptions.
-	 *
-	 * @param int|WC_Order $order                       Order ID or order object.
-	 * @param string       $amazon_billing_agreement_id Billing agreement ID.
-	 *
-	 * @return array Array value for process_payment method.
-	 */
-	private function authorize_payment( $order, $amazon_billing_agreement_id ) {
+	private function do_authorize_payment( $order, $amazon_billing_agreement_id ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
@@ -308,6 +300,18 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 				break;
 
 		}
+	}
+
+	/**
+	 * Authorize (and potentially capture) payment for an order w/subscriptions.
+	 *
+	 * @param int|WC_Order $order                       Order ID or order object.
+	 * @param string       $amazon_billing_agreement_id Billing agreement ID.
+	 *
+	 * @return array Array value for process_payment method.
+	 */
+	private function authorize_payment( $order, $amazon_billing_agreement_id ) {
+		$this->do_authorize_payment( $order, $amazon_billing_agreement_id );
 
 		WC()->cart->empty_cart();
 
@@ -572,19 +576,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			sleep( ( 'yes' === $settings['sandbox'] ) ? 2 : 1 );
 
-			// Authorize/Capture recurring payment.
-			$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
-
-			if ( $result ) {
-				// Payment complete.
-				$order->payment_complete();
-
-				wc_apa()->log( "Info: Successful recurring payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
-			} else {
-				$order->update_status( 'failed', __( 'Could not authorize Amazon Pay payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-
-				wc_apa()->log( "Error: Could not authorize Amazon Pay payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
-			}
+			$this->do_authorize_payment( $order, $amazon_billing_agreement_id );
 		} catch ( Exception $e ) {
 			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );
 
