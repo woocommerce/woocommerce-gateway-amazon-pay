@@ -625,13 +625,20 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			return $actions;
 		}
 		if ( 'shop_order' === $order->get_type() ) {
-			$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order, true );
-			if ( is_null( $charge_cached_status->status ) ) {
-				return $actions;
+			if ( ! $order->has_status( array( 'pending', 'on-hold', 'failed' ) ) ) {
+				unset( $actions['authorize'] );
+				unset( $actions['authorize_capture'] );
+			} else {
+				$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order, true );
+				if ( ! is_null( $charge_cached_status->status ) && 'Canceled' !== $charge_cached_status->status ) {
+					unset( $actions['authorize'] );
+					unset( $actions['authorize_capture'] );
+				}
 			}
+		} elseif ( 'shop_subscription' === $order->get_type() ) {
+			unset( $actions['authorize'] );
+			unset( $actions['authorize_capture'] );
 		}
-		unset( $actions['authorize'] );
-		unset( $actions['authorize_capture'] );
 		return $actions;
 	}
 }
