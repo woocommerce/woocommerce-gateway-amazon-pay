@@ -251,7 +251,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			);
 
 			if ( 1 === $subscriptions_in_cart ) {
-				$first_recurring = reset( WC()->cart->recurring_carts );
+				$first_recurring                        = reset( WC()->cart->recurring_carts );
 				$payload['recurringMetadata']['amount'] = array(
 					'amount'       => $first_recurring->get_total( 'edit' ),
 					'currencyCode' => get_woocommerce_currency(),
@@ -290,7 +290,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order ) {
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) && $order->get_id() === absint( $_POST['woocommerce_change_payment'] ) ) {
-			$checkout_session  = wc_apa()->get_gateway()->get_checkout_session();
+			$checkout_session = wc_apa()->get_gateway()->get_checkout_session();
 
 			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
 			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
