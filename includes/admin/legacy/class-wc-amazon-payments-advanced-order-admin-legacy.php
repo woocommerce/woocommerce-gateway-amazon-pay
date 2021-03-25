@@ -72,6 +72,13 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				$amazon_refund_note   = wc_clean( $_POST['amazon_refund_note'] );
 
 				WC_Amazon_Payments_Advanced_API::refund_payment( $order_id, $id, $amazon_refund_amount, $amazon_refund_note );
+				wc_create_refund(
+					array(
+						'amount'   => $amazon_refund_amount,
+						'reason'   => $amazon_refund_note,
+						'order_id' => $order_id,
+					)
+				);
 				$this->clear_stored_states( $order_id );
 				break;
 			default:
