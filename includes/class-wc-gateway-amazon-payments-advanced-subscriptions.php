@@ -332,7 +332,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			);
 		}
 
-		if ( 0 <= WC()->cart->get_total( 'edit' ) ) {
+		if ( 0 >= (float) WC()->cart->get_total( 'edit' ) ) {
 			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
 			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
 
