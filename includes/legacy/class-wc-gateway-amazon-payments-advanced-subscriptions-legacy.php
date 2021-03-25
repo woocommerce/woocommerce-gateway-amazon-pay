@@ -27,6 +27,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
 		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $id, array( $this, 'update_failing_payment_method' ), 10, 2 );
 
+		add_filter( 'woocommerce_amazon_pa_v1_order_admin_actions_panel', array( $this, 'admin_actions_panel' ), 10, 2 );
+		add_action( 'woocommerce_amazon_pa_v1_order_admin_action_authorize_recurring', array( $this, 'admin_action_authorize_recurring' ), 10, 2 );
+		add_action( 'woocommerce_amazon_pa_v1_order_admin_action_authorize_capture_recurring', array( $this, 'admin_action_authorize_capture_recurring' ), 10, 2 );
+
 		if ( 'v1' === strtolower( $version ) ) { // These are only needed when legacy is the active gateway (prior to migration)
 			add_filter( 'woocommerce_amazon_pa_process_payment', array( $this, 'process_payment' ), 10, 2 );
 			add_filter( 'woocommerce_amazon_pa_get_amazon_order_details', array( $this, 'get_amazon_order_details' ), 10, 2 );
@@ -228,15 +232,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 	}
 
-	/**
-	 * Authorize (and potentially capture) payment for an order w/subscriptions.
-	 *
-	 * @param int|WC_Order $order                       Order ID or order object.
-	 * @param string       $amazon_billing_agreement_id Billing agreement ID.
-	 *
-	 * @return array Array value for process_payment method.
-	 */
-	private function authorize_payment( $order, $amazon_billing_agreement_id ) {
+	private function do_authorize_payment( $order, $amazon_billing_agreement_id ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
@@ -308,6 +304,18 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 				break;
 
 		}
+	}
+
+	/**
+	 * Authorize (and potentially capture) payment for an order w/subscriptions.
+	 *
+	 * @param int|WC_Order $order                       Order ID or order object.
+	 * @param string       $amazon_billing_agreement_id Billing agreement ID.
+	 *
+	 * @return array Array value for process_payment method.
+	 */
+	private function authorize_payment( $order, $amazon_billing_agreement_id ) {
+		$this->do_authorize_payment( $order, $amazon_billing_agreement_id );
 
 		WC()->cart->empty_cart();
 
@@ -572,19 +580,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			sleep( ( 'yes' === $settings['sandbox'] ) ? 2 : 1 );
 
-			// Authorize/Capture recurring payment.
-			$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
-
-			if ( $result ) {
-				// Payment complete.
-				$order->payment_complete();
-
-				wc_apa()->log( "Info: Successful recurring payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
-			} else {
-				$order->update_status( 'failed', __( 'Could not authorize Amazon Pay payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-
-				wc_apa()->log( "Error: Could not authorize Amazon Pay payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
-			}
+			$this->do_authorize_payment( $order, $amazon_billing_agreement_id );
 		} catch ( Exception $e ) {
 			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );
 
@@ -685,5 +681,78 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 				update_post_meta( $subscription_id, $meta_key, $meta_value );
 			}
 		}
+	}
+
+	public function admin_actions_panel( $ret, $order ) {
+		$actions  = array();
+		$order_id = $order->get_id();
+
+		$amazon_billing_agreement_id = get_post_meta( $order_id, 'amazon_billing_agreement_id', true );
+		if ( empty( $amazon_billing_agreement_id ) ) {
+			return $ret;
+		}
+
+		$amazon_authorization_id = get_post_meta( $order_id, 'amazon_authorization_id', true );
+		$amazon_capture_id       = get_post_meta( $order_id, 'amazon_capture_id', true );
+
+		if ( ! empty( $amazon_authorization_id ) || ! empty( $amazon_capture_id ) ) {
+			return $ret;
+		}
+
+		$status = $this->get_billing_agreement_details( $order_id, $amazon_billing_agreement_id );
+
+		$amazon_billing_agreement_state = (string) $status->GetBillingAgreementDetailsResult->BillingAgreementDetails->BillingAgreementStatus->State; // phpcs:ignore WordPress.NamingConventions
+
+		echo wpautop( sprintf( __( 'Billing Agreement %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_billing_agreement_id ), esc_html( $amazon_billing_agreement_state ) ) );
+
+		switch ( $amazon_billing_agreement_state ) {
+			case 'Open':
+				$actions['authorize_recurring'] = array(
+					'id'     => $amazon_billing_agreement_id,
+					'button' => __( 'Authorize', 'woocommerce-gateway-amazon-payments-advanced' ),
+				);
+
+				$actions['authorize_capture_recurring'] = array(
+					'id'     => $amazon_billing_agreement_id,
+					'button' => __( 'Authorize &amp; Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
+				);
+
+				break;
+			case 'Suspended':
+				echo wpautop( __( 'The agreement has been suspended. Another form of payment is required.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+
+				break;
+			case 'Canceled':
+			case 'Suspended':
+				echo wpautop( __( 'The agreement has been cancelled/closed. No authorizations can be made.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+
+				break;
+		}
+
+		return array(
+			'actions' => $actions,
+		);
+	}
+
+	public function admin_action_authorize_recurring( $order, $amazon_billing_agreement_id ) {
+		$order_id = $order->get_id();
+		delete_post_meta( $order_id, 'amazon_authorization_id' );
+		delete_post_meta( $order_id, 'amazon_capture_id' );
+
+		// $amazon_billing_agreement_id is billing agreement.
+		wc_apa()->log( 'Info: Trying to authorize payment in billing agreement ' . $amazon_billing_agreement_id );
+
+		WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
+	}
+
+	public function admin_action_authorize_capture_recurring( $order, $amazon_billing_agreement_id ) {
+		$order_id = $order->get_id();
+		delete_post_meta( $order_id, 'amazon_authorization_id' );
+		delete_post_meta( $order_id, 'amazon_capture_id' );
+
+		// $amazon_billing_agreement_id is billing agreement.
+		wc_apa()->log( 'Info: Trying to authorize and capture payment in billing agreement ' . $amazon_billing_agreement_id );
+
+		WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
 	}
 }

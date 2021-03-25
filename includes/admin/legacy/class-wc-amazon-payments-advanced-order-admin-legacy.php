@@ -74,6 +74,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				WC_Amazon_Payments_Advanced_API::refund_payment( $order_id, $id, $amazon_refund_amount, $amazon_refund_note );
 				$this->clear_stored_states( $order_id );
 				break;
+			default:
+				do_action( 'woocommerce_amazon_pa_v1_order_admin_action_' . $action, $order, $id, $action );
+				break;
 		}
 	}
 
@@ -126,7 +129,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 		$amazon_capture_id       = get_post_meta( $order_id, 'amazon_capture_id', true );
 		$amazon_refund_ids       = get_post_meta( $order_id, 'amazon_refund_id', false );
 
-		if ( $amazon_capture_id ) {
+		$override = apply_filters( 'woocommerce_amazon_pa_v1_order_admin_actions_panel', false, $order );
+
+		if ( is_array( $override ) ) {
+			$actions = $override['actions'];
+		} elseif ( $amazon_capture_id ) {
 
 			$amazon_capture_state = WC_Amazon_Payments_Advanced_API::get_capture_state( $order_id, $amazon_capture_id );
 
