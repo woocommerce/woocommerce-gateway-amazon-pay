@@ -208,10 +208,27 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 			return;
 		}
 
+		$max_refund = wc_format_decimal( $order->get_total() - $order->get_total_refunded() );
+
+		if ( ! $max_refund ) {
+			return;
+		}
+
+		$refund_amount = min( $refund_amount, $max_refund );
+
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		if ( $order->get_total() === $refund_amount ) {
-			wc_order_fully_refunded( $order_id );
-		} else {
+
+		$wc_refund        = false;
+		$previous_refunds = wp_list_pluck( $order->get_meta( 'amazon_refund_id', false ), 'value' );
+		if ( ! empty( $previous_refunds ) ) {
+			foreach ( $previous_refunds as $this_refund_id ) {
+				if ( $this_refund_id === $refund_id ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$wc_refund = true;
+					break;
+				}
+			}
+		}
+		if ( empty( $wc_refund ) ) {
 			wc_create_refund(
 				array(
 					'amount'   => $refund_amount,
@@ -219,8 +236,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 					'order_id' => $order_id,
 				)
 			);
+			add_post_meta( $order_id, 'amazon_refund_id', $refund_id );
 		}
-		add_post_meta( $order_id, 'amazon_refund_id', $refund_id );
 
 		// Buyer canceled the order.
 		if ( 'BuyerCanceled' === $refund_type ) {

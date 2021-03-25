@@ -1811,6 +1811,13 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 				/* Translators: 1: refund amount, 2: refund note */
 				$order->add_order_note( sprintf( __( 'Refunded %1$s (%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), wc_price( $amount ), $note ) );
 
+				wc_create_refund(
+					array(
+						'amount'   => $amount,
+						'reason'   => $note,
+						'order_id' => $order_id,
+					)
+				);
 				add_post_meta( $order_id, 'amazon_refund_id', $refund_id );
 
 				$ret = true;
