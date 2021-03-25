@@ -707,15 +707,17 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 		switch ( $amazon_billing_agreement_state ) {
 			case 'Open':
-				$actions['authorize_recurring'] = array(
-					'id'     => $amazon_billing_agreement_id,
-					'button' => __( 'Authorize', 'woocommerce-gateway-amazon-payments-advanced' ),
-				);
+				if ( 'shop_order' === $order->get_type() ) {
+					$actions['authorize_recurring'] = array(
+						'id'     => $amazon_billing_agreement_id,
+						'button' => __( 'Authorize', 'woocommerce-gateway-amazon-payments-advanced' ),
+					);
 
-				$actions['authorize_capture_recurring'] = array(
-					'id'     => $amazon_billing_agreement_id,
-					'button' => __( 'Authorize &amp; Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
-				);
+					$actions['authorize_capture_recurring'] = array(
+						'id'     => $amazon_billing_agreement_id,
+						'button' => __( 'Authorize &amp; Capture', 'woocommerce-gateway-amazon-payments-advanced' ),
+					);
+				}
 
 				break;
 			case 'Suspended':
