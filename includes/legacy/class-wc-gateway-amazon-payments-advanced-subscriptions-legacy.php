@@ -700,7 +700,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		}
 
 		$status = $this->get_billing_agreement_details( $order_id, $amazon_billing_agreement_id );
-		$amazon_billing_agreement_state = (string) $status->GetBillingAgreementDetailsResult->BillingAgreementDetails->BillingAgreementStatus->State;
+
+		$amazon_billing_agreement_state = (string) $status->GetBillingAgreementDetailsResult->BillingAgreementDetails->BillingAgreementStatus->State; // phpcs:ignore WordPress.NamingConventions
 
 		echo wpautop( sprintf( __( 'Billing Agreement %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_billing_agreement_id ), esc_html( $amazon_billing_agreement_state ) ) );
 
