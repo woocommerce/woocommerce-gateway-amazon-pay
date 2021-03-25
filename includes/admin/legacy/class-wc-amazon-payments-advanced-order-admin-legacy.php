@@ -91,6 +91,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 		delete_post_meta( $order_id, 'amazon_reference_state' );
 		delete_post_meta( $order_id, 'amazon_capture_state' );
 		delete_post_meta( $order_id, 'amazon_authorization_state' );
+		do_action( 'woocommerce_amazon_pa_v1_cleared_stored_states', $order_id );
 	}
 
 	/**
@@ -120,7 +121,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 			return;
 		}
 
-		$actions  = array();
+		$actions  = array(
+			'refresh' => true,
+		);
 		$order_id = $order->get_id();
 
 		// Get ids.
@@ -129,7 +132,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 		$amazon_capture_id       = get_post_meta( $order_id, 'amazon_capture_id', true );
 		$amazon_refund_ids       = get_post_meta( $order_id, 'amazon_refund_id', false );
 
-		$override = apply_filters( 'woocommerce_amazon_pa_v1_order_admin_actions_panel', false, $order );
+		$override = apply_filters( 'woocommerce_amazon_pa_v1_order_admin_actions_panel', false, $order, $actions );
 
 		if ( is_array( $override ) ) {
 			$actions = $override['actions'];
@@ -140,14 +143,12 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 			switch ( $amazon_capture_state ) {
 				case 'Pending':
 					echo wpautop( sprintf( __( 'Capture Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_capture_id ), esc_html( $amazon_capture_state ) ) );
-					echo $this->get_refresh_link();
 
 					// Admin will need to re-check this, so clear the stored value.
 					$this->clear_stored_states( $order_id );
 					break;
 				case 'Declined':
 					echo wpautop( __( 'The capture was declined.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-					echo $this->get_refresh_link();
 
 					$actions['authorize'] = array(
 						'id'     => $amazon_reference_id,
@@ -167,13 +168,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 					</form>
 					<?php
 
-					echo $this->get_refresh_link();
-
 					break;
 				case 'Closed':
 					/* translators: 1) is Amazon Pay capture reference ID, and 2) Amazon Pay capture state */
 					echo wpautop( sprintf( __( 'Capture Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_capture_id ), esc_html( $amazon_capture_state ) ) );
-					echo $this->get_refresh_link();
 
 					break;
 			}
@@ -224,7 +222,6 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 
 			/* translators: 1) is Amazon Pay authorization reference ID, and 2) Amazon Pay authorization state */
 			echo wpautop( sprintf( __( 'Auth Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_reference_id ), esc_html( $amazon_authorization_state ) ) );
-			echo $this->get_refresh_link();
 
 			switch ( $amazon_authorization_state ) {
 				case 'Open':
@@ -260,7 +257,6 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 
 			/* translators: 1) is Amazon Pay order reference ID, and 2) Amazon Pay order state */
 			echo wpautop( sprintf( __( 'Order Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_reference_id ), esc_html( $amazon_reference_state ) ) );
-			echo $this->get_refresh_link();
 
 			switch ( $amazon_reference_state ) {
 				case 'Open':
@@ -285,6 +281,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 
 					break;
 			}
+		}
+
+		if ( ! empty( $actions ) && isset( $actions['refresh'] ) ) {
+			echo $this->get_refresh_link();
+			unset( $actions['refresh'] );
 		}
 
 		if ( ! empty( $actions ) ) {

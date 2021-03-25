@@ -27,9 +27,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
 		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $id, array( $this, 'update_failing_payment_method' ), 10, 2 );
 
-		add_filter( 'woocommerce_amazon_pa_v1_order_admin_actions_panel', array( $this, 'admin_actions_panel' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_v1_order_admin_actions_panel', array( $this, 'admin_actions_panel' ), 10, 3 );
 		add_action( 'woocommerce_amazon_pa_v1_order_admin_action_authorize_recurring', array( $this, 'admin_action_authorize_recurring' ), 10, 2 );
 		add_action( 'woocommerce_amazon_pa_v1_order_admin_action_authorize_capture_recurring', array( $this, 'admin_action_authorize_capture_recurring' ), 10, 2 );
+		add_action( 'woocommerce_amazon_pa_v1_cleared_stored_states', array( $this, 'clear_stored_billing_agreement_state' ) );
 
 		if ( 'v1' === strtolower( $version ) ) { // These are only needed when legacy is the active gateway (prior to migration)
 			add_filter( 'woocommerce_amazon_pa_process_payment', array( $this, 'process_payment' ), 10, 2 );
@@ -683,8 +684,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		}
 	}
 
-	public function admin_actions_panel( $ret, $order ) {
-		$actions  = array();
+	public function admin_actions_panel( $ret, $order, $actions ) {
 		$order_id = $order->get_id();
 
 		$amazon_billing_agreement_id = get_post_meta( $order_id, 'amazon_billing_agreement_id', true );
@@ -699,9 +699,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			return $ret;
 		}
 
-		$status = $this->get_billing_agreement_details( $order_id, $amazon_billing_agreement_id );
-
-		$amazon_billing_agreement_state = (string) $status->GetBillingAgreementDetailsResult->BillingAgreementDetails->BillingAgreementStatus->State; // phpcs:ignore WordPress.NamingConventions
+		$amazon_billing_agreement_state = $this->get_billing_agreement_state( $order_id, $amazon_billing_agreement_id ); // phpcs:ignore WordPress.NamingConventions
 
 		echo wpautop( sprintf( __( 'Billing Agreement %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_billing_agreement_id ), esc_html( $amazon_billing_agreement_state ) ) );
 
@@ -756,5 +754,38 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		wc_apa()->log( 'Info: Trying to authorize and capture payment in billing agreement ' . $amazon_billing_agreement_id );
 
 		WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
+	}
+
+	/**
+	 * Get auth state from amazon API.
+	 *
+	 * @param string $order_id Order ID.
+	 * @param string $id       Reference ID.
+	 *
+	 * @return string|bool Returns false if failed
+	 */
+	public function get_billing_agreement_state( $order_id, $amazon_billing_agreement_id ) {
+		$state = get_post_meta( $order_id, 'amazon_billing_agreement_state', true );
+		if ( $state ) {
+			return $state;
+		}
+
+		$response = $this->get_billing_agreement_details( $order_id, $amazon_billing_agreement_id );
+
+		// @codingStandardsIgnoreStart
+		if ( is_wp_error( $response ) || isset( $response->Error->Message ) ) {
+			return false;
+		}
+
+		$state = (string) $response->GetBillingAgreementDetailsResult->BillingAgreementDetails->BillingAgreementStatus->State; // phpcs:ignore WordPress.NamingConventions
+		// @codingStandardsIgnoreEnd
+
+		update_post_meta( $order_id, 'amazon_billing_agreement_state', $state );
+
+		return $state;
+	}
+
+	public function clear_stored_billing_agreement_state( $order_id ) {
+		delete_post_meta( $order_id, 'amazon_billing_agreement_state' );
 	}
 }
