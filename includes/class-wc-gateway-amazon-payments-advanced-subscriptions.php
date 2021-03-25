@@ -373,6 +373,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	public function copy_meta_to_sub( $order, $response ) {
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v2' !== strtolower( $version ) ) {
+			return;
+		}
+
 		if ( ! self::order_contains_subscription( $order ) ) {
 			return;
 		}
@@ -390,13 +395,23 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			}
 			wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription, $response->chargePermissionId ); // phpcs:ignore WordPress.NamingConventions
 			foreach ( $meta_keys_to_copy as $key ) {
-				$subscription->update_meta_data( $key, $order->get_meta( $key ) );
+				$value = $order->get_meta( $key );
+				if ( empty( $value ) ) {
+					continue;
+				}
+
+				$subscription->update_meta_data( $key, $value );
 			}
 			$subscription->save();
 		}
 	}
 
 	public function copy_meta_from_sub( $meta, $order, $subscription ) {
+		$version = version_compare( $subscription->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v2' !== strtolower( $version ) ) {
+			return $meta;
+		}
+
 		$meta_keys_to_copy = array(
 			'amazon_charge_permission_id',
 			'amazon_charge_permission_status',
@@ -405,9 +420,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		);
 
 		foreach ( $meta_keys_to_copy as $key ) {
+			$value = $subscription->get_meta( $key );
+			if ( empty( $value ) ) {
+				continue;
+			}
+
 			$meta[] = array(
 				'meta_key'   => $key, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value' => $subscription->get_meta( $key ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value' => $value, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			);
 		}
 		return $meta;
