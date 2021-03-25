@@ -390,7 +390,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			}
 			wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription, $response->chargePermissionId ); // phpcs:ignore WordPress.NamingConventions
 			foreach ( $meta_keys_to_copy as $key ) {
-				$subscription->update_meta_data( $key, $order->get_meta( $key ) );
+				$value = $order->get_meta( $key );
+				if ( empty( $value ) ) {
+					continue;
+				}
+
+				$subscription->update_meta_data( $key, $value );
 			}
 			$subscription->save();
 		}
@@ -405,9 +410,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		);
 
 		foreach ( $meta_keys_to_copy as $key ) {
+			$value = $subscription->get_meta( $key );
+			if ( empty( $value ) ) {
+				continue;
+			}
+
 			$meta[] = array(
 				'meta_key'   => $key, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value' => $subscription->get_meta( $key ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value' => $value, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			);
 		}
 		return $meta;
