@@ -1075,12 +1075,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session(
 			$checkout_session_id,
-			apply_filters( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array(
-				'chargeAmount' => array(
-					'amount'       => $order_total,
-					'currencyCode' => $currency,
+			apply_filters(
+				'woocommerce_amazon_pa_update_complete_checkout_session_payload',
+				array(
+					'chargeAmount' => array(
+						'amount'       => $order_total,
+						'currencyCode' => $currency,
+					),
 				),
-			), $checkout_session_id, $order ),
+				$checkout_session_id,
+				$order
+			)
 		);
 
 		if ( is_wp_error( $response ) ) {
@@ -1127,8 +1132,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
 		$order->save();
 		$this->log_charge_permission_status_change( $order );
-		$charge_id = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
-		if ( ! empty( $charge_id ) ) {
+		$charge_id   = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
+		$order_total = (float) $order->get_total( 'edit' );
+		if ( 0 >= $order_total ) {
+			$order->payment_complete();
+		} elseif ( ! empty( $charge_id ) ) {
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
 			$order->save();
 			$this->log_charge_status_change( $order );
@@ -1221,6 +1229,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				wc_apa()->ipn_handler->schedule_hook( $charge_id, 'CHARGE' );
 				break;
 			case 'Canceled':
+				$order->update_status( 'pending' );
+				wc_maybe_reduce_stock_levels( $order->get_id() );
+				break;
 			case 'Declined':
 				$order->update_status( 'failed' );
 				wc_maybe_increase_stock_levels( $order->get_id() );
@@ -1403,6 +1414,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$fields['billing_state']['required'] = $old;
 
+		$checkout_session = $this->get_checkout_session();
+
+		$address = null;
+		if ( ! empty( $checkout_session->billingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+			$address = $checkout_session->billingAddress; // phpcs:ignore WordPress.NamingConventions
+		} elseif ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+			$address = $checkout_session->shippingAddress; // phpcs:ignore WordPress.NamingConventions
+		}
+
+		if ( is_null( $address ) ) {
+			return $fields;
+		}
+
+		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ), true ) ) { // phpcs:ignore WordPress.NamingConventions
+			$fields['billing_city']['required'] = false;
+		}
+
 		return $fields;
 	}
 
@@ -1412,6 +1440,21 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$fields = parent::override_shipping_fields( $fields );
 
 		$fields['shipping_state']['required'] = $old;
+
+		$checkout_session = $this->get_checkout_session();
+
+		$address = null;
+		if ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+			$address = $checkout_session->shippingAddress; // phpcs:ignore WordPress.NamingConventions
+		}
+
+		if ( is_null( $address ) ) {
+			return $fields;
+		}
+
+		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ), true ) ) { // phpcs:ignore WordPress.NamingConventions
+			$fields['shipping_city']['required'] = false;
+		}
 
 		return $fields;
 	}

@@ -155,7 +155,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'debug'                           => 'no',
 			'hide_button_mode'                => 'no',
 			'amazon_keys_setup_and_validated' => '0',
-			'subscriptions_enabled'			  => 'yes',
+			'subscriptions_enabled'           => 'yes',
 		);
 
 		$settings = apply_filters( 'woocommerce_amazon_pa_settings', array_merge( $default, $settings ) );
@@ -1809,12 +1809,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 				/* Translators: 1: refund amount, 2: refund note */
 				$order->add_order_note( sprintf( __( 'Refunded %1$s (%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), wc_price( $amount ), $note ) );
-				$args = array(
-					'amount'         => $amount,
-					'reason'         => $note,
-					'order_id'       => $order->get_id(),
-				);
-				wc_create_refund( $args );
+
 				add_post_meta( $order_id, 'amazon_refund_id', $refund_id );
 
 				$ret = true;
@@ -1974,6 +1969,18 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 			}
 
+		} elseif ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
+
+			$formatted['address_1'] = (string) $address->AddressLine1;
+
+			if ( ! empty( $address->AddressLine2 ) ) {
+				$formatted['address_2'] = (string) $address->AddressLine2;
+			}
+
+			if ( ! empty( $address->AddressLine3 ) ) {
+				$formatted['company']   = (string) $address->AddressLine3;
+			}
+
 		} else {
 
 			// Format address and map to WC fields
@@ -2008,6 +2015,11 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 		$formatted['phone'] = isset( $address->Phone ) ? (string) $address->Phone : null;
 		$formatted['city'] = isset( $address->City ) ? (string) $address->City : null;
+		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
+			if ( empty( $formatted['city'] ) ) {
+				$formatted['city'] = ''; // Force empty city
+			}
+		}
 		$formatted['postcode'] = isset( $address->PostalCode ) ? (string) $address->PostalCode : null;
 		$formatted['state'] = isset( $address->StateOrRegion ) ? (string) $address->StateOrRegion : null;
 		$formatted['country'] = isset( $address->CountryCode ) ? (string) $address->CountryCode : null;
@@ -2034,7 +2046,14 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		}
 		// @codingStandardsIgnoreEnd
 
-		return array_filter( $formatted );
+		$formatted = array_filter(
+			$formatted,
+			function( $v ) {
+				return ! is_null( $v );
+			}
+		);
+
+		return $formatted;
 
 	}
 
