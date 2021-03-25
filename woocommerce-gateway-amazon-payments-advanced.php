@@ -226,11 +226,12 @@ class WC_Amazon_Payments_Advanced {
 
 		}
 
+		include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php';
 		if ( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
 			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php';
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced();
+			WC_Gateway_Amazon_Payments_Advanced_Legacy::legacy_hooks();
 		} else {
-			include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php';
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Legacy();
 		}
 

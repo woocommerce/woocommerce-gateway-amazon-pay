@@ -1613,6 +1613,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function process_refund( $order_id, $amount = null, $reason = '' ) {
+		$process = apply_filters( 'woocommerce_amazon_pa_process_refund', null, $order_id, $amount, $reason );
+		if ( ! is_null( $process ) ) {
+			return $process;
+		}
+
 		$order     = wc_get_order( $order_id );
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
 		if ( empty( $charge_id ) ) {

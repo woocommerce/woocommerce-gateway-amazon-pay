@@ -635,7 +635,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 *
 	 * @return WP_Error|boolean True or false based on success, or a WP_Error object.
 	 */
-	public function process_refund( $order_id, $refund_amount = null, $reason = '' ) {
+	public static function do_process_refund( $order_id, $refund_amount = null, $reason = '' ) {
 		wc_apa()->log( 'Info: Trying to refund for order ' . $order_id );
 
 		$amazon_capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
@@ -647,6 +647,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		$ret = WC_Amazon_Payments_Advanced_API::refund_payment( $order_id, $amazon_capture_id, $refund_amount, $reason );
 
 		return $ret;
+	}
+
+	public function process_refund( $order_id, $refund_amount = null, $reason = '' ) {
+		return self::do_process_refund( $order_id, $refund_amount, $reason );
 	}
 
 	/**
@@ -1842,5 +1846,20 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced_params', $params );
 
 		do_action( 'wc_amazon_pa_scripts_enqueued', $type, $params );
+	}
+
+	public static function legacy_hooks() {
+		add_filter( 'woocommerce_amazon_pa_process_refund', array( __CLASS__, 'maybe_handle_v1_refund' ), 10, 4 );
+	}
+
+	public static function maybe_handle_v1_refund( $ret, $order_id, $amount, $reason ) {
+		$order = wc_get_order( $order_id );
+
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v1' !== strtolower( $version ) ) {
+			return $ret;
+		}
+
+		return self::do_process_refund( $order_id, $amount, $reason );
 	}
 }
