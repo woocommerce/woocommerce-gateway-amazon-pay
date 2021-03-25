@@ -373,6 +373,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	public function copy_meta_to_sub( $order, $response ) {
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v2' !== strtolower( $version ) ) {
+			return;
+		}
+
 		if ( ! self::order_contains_subscription( $order ) ) {
 			return;
 		}
@@ -402,6 +407,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	public function copy_meta_from_sub( $meta, $order, $subscription ) {
+		$version = version_compare( $subscription->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v2' !== strtolower( $version ) ) {
+			return $meta;
+		}
+
 		$meta_keys_to_copy = array(
 			'amazon_charge_permission_id',
 			'amazon_charge_permission_status',
