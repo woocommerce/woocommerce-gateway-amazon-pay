@@ -180,7 +180,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 
 		$request_args = array(
 			'Action'                 => 'GetOrderReferenceDetails',
-			'AmazonOrderReferenceId' => WC_Amazon_Payments_Advanced_API::get_reference_id(),
+			'AmazonOrderReferenceId' => WC_Amazon_Payments_Advanced_API_Legacy::get_reference_id(),
 		);
 
 		/**

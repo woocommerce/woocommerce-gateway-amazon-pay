@@ -168,26 +168,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Get reference ID.
-	 *
-	 * @return string
-	 */
-	public static function get_reference_id() {
-		// TODO: Move to legacy.
-		$reference_id = ! empty( $_REQUEST['amazon_reference_id'] ) ? $_REQUEST['amazon_reference_id'] : '';
-
-		if ( isset( $_POST['post_data'] ) ) {
-			parse_str( $_POST['post_data'], $post_data );
-
-			if ( isset( $post_data['amazon_reference_id'] ) ) {
-				$reference_id = $post_data['amazon_reference_id'];
-			}
-		}
-
-		return self::check_session( 'amazon_reference_id', $reference_id );
-	}
-
-	/**
 	 * Get Access token.
 	 *
 	 * @return string
