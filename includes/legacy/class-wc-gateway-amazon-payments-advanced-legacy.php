@@ -23,7 +23,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 		// Get Order Refererence ID and/or Access Token.
 		$this->reference_id = WC_Amazon_Payments_Advanced_API_Legacy::get_reference_id();
-		$this->access_token = WC_Amazon_Payments_Advanced_API::get_access_token();
+		$this->access_token = WC_Amazon_Payments_Advanced_API_Legacy::get_access_token();
 
 		// Handling for the review page of the German Market Plugin.
 		if ( empty( $this->reference_id ) ) {

@@ -442,7 +442,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		 */
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		if ( 'yes' === $settings['enable_login_app'] ) {
-			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API::get_access_token();
+			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API_Legacy::get_access_token();
 		}
 
 		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );

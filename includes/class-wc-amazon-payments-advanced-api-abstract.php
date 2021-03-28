@@ -168,18 +168,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Get Access token.
-	 *
-	 * @return string
-	 */
-	public static function get_access_token() {
-		// TODO: Move to legacy.
-		$access_token = ! empty( $_REQUEST['access_token'] ) ? $_REQUEST['access_token'] : ( isset( $_COOKIE['amazon_Login_accessToken'] ) && ! empty( $_COOKIE['amazon_Login_accessToken'] ) ? $_COOKIE['amazon_Login_accessToken'] : '' );
-
-		return self::check_session( 'access_token', $access_token );
-	}
-
-	/**
 	 * Check WC session for reference ID or access token.
 	 *
 	 * @since 1.6.0
