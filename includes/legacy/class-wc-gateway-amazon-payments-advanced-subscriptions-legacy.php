@@ -77,7 +77,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			update_post_meta( $order_id, 'woocommerce_version', WC()->version );
 
 			// Check if we are under SCA.
-			$is_sca = WC_Amazon_Payments_Advanced_API::is_sca_region();
+			$is_sca = WC_Amazon_Payments_Advanced_API_Legacy::is_sca_region();
 
 			if ( 'skip' !== $amazon_billing_agreement_details ) {
 				// Set the Billing Agreement Details.
@@ -186,7 +186,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		);
 
 		// Update order reference with amounts.
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
 		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
@@ -223,7 +223,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			$confirm_args['FailureUrl'] = wc_get_checkout_url();
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $confirm_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $confirm_args );
 
 		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
@@ -257,7 +257,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			case 'authorize':
 				// Authorize only.
-				$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
+				$result = WC_Amazon_Payments_Advanced_API_Legacy::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
 
 				if ( $result ) {
 
@@ -285,7 +285,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			default:
 				// Capture.
-				$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
+				$result = WC_Amazon_Payments_Advanced_API_Legacy::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
 
 				if ( $result ) {
 
@@ -340,7 +340,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @return WP_Error|array WP_Error or parsed response array.
 	 */
 	private function get_billing_agreement_details( $order_id, $amazon_billing_agreement_id ) {
-		$response = WC_Amazon_Payments_Advanced_API::request(
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
 			array(
 				'Action'                   => 'GetBillingAgreementDetails',
 				'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
@@ -385,7 +385,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @throws Exception Error from API response.
 	 *
 	 * @param string $context                     Context.
-	 * @param object $response                    API response from self::request().
+	 * @param object $response                    API response from WC_Amazon_Payments_Advanced_API_Legacy::request().
 	 * @param int    $order_id                    Order ID.
 	 * @param string $amazon_billing_agreement_id Billing agreement ID.
 	 */
@@ -442,10 +442,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		 */
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		if ( 'yes' === $settings['enable_login_app'] ) {
-			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API::get_access_token();
+			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API_Legacy::get_access_token();
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 
 		// @codingStandardsIgnoreStart
 		if ( ! is_wp_error( $response ) && isset( $response->GetBillingAgreementDetailsResult->BillingAgreementDetails ) ) {
@@ -512,7 +512,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			// Cancel order.
 			$order->update_status( 'cancelled', __( 'Could not authorize Amazon payment. Failure on MFA (Multi-Factor Authentication) challenge.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			// Cancel order on amazon.
-			WC_Amazon_Payments_Advanced_API::cancel_order_reference( $order, 'MFA Failure' );
+			WC_Amazon_Payments_Advanced_API_Legacy::cancel_order_reference( $order, 'MFA Failure' );
 
 			// Redirect to cart and amazon logout.
 			$redirect = add_query_arg(
@@ -618,7 +618,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 				sleep( ( 'yes' === $settings['sandbox'] ) ? 2 : 1 );
 
-				$response = WC_Amazon_Payments_Advanced_API::request(
+				$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
 					array(
 						'Action'                   => 'CloseBillingAgreement',
 						'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
@@ -742,7 +742,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		// $amazon_billing_agreement_id is billing agreement.
 		wc_apa()->log( 'Info: Trying to authorize payment in billing agreement ' . $amazon_billing_agreement_id );
 
-		WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
+		WC_Amazon_Payments_Advanced_API_Legacy::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
 	}
 
 	public function admin_action_authorize_capture_recurring( $order, $amazon_billing_agreement_id ) {
@@ -753,7 +753,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		// $amazon_billing_agreement_id is billing agreement.
 		wc_apa()->log( 'Info: Trying to authorize and capture payment in billing agreement ' . $amazon_billing_agreement_id );
 
-		WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
+		WC_Amazon_Payments_Advanced_API_Legacy::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
 	}
 
 	/**

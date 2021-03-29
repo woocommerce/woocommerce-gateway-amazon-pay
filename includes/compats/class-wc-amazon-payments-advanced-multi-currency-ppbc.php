@@ -180,7 +180,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 
 		$request_args = array(
 			'Action'                 => 'GetOrderReferenceDetails',
-			'AmazonOrderReferenceId' => WC_Amazon_Payments_Advanced_API::get_reference_id(),
+			'AmazonOrderReferenceId' => WC_Amazon_Payments_Advanced_API_Legacy::get_reference_id(),
 		);
 
 		/**
@@ -191,10 +191,10 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 		 */
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		if ( 'yes' == $settings['enable_login_app'] ) {
-			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API::get_access_token();
+			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API_Legacy::get_access_token();
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 
 		// @codingStandardsIgnoreStart
 		if ( ! is_wp_error( $response ) && isset( $response->GetOrderReferenceDetailsResult->OrderReferenceDetails ) ) {

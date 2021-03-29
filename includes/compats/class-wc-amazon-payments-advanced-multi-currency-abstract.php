@@ -183,7 +183,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 				return true;
 			}
 
-			$amazon_authorization_state = WC_Amazon_Payments_Advanced_API::get_reference_state( $order_awaiting_payment, $amazon_reference_id );
+			$amazon_authorization_state = WC_Amazon_Payments_Advanced_API_Legacy::get_reference_state( $order_awaiting_payment, $amazon_reference_id );
 			if ( 'suspended' === strtolower( $amazon_authorization_state ) ) {
 				return true;
 			}

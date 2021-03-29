@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Languague is only available for Europe. Given the order language we can determinate the domain.
  */
 $lang                = '';
-$lang_domain_mapping = WC_Amazon_Payments_Advanced_API::get_order_language( $order_id );
+$lang_domain_mapping = WC_Amazon_Payments_Advanced_API_Legacy::get_order_language( $order_id );
 if ( 'unknown' !== $lang_domain_mapping ) {
 	$lang = "?language=$lang_domain_mapping";
 	$tld  = WC_Amazon_Payments_Advanced_API::$lang_domains_mapping[ $lang_domain_mapping ];

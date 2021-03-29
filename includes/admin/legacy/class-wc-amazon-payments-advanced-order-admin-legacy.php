@@ -35,7 +35,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				// $id is order reference.
 				wc_apa()->log( 'Info: Trying to authorize payment in order reference ' . $id );
 
-				WC_Amazon_Payments_Advanced_API::authorize_payment( $order_id, $id, false );
+				WC_Amazon_Payments_Advanced_API_Legacy::authorize_payment( $order_id, $id, false );
 				$this->clear_stored_states( $order_id );
 				break;
 			case 'authorize_capture':
@@ -45,23 +45,23 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				// $id is order reference.
 				wc_apa()->log( 'Info: Trying to authorize and capture payment in order reference ' . $id );
 
-				WC_Amazon_Payments_Advanced_API::authorize_payment( $order_id, $id, true );
-				WC_Amazon_Payments_Advanced_API::close_order_reference( $order_id );
+				WC_Amazon_Payments_Advanced_API_Legacy::authorize_payment( $order_id, $id, true );
+				WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
 				$this->clear_stored_states( $order_id );
 				break;
 			case 'close_authorization':
 				// $id is authorization reference.
 				wc_apa()->log( 'Info: Trying to close authorization ' . $id );
 
-				WC_Amazon_Payments_Advanced_API::close_authorization( $order_id, $id );
+				WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $order_id, $id );
 				$this->clear_stored_states( $order_id );
 				break;
 			case 'capture':
 				// $id is authorization reference.
 				wc_apa()->log( 'Info: Trying to capture payment with authorization ' . $id );
 
-				WC_Amazon_Payments_Advanced_API::capture_payment( $order_id, $id );
-				WC_Amazon_Payments_Advanced_API::close_order_reference( $order_id );
+				WC_Amazon_Payments_Advanced_API_Legacy::capture_payment( $order_id, $id );
+				WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
 				$this->clear_stored_states( $order_id );
 				break;
 			case 'refund':
@@ -71,7 +71,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				$amazon_refund_amount = floatval( wc_clean( $_POST['amazon_refund_amount'] ) );
 				$amazon_refund_note   = wc_clean( $_POST['amazon_refund_note'] );
 
-				WC_Amazon_Payments_Advanced_API::refund_payment( $order_id, $id, $amazon_refund_amount, $amazon_refund_note );
+				WC_Amazon_Payments_Advanced_API_Legacy::refund_payment( $order_id, $id, $amazon_refund_amount, $amazon_refund_note );
 				wc_create_refund(
 					array(
 						'amount'   => $amazon_refund_amount,
@@ -145,7 +145,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 			$actions = $override['actions'];
 		} elseif ( $amazon_capture_id ) {
 
-			$amazon_capture_state = WC_Amazon_Payments_Advanced_API::get_capture_state( $order_id, $amazon_capture_id );
+			$amazon_capture_state = WC_Amazon_Payments_Advanced_API_Legacy::get_capture_state( $order_id, $amazon_capture_id );
 
 			switch ( $amazon_capture_state ) {
 				case 'Pending':
@@ -193,7 +193,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 						echo wpautop( sprintf( __( 'Refund %1$s of %2$s is <strong>%3$s</strong> (%4$s).', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_refund_id, wc_price( $refunds[ $amazon_refund_id ]['amount'] ), $refunds[ $amazon_refund_id ]['state'], $refunds[ $amazon_refund_id ]['note'] ) );
 					} else {
 
-						$response = WC_Amazon_Payments_Advanced_API::request(
+						$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
 							array(
 								'Action'         => 'GetRefundDetails',
 								'AmazonRefundId' => $amazon_refund_id,
@@ -225,7 +225,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 			}
 		} elseif ( $amazon_authorization_id ) {
 
-			$amazon_authorization_state = WC_Amazon_Payments_Advanced_API::get_authorization_state( $order_id, $amazon_authorization_id );
+			$amazon_authorization_state = WC_Amazon_Payments_Advanced_API_Legacy::get_authorization_state( $order_id, $amazon_authorization_id );
 
 			/* translators: 1) is Amazon Pay authorization reference ID, and 2) Amazon Pay authorization state */
 			echo wpautop( sprintf( __( 'Auth Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_reference_id ), esc_html( $amazon_authorization_state ) ) );
@@ -260,7 +260,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 			}
 		} elseif ( $amazon_reference_id ) {
 
-			$amazon_reference_state = WC_Amazon_Payments_Advanced_API::get_reference_state( $order_id, $amazon_reference_id );
+			$amazon_reference_state = WC_Amazon_Payments_Advanced_API_Legacy::get_reference_state( $order_id, $amazon_reference_id );
 
 			/* translators: 1) is Amazon Pay order reference ID, and 2) Amazon Pay order state */
 			echo wpautop( sprintf( __( 'Order Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_reference_id ), esc_html( $amazon_reference_state ) ) );

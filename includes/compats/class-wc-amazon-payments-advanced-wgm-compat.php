@@ -207,7 +207,7 @@ class WC_Amazon_Payments_Advanced_WGM_Compat {
 			$request_args['AddressConsentToken'] = $this->get_amazon_access_token();
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 		// @codingStandardsIgnoreStart
 		if ( ! is_wp_error( $response ) && isset( $response->GetOrderReferenceDetailsResult->OrderReferenceDetails ) ) {
 			return $response->GetOrderReferenceDetailsResult->OrderReferenceDetails;

@@ -39,6 +39,11 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 
 		// Handle valid IPN message.
 		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_notification_ipn_v1' ) );
+
+		// Scheduled event to check pending synchronous payments on wrong ipn setting.
+		add_action( 'wcga_process_pending_syncro_payments', array( $this, 'process_pending_syncro_payments' ), 10, 2 );
+		// Unschedule on IPN recieve.
+		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn_order', array( $this, 'unschedule_pending_syncro_payments' ) );
 	}
 
 	public function validate_notification_keys_v1( $message, $notification_version ) {
@@ -122,7 +127,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		// @codingStandardsIgnoreEnd
 
 		if ( $order->get_meta( 'amazon_timed_out_transaction' ) ) {
-			WC_Amazon_Payments_Advanced_API::handle_async_ipn_order_reference_payload( $notification_data, $order );
+			WC_Amazon_Payments_Advanced_API_Legacy::handle_async_ipn_order_reference_payload( $notification_data, $order );
 		}
 	}
 
@@ -148,7 +153,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		// @codingStandardsIgnoreEnd
 
 		if ( $order->get_meta( 'amazon_timed_out_transaction' ) ) {
-			WC_Amazon_Payments_Advanced_API::handle_async_ipn_payment_authorization_payload( $notification_data, $order );
+			WC_Amazon_Payments_Advanced_API_Legacy::handle_async_ipn_payment_authorization_payload( $notification_data, $order );
 		}
 	}
 
@@ -263,7 +268,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 			return $notification['NotificationData'];
 		}
 
-		$data = WC_Amazon_Payments_Advanced_API::safe_load_xml( $notification['NotificationData'], LIBXML_NOCDATA );
+		$data = WC_Amazon_Payments_Advanced_API_Legacy::safe_load_xml( $notification['NotificationData'], LIBXML_NOCDATA );
 		if ( ! $data ) {
 			throw new Exception( 'Failed to parse the XML in NotificationData.' );
 		}
@@ -307,7 +312,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 				unset( $refund_parts[3] );
 
 				$order_ref = implode( '-', $refund_parts );
-				$order_id  = WC_Amazon_Payments_Advanced_API::get_order_id_from_reference_id( $order_ref );
+				$order_id  = WC_Amazon_Payments_Advanced_API_Legacy::get_order_id_from_reference_id( $order_ref );
 
 				// When no order stores refund reference ID, checks RefundReferenceId.
 				if ( ! $order_id ) {
@@ -329,5 +334,44 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		}
 
 		return $order;
+	}
+
+	/**
+	 * Process pending syncronuos payments.
+	 */
+	public function process_pending_syncro_payments( $order_id, $amazon_authorization_id ) {
+
+		wc_apa()->log( sprintf( 'Processing pending synchronous payment. Order: %s, Auth ID: %s', $order_id, $amazon_authorization_id ) );
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return new WP_Error( 'invalid_order', __( 'Invalid order.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		try {
+			$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
+				array(
+					'Action'                => 'GetAuthorizationDetails',
+					'AmazonAuthorizationId' => $amazon_authorization_id,
+				)
+			);
+			if ( $order->get_meta( 'amazon_timed_out_transaction' ) ) {
+				WC_Amazon_Payments_Advanced_API_Legacy::handle_synch_payment_authorization_payload( $response, $order, $amazon_authorization_id );
+			}
+		} catch ( Exception $e ) {
+			/* translators: placeholder is error message from Amazon Pay API */
+			$order->add_order_note( sprintf( __( 'Error: Unable to authorize funds with Amazon. Reason: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );
+		}
+	}
+
+	/**
+	 * Unschedule Action for Order.
+	 */
+	public function unschedule_pending_syncro_payments( $order ) {
+		// Unschedule the Action for this order.
+		$args = array(
+			'order_id'                => $order->get_id(),
+			'amazon_authorization_id' => $order->get_meta( 'amazon_authorization_id', true ),
+		);
+		as_unschedule_action( 'wcga_process_pending_syncro_payments', $args );
 	}
 }

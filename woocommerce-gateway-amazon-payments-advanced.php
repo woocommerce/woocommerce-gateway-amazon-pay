@@ -151,7 +151,6 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler-abstract.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler.php';
 		include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-ipn-handler-legacy.php';
-		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-synchronous-handler.php';
 
 		// On install hook.
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-install.php';
@@ -166,8 +165,6 @@ class WC_Amazon_Payments_Advanced {
 		// IPN handler.
 		$this->ipn_handler = new WC_Amazon_Payments_Advanced_IPN_Handler();
 		new WC_Amazon_Payments_Advanced_IPN_Handler_Legacy(); // TODO: Maybe register legacy hooks differently
-		// Synchronous handler.
-		$this->synchro_handler = new WC_Amazon_Payments_Advanced_Synchronous_Handler();
 		// Simple path registration endpoint.
 		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
 		// Third party compatibilities.
@@ -392,11 +389,11 @@ class WC_Amazon_Payments_Advanced {
 		if ( 'amazon_payments_advanced' === $response->data['payment_method'] ) {
 			$response->data['amazon_reference'] = array(
 
-				'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
+				'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
 				'amazon_reference_id'        => get_post_meta( $post->ID, 'amazon_reference_id', true ),
-				'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
+				'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
 				'amazon_authorization_id'    => get_post_meta( $post->ID, 'amazon_authorization_id', true ),
-				'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
+				'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
 				'amazon_capture_id'          => get_post_meta( $post->ID, 'amazon_capture_id', true ),
 				'amazon_refund_ids'          => get_post_meta( $post->ID, 'amazon_refund_id', false ),
 			);
