@@ -577,7 +577,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			$order->payment_complete();
 
 			// Close order reference.
-			WC_Amazon_Payments_Advanced_API::close_order_reference( $order_id );
+			WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
 
 			wc_apa()->log( 'Info: Successfully captured in order reference ' . $amazon_reference_id );
 

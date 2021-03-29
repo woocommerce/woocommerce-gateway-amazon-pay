@@ -342,7 +342,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			$ret['captured']          = $result;
 			$ret['amazon_capture_id'] = get_post_meta( $order_id, 'amazon_capture_id', true );
 
-			$order_closed = WC_Amazon_Payments_Advanced_API::close_order_reference( $order_id );
+			$order_closed = WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
 			$order_closed = ( ! is_wp_error( $order_closed ) && $order_closed );
 
 			$ret['order_closed'] = $order_closed;
@@ -418,7 +418,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 
 		$result = WC_Amazon_Payments_Advanced_API::handle_payment_capture_response( $resp, $order_id );
 		if ( $result ) {
-			$order_closed = WC_Amazon_Payments_Advanced_API::close_order_reference( $order_id );
+			$order_closed = WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
 			$order_closed = ( ! is_wp_error( $order_closed ) && $order_closed );
 		}
 

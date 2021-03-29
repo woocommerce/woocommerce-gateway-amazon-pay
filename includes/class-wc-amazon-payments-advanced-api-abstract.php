@@ -589,62 +589,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Close order reference.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param int|WC_Order $order Order ID or order object.
-	 *
-	 * @return bool|WP_Error Return true when succeed. Otherwise WP_Error is returned
-	 */
-	public static function close_order_reference( $order ) {
-		$order    = wc_get_order( $order );
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		if ( ! $order ) {
-			return new WP_Error( 'invalid_order', __( 'Invalid order ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		if ( 'amazon_payments_advanced' !== wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			return new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$amazon_reference_id = get_post_meta( $order_id, 'amazon_reference_id', true );
-		if ( ! $amazon_reference_id ) {
-			return new WP_Error( 'order_missing_amazon_reference_id', __( 'Order missing Amazon reference ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$amazon_billing_agreement_id = get_post_meta( $order_id, 'amazon_billing_agreement_id', true );
-		if ( $amazon_billing_agreement_id ) {
-			// If it has a billing agreement Amazon close it on auth, no need to close the order.
-			// https://developer.amazon.com/docs/amazon-pay-api/order-reference-states-and-reason-codes.html
-			$order->add_order_note( sprintf( __( 'Order reference %s closed ', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_reference_id ) );
-			return true;
-		}
-
-		$response = self::request(
-			array(
-				'Action'                 => 'CloseOrderReference',
-				'AmazonOrderReferenceId' => $amazon_reference_id,
-			)
-		);
-
-		// @codingStandardsIgnoreStart
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		} elseif ( isset( $response->Error->Message ) ) {
-			$order->add_order_note( (string) $response->Error->Message );
-
-			$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
-			return new WP_Error( $code, (string) $response->Error->Message );
-		} else {
-			$order->add_order_note( sprintf( __( 'Order reference %s closed ', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_reference_id ) );
-		}
-		// @codingStandardsIgnoreEnd
-
-		return true;
-	}
-
-	/**
 	 * Close authorization.
 	 *
 	 * @param int    $order_id                Order ID.
