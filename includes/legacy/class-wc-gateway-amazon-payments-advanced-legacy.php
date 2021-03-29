@@ -437,7 +437,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		// Make an ASYNC Authorize API call using a TransactionTimeout of 1440.
 		$response = $this->process_payment_with_async_authorize( $order, $amazon_reference_id );
 
-		$amazon_authorization_id = WC_Amazon_Payments_Advanced_API::get_auth_id_from_response( $response );
+		$amazon_authorization_id = WC_Amazon_Payments_Advanced_API_Legacy::get_auth_id_from_response( $response );
 		$args                    = array(
 			'order_id'                => $order->get_id(),
 			'amazon_authorization_id' => $amazon_authorization_id,

@@ -904,4 +904,29 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		return true;
 	}
 
+	/**
+	 * Get Authorization ID from reesponse.
+	 *
+	 * @since 1.6.9
+	 *
+	 * @param object $response Return value from self::request().
+	 *
+	 * @return string|bool String of Authorization ID. Otherwise false is returned.
+	 */
+	public static function get_auth_id_from_response( $response ) {
+		$auth_id = false;
+
+		// @codingStandardsIgnoreStart
+		if ( isset( $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AmazonAuthorizationId ) ) {
+			$auth_id = (string) $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AmazonAuthorizationId;
+		} elseif ( isset( $response->AuthorizeResult->AuthorizationDetails->AmazonAuthorizationId ) ) {
+			$auth_id = (string) $response->AuthorizeResult->AuthorizationDetails->AmazonAuthorizationId;
+		} elseif ( isset( $response->AuthorizationDetails->AmazonAuthorizationId ) ) {
+			$auth_id = (string) $response->AuthorizationDetails->AmazonAuthorizationId;
+		}
+		// @codingStandardsIgnoreEnd
+
+		return $auth_id;
+	}
+
 }
