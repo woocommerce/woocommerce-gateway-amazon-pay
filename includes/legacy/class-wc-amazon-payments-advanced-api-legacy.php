@@ -412,7 +412,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 					// Hard Decline client's email.
 					$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
-					$message = wc_get_template_html( 'emails/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
+					$message = wc_get_template_html( 'emails/legacy/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'TransactionTimedOut' === $state_reason_code ) {
 					// On the second timedout we need to cancel on woo and amazon.
@@ -424,7 +424,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 						$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 						// Hard Decline client's email.
 						$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
-						$message = wc_get_template_html( 'emails/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
+						$message = wc_get_template_html( 'emails/legacy/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
 						self::send_email_notification( $subject, $message, $order->get_billing_email() );
 						// Delete amazon_timed_out_transaction meta
 						$order->delete_meta_data( $order_id, 'amazon_timed_out_transaction' );
@@ -492,7 +492,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 					// Hard Decline client's email.
 					$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
-					$message = wc_get_template_html( 'emails/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
+					$message = wc_get_template_html( 'emails/legacy/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'TransactionTimedOut' === $state_reason_code ) {
 					if ( ! $order->meta_exists( 'amazon_timed_out_times' ) ) {
@@ -501,7 +501,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 						$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 						// Hard Decline client's email.
 						$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
-						$message = wc_get_template_html( 'emails/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
+						$message = wc_get_template_html( 'emails/legacy/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
 						self::send_email_notification( $subject, $message, $order->get_billing_email() );
 						// Delete amazon_timed_out_transaction meta
 						$order->delete_meta_data( $order_id, 'amazon_timed_out_transaction' );
