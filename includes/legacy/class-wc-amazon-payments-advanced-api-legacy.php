@@ -1082,4 +1082,30 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		return true;
 	}
 
+	/**
+	 * Handle the result of an async ipn order reference request.
+	 * We need only to cover the change to Open status.
+	 *
+	 * https://m.media-amazon.com/images/G/03/AMZNPayments/IntegrationGuide/AmazonPay_-_Order_Confirm_And_Omnichronous_Authorization_Including-IPN-Handler._V516642695_.svg
+	 *
+	 * @param object       $ipn_payload    IPN payload.
+	 * @param int|WC_Order $order          Order object.
+	 *
+	 * @return string Authorization status.
+	 */
+	public static function handle_async_ipn_order_reference_payload( $ipn_payload, $order ) {
+		$order                 = is_int( $order ) ? wc_get_order( $order ) : $order;
+		$order_id              = wc_apa_get_order_prop( $order, 'id' );
+		$order_reference_state = (string) $ipn_payload->OrderReference->OrderReferenceStatus->State; // phpcs:ignore WordPress.NamingConventions
+
+		update_post_meta( $order_id, 'amazon_reference_state', $order_reference_state );
+
+		if ( 'open' === strtolower( $order_reference_state ) ) {
+			// New Async Auth
+			$order->add_order_note( __( 'Async Authorized attempt.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			$amazon_reference_id = get_post_meta( $order_id, 'amazon_reference_id', true );
+			do_action( 'wc_amazon_async_authorize', $order, $amazon_reference_id );
+		}
+	}
+
 }

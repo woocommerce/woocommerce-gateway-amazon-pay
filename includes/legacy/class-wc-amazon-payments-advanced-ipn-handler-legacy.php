@@ -127,7 +127,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		// @codingStandardsIgnoreEnd
 
 		if ( $order->get_meta( 'amazon_timed_out_transaction' ) ) {
-			WC_Amazon_Payments_Advanced_API::handle_async_ipn_order_reference_payload( $notification_data, $order );
+			WC_Amazon_Payments_Advanced_API_Legacy::handle_async_ipn_order_reference_payload( $notification_data, $order );
 		}
 	}
 
