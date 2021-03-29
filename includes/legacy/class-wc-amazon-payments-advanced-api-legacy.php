@@ -853,4 +853,55 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		return true;
 	}
 
+	/**
+	 * Cancels a previously confirmed order reference.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param WC_Order $order  WC Order object.
+	 * @param string   $reason Reason for the cancellation.
+	 *
+	 * @return bool|WP_Error Return true when succeed. Otherwise WP_Error is returned.
+	 */
+	public static function cancel_order_reference( $order, $reason = '' ) {
+		$order    = wc_get_order( $order );
+		$order_id = wc_apa_get_order_prop( $order, 'id' );
+		if ( ! $order ) {
+			return new WP_Error( 'invalid_order', __( 'Invalid order ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		if ( 'amazon_payments_advanced' !== wc_apa_get_order_prop( $order, 'payment_method' ) ) {
+			return new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		$amazon_reference_id = get_post_meta( $order_id, 'amazon_reference_id', true );
+		if ( ! $amazon_reference_id ) {
+			return new WP_Error( 'order_missing_amazon_reference_id', __( 'Order missing Amazon reference ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		$request_args = array(
+			'Action'                 => 'CancelOrderReference',
+			'AmazonOrderReferenceId' => $amazon_reference_id,
+		);
+
+		if ( $reason ) {
+			$request_args['CancelationReason'] = $reason;
+		}
+
+		$response = self::request( $request_args );
+
+		// @codingStandardsIgnoreStart
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		} elseif ( isset( $response->Error->Message ) ) {
+			$order->add_order_note( (string) $response->Error->Message );
+
+			$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
+			return new WP_Error( $code, (string) $response->Error->Message );
+		}
+		// @codingStandardsIgnoreEnd
+
+		return true;
+	}
+
 }

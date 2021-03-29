@@ -512,7 +512,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			// Cancel order.
 			$order->update_status( 'cancelled', __( 'Could not authorize Amazon payment. Failure on MFA (Multi-Factor Authentication) challenge.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			// Cancel order on amazon.
-			WC_Amazon_Payments_Advanced_API::cancel_order_reference( $order, 'MFA Failure' );
+			WC_Amazon_Payments_Advanced_API_Legacy::cancel_order_reference( $order, 'MFA Failure' );
 
 			// Redirect to cart and amazon logout.
 			$redirect = add_query_arg(
