@@ -416,7 +416,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return $resp;
 		}
 
-		$result = WC_Amazon_Payments_Advanced_API::handle_payment_capture_response( $resp, $order_id );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_capture_response( $resp, $order_id );
 		if ( $result ) {
 			$order_closed = WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
 			$order_closed = ( ! is_wp_error( $order_closed ) && $order_closed );

@@ -589,28 +589,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Handle the result of a capture request.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param object       $response Response from self::request().
-	 * @param int|WC_Order $order    Order ID or object.
-	 *
-	 * @return bool whether or not payment was captured.
-	 */
-	public static function handle_payment_capture_response( $response, $order ) {
-		$order = wc_get_order( $order );
-
-		if ( is_wp_error( $response ) ) {
-			$order->add_order_note( sprintf( __( 'Error: Unable to capture funds with Amazon Pay. Reason: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
-
-			return false;
-		}
-
-		return self::update_order_from_capture_response( $order, $response );
-	}
-
-	/**
 	 * Update order from capture response.
 	 *
 	 * @since 1.6.0
