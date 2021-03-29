@@ -1520,7 +1520,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function refresh_cached_charge_permission_status( WC_Order $order, $charge_permission = null ) {
 		if ( ! is_object( $charge_permission ) ) {
 			$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
-			$charge_permission    = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
+			if ( empty( $charge_permission_id ) ) {
+				return new WP_Error( 'no_charge_permission', 'You cannot refresh this order\'s charge_permission, as it has no charge_permission_id, and you didn\'t specify a charge permission object' );
+			}
+
+			$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
 		} else {
 			$charge_permission_id = $charge_permission->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		}
@@ -1558,7 +1562,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function refresh_cached_charge_status( WC_Order $order, $charge = null ) {
 		if ( ! is_object( $charge ) ) {
 			$charge_id = $order->get_meta( 'amazon_charge_id' );
-			$charge    = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+			if ( empty( $charge_id ) ) {
+				return new WP_Error( 'no_charge', 'You cannot refresh this order\'s charge, as it has no charge_id, and you didn\'t specify a charge object' );
+			}
+
+			$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
 		}
 
 		$charge_status = $this->format_status_details( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
