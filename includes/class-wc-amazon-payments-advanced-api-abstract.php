@@ -589,46 +589,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Close authorization.
-	 *
-	 * @param int    $order_id                Order ID.
-	 * @param string $amazon_authorization_id Authorization ID.
-	 *
-	 * @return bool|WP_Error True if succeed. Otherwise WP_Error is returned
-	 */
-	public static function close_authorization( $order_id, $amazon_authorization_id ) {
-		$order = new WC_Order( $order_id );
-
-		if ( 'amazon_payments_advanced' === wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			$response = self::request(
-				array(
-					'Action'                => 'CloseAuthorization',
-					'AmazonAuthorizationId' => $amazon_authorization_id,
-				)
-			);
-
-			// @codingStandardsIgnoreStart
-			if ( is_wp_error( $response ) ) {
-				$ret = $response;
-			} elseif ( isset( $response->Error->Message ) ) {
-				$order->add_order_note( (string) $response->Error->Message );
-				$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
-				$ret = new WP_Error( $code, (string) $response->Error->Message );
-			} else {
-				delete_post_meta( $order_id, 'amazon_authorization_id' );
-
-				$order->add_order_note( sprintf( __( 'Authorization closed (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_authorization_id ) );
-				$ret = true;
-			}
-			// @codingStandardsIgnoreEnd
-		} else {
-			$ret = new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		return $ret;
-	}
-
-	/**
 	 * Capture payment.
 	 *
 	 * @see https://payments.amazon.com/documentation/apireference/201752040

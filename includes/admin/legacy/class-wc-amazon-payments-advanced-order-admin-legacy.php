@@ -53,7 +53,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				// $id is authorization reference.
 				wc_apa()->log( 'Info: Trying to close authorization ' . $id );
 
-				WC_Amazon_Payments_Advanced_API::close_authorization( $order_id, $id );
+				WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $order_id, $id );
 				$this->clear_stored_states( $order_id );
 				break;
 			case 'capture':

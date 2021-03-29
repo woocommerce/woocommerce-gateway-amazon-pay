@@ -369,7 +369,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 
 		$order_id = (int) $request['order_id'];
 		$auth_id  = get_post_meta( $order_id, 'amazon_authorization_id', true );
-		$resp     = WC_Amazon_Payments_Advanced_API::close_authorization( $order_id, $auth_id );
+		$resp     = WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $order_id, $auth_id );
 		if ( is_wp_error( $resp ) ) {
 			return $resp;
 		}
