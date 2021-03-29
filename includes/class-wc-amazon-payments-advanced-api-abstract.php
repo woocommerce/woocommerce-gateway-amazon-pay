@@ -577,13 +577,13 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 * @deprecated
 	 */
 	public static function maybe_update_billing_details( $order_id, $result ) {
-		_deprecated_function( 'WC_Amazon_Payments_Advanced_API::maybe_update_billing_details', '1.6.0', 'WC_Amazon_Payments_Advanced_API::update_order_billing_address' );
+		_deprecated_function( 'WC_Amazon_Payments_Advanced_API::maybe_update_billing_details', '1.6.0', 'WC_Amazon_Payments_Advanced_API_Legacy::update_order_billing_address' );
 
 		// @codingStandardsIgnoreStart
 		if ( ! empty( $result->AuthorizationBillingAddress ) ) {
 			$address = (array) $result->AuthorizationBillingAddress;
 
-			self::update_order_billing_address( $order_id, $address );
+			WC_Amazon_Payments_Advanced_API_Legacy::update_order_billing_address( $order_id, $address );
 		}
 		// @codingStandardsIgnoreEnd
 	}
@@ -612,60 +612,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			$amazon_reference_id = get_post_meta( $order_id, 'amazon_reference_id', true );
 			do_action( 'wc_amazon_async_authorize', $order, $amazon_reference_id );
 		}
-	}
-
-	/**
-	 * Update order billing address.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param int   $order_id Order ID.
-	 * @param array $address  Billing address.
-	 *
-	 * @return bool
-	 */
-	public static function update_order_billing_address( $order_id, $address = array() ) {
-		// Format address and map to WC fields.
-		$address_lines = array();
-
-		if ( ! empty( $address['AddressLine1'] ) ) {
-			$address_lines[] = $address['AddressLine1'];
-		}
-		if ( ! empty( $address['AddressLine2'] ) ) {
-			$address_lines[] = $address['AddressLine2'];
-		}
-		if ( ! empty( $address['AddressLine3'] ) ) {
-			$address_lines[] = $address['AddressLine3'];
-		}
-
-		if ( 3 === count( $address_lines ) ) {
-			update_post_meta( $order_id, '_billing_company', $address_lines[0] );
-			update_post_meta( $order_id, '_billing_address_1', $address_lines[1] );
-			update_post_meta( $order_id, '_billing_address_2', $address_lines[2] );
-		} elseif ( 2 === count( $address_lines ) ) {
-			update_post_meta( $order_id, '_billing_address_1', $address_lines[0] );
-			update_post_meta( $order_id, '_billing_address_2', $address_lines[1] );
-		} elseif ( count( $address_lines ) ) {
-			update_post_meta( $order_id, '_billing_address_1', $address_lines[0] );
-		}
-
-		if ( isset( $address['City'] ) ) {
-			update_post_meta( $order_id, '_billing_city', $address['City'] );
-		}
-
-		if ( isset( $address['PostalCode'] ) ) {
-			update_post_meta( $order_id, '_billing_postcode', $address['PostalCode'] );
-		}
-
-		if ( isset( $address['StateOrRegion'] ) ) {
-			update_post_meta( $order_id, '_billing_state', $address['StateOrRegion'] );
-		}
-
-		if ( isset( $address['CountryCode'] ) ) {
-			update_post_meta( $order_id, '_billing_country', $address['CountryCode'] );
-		}
-
-		return true;
 	}
 
 	/**
