@@ -77,7 +77,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			update_post_meta( $order_id, 'woocommerce_version', WC()->version );
 
 			// Check if we are under SCA.
-			$is_sca = WC_Amazon_Payments_Advanced_API::is_sca_region();
+			$is_sca = WC_Amazon_Payments_Advanced_API_Legacy::is_sca_region();
 
 			if ( 'skip' !== $amazon_billing_agreement_details ) {
 				// Set the Billing Agreement Details.

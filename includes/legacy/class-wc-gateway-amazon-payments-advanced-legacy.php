@@ -333,7 +333,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			}
 
 			// Check if we are under SCA.
-			$is_sca = WC_Amazon_Payments_Advanced_API::is_sca_region();
+			$is_sca = WC_Amazon_Payments_Advanced_API_Legacy::is_sca_region();
 			// Confirm order reference.
 			$this->confirm_order_reference( $amazon_reference_id, $is_sca );
 
@@ -1827,7 +1827,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		}
 
 		// SCA support. If Merchant is European Region and Order does not contain or is a subscriptions.
-		$params['is_sca'] = ( WC_Amazon_Payments_Advanced_API::is_sca_region() );
+		$params['is_sca'] = ( WC_Amazon_Payments_Advanced_API_Legacy::is_sca_region() );
 		if ( $params['is_sca'] ) {
 			$params['sca_nonce'] = wp_create_nonce( 'sca_nonce' );
 		}

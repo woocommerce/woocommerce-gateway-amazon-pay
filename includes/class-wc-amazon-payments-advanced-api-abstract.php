@@ -265,18 +265,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * If merchant is eu payment region (eu & uk).
-	 *
-	 * @return bool
-	 */
-	public static function is_sca_region() {
-		return apply_filters(
-			'woocommerce_amazon_payments_is_sca_region',
-			( 'eu' === self::get_region() || 'gb' === self::get_region() )
-		);
-	}
-
-	/**
 	 * Get the label of payment region from setting.
 	 *
 	 * @since 1.8.0

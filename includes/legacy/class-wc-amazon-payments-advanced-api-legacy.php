@@ -206,4 +206,16 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		return $value;
 	}
 
+	/**
+	 * If merchant is eu payment region (eu & uk).
+	 *
+	 * @return bool
+	 */
+	public static function is_sca_region() {
+		return apply_filters(
+			'woocommerce_amazon_payments_is_sca_region',
+			( 'eu' === self::get_region() || 'gb' === self::get_region() )
+		);
+	}
+
 }
