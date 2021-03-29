@@ -793,53 +793,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Update order from authorization response.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param WC_Order $order       Order object.
-	 * @param Object   $response    Response from self::request.
-	 * @param bool     $capture_now Whether to capture immediately.
-	 *
-	 * @return bool Returns true if succeed.
-	 */
-	public static function update_order_from_authorize_response( $order, $response, $capture_now = false ) {
-		$auth_id = self::get_auth_id_from_response( $response );
-		if ( ! $auth_id ) {
-			return false;
-		}
-		$amazon_reference_id = self::get_reference_id_from_response( $response );
-
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		update_post_meta( $order_id, 'amazon_authorization_id', $auth_id );
-
-		// This is true only on AuthorizeOnBillingAgreement, for the recurring payments.
-		if ( $amazon_reference_id ) {
-			update_post_meta( $order_id, 'amazon_reference_id', $amazon_reference_id );
-		}
-		self::update_order_billing_address( $order_id, self::get_billing_address_from_response( $response ) );
-
-		$state = self::get_auth_state_from_reponse( $response );
-		if ( 'declined' === $state ) {
-			$order->add_order_note( sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), self::get_auth_state_reason_code_from_response( $response ) ) );
-			// Payment was not authorized.
-			return false;
-		}
-
-		if ( $capture_now ) {
-			update_post_meta( $order_id, 'amazon_capture_id', str_replace( '-A', '-C', $auth_id ) );
-
-			$order->add_order_note( sprintf( __( 'Captured (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), str_replace( '-A', '-C', $auth_id ) ) );
-			$order->payment_complete();
-		} else {
-			$order->add_order_note( sprintf( __( 'Authorized (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
-		}
-
-		return true;
-	}
-
-	/**
 	 * Cancels a previously confirmed order reference.
 	 *
 	 * @since 1.7.0
