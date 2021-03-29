@@ -385,7 +385,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @throws Exception Error from API response.
 	 *
 	 * @param string $context                     Context.
-	 * @param object $response                    API response from self::request().
+	 * @param object $response                    API response from WC_Amazon_Payments_Advanced_API::request().
 	 * @param int    $order_id                    Order ID.
 	 * @param string $amazon_billing_agreement_id Billing agreement ID.
 	 */

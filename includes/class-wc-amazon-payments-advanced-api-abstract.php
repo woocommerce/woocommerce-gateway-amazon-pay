@@ -443,7 +443,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return string Sanitized log message.
 	 */
-	public static function sanitize_remote_response_log( $message ) {
+	private static function sanitize_remote_response_log( $message ) {
 		if ( ! is_a( $message, 'SimpleXMLElement' ) ) {
 			return (string) $message;
 		}
@@ -490,7 +490,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return string Sanitized log message
 	 */
-	public static function sanitize_remote_request_log( $message ) {
+	private static function sanitize_remote_request_log( $message ) {
 		$patterns    = array();
 		$patterns[0] = '/(AWSAccessKeyId=)(.+)(&)/ms';
 		$patterns[0] = '/(SellerNote=)(.+)(&)/ms';
@@ -515,7 +515,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @return string
 	 */
-	public static function get_signed_amazon_url( $url, $secret_key ) {
+	private static function get_signed_amazon_url( $url, $secret_key ) {
 		$urlparts = wp_parse_url( $url );
 
 		// Build $params with each name/value pair.
