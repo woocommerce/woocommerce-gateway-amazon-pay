@@ -161,4 +161,49 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		return self::check_session( 'access_token', $access_token );
 	}
 
+	/**
+	 * Check WC session for reference ID or access token.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @param string $key   Key from query string in URL.
+	 * @param string $value Value from query string in URL.
+	 *
+	 * @return string
+	 */
+	private static function check_session( $key, $value ) {
+		if ( ! in_array( $key, array( 'amazon_reference_id', 'access_token' ), true ) ) {
+			return $value;
+		}
+
+		// Since others might call the get_reference_id or get_access_token
+		// too early, WC instance may not exists.
+		if ( ! function_exists( 'WC' ) ) {
+			return $value;
+		}
+		if ( ! is_a( WC()->session, 'WC_Session' ) ) {
+			return $value;
+		}
+
+		if ( false === strstr( $key, 'amazon_' ) ) {
+			$key = 'amazon_' . $key;
+		}
+
+		// Set and unset reference ID or access token to/from WC session.
+		if ( ! empty( $value ) ) {
+			// Set access token or reference ID in session after redirected
+			// from Amazon Pay window.
+			if ( ! empty( $_GET['amazon_payments_advanced'] ) ) {
+				WC()->session->{ $key } = $value;
+			}
+		} else {
+			// Don't get anything in URL, check session.
+			if ( ! empty( WC()->session->{ $key } ) ) {
+				$value = WC()->session->{ $key };
+			}
+		}
+
+		return $value;
+	}
+
 }
