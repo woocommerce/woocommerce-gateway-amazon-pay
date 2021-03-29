@@ -397,20 +397,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return $error;
 		}
 
-		return $this->capture_order( (int) $request['order_id'] );
-	}
+		$order_id = (int) $request['order_id'];
 
-	/**
-	 * Capture the order.
-	 *
-	 * @param int $order_id Order ID.
-	 *
-	 * @return WP_Error|WP_HTTP_Response WP_Error if response generated an error,
-	 *                                   WP_HTTP_Response if response is already
-	 *                                   an instance, otherwise returns a new
-	 *                                   WP_REST_Response instance.
-	 */
-	protected function capture_order( $order_id ) {
 		$resp = WC_Amazon_Payments_Advanced_API_Legacy::capture( $order_id );
 		if ( is_wp_error( $resp ) ) {
 			return $resp;
@@ -447,24 +435,10 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return $error;
 		}
 
-		$reason = ! empty( $request['reason'] ) ? $request['reason'] : null;
+		$order_id = (int) $request['order_id'];
+		$amount   = $request['amount'];
+		$reason   = ! empty( $request['reason'] ) ? $request['reason'] : null;
 
-		return $this->refund_order( (int) $request['order_id'], $request['amount'], $reason );
-	}
-
-	/**
-	 * Refund the order.
-	 *
-	 * @param int    $order_id Order ID.
-	 * @param string $amount   Amount to refund.
-	 * @param string $reason   Reason for refund.
-	 *
-	 * @return WP_Error|WP_HTTP_Response WP_Error if response generated an error,
-	 *                                   WP_HTTP_Response if response is already
-	 *                                   an instance, otherwise returns a new
-	 *                                   WP_REST_Response instance.
-	 */
-	protected function refund_order( $order_id, $amount, $reason = null ) {
 		if ( 0 > $amount ) {
 			return new WP_Error( 'woocommerce_rest_invalid_order_refund', __( 'Refund amount must be greater than zero.', 'woocommerce-gateway-amazon-payments-advanced' ), 400 );
 		}
