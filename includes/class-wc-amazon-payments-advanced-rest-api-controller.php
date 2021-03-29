@@ -470,7 +470,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		}
 
 		$amazon_capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
-		$refunded          = WC_Amazon_Payments_Advanced_API::refund_payment( $order_id, $amazon_capture_id, $amount, $reason );
+		$refunded          = WC_Amazon_Payments_Advanced_API_Legacy::refund_payment( $order_id, $amazon_capture_id, $amount, $reason );
 
 		$ret = array( 'refunded' => $refunded );
 		if ( $refunded ) {

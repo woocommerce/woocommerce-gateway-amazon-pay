@@ -589,63 +589,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Refund a payment
-	 *
-	 * @param int    $order_id   Order ID.
-	 * @param string $capture_id Refund ID.
-	 * @param float  $amount     Amount to refund.
-	 * @param stirng $note       Refund note.
-	 *
-	 * @return bool Returns true if succeed.
-	 */
-	public static function refund_payment( $order_id, $capture_id, $amount, $note ) {
-		$order = new WC_Order( $order_id );
-		$ret   = false;
-
-		if ( 'amazon_payments_advanced' === wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			if ( 'US' === WC()->countries->get_base_country() && $amount > $order->get_total() ) {
-				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), __( 'Refund amount is greater than order total.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
-
-				return false;
-			} elseif ( $amount > min( ( $order->get_total() * 1.15 ), ( $order->get_total() + 75 ) ) ) {
-				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), __( 'Refund amount is greater than the max refund amount.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
-
-				return false;
-			}
-
-			$response = self::request(
-				array(
-					'Action'                    => 'Refund',
-					'AmazonCaptureId'           => $capture_id,
-					'RefundReferenceId'         => $order_id . '-' . time(),
-					'RefundAmount.Amount'       => $amount,
-					'RefundAmount.CurrencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
-					'SellerRefundNote'          => $note,
-				)
-			);
-
-			// @codingStandardsIgnoreStart
-			if ( is_wp_error( $response ) ) {
-				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
-			} elseif ( isset( $response->Error->Message ) ) {
-				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), (string) $response->Error->Message ) );
-			} else {
-				$refund_id = (string) $response->RefundResult->RefundDetails->AmazonRefundId;
-
-				/* Translators: 1: refund amount, 2: refund note */
-				$order->add_order_note( sprintf( __( 'Refunded %1$s (%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), wc_price( $amount ), $note ) );
-
-				add_post_meta( $order_id, 'amazon_refund_id', $refund_id );
-
-				$ret = true;
-			}
-			// @codingStandardsIgnoreEnd
-		}
-
-		return $ret;
-	}
-
-	/**
 	 * Get order ID from reference ID.
 	 *
 	 * @param string $reference_id Reference ID.
