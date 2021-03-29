@@ -589,100 +589,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Authorize payment against an order reference using 'Authorize' method.
-	 *
-	 * @see https://payments.amazon.com/documentation/apireference/201752010
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param int|WC_Order $order Order.
-	 * @param array        $args  Arguments.
-	 *
-	 * @return bool|WP_Error|SimpleXMLElement Response.
-	 */
-	public static function authorize( $order, $args = array() ) {
-		$order = wc_get_order( $order );
-		if ( ! $order ) {
-			return new WP_Error( 'invalid_order', __( 'Invalid order.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		if ( 'amazon_payments_advanced' !== wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			return new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		$args     = wp_parse_args(
-			$args,
-			array(
-				'amazon_reference_id' => get_post_meta( $order_id, 'amazon_reference_id', true ),
-				'capture_now'         => false,
-			)
-		);
-
-		if ( ! $args['amazon_reference_id'] ) {
-			return new WP_Error( 'order_missing_reference_id', __( 'Order missing Amazon order reference ID.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$response = self::request( self::get_authorize_request_args( $order, $args ) );
-
-		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		if ( isset( $response->Error->Message ) ) {
-			$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
-			return new WP_Error( $code, (string) $response->Error->Message );
-		}
-
-		if ( isset( $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->State ) ) {
-			$code = isset( $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->ReasonCode )
-				? (string) $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->ReasonCode
-				: '';
-
-			switch ( $code ) {
-				case 'InvalidPaymentMethod':
-					return new WP_Error( $code, __( 'The selected payment method was declined. Please try different payment method.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-				case 'AmazonRejected':
-				case 'ProcessingFailure':
-				case 'TransactionTimedOut':
-					// If the transaction timed out and async authorization is enabled then just return here, leaving
-					// the transaction pending. We'll let the calling code trigger an async authorization.
-					$authorization_mode = self::get_authorization_mode();
-					if ( 'TransactionTimedOut' === $code && 'async' === $authorization_mode ) {
-						return new WP_Error( $code );
-					}
-
-					// Now we know that we definitely want to cancel the order reference, let's do that and return an
-					// appropriate error message.
-					$result = self::cancel_order_reference( $order, $code );
-
-					// Invalid order or missing order reference which unlikely
-					// to happen, but log in case happens.
-					$failed_before_api_request = (
-						is_wp_error( $result )
-						&&
-						in_array( $result->get_error_code(), array( 'invalid_order', 'order_missing_amazon_reference_id' ), true )
-					);
-					if ( $failed_before_api_request ) {
-						wc_apa()->log( sprintf( 'Failed to cancel order reference: %s', $result->get_error_message() ) );
-					}
-
-					$redirect_url = add_query_arg(
-						array(
-							'amazon_payments_advanced' => 'true',
-							'amazon_logout'            => 'true',
-							'amazon_declined'          => 'true',
-						),
-						$order->get_cancel_order_url()
-					);
-
-					/* translators: placeholder is redirect URL */
-					return new WP_Error( $code, sprintf( __( 'There was a problem with the selected payment method. Transaction was declined and order will be cancelled. You will be redirected to cart page automatically, if not please click <a href="%s">here</a>.', 'woocommerce-gateway-amazon-payments-advanced' ), $redirect_url ) );
-			}
-		}
-		// phpcs:enable
-
-		return $response;
-	}
-
-	/**
 	 * Get args to perform Authorize request.
 	 *
 	 * @since 1.6.0
@@ -782,29 +688,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
 			'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
 		);
-	}
-
-	/**
-	 * Authorize payment against an order reference using 'Authorize' method.
-	 *
-	 * @see: https://payments.amazon.com/documentation/apireference/201752010
-	 *
-	 * @param int    $order_id            Order ID.
-	 * @param string $amazon_reference_id Amazon reference ID.
-	 * @param bool   $capture_now         Whether to immediately capture or not.
-	 *
-	 * @return bool See return value of self::handle_payment_authorization_response.
-	 */
-	public static function authorize_payment( $order_id, $amazon_reference_id, $capture_now = false ) {
-		$response = self::authorize(
-			$order_id,
-			array(
-				'amazon_reference_id' => $amazon_reference_id,
-				'capture_now'         => $capture_now,
-			)
-		);
-
-		return self::handle_payment_authorization_response( $response, $order_id, $capture_now );
 	}
 
 	/**

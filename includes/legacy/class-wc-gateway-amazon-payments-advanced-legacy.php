@@ -498,7 +498,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
-		$result = WC_Amazon_Payments_Advanced_API::authorize( $order_id, $authorize_args );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
 		if ( is_wp_error( $result ) ) {
 			$this->process_payment_check_declined_error( $order_id, $result );
 		}
@@ -542,7 +542,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			'transaction_timeout' => 1440,
 		);
 		$order_id       = wc_apa_get_order_prop( $order, 'id' );
-		return WC_Amazon_Payments_Advanced_API::authorize( $order_id, $authorize_args );
+		return WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
 	}
 
 	/**
@@ -566,7 +566,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
-		$result = WC_Amazon_Payments_Advanced_API::authorize( $order_id, $authorize_args );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
 		if ( is_wp_error( $result ) ) {
 			$this->process_payment_check_declined_error( $order_id, $result );
 		}
