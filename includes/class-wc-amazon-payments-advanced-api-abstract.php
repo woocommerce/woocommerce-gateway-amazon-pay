@@ -589,17 +589,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Get order language from order metadata.
-	 *
-	 * @param string $order_id Order ID.
-	 *
-	 * @return string
-	 */
-	public static function get_order_language( $order_id ) {
-		return get_post_meta( $order_id, 'amazon_order_language', true );
-	}
-
-	/**
 	 * Authorize payment against an order reference using 'Authorize' method.
 	 *
 	 * @see https://payments.amazon.com/documentation/apireference/201752010

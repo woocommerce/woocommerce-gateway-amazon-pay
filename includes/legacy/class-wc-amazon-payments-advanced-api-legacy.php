@@ -404,7 +404,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					update_post_meta( $order_id, 'amazon_authorization_state', 'Suspended' );
 					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
-					$message = wc_get_template_html( 'emails/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
+					$message = wc_get_template_html( 'emails/legacy/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
 					wc_apa()->log( 'EMAIL ' . $message );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
@@ -484,7 +484,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					update_post_meta( $order_id, 'amazon_authorization_state', 'Suspended' );
 					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
-					$message = wc_get_template_html( 'emails/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
+					$message = wc_get_template_html( 'emails/legacy/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
 					wc_apa()->log( 'EMAIL ' . $message );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
@@ -524,6 +524,17 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 				break;
 		}
 		return $authorization_status;
+	}
+
+	/**
+	 * Get order language from order metadata.
+	 *
+	 * @param string $order_id Order ID.
+	 *
+	 * @return string
+	 */
+	public static function get_order_language( $order_id ) {
+		return get_post_meta( $order_id, 'amazon_order_language', true );
 	}
 
 }
