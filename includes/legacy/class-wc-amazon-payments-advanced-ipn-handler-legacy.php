@@ -312,7 +312,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 				unset( $refund_parts[3] );
 
 				$order_ref = implode( '-', $refund_parts );
-				$order_id  = WC_Amazon_Payments_Advanced_API::get_order_id_from_reference_id( $order_ref );
+				$order_id  = WC_Amazon_Payments_Advanced_API_Legacy::get_order_id_from_reference_id( $order_ref );
 
 				// When no order stores refund reference ID, checks RefundReferenceId.
 				if ( ! $order_id ) {

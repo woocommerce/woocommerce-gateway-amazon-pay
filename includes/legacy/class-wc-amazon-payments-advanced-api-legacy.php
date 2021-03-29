@@ -1399,4 +1399,33 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		return $ret;
 	}
 
+	/**
+	 * Get order ID from reference ID.
+	 *
+	 * @param string $reference_id Reference ID.
+	 *
+	 * @return int Order ID.
+	 */
+	public static function get_order_id_from_reference_id( $reference_id ) {
+		global $wpdb;
+
+		$order_id = $wpdb->get_var(
+			$wpdb->prepare(
+				"
+			SELECT post_id
+			FROM $wpdb->postmeta
+			WHERE meta_key = 'amazon_reference_id'
+			AND meta_value = %s
+		",
+				$reference_id
+			)
+		);
+
+		if ( ! is_wp_error( $order_id ) ) {
+			return $order_id;
+		}
+
+		return 0;
+	}
+
 }
