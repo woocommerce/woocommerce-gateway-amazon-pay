@@ -254,21 +254,35 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return new WP_Error( 'woocommerce_rest_order_invalid_id', __( 'Invalid order ID.', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 404 ) );
 		}
 
+		$order = wc_get_order( $order_post->ID );
+
 		// If `refresh=1` is passed, cache ref states will be cleared so it
 		// makes a call to Amazon to get the details.
 		if ( ! empty( $request['refresh'] ) ) {
 			delete_post_meta( $order_post->ID, 'amazon_reference_state' );
 			delete_post_meta( $order_post->ID, 'amazon_capture_state' );
 			delete_post_meta( $order_post->ID, 'amazon_authorization_state' );
+			wc_apa()->get_gateway()->refresh_cached_charge_permission_status( $order );
+			wc_apa()->get_gateway()->get_cached_charge_status( $order );
 		}
 
+		$charge_permission_id            = $order->get_meta( 'amazon_charge_permission_id' );
+		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order, true );
+
+		$charge_id            = $order->get_meta( 'amazon_charge_id' );
+		$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order, true );
+
 		$ref_detail = array(
-			'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_reference_state' ),
-			'amazon_reference_id'        => get_post_meta( $order_post->ID, 'amazon_reference_id', true ),
-			'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_authorization_state' ),
-			'amazon_authorization_id'    => get_post_meta( $order_post->ID, 'amazon_authorization_id', true ),
-			'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_capture_state' ),
-			'amazon_capture_id'          => get_post_meta( $order_post->ID, 'amazon_capture_id', true ),
+			'amazon_reference_state'         => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_reference_state' ),
+			'amazon_reference_id'            => get_post_meta( $order_post->ID, 'amazon_reference_id', true ),
+			'amazon_authorization_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_authorization_state' ),
+			'amazon_authorization_id'        => get_post_meta( $order_post->ID, 'amazon_authorization_id', true ),
+			'amazon_capture_state'           => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_capture_state' ),
+			'amazon_capture_id'              => get_post_meta( $order_post->ID, 'amazon_capture_id', true ),
+			'amazon_charge_permission_state' => $charge_permission_cached_status->status ? $charge_permission_cached_status->status : '',
+			'amazon_charge_permission_id'    => $charge_permission_id,
+			'amazon_charge_state'            => $charge_cached_status->status ? $charge_cached_status->status : '',
+			'amazon_charge_id'               => $charge_id,
 		);
 
 		return rest_ensure_response( $ref_detail );
