@@ -589,34 +589,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Get args to perform Authorize request.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param WC_Order $order Order object.
-	 * @param array    $args  Base args.
-	 */
-	public static function get_authorize_request_args( WC_Order $order, $args ) {
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		return apply_filters(
-			'woocommerce_amazon_pa_authorize_request_args',
-			array(
-				'Action'                              => 'Authorize',
-				'AmazonOrderReferenceId'              => $args['amazon_reference_id'],
-				'AuthorizationReferenceId'            => $order_id . '-' . time(),
-				'AuthorizationAmount.Amount'          => $order->get_total(),
-				'AuthorizationAmount.CurrencyCode'    => wc_apa_get_order_prop( $order, 'order_currency' ),
-				'CaptureNow'                          => $args['capture_now'],
-				'TransactionTimeout'                  => ( isset( $args['transaction_timeout'] ) ) ? $args['transaction_timeout'] : 0,
-				'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
-				'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
-				// 'SellerAuthorizationNote'          => '{"SandboxSimulation": {"State":"Declined", "ReasonCode":"AmazonRejected"}}'
-			)
-		);
-	}
-
-	/**
 	 * Authorize recurring payment against an order reference using
 	 * 'AuthorizeOnBillingAgreement' method.
 	 *
