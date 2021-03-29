@@ -1314,4 +1314,32 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		return self::update_order_from_capture_response( $order, $response );
 	}
 
+	/**
+	 * Update order from capture response.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @param WC_Order $order    Order object.
+	 * @param Object   $response Response from self::request.
+	 *
+	 * @return bool Returns true if succeed.
+	 */
+	public static function update_order_from_capture_response( $order, $response ) {
+		// @codingStandardsIgnoreStart
+		$capture_id = (string) $response->CaptureResult->CaptureDetails->AmazonCaptureId;
+		$order_id   = wc_apa_get_order_prop( $order, 'id' );
+		if ( ! $capture_id ) {
+			return false;
+		}
+		// @codingStandardsIgnoreEnd
+
+		$order->add_order_note( sprintf( __( 'Capture Attempted (Capture ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $capture_id ) );
+
+		update_post_meta( $order_id, 'amazon_capture_id', $capture_id );
+
+		$order->payment_complete();
+
+		return true;
+	}
+
 }
