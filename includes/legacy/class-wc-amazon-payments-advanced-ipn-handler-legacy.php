@@ -153,7 +153,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		// @codingStandardsIgnoreEnd
 
 		if ( $order->get_meta( 'amazon_timed_out_transaction' ) ) {
-			WC_Amazon_Payments_Advanced_API::handle_async_ipn_payment_authorization_payload( $notification_data, $order );
+			WC_Amazon_Payments_Advanced_API_Legacy::handle_async_ipn_payment_authorization_payload( $notification_data, $order );
 		}
 	}
 
@@ -355,7 +355,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 				)
 			);
 			if ( $order->get_meta( 'amazon_timed_out_transaction' ) ) {
-				WC_Amazon_Payments_Advanced_API::handle_synch_payment_authorization_payload( $response, $order, $amazon_authorization_id );
+				WC_Amazon_Payments_Advanced_API_Legacy::handle_synch_payment_authorization_payload( $response, $order, $amazon_authorization_id );
 			}
 		} catch ( Exception $e ) {
 			/* translators: placeholder is error message from Amazon Pay API */
