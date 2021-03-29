@@ -437,7 +437,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		// Make an ASYNC Authorize API call using a TransactionTimeout of 1440.
 		$response = $this->process_payment_with_async_authorize( $order, $amazon_reference_id );
 
-		$amazon_authorization_id = WC_Amazon_Payments_Advanced_API::get_auth_id_from_response( $response );
+		$amazon_authorization_id = WC_Amazon_Payments_Advanced_API_Legacy::get_auth_id_from_response( $response );
 		$args                    = array(
 			'order_id'                => $order->get_id(),
 			'amazon_authorization_id' => $amazon_authorization_id,
@@ -498,12 +498,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
-		$result = WC_Amazon_Payments_Advanced_API::authorize( $order_id, $authorize_args );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
 		if ( is_wp_error( $result ) ) {
 			$this->process_payment_check_declined_error( $order_id, $result );
 		}
 
-		$result = WC_Amazon_Payments_Advanced_API::handle_payment_authorization_response( $result, $order_id, false );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $result, $order_id, false );
 		if ( $result ) {
 			// Mark as on-hold.
 			$order->update_status( 'on-hold', __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
@@ -542,7 +542,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			'transaction_timeout' => 1440,
 		);
 		$order_id       = wc_apa_get_order_prop( $order, 'id' );
-		return WC_Amazon_Payments_Advanced_API::authorize( $order_id, $authorize_args );
+		return WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
 	}
 
 	/**
@@ -566,12 +566,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
-		$result = WC_Amazon_Payments_Advanced_API::authorize( $order_id, $authorize_args );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
 		if ( is_wp_error( $result ) ) {
 			$this->process_payment_check_declined_error( $order_id, $result );
 		}
 
-		$result = WC_Amazon_Payments_Advanced_API::handle_payment_authorization_response( $result, $order_id, true );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $result, $order_id, true );
 		if ( $result ) {
 			// Payment complete.
 			$order->payment_complete();
@@ -965,7 +965,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			// Cancel order.
 			$order->update_status( 'cancelled', __( 'Could not authorize Amazon payment. Failure on MFA (Multi-Factor Authentication) challenge.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			// Cancel order on amazon.
-			WC_Amazon_Payments_Advanced_API::cancel_order_reference( $order, 'MFA Failure' );
+			WC_Amazon_Payments_Advanced_API_Legacy::cancel_order_reference( $order, 'MFA Failure' );
 
 			// Redirect to cart and amazon logout.
 			$redirect = add_query_arg(

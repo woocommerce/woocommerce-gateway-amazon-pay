@@ -35,7 +35,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				// $id is order reference.
 				wc_apa()->log( 'Info: Trying to authorize payment in order reference ' . $id );
 
-				WC_Amazon_Payments_Advanced_API::authorize_payment( $order_id, $id, false );
+				WC_Amazon_Payments_Advanced_API_Legacy::authorize_payment( $order_id, $id, false );
 				$this->clear_stored_states( $order_id );
 				break;
 			case 'authorize_capture':
@@ -45,7 +45,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				// $id is order reference.
 				wc_apa()->log( 'Info: Trying to authorize and capture payment in order reference ' . $id );
 
-				WC_Amazon_Payments_Advanced_API::authorize_payment( $order_id, $id, true );
+				WC_Amazon_Payments_Advanced_API_Legacy::authorize_payment( $order_id, $id, true );
 				WC_Amazon_Payments_Advanced_API::close_order_reference( $order_id );
 				$this->clear_stored_states( $order_id );
 				break;

@@ -316,7 +316,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 * Authorize specified order.
 	 *
 	 * @param int   $order_id       Order Id.
-	 * @param array $authorize_args Optional args to WC_Amazon_Payments_Advanced_API::authorize.
+	 * @param array $authorize_args Optional args to WC_Amazon_Payments_Advanced_API_Legacy::authorize.
 	 *
 	 * @return WP_Error|WP_HTTP_Response WP_Error if response generated an error,
 	 *                                   WP_HTTP_Response if response is already
@@ -326,12 +326,12 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	protected function authorize_order( $order_id, $authorize_args = array() ) {
 		$authorize_args = wp_parse_args( $authorize_args, array( 'capture_now' => false ) );
 
-		$resp = WC_Amazon_Payments_Advanced_API::authorize( $order_id, $authorize_args );
+		$resp = WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
 		if ( is_wp_error( $resp ) ) {
 			return $resp;
 		}
 
-		$result = WC_Amazon_Payments_Advanced_API::handle_payment_authorization_response( $resp, $order_id, $authorize_args['capture_now'] );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $resp, $order_id, $authorize_args['capture_now'] );
 
 		$ret = array(
 			'authorized'              => $result,
