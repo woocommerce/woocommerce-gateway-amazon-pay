@@ -411,7 +411,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 *                                   WP_REST_Response instance.
 	 */
 	protected function capture_order( $order_id ) {
-		$resp = WC_Amazon_Payments_Advanced_API::capture( $order_id );
+		$resp = WC_Amazon_Payments_Advanced_API_Legacy::capture( $order_id );
 		if ( is_wp_error( $resp ) ) {
 			return $resp;
 		}
