@@ -53,6 +53,39 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	);
 
 	/**
+	 * API Endpoints.
+	 *
+	 * @var array
+	 */
+	protected static $endpoints = array(
+		'sandbox'    => array(
+			'us' => 'https://mws.amazonservices.com/OffAmazonPayments_Sandbox/2013-01-01/',
+			'gb' => 'https://mws-eu.amazonservices.com/OffAmazonPayments_Sandbox/2013-01-01/',
+			'eu' => 'https://mws-eu.amazonservices.com/OffAmazonPayments_Sandbox/2013-01-01/',
+			'jp' => 'https://mws.amazonservices.jp/OffAmazonPayments_Sandbox/2013-01-01/',
+		),
+		'production' => array(
+			'us' => 'https://mws.amazonservices.com/OffAmazonPayments/2013-01-01/',
+			'gb' => 'https://mws-eu.amazonservices.com/OffAmazonPayments/2013-01-01/',
+			'eu' => 'https://mws-eu.amazonservices.com/OffAmazonPayments/2013-01-01/',
+			'jp' => 'https://mws.amazonservices.jp/OffAmazonPayments/2013-01-01/',
+		),
+	);
+
+	/**
+	 * Get API endpoint.
+	 *
+	 * @param bool $is_sandbox Whether using sandbox or not.
+	 *
+	 * @return string
+	 */
+	public static function get_endpoint( $is_sandbox = false ) {
+		$region = self::get_region();
+
+		return $is_sandbox ? self::$endpoints['sandbox'][ $region ] : self::$endpoints['production'][ $region ];
+	}
+
+	/**
 	 * Make an api request.
 	 *
 	 * @param  args $args Arguments.
