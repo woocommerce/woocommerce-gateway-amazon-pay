@@ -331,7 +331,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return $resp;
 		}
 
-		$result = WC_Amazon_Payments_Advanced_API::handle_payment_authorization_response( $resp, $order_id, $authorize_args['capture_now'] );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $resp, $order_id, $authorize_args['capture_now'] );
 
 		$ret = array(
 			'authorized'              => $result,

@@ -778,4 +778,32 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		);
 	}
 
+	/**
+	 * Handle the result of an authorization request.
+	 *
+	 * @param object       $response    Return value from self::request().
+	 * @param int|WC_Order $order       Order object.
+	 * @param bool         $capture_now Whether to capture immediately or not.
+	 * @param string       $auth_method Deprecated. Which API authorization
+	 *                                  method was used (Authorize, or
+	 *                                  AuthorizeOnBillingAgreement).
+	 *
+	 * @return bool Whether or not payment was authorized.
+	 */
+	public static function handle_payment_authorization_response( $response, $order, $capture_now, $auth_method = null ) {
+		$order = wc_get_order( $order );
+
+		if ( null !== $auth_method ) {
+			_deprecated_function( 'WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response', '1.6.0', 'Parameter auth_method is not used anymore' );
+		}
+
+		if ( is_wp_error( $response ) ) {
+			$order->add_order_note( sprintf( __( 'Error: Unable to authorize funds with Amazon. Reason: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
+
+			return false;
+		}
+
+		return self::update_order_from_authorize_response( $order, $response, $capture_now );
+	}
+
 }

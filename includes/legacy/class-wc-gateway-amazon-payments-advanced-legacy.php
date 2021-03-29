@@ -503,7 +503,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			$this->process_payment_check_declined_error( $order_id, $result );
 		}
 
-		$result = WC_Amazon_Payments_Advanced_API::handle_payment_authorization_response( $result, $order_id, false );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $result, $order_id, false );
 		if ( $result ) {
 			// Mark as on-hold.
 			$order->update_status( 'on-hold', __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
@@ -571,7 +571,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			$this->process_payment_check_declined_error( $order_id, $result );
 		}
 
-		$result = WC_Amazon_Payments_Advanced_API::handle_payment_authorization_response( $result, $order_id, true );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $result, $order_id, true );
 		if ( $result ) {
 			// Payment complete.
 			$order->payment_complete();
