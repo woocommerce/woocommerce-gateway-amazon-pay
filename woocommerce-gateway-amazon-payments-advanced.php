@@ -166,8 +166,6 @@ class WC_Amazon_Payments_Advanced {
 		// IPN handler.
 		$this->ipn_handler = new WC_Amazon_Payments_Advanced_IPN_Handler();
 		new WC_Amazon_Payments_Advanced_IPN_Handler_Legacy(); // TODO: Maybe register legacy hooks differently
-		// Synchronous handler.
-		$this->synchro_handler = new WC_Amazon_Payments_Advanced_Synchronous_Handler();
 		// Simple path registration endpoint.
 		$this->onboarding_handler = new WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler();
 		// Third party compatibilities.
