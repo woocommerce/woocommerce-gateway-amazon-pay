@@ -193,7 +193,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 						echo wpautop( sprintf( __( 'Refund %1$s of %2$s is <strong>%3$s</strong> (%4$s).', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_refund_id, wc_price( $refunds[ $amazon_refund_id ]['amount'] ), $refunds[ $amazon_refund_id ]['state'], $refunds[ $amazon_refund_id ]['note'] ) );
 					} else {
 
-						$response = WC_Amazon_Payments_Advanced_API::request(
+						$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
 							array(
 								'Action'         => 'GetRefundDetails',
 								'AmazonRefundId' => $amazon_refund_id,

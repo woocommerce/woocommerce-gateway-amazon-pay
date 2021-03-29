@@ -186,7 +186,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		);
 
 		// Update order reference with amounts.
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
 		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
@@ -223,7 +223,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			$confirm_args['FailureUrl'] = wc_get_checkout_url();
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $confirm_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $confirm_args );
 
 		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
@@ -340,7 +340,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @return WP_Error|array WP_Error or parsed response array.
 	 */
 	private function get_billing_agreement_details( $order_id, $amazon_billing_agreement_id ) {
-		$response = WC_Amazon_Payments_Advanced_API::request(
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
 			array(
 				'Action'                   => 'GetBillingAgreementDetails',
 				'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
@@ -385,7 +385,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @throws Exception Error from API response.
 	 *
 	 * @param string $context                     Context.
-	 * @param object $response                    API response from WC_Amazon_Payments_Advanced_API::request().
+	 * @param object $response                    API response from WC_Amazon_Payments_Advanced_API_Legacy::request().
 	 * @param int    $order_id                    Order ID.
 	 * @param string $amazon_billing_agreement_id Billing agreement ID.
 	 */
@@ -445,7 +445,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API_Legacy::get_access_token();
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 
 		// @codingStandardsIgnoreStart
 		if ( ! is_wp_error( $response ) && isset( $response->GetBillingAgreementDetailsResult->BillingAgreementDetails ) ) {
@@ -618,7 +618,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 				sleep( ( 'yes' === $settings['sandbox'] ) ? 2 : 1 );
 
-				$response = WC_Amazon_Payments_Advanced_API::request(
+				$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
 					array(
 						'Action'                   => 'CloseBillingAgreement',
 						'AmazonBillingAgreementId' => $amazon_billing_agreement_id,

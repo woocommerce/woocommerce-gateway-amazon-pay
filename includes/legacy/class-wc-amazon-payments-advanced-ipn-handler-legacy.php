@@ -348,7 +348,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		}
 
 		try {
-			$response = WC_Amazon_Payments_Advanced_API::request(
+			$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
 				array(
 					'Action'                => 'GetAuthorizationDetails',
 					'AmazonAuthorizationId' => $amazon_authorization_id,

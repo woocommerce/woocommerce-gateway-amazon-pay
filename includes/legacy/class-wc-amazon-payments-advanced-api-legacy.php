@@ -53,6 +53,180 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	);
 
 	/**
+	 * Make an api request.
+	 *
+	 * @param  args $args Arguments.
+	 *
+	 * @return WP_Error|SimpleXMLElement Response.
+	 */
+	public static function request( $args ) {
+		$settings = self::get_settings();
+		$defaults = array(
+			'AWSAccessKeyId' => $settings['mws_access_key'],
+			'SellerId'       => $settings['seller_id'],
+		);
+
+		$args     = apply_filters( 'woocommerce_amazon_pa_api_request_args', wp_parse_args( $args, $defaults ) );
+		$endpoint = self::get_endpoint( 'yes' === $settings['sandbox'] );
+
+		$url = self::get_signed_amazon_url( $endpoint . '?' . http_build_query( $args, '', '&' ), $settings['secret_key'] );
+		wc_apa()->log( sprintf( 'GET: %s', self::sanitize_remote_request_log( $url ) ) );
+
+		$response = wp_remote_get(
+			$url,
+			array(
+				'timeout' => 12,
+			)
+		);
+
+		if ( ! is_wp_error( $response ) ) {
+			$response        = self::safe_load_xml( $response['body'], LIBXML_NOCDATA );
+			$logged_response = self::sanitize_remote_response_log( $response );
+
+			wc_apa()->log( sprintf( 'Response: %s', $logged_response ) );
+		} else {
+			wc_apa()->log( sprintf( 'Error: %s', $response->get_error_message() ) );
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Sanitize log message.
+	 *
+	 * Used to sanitize logged HTTP response message.
+	 *
+	 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/133
+	 * @since 1.6.0
+	 *
+	 * @param mixed $message Log message.
+	 *
+	 * @return string Sanitized log message.
+	 */
+	private static function sanitize_remote_response_log( $message ) {
+		if ( ! is_a( $message, 'SimpleXMLElement' ) ) {
+			return (string) $message;
+		}
+
+		if ( ! is_callable( array( $message, 'asXML' ) ) ) {
+			return '';
+		}
+
+		$message = $message->asXML();
+
+		// Sanitize response message.
+		$patterns    = array();
+		$patterns[0] = '/(<Buyer>)(.+)(<\/Buyer>)/ms';
+		$patterns[1] = '/(<PhysicalDestination>)(.+)(<\/PhysicalDestination>)/ms';
+		$patterns[2] = '/(<BillingAddress>)(.+)(<\/BillingAddress>)/ms';
+		$patterns[3] = '/(<SellerNote>)(.+)(<\/SellerNote>)/ms';
+		$patterns[4] = '/(<AuthorizationBillingAddress>)(.+)(<\/AuthorizationBillingAddress>)/ms';
+		$patterns[5] = '/(<SellerAuthorizationNote>)(.+)(<\/SellerAuthorizationNote>)/ms';
+		$patterns[6] = '/(<SellerCaptureNote>)(.+)(<\/SellerCaptureNote>)/ms';
+		$patterns[7] = '/(<SellerRefundNote>)(.+)(<\/SellerRefundNote>)/ms';
+
+		$replacements    = array();
+		$replacements[0] = '$1 REMOVED $3';
+		$replacements[1] = '$1 REMOVED $3';
+		$replacements[2] = '$1 REMOVED $3';
+		$replacements[3] = '$1 REMOVED $3';
+		$replacements[4] = '$1 REMOVED $3';
+		$replacements[5] = '$1 REMOVED $3';
+		$replacements[6] = '$1 REMOVED $3';
+		$replacements[7] = '$1 REMOVED $3';
+
+		return preg_replace( $patterns, $replacements, $message );
+	}
+
+	/**
+	 * Sanitize logged request.
+	 *
+	 * Used to sanitize logged HTTP request message.
+	 *
+	 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/133
+	 * @since 1.6.0
+	 *
+	 * @param string $message Log message from stringified array structure.
+	 *
+	 * @return string Sanitized log message
+	 */
+	private static function sanitize_remote_request_log( $message ) {
+		$patterns    = array();
+		$patterns[0] = '/(AWSAccessKeyId=)(.+)(&)/ms';
+		$patterns[0] = '/(SellerNote=)(.+)(&)/ms';
+		$patterns[1] = '/(SellerAuthorizationNote=)(.+)(&)/ms';
+		$patterns[2] = '/(SellerCaptureNote=)(.+)(&)/ms';
+		$patterns[3] = '/(SellerRefundNote=)(.+)(&)/ms';
+
+		$replacements    = array();
+		$replacements[0] = '$1REMOVED$3';
+		$replacements[1] = '$1REMOVED$3';
+		$replacements[2] = '$1REMOVED$3';
+		$replacements[3] = '$1REMOVED$3';
+
+		return preg_replace( $patterns, $replacements, $message );
+	}
+
+	/**
+	 * Sign a url for amazon.
+	 *
+	 * @param string $url        URL.
+	 * @param string $secret_key Secret key.
+	 *
+	 * @return string
+	 */
+	private static function get_signed_amazon_url( $url, $secret_key ) {
+		$urlparts = wp_parse_url( $url );
+
+		// Build $params with each name/value pair.
+		foreach ( explode( '&', $urlparts['query'] ) as $part ) {
+			if ( strpos( $part, '=' ) ) {
+				list( $name, $value ) = explode( '=', $part, 2 );
+			} else {
+				$name  = $part;
+				$value = '';
+			}
+			$params[ $name ] = $value;
+		}
+
+		// Include a timestamp if none was provided.
+		if ( empty( $params['Timestamp'] ) ) {
+			$params['Timestamp'] = gmdate( 'Y-m-d\TH:i:s\Z' );
+		}
+
+		$params['SignatureVersion'] = '2';
+		$params['SignatureMethod']  = 'HmacSHA256';
+
+		// Sort the array by key.
+		ksort( $params );
+
+		// Build the canonical query string.
+		$canonical = '';
+
+		// Don't encode here - http_build_query already did it.
+		foreach ( $params as $key => $val ) {
+			$canonical .= $key . '=' . rawurlencode( utf8_decode( urldecode( $val ) ) ) . '&';
+		}
+
+		// Remove the trailing ampersand.
+		$canonical = preg_replace( '/&$/', '', $canonical );
+
+		// Some common replacements and ones that Amazon specifically mentions.
+		$canonical = str_replace( array( ' ', '+', ',', ';' ), array( '%20', '%20', urlencode( ',' ), urlencode( ':' ) ), $canonical );
+
+		// Build the sign.
+		$string_to_sign = "GET\n{$urlparts['host']}\n{$urlparts['path']}\n$canonical";
+
+		// Calculate our actual signature and base64 encode it.
+		$signature = base64_encode( hash_hmac( 'sha256', $string_to_sign, $secret_key, true ) );
+
+		// Finally re-build the URL with the proper string and include the Signature.
+		$url = "{$urlparts['scheme']}://{$urlparts['host']}{$urlparts['path']}?$canonical&Signature=" . rawurlencode( $signature );
+
+		return $url;
+	}
+
+	/**
 	* Validate API keys when settings are updated.
 	*
 	* @since 1.6.0
@@ -74,7 +248,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 				throw new Exception( __( 'Error: You must enter MWS Secret Key.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 
-			$response = WC_Amazon_Payments_Advanced_API::request(
+			$response = self::request(
 				array(
 					'Action'                 => 'GetOrderReferenceDetails',
 					'AmazonOrderReferenceId' => 'S00-0000000-0000000',

@@ -596,7 +596,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @throws Exception Declined transaction.
 	 *
 	 * @param int    $order_id Order ID.
-	 * @param object $result   Return value from WC_Amazon_Payments_Advanced_API::request().
+	 * @param object $result   Return value from WC_Amazon_Payments_Advanced_API_Legacy::request().
 	 */
 	protected function process_payment_check_declined_error( $order_id, $result ) {
 		if ( ! is_wp_error( $result ) ) {
@@ -693,7 +693,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		);
 
 		// Update order reference with amounts.
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 
 		if ( is_wp_error( $response ) ) {
 			throw new Exception( $response->get_error_message() );
@@ -756,7 +756,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			$confirm_args['FailureUrl'] = wc_get_checkout_url();
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $confirm_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $confirm_args );
 
 		if ( is_wp_error( $response ) ) {
 			throw new Exception( $response->get_error_message() );
@@ -801,7 +801,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			$request_args['AddressConsentToken'] = $this->access_token;
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 
 		// @codingStandardsIgnoreStart
 		if ( ! is_wp_error( $response ) && isset( $response->GetOrderReferenceDetailsResult->OrderReferenceDetails ) ) {
