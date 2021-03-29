@@ -257,7 +257,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			case 'authorize':
 				// Authorize only.
-				$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
+				$result = WC_Amazon_Payments_Advanced_API_Legacy::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
 
 				if ( $result ) {
 
@@ -285,7 +285,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			default:
 				// Capture.
-				$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
+				$result = WC_Amazon_Payments_Advanced_API_Legacy::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
 
 				if ( $result ) {
 
@@ -742,7 +742,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		// $amazon_billing_agreement_id is billing agreement.
 		wc_apa()->log( 'Info: Trying to authorize payment in billing agreement ' . $amazon_billing_agreement_id );
 
-		WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
+		WC_Amazon_Payments_Advanced_API_Legacy::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
 	}
 
 	public function admin_action_authorize_capture_recurring( $order, $amazon_billing_agreement_id ) {
@@ -753,7 +753,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		// $amazon_billing_agreement_id is billing agreement.
 		wc_apa()->log( 'Info: Trying to authorize and capture payment in billing agreement ' . $amazon_billing_agreement_id );
 
-		WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
+		WC_Amazon_Payments_Advanced_API_Legacy::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
 	}
 
 	/**
