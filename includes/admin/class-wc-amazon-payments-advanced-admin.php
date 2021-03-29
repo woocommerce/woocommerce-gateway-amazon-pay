@@ -89,16 +89,6 @@ class WC_Amazon_Payments_Advanced_Admin {
 	}
 
 	/**
-	 * Checks if the amazon keys have already being set and validated.
-	 *
-	 * @return bool
-	 */
-	protected function amazon_keys_already_set() {
-		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
-		return ( isset( $this->settings['amazon_keys_setup_and_validated'] ) ) && ( 1 === $this->settings['amazon_keys_setup_and_validated'] );
-	}
-
-	/**
 	 * Get admin notices.
 	 *
 	 * @since 1.8.0
@@ -132,7 +122,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 			);
 		}
 
-		if ( ! $this->amazon_keys_already_set() && 'yes' === $this->settings['enabled'] ) {
+		if ( ! WC_Amazon_Payments_Advanced_API::get_amazon_keys_set() && 'yes' === $this->settings['enabled'] ) {
 			$notices[] = array(
 				'dismiss_action' => 'amazon_pay_dismiss_enable_notice',
 				'class'          => 'amazon-pay-enable-notice',
