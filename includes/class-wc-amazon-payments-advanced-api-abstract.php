@@ -759,19 +759,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 	}
 
-	/**
-	 * Send an email notification to the recipient in the woocommerce mail template.
-	 *
-	 * @param string $subject
-	 * @param string $message
-	 * @param string $recipient
-	 */
-	public static function send_email_notification( $subject, $message, $recipient ) {
-		$mailer  = WC()->mailer();
-		$message = $mailer->wrap_message( $subject, $message );
-		$mailer->send( $recipient, wp_strip_all_tags( $subject ), $message );
-	}
-
 	public static function validate_api_keys() {
 		return false;
 	}
