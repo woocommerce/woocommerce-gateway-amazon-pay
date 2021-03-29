@@ -392,11 +392,11 @@ class WC_Amazon_Payments_Advanced {
 		if ( 'amazon_payments_advanced' === $response->data['payment_method'] ) {
 			$response->data['amazon_reference'] = array(
 
-				'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
+				'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
 				'amazon_reference_id'        => get_post_meta( $post->ID, 'amazon_reference_id', true ),
-				'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
+				'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
 				'amazon_authorization_id'    => get_post_meta( $post->ID, 'amazon_authorization_id', true ),
-				'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
+				'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
 				'amazon_capture_id'          => get_post_meta( $post->ID, 'amazon_capture_id', true ),
 				'amazon_refund_ids'          => get_post_meta( $post->ID, 'amazon_refund_id', false ),
 			);

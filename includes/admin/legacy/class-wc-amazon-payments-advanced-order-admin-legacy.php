@@ -145,7 +145,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 			$actions = $override['actions'];
 		} elseif ( $amazon_capture_id ) {
 
-			$amazon_capture_state = WC_Amazon_Payments_Advanced_API::get_capture_state( $order_id, $amazon_capture_id );
+			$amazon_capture_state = WC_Amazon_Payments_Advanced_API_Legacy::get_capture_state( $order_id, $amazon_capture_id );
 
 			switch ( $amazon_capture_state ) {
 				case 'Pending':
@@ -225,7 +225,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 			}
 		} elseif ( $amazon_authorization_id ) {
 
-			$amazon_authorization_state = WC_Amazon_Payments_Advanced_API::get_authorization_state( $order_id, $amazon_authorization_id );
+			$amazon_authorization_state = WC_Amazon_Payments_Advanced_API_Legacy::get_authorization_state( $order_id, $amazon_authorization_id );
 
 			/* translators: 1) is Amazon Pay authorization reference ID, and 2) Amazon Pay authorization state */
 			echo wpautop( sprintf( __( 'Auth Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_reference_id ), esc_html( $amazon_authorization_state ) ) );
@@ -260,7 +260,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 			}
 		} elseif ( $amazon_reference_id ) {
 
-			$amazon_reference_state = WC_Amazon_Payments_Advanced_API::get_reference_state( $order_id, $amazon_reference_id );
+			$amazon_reference_state = WC_Amazon_Payments_Advanced_API_Legacy::get_reference_state( $order_id, $amazon_reference_id );
 
 			/* translators: 1) is Amazon Pay order reference ID, and 2) Amazon Pay order state */
 			echo wpautop( sprintf( __( 'Order Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_reference_id ), esc_html( $amazon_reference_state ) ) );

@@ -218,4 +218,142 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		);
 	}
 
+	/**
+	 * Get auth state from amazon API.
+	 *
+	 * @param string $order_id Order ID.
+	 * @param string $id       Reference ID.
+	 *
+	 * @return string|bool Returns false if failed
+	 */
+	public static function get_reference_state( $order_id, $id ) {
+		$state = get_post_meta( $order_id, 'amazon_reference_state', true );
+		if ( $state ) {
+			return $state;
+		}
+
+		$response = self::request(
+			array(
+				'Action'                 => 'GetOrderReferenceDetails',
+				'AmazonOrderReferenceId' => $id,
+			)
+		);
+
+		// @codingStandardsIgnoreStart
+		if ( is_wp_error( $response ) || isset( $response->Error->Message ) ) {
+			return false;
+		}
+		$state = (string) $response->GetOrderReferenceDetailsResult->OrderReferenceDetails->OrderReferenceStatus->State;
+		// @codingStandardsIgnoreEnd
+
+		update_post_meta( $order_id, 'amazon_reference_state', $state );
+
+		return $state;
+	}
+
+	/**
+	 * Get auth state from amazon API.
+	 *
+	 * @param string $order_id Order ID.
+	 * @param string $id       Reference ID.
+	 *
+	 * @return string|bool Returns false if failed.
+	 */
+	public static function get_authorization_state( $order_id, $id ) {
+		$state = get_post_meta( $order_id, 'amazon_authorization_state', true );
+		if ( $state ) {
+			return $state;
+		}
+
+		$response = self::request(
+			array(
+				'Action'                => 'GetAuthorizationDetails',
+				'AmazonAuthorizationId' => $id,
+			)
+		);
+
+		// @codingStandardsIgnoreStart
+		if ( is_wp_error( $response ) || isset( $response->Error->Message ) ) {
+			return false;
+		}
+		$state = (string) $response->GetAuthorizationDetailsResult->AuthorizationDetails->AuthorizationStatus->State;
+		// @codingStandardsIgnoreEnd
+
+		update_post_meta( $order_id, 'amazon_authorization_state', $state );
+
+		self::update_order_billing_address( $order_id, self::get_billing_address_from_response( $response ) );
+
+		return $state;
+	}
+
+	/**
+	 * Get capture state from amazon API.
+	 *
+	 * @param string $order_id Order ID.
+	 * @param string $id       Reference ID.
+	 *
+	 * @return string|bool Returns false if failed.
+	 */
+	public static function get_capture_state( $order_id, $id ) {
+		$state = get_post_meta( $order_id, 'amazon_capture_state', true );
+		if ( $state ) {
+			return $state;
+		}
+
+		$response = self::request(
+			array(
+				'Action'          => 'GetCaptureDetails',
+				'AmazonCaptureId' => $id,
+			)
+		);
+
+		// @codingStandardsIgnoreStart
+		if ( is_wp_error( $response ) || isset( $response->Error->Message ) ) {
+			return false;
+		}
+		$state = (string) $response->GetCaptureDetailsResult->CaptureDetails->CaptureStatus->State;
+		// @codingStandardsIgnoreEnd
+
+		update_post_meta( $order_id, 'amazon_capture_state', $state );
+
+		return $state;
+	}
+
+	/**
+	 * Get reference state.
+	 *
+	 * @param int    $order_id Order ID.
+	 * @param string $state    State to retrieve.
+	 *
+	 * @return string Reference state.
+	 */
+	public static function get_order_ref_state( $order_id, $state = 'amazon_reference_state' ) {
+		$ret_state = '';
+
+		switch ( $state ) {
+			case 'amazon_reference_state':
+				$ref_id = get_post_meta( $order_id, 'amazon_reference_id', true );
+				if ( $ref_id ) {
+					$ret_state = self::get_reference_state( $order_id, $ref_id );
+				}
+				break;
+
+			case 'amazon_authorization_state':
+				$ref_id = get_post_meta( $order_id, 'amazon_authorization_id', true );
+				if ( $ref_id ) {
+					$ret_state = self::get_authorization_state( $order_id, $ref_id );
+				}
+				break;
+
+			case 'amazon_capture_state':
+				$ref_id = get_post_meta( $order_id, 'amazon_capture_id', true );
+				if ( $ref_id ) {
+					$ret_state = self::get_capture_state( $order_id, $ref_id );
+				}
+				break;
+		}
+
+		return $ret_state;
+	}
+
 }
