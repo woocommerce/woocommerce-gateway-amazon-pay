@@ -268,7 +268,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 			return $notification['NotificationData'];
 		}
 
-		$data = WC_Amazon_Payments_Advanced_API::safe_load_xml( $notification['NotificationData'], LIBXML_NOCDATA );
+		$data = WC_Amazon_Payments_Advanced_API_Legacy::safe_load_xml( $notification['NotificationData'], LIBXML_NOCDATA );
 		if ( ! $data ) {
 			throw new Exception( 'Failed to parse the XML in NotificationData.' );
 		}

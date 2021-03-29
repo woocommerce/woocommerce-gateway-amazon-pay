@@ -323,43 +323,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
-	 * Safe load XML.
-	 *
-	 * @param  string $source  XML input.
-	 * @param  int    $options Options.
-	 *
-	 * @return SimpleXMLElement|bool
-	 */
-	public static function safe_load_xml( $source, $options = 0 ) {
-		$old = null;
-
-		if ( '<' !== substr( $source, 0, 1 ) ) {
-			return false;
-		}
-
-		if ( function_exists( 'libxml_disable_entity_loader' ) ) {
-			$old = libxml_disable_entity_loader( true );
-		}
-
-		$dom    = new DOMDocument();
-		$return = $dom->loadXML( $source, $options );
-
-		if ( ! is_null( $old ) ) {
-			libxml_disable_entity_loader( $old );
-		}
-
-		if ( ! $return ) {
-			return false;
-		}
-
-		if ( isset( $dom->doctype ) ) {
-			return false;
-		}
-
-		return simplexml_import_dom( $dom );
-	}
-
-	/**
 	 * VAT registered sellers - Obtaining the Billing Address.
 	 *
 	 * @see http://docs.developer.amazonservices.com/en_UK/apa_guide/APAGuide_GetAuthorizationStatus.html
