@@ -304,12 +304,18 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return $order_post;
 		}
 
-		$error = $this->get_missing_reference_id_request_error( $order_post );
-		if ( is_wp_error( $error ) ) {
-			return $error;
-		}
+		$order   = wc_get_order( $order_post->ID );
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v1' === strtolower( $version ) ) {
+			$error = $this->get_missing_reference_id_request_error( $order_post );
+			if ( is_wp_error( $error ) ) {
+				return $error;
+			}
 
-		return $this->authorize_order_v1( $order_post->ID );
+			return $this->authorize_order_v1( $order_post->ID );
+		} else {
+			return rest_ensure_response( array( 'not_implemented' ) );
+		}
 	}
 
 	/**
@@ -328,12 +334,18 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return $order_post;
 		}
 
-		$error = $this->get_missing_reference_id_request_error( $order_post );
-		if ( is_wp_error( $error ) ) {
-			return $error;
-		}
+		$order   = wc_get_order( $order_post->ID );
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v1' === strtolower( $version ) ) {
+			$error = $this->get_missing_reference_id_request_error( $order_post );
+			if ( is_wp_error( $error ) ) {
+				return $error;
+			}
 
-		return $this->authorize_order_v1( $order_post->ID, array( 'capture_now' => true ) );
+			return $this->authorize_order_v1( $order_post->ID, array( 'capture_now' => true ) );
+		} else {
+			return rest_ensure_response( array( 'not_implemented' ) );
+		}
 	}
 
 	/**
@@ -391,23 +403,29 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return $order_post;
 		}
 
-		$error = $this->get_missing_authorization_id_request_error( $order_post );
-		if ( is_wp_error( $error ) ) {
-			return $error;
+		$order   = wc_get_order( $order_post->ID );
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v1' === strtolower( $version ) ) {
+			$error = $this->get_missing_authorization_id_request_error( $order_post );
+			if ( is_wp_error( $error ) ) {
+				return $error;
+			}
+
+			$order_id = (int) $request['order_id'];
+			$auth_id  = get_post_meta( $order_id, 'amazon_authorization_id', true );
+			$resp     = WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $order_id, $auth_id );
+			if ( is_wp_error( $resp ) ) {
+				return $resp;
+			}
+
+			$ret = array(
+				'authorization_closed' => $resp,
+			);
+
+			return rest_ensure_response( $ret );
+		} else {
+			return rest_ensure_response( array( 'not_implemented' ) );
 		}
-
-		$order_id = (int) $request['order_id'];
-		$auth_id  = get_post_meta( $order_id, 'amazon_authorization_id', true );
-		$resp     = WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $order_id, $auth_id );
-		if ( is_wp_error( $resp ) ) {
-			return $resp;
-		}
-
-		$ret = array(
-			'authorization_closed' => $resp,
-		);
-
-		return rest_ensure_response( $ret );
 	}
 
 	/**
@@ -426,31 +444,37 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return $order_post;
 		}
 
-		$error = $this->get_missing_authorization_id_request_error( $order_post );
-		if ( is_wp_error( $error ) ) {
-			return $error;
+		$order   = wc_get_order( $order_post->ID );
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v1' === strtolower( $version ) ) {
+			$error = $this->get_missing_authorization_id_request_error( $order_post );
+			if ( is_wp_error( $error ) ) {
+				return $error;
+			}
+
+			$order_id = (int) $request['order_id'];
+
+			$resp = WC_Amazon_Payments_Advanced_API_Legacy::capture( $order_id );
+			if ( is_wp_error( $resp ) ) {
+				return $resp;
+			}
+
+			$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_capture_response( $resp, $order_id );
+			if ( $result ) {
+				$order_closed = WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
+				$order_closed = ( ! is_wp_error( $order_closed ) && $order_closed );
+			}
+
+			$ret = array(
+				'captured'          => $result,
+				'amazon_capture_id' => get_post_meta( $order_id, 'amazon_capture_id', true ),
+				'order_closed'      => $order_closed,
+			);
+
+			return rest_ensure_response( $ret );
+		} else {
+			return rest_ensure_response( array( 'not_implemented' ) );
 		}
-
-		$order_id = (int) $request['order_id'];
-
-		$resp = WC_Amazon_Payments_Advanced_API_Legacy::capture( $order_id );
-		if ( is_wp_error( $resp ) ) {
-			return $resp;
-		}
-
-		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_capture_response( $resp, $order_id );
-		if ( $result ) {
-			$order_closed = WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
-			$order_closed = ( ! is_wp_error( $order_closed ) && $order_closed );
-		}
-
-		$ret = array(
-			'captured'          => $result,
-			'amazon_capture_id' => get_post_meta( $order_id, 'amazon_capture_id', true ),
-			'order_closed'      => $order_closed,
-		);
-
-		return rest_ensure_response( $ret );
 	}
 
 	/**
@@ -469,28 +493,34 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return $order_post;
 		}
 
-		$error = $this->get_missing_capture_id_request_error( $order_post );
-		if ( is_wp_error( $error ) ) {
-			return $error;
+		$order   = wc_get_order( $order_post->ID );
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		if ( 'v1' === strtolower( $version ) ) {
+			$error = $this->get_missing_capture_id_request_error( $order_post );
+			if ( is_wp_error( $error ) ) {
+				return $error;
+			}
+
+			$order_id = (int) $request['order_id'];
+			$amount   = $request['amount'];
+			$reason   = ! empty( $request['reason'] ) ? $request['reason'] : null;
+
+			if ( 0 > $amount ) {
+				return new WP_Error( 'woocommerce_rest_invalid_order_refund', __( 'Refund amount must be greater than zero.', 'woocommerce-gateway-amazon-payments-advanced' ), 400 );
+			}
+
+			$amazon_capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
+			$refunded          = WC_Amazon_Payments_Advanced_API_Legacy::refund_payment( $order_id, $amazon_capture_id, $amount, $reason );
+
+			$ret = array( 'refunded' => $refunded );
+			if ( $refunded ) {
+				$ret['amazon_refund_id'] = get_post_meta( $order_id, 'amazon_refund_id', true );
+			}
+
+			return rest_ensure_response( $ret );
+		} else {
+			return rest_ensure_response( array( 'not_implemented' ) );
 		}
-
-		$order_id = (int) $request['order_id'];
-		$amount   = $request['amount'];
-		$reason   = ! empty( $request['reason'] ) ? $request['reason'] : null;
-
-		if ( 0 > $amount ) {
-			return new WP_Error( 'woocommerce_rest_invalid_order_refund', __( 'Refund amount must be greater than zero.', 'woocommerce-gateway-amazon-payments-advanced' ), 400 );
-		}
-
-		$amazon_capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
-		$refunded          = WC_Amazon_Payments_Advanced_API_Legacy::refund_payment( $order_id, $amazon_capture_id, $amount, $reason );
-
-		$ret = array( 'refunded' => $refunded );
-		if ( $refunded ) {
-			$ret['amazon_refund_id'] = get_post_meta( $order_id, 'amazon_refund_id', true );
-		}
-
-		return rest_ensure_response( $ret );
 	}
 
 	/**
