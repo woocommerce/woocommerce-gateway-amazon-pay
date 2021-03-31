@@ -272,6 +272,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		$charge_id            = $order->get_meta( 'amazon_charge_id' );
 		$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order, true );
 
+		// TODO: Implement subscriptions v1 billing agreement, along with auth and capture methods for that.
+
 		$ref_detail = array(
 			'amazon_reference_state'         => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_reference_state' ),
 			'amazon_reference_id'            => get_post_meta( $order_post->ID, 'amazon_reference_id', true ),
