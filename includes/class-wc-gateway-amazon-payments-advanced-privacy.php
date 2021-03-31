@@ -256,8 +256,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 		$order_id       = $order->get_id();
 		$meta_to_delete = array(
 			'amazon_authorization_id',
+			'amazon_authorization_state',
 			'amazon_capture_id',
+			'amazon_catpure_state',
 			'amazon_reference_id',
+			'amazon_reference_state',
+			'amazon_refund_id',
 			'amazon_refunds',
 		);
 
