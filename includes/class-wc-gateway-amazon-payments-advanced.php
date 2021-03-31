@@ -1776,4 +1776,25 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return $charge;
 	}
 
+	public function perform_refund( $order, $amount = null, $id = null ) {
+		$order_id = $order->get_id();
+		if ( empty( $id ) ) {
+			$id = $order->get_meta( 'amazon_charge_id' );
+		}
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'no_charge', 'The specified order doesn\'t have a charge' );
+		}
+
+		$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $id, $amount );
+
+		if ( is_wp_error( $refund ) ) {
+			return $refund;
+		}
+
+		wc_apa()->get_gateway()->handle_refund( $order, $refund );
+
+		return $refund;
+	}
+
 }

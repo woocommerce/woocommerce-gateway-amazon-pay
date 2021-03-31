@@ -553,7 +553,25 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 
 			return rest_ensure_response( $ret );
 		} else {
-			return rest_ensure_response( array( 'not_implemented' ) );
+			$amount = $request['amount'];
+
+			// TODO: Reason is not implemented in API v2
+			$reason = ! empty( $request['reason'] ) ? $request['reason'] : null;
+
+			if ( 0 > $amount ) {
+				return new WP_Error( 'woocommerce_rest_invalid_order_refund', __( 'Refund amount must be greater than zero.', 'woocommerce-gateway-amazon-payments-advanced' ), 400 );
+			}
+
+			$result = array();
+
+			$refund = wc_apa()->get_gateway()->perform_refund( $order, $amount );
+			if ( is_wp_error( $refund ) ) {
+				$result['refunded'] = false;
+			} else {
+				$result['refunded']         = true;
+				$result['amazon_refund_id'] = $refund->refundId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			}
+			return rest_ensure_response( $result );
 		}
 	}
 

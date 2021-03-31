@@ -86,8 +86,8 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 				wc_apa()->get_gateway()->perform_capture( $order, $id );
 				break;
 			case 'refund':
-				$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $id );
-				wc_apa()->get_gateway()->handle_refund( $order, $refund );
+				wc_apa()->get_gateway()->perform_refund( $order, null, $id );
+				break;
 		}
 	}
 
