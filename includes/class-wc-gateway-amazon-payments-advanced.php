@@ -1693,6 +1693,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function perform_authorization( $order, $capture_now = true, $id = null ) {
+		if ( ! is_a( $order, 'WC_Order' ) ) {
+			return new WP_Error( 'not_an_order', 'The object provided is not an order' );
+		}
+
 		$order_id = $order->get_id();
 		if ( empty( $id ) ) {
 			$id = $order->get_meta( 'amazon_charge_permission_id' );
@@ -1733,6 +1737,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function perform_cancel_auth( $order, $id = null ) {
+		if ( ! is_a( $order, 'WC_Order' ) ) {
+			return new WP_Error( 'not_an_order', 'The object provided is not an order' );
+		}
+
 		$order_id = $order->get_id();
 		if ( empty( $id ) ) {
 			$id = $order->get_meta( 'amazon_charge_id' );
@@ -1755,6 +1763,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function perform_capture( $order, $id = null ) {
+		if ( ! is_a( $order, 'WC_Order' ) ) {
+			return new WP_Error( 'not_an_order', 'The object provided is not an order' );
+		}
+
 		$order_id = $order->get_id();
 		if ( empty( $id ) ) {
 			$id = $order->get_meta( 'amazon_charge_id' );
@@ -1777,6 +1789,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function perform_refund( $order, $amount = null, $id = null ) {
+		if ( ! is_a( $order, 'WC_Order' ) ) {
+			return new WP_Error( 'not_an_order', 'The object provided is not an order' );
+		}
+
 		$order_id = $order->get_id();
 		if ( empty( $id ) ) {
 			$id = $order->get_meta( 'amazon_charge_id' );
