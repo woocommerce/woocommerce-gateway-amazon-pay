@@ -225,9 +225,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 		$subscription    = current( wcs_get_subscriptions_for_order( $order->get_id() ) );
 		$subscription_id = $subscription->get_id();
 
-		$amazon_source_id = get_post_meta( $subscription_id, 'amazon_billing_agreement_id', true );
+		$amazon_billing_agreement_id = get_post_meta( $subscription_id, 'amazon_billing_agreement_id', true );
+		$amazon_charge_permission_id = get_post_meta( $subscription_id, 'amazon_charge_permission_id', true );
 
-		if ( empty( $amazon_source_id ) ) {
+		if ( empty( $amazon_billing_agreement_id ) && empty( $amazon_charge_permission_id ) ) {
 			return array( false, false, array() );
 		}
 
@@ -235,15 +236,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 			return array( false, true, array( sprintf( __( 'Order ID %d contains an active Subscription', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_id() ) ) );
 		}
 
-		$renewal_orders = $subscription->get_related_orders( 'ids', 'renewal' );
+		$this->maybe_handle_order( $subscription );
 
-		foreach ( $renewal_orders as $renewal_order_id ) {
-			delete_post_meta( $renewal_order_id, 'amazon_billing_agreement_id' );
-		}
-
-		delete_post_meta( $subscription_id, 'amazon_billing_agreement_id' );
-
-		return array( true, false, array( __( 'Amazon Payments Advanced Subscriptions Data Erased.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
+		return array( true, false, array( sprintf( __( 'Amazon Payments Advanced subscription data within subscription %1$s has been removed.', 'woocommerce-gateway-amazon-payments-advanced' ), $subscription_id ) ) );
 	}
 
 	/**
@@ -263,6 +258,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 			'amazon_reference_state',
 			'amazon_refund_id',
 			'amazon_refunds',
+			'amazon_billing_agreement_id',
+			'amazon_billing_agreement_state',
 		);
 
 		$deleted = false;
@@ -277,7 +274,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 
 		$messages = array();
 		if ( $deleted ) {
-			$messages = array( sprintf( __( 'Amazon Payments Advanced data within order %s has been removed.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id ) );
+			$type = 'order';
+			if ( 'shop_subscription' === $order->get_type() ) {
+				$type = 'subscription';
+			}
+			$messages = array( sprintf( __( 'Amazon Payments Advanced data within %2$s %1$s has been removed.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id, $type ) );
 		}
 
 		return array( $deleted, false, $messages );
