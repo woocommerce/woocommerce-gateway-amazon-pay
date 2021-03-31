@@ -225,20 +225,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 		$subscription    = current( wcs_get_subscriptions_for_order( $order->get_id() ) );
 		$subscription_id = $subscription->get_id();
 
-		$amazon_billing_agreement_id = get_post_meta( $subscription_id, 'amazon_billing_agreement_id', true );
-		$amazon_charge_permission_id = get_post_meta( $subscription_id, 'amazon_charge_permission_id', true );
-
-		if ( empty( $amazon_billing_agreement_id ) && empty( $amazon_charge_permission_id ) ) {
-			return array( false, false, array() );
-		}
-
 		if ( $subscription->has_status( apply_filters( 'wc_amazon_pay_privacy_eraser_subs_statuses', array( 'on-hold', 'active' ) ) ) ) {
-			return array( false, true, array( sprintf( __( 'Order ID %d contains an active Subscription', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_id() ) ) );
+			return array( false, true, array( sprintf( __( 'Amazon Payments Advanced data within subscription %1$s has been retained because it is an active Subscription. ', 'woocommerce-gateway-amazon-payments-advanced' ), $subscription_id ) ) );
 		}
 
-		$this->maybe_handle_order( $subscription );
-
-		return array( true, false, array( sprintf( __( 'Amazon Payments Advanced subscription data within subscription %1$s has been removed.', 'woocommerce-gateway-amazon-payments-advanced' ), $subscription_id ) ) );
+		return $this->maybe_handle_order( $subscription );
 	}
 
 	/**
