@@ -77,28 +77,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			case 'authorize':
 			case 'authorize_capture':
 				$capture_now = ( 'authorize_capture' === $action );
-
-				$can_do_async = false;
-				if ( ! $capture_now && 'async' === WC_Amazon_Payments_Advanced_API::get_settings( 'authorization_mode' ) ) {
-					$can_do_async = true;
-				}
-
-				$currency = wc_apa_get_order_prop( $order, 'order_currency' );
-
-				$charge = WC_Amazon_Payments_Advanced_API::create_charge(
-					$id,
-					array(
-						'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
-						'captureNow'                    => $capture_now,
-						'canHandlePendingAuthorization' => $can_do_async,
-						'chargeAmount'                  => array(
-							'amount'       => $order->get_total(),
-							'currencyCode' => $currency,
-						),
-					)
-				);
-				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
-				wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+				wc_apa()->get_gateway()->perform_authorization( $order, $capture_now, $id );
 				break;
 			case 'close_authorization':
 				$charge = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );

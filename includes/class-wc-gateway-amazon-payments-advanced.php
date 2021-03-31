@@ -1692,4 +1692,44 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
+	public function perform_authorization( $order, $capture_now = true, $id = null ) {
+		$order_id = $order->get_id();
+		if ( empty( $id ) ) {
+			$id = $order->get_meta( 'amazon_charge_permission_id' );
+		}
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'no_charge_permission', 'The specified order doesn\'t have a charge permission' );
+		}
+
+		$can_do_async = false;
+		if ( ! $capture_now && 'async' === WC_Amazon_Payments_Advanced_API::get_settings( 'authorization_mode' ) ) {
+			$can_do_async = true;
+		}
+
+		$currency = wc_apa_get_order_prop( $order, 'order_currency' );
+
+		$charge = WC_Amazon_Payments_Advanced_API::create_charge(
+			$id,
+			array(
+				'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
+				'captureNow'                    => $capture_now,
+				'canHandlePendingAuthorization' => $can_do_async,
+				'chargeAmount'                  => array(
+					'amount'       => $order->get_total(),
+					'currencyCode' => $currency,
+				),
+			)
+		);
+
+		if ( is_wp_error( $charge ) ) {
+			return $charge;
+		}
+
+		wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+		wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+
+		return $charge;
+	}
+
 }
