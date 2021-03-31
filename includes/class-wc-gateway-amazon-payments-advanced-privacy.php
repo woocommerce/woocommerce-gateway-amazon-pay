@@ -185,12 +185,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 		foreach ( (array) $orders as $order ) {
 			$order = wc_get_order( $order->get_id() );
 
-			list( $removed, $retained, $msgs ) = $this->maybe_handle_order( $order );
+			list( $removed, $retained, $msgs ) = $this->maybe_handle_subscription( $order );
 			$items_removed                    |= $removed;
 			$items_retained                   |= $retained;
 			$messages                          = array_merge( $messages, $msgs );
 
-			list( $removed, $retained, $msgs ) = $this->maybe_handle_subscription( $order );
+			list( $removed, $retained, $msgs ) = $this->maybe_handle_order( $order );
 			$items_removed                    |= $removed;
 			$items_retained                   |= $retained;
 			$messages                          = array_merge( $messages, $msgs );
