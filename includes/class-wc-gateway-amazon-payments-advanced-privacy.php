@@ -235,7 +235,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 			return array( false, true, array( sprintf( __( 'Order ID %d contains an active Subscription', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_id() ) ) );
 		}
 
-		$renewal_orders = WC_Subscriptions_Renewal_Order::get_renewal_orders( $order->get_id() );
+		$renewal_orders = $subscription->get_related_orders( 'ids', 'renewal' );
 
 		foreach ( $renewal_orders as $renewal_order_id ) {
 			delete_post_meta( $renewal_order_id, 'amazon_billing_agreement_id' );
