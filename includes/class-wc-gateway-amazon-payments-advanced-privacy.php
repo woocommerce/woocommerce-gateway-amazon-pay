@@ -253,22 +253,30 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	 * @return array
 	 */
 	protected function maybe_handle_order( $order ) {
-		$order_id   = $order->get_id();
-		$auth_id    = get_post_meta( $order_id, 'amazon_authorization_id', true );
-		$capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
-		$ref_id     = get_post_meta( $order_id, 'amazon_reference_id', true );
-		$refund_ids = get_post_meta( $order_id, 'amazon_refunds', true );
+		$order_id       = $order->get_id();
+		$meta_to_delete = array(
+			'amazon_authorization_id',
+			'amazon_capture_id',
+			'amazon_reference_id',
+			'amazon_refunds',
+		);
 
-		if ( empty( $auth_id ) && empty( $capture_id ) && empty( $ref_id ) && empty( $refund_ids ) ) {
-			return array( false, false, array() );
+		$deleted = false;
+		foreach ( $meta_to_delete as $key ) {
+			$meta_value = get_post_meta( $order_id, $key, true );
+			if ( empty( $meta_value ) ) {
+				continue;
+			}
+			delete_post_meta( $order_id, $key );
+			$deleted = true;
 		}
 
-		delete_post_meta( $order_id, 'amazon_authorization_id' );
-		delete_post_meta( $order_id, 'amazon_capture_id' );
-		delete_post_meta( $order_id, 'amazon_reference_id' );
-		delete_post_meta( $order_id, 'amazon_refunds' );
+		$messages = array();
+		if ( $deleted ) {
+			$messages = array( __( 'Amazon Payments Advanced Order Data Erased.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
 
-		return array( true, false, array( __( 'Amazon Payments Advanced Order Data Erased.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
+		return array( $deleted, false, $messages );
 	}
 }
 
