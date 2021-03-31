@@ -490,7 +490,15 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 
 			return rest_ensure_response( $ret );
 		} else {
-			return rest_ensure_response( array( 'not_implemented' ) );
+			$result = array();
+			$charge = wc_apa()->get_gateway()->perform_capture( $order );
+			if ( is_wp_error( $charge ) ) {
+				$result['captured'] = false;
+			} else {
+				$result['captured']         = true;
+				$result['amazon_charge_id'] = $order->get_meta( 'amazon_charge_id' );
+			}
+			return rest_ensure_response( $result );
 		}
 	}
 

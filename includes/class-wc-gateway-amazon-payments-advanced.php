@@ -1754,4 +1754,26 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return $charge;
 	}
 
+	public function perform_capture( $order, $id = null ) {
+		$order_id = $order->get_id();
+		if ( empty( $id ) ) {
+			$id = $order->get_meta( 'amazon_charge_id' );
+		}
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'no_charge', 'The specified order doesn\'t have a charge' );
+		}
+
+		$charge = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
+
+		if ( is_wp_error( $charge ) ) {
+			return $charge;
+		}
+
+		wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+		wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+
+		return $charge;
+	}
+
 }
