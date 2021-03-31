@@ -1520,7 +1520,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function refresh_cached_charge_permission_status( WC_Order $order, $charge_permission = null ) {
 		if ( ! is_object( $charge_permission ) ) {
 			$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
-			$charge_permission    = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
+			if ( empty( $charge_permission_id ) ) {
+				return new WP_Error( 'no_charge_permission', 'You cannot refresh this order\'s charge_permission, as it has no charge_permission_id, and you didn\'t specify a charge permission object' );
+			}
+
+			$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
 		} else {
 			$charge_permission_id = $charge_permission->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		}
@@ -1558,7 +1562,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function refresh_cached_charge_status( WC_Order $order, $charge = null ) {
 		if ( ! is_object( $charge ) ) {
 			$charge_id = $order->get_meta( 'amazon_charge_id' );
-			$charge    = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
+			if ( empty( $charge_id ) ) {
+				return new WP_Error( 'no_charge', 'You cannot refresh this order\'s charge, as it has no charge_id, and you didn\'t specify a charge object' );
+			}
+
+			$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
 		}
 
 		$charge_status = $this->format_status_details( $charge->statusDetails ); // phpcs:ignore WordPress.NamingConventions
@@ -1682,6 +1690,127 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 		</style>
 		<?php
+	}
+
+	public function perform_authorization( $order, $capture_now = true, $id = null ) {
+		if ( ! is_a( $order, 'WC_Order' ) ) {
+			return new WP_Error( 'not_an_order', 'The object provided is not an order' );
+		}
+
+		$order_id = $order->get_id();
+		if ( empty( $id ) ) {
+			$id = $order->get_meta( 'amazon_charge_permission_id' );
+		}
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'no_charge_permission', 'The specified order doesn\'t have a charge permission' );
+		}
+
+		$can_do_async = false;
+		if ( ! $capture_now && 'async' === WC_Amazon_Payments_Advanced_API::get_settings( 'authorization_mode' ) ) {
+			$can_do_async = true;
+		}
+
+		$currency = wc_apa_get_order_prop( $order, 'order_currency' );
+
+		$charge = WC_Amazon_Payments_Advanced_API::create_charge(
+			$id,
+			array(
+				'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
+				'captureNow'                    => $capture_now,
+				'canHandlePendingAuthorization' => $can_do_async,
+				'chargeAmount'                  => array(
+					'amount'       => $order->get_total(),
+					'currencyCode' => $currency,
+				),
+			)
+		);
+
+		if ( is_wp_error( $charge ) ) {
+			return $charge;
+		}
+
+		wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+		wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+
+		return $charge;
+	}
+
+	public function perform_cancel_auth( $order, $id = null ) {
+		if ( ! is_a( $order, 'WC_Order' ) ) {
+			return new WP_Error( 'not_an_order', 'The object provided is not an order' );
+		}
+
+		$order_id = $order->get_id();
+		if ( empty( $id ) ) {
+			$id = $order->get_meta( 'amazon_charge_id' );
+		}
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'no_charge', 'The specified order doesn\'t have a charge' );
+		}
+
+		$charge = WC_Amazon_Payments_Advanced_API::cancel_charge( $id );
+
+		if ( is_wp_error( $charge ) ) {
+			return $charge;
+		}
+
+		wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+		wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+
+		return $charge;
+	}
+
+	public function perform_capture( $order, $id = null ) {
+		if ( ! is_a( $order, 'WC_Order' ) ) {
+			return new WP_Error( 'not_an_order', 'The object provided is not an order' );
+		}
+
+		$order_id = $order->get_id();
+		if ( empty( $id ) ) {
+			$id = $order->get_meta( 'amazon_charge_id' );
+		}
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'no_charge', 'The specified order doesn\'t have a charge' );
+		}
+
+		$charge = WC_Amazon_Payments_Advanced_API::capture_charge( $id );
+
+		if ( is_wp_error( $charge ) ) {
+			return $charge;
+		}
+
+		wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+		wc_apa()->get_gateway()->log_charge_status_change( $order, $charge );
+
+		return $charge;
+	}
+
+	public function perform_refund( $order, $amount = null, $id = null ) {
+		if ( ! is_a( $order, 'WC_Order' ) ) {
+			return new WP_Error( 'not_an_order', 'The object provided is not an order' );
+		}
+
+		$order_id = $order->get_id();
+		if ( empty( $id ) ) {
+			$id = $order->get_meta( 'amazon_charge_id' );
+		}
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'no_charge', 'The specified order doesn\'t have a charge' );
+		}
+
+		$refund = WC_Amazon_Payments_Advanced_API::refund_charge( $id, $amount );
+
+		if ( is_wp_error( $refund ) ) {
+			return $refund;
+		}
+
+		wc_apa()->get_gateway()->handle_refund( $order, $refund );
+
+		return $refund;
 	}
 
 }
