@@ -277,7 +277,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 
 		$messages = array();
 		if ( $deleted ) {
-			$messages = array( __( 'Amazon Payments Advanced Order Data Erased.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			$messages = array( sprintf( __( 'Amazon Payments Advanced data within order %s has been removed.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id ) );
 		}
 
 		return array( $deleted, false, $messages );
