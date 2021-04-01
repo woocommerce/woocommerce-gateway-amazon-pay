@@ -201,6 +201,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 		foreach ( (array) $orders as $order ) {
 			$order = wc_get_order( $order->get_id() );
 
+			$refunds = $order->get_refunds();
+			foreach ( $refunds as $refund ) {
+				list( $removed, $retained, $msgs ) = $this->maybe_handle_order( $refund );
+				$items_removed                    |= $removed;
+				$items_retained                   |= $retained;
+				$messages                          = array_merge( $messages, $msgs );
+			}
+
 			list( $removed, $retained, $msgs ) = $this->maybe_handle_subscription( $order );
 			$items_removed                    |= $removed;
 			$items_retained                   |= $retained;
@@ -288,6 +296,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 			$type = 'order';
 			if ( 'shop_subscription' === $order->get_type() ) {
 				$type = 'subscription';
+			}
+			if ( 'shop_order_refund' === $order->get_type() ) {
+				$type = 'refund';
 			}
 			$messages = array( sprintf( __( 'Amazon Payments Advanced data within %2$s %1$s has been removed.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id, $type ) );
 		}
