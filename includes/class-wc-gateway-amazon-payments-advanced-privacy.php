@@ -91,7 +91,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 						),
 						array(
 							'name'  => __( 'Amazon Pay refunds id', 'woocommerce-gateway-amazon-payments-advanced' ),
-							'value' => wp_json_encode( get_post_meta( $order->get_id(), 'amazon_refunds', false ) ),
+							'value' => wp_json_encode( get_post_meta( $order->get_id(), 'amazon_refund_id', false ) ),
 						),
 						array(
 							'name'  => __( 'Amazon subscription token', 'woocommerce-gateway-amazon-payments-advanced' ),
