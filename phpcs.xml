@@ -22,8 +22,6 @@
 		<exclude name="WordPress.Security.EscapeOutput"/>
 		<exclude name="WordPress.Security.ValidatedSanitizedInput"/>
 		<exclude name="WordPress.WP.I18n.MissingTranslatorsComment"/>
-		<exclude name="Squiz.Commenting"/>
-		<exclude name="Generic.Commenting"/>
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode"/>
 		<exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited"/>
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode"/>
