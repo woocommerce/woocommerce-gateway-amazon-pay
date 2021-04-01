@@ -676,10 +676,10 @@ jQuery( function( $ ) {
 	}
 
 	$( 'body' ).on( 'updated_checkout', function() {
-		toggleFieldVisibility( 'shipping', 'state' );
 		if ( ! isAmazonCheckout() ) {
 			return;
 		}
+		toggleFieldVisibility( 'shipping', 'state' );
 		if ( $( '.woocommerce-billing-fields .woocommerce-billing-fields__field-wrapper > *' ).length > 0 ) {
 			$( '.woocommerce-billing-fields' ).insertBefore( '#payment' );
 		}
