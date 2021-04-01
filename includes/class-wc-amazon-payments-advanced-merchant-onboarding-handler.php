@@ -300,6 +300,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * getallheaders is only available for apache, we need a fallback in case of nginx or others,
 	 * http://php.net/manual/es/function.getallheaders.php
+	 *
 	 * @return array|false
 	 */
 	private function get_all_headers() {
@@ -319,6 +320,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 
 	/**
 	 * Apache uses capital, nginx uses not capitalised.
+	 *
 	 * @param $headers
 	 *
 	 * @return string

@@ -426,7 +426,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * Process asynchronous Authorization.
 	 *
 	 * @param WC_Order $order
-	 * @param string $amazon_reference_id
+	 * @param string   $amazon_reference_id
 	 */
 	public function process_async_auth( $order, $amazon_reference_id ) {
 
@@ -918,7 +918,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * If redirected to success url, proceed with payment and redirect to thank you page.
 	 *
 	 * @param WC_Order $order
-	 * @param string $amazon_reference_id
+	 * @param string   $amazon_reference_id
 	 */
 	protected function handle_sca_success( $order, $amazon_reference_id ) {
 		$process = apply_filters( 'woocommerce_amazon_pa_handle_sca_success', null, $order, $amazon_reference_id );
@@ -949,8 +949,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * If redirected to failure url, add a notice with right information for the user.
 	 *
 	 * @param WC_Order $order
-	 * @param string $amazon_reference_id
-	 * @param string $authorization_status
+	 * @param string   $amazon_reference_id
+	 * @param string   $authorization_status
 	 */
 	protected function handle_sca_failure( $order, $amazon_reference_id, $authorization_status ) {
 		$process = apply_filters( 'woocommerce_amazon_pa_handle_sca_failure', null, $order, $amazon_reference_id, $authorization_status );

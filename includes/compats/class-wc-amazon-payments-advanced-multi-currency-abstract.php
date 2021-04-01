@@ -19,7 +19,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	const CURRENCY_BYPASS_SESSION = 'currency_bypass';
 
 	public function __construct() {
-		//If multi-currency plugin acts only on frontend level, no need to hook.
+		// If multi-currency plugin acts only on frontend level, no need to hook.
 		if ( $this->is_front_end_compatible() ) {
 			return;
 		}
@@ -140,6 +140,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 	/**
 	 * Flag if we need to reload Amazon wallet on frontend.
+	 *
 	 * @return bool
 	 */
 	public function reload_wallet_widget() {

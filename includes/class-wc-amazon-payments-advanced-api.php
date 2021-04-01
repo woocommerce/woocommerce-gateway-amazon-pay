@@ -40,12 +40,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	}
 
 	/**
-	* Validate API keys when settings are updated.
-	*
-	* @since 2.0.0
-	*
-	* @return bool Returns true if API keys are valid
-	*/
+	 * Validate API keys when settings are updated.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return bool Returns true if API keys are valid
+	 */
 	public static function validate_api_keys() {
 
 		$settings = self::get_settings();

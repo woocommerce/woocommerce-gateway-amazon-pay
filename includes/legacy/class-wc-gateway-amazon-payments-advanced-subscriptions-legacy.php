@@ -460,7 +460,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * If redirected to success url, proceed with payment and redirect to thank you page.
 	 *
 	 * @param WC_Order $order
-	 * @param string $amazon_reference_id
+	 * @param string   $amazon_reference_id
 	 */
 	public function handle_sca_success( $process, $order, $amazon_reference_id ) {
 		if ( ! WC_Gateway_Amazon_Payments_Advanced_Subscriptions::order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
@@ -498,8 +498,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * If redirected to failure url, add a notice with right information for the user.
 	 *
 	 * @param WC_Order $order
-	 * @param string $amazon_reference_id
-	 * @param string $authorization_status
+	 * @param string   $amazon_reference_id
+	 * @param string   $authorization_status
 	 */
 	public function handle_sca_failure( $process, $order, $amazon_reference_id, $authorization_status ) {
 		if ( ! WC_Gateway_Amazon_Payments_Advanced_Subscriptions::order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {

@@ -327,7 +327,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @see http://docs.developer.amazonservices.com/en_UK/apa_guide/APAGuide_GetAuthorizationStatus.html
 	 *
-	 * @param int   $order_id Order ID.
+	 * @param int    $order_id Order ID.
 	 * @param object $result   Result from API response.
 	 *
 	 * @deprecated

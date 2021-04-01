@@ -6,7 +6,6 @@ if ( ! class_exists( 'WC_Abstract_Privacy' ) ) {
 class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Constructor
-	 *
 	 */
 	public function __construct() {
 		parent::__construct( __( 'Amazon Pay &amp; Login with Amazon', 'woocommerce-gateway-amazon-payments-advanced' ) );
@@ -23,8 +22,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Returns a list of orders that are using one of Amazon's payment methods.
 	 *
-	 * @param string  $email_address
-	 * @param int     $page
+	 * @param string $email_address
+	 * @param int    $page
 	 *
 	 * @return array WP_Post
 	 */
@@ -48,7 +47,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 
 	/**
 	 * Gets the message of the privacy to display.
-	 *
 	 */
 	public function get_privacy_message() {
 		return wpautop( sprintf( __( 'By using this extension, you may be storing personal data or sharing data with an external service. <a href="%s" target="_blank">Learn more about how this works, including what you may want to include in your privacy policy.</a>', 'woocommerce-gateway-amazon-payments-advanced' ), 'https://docs.woocommerce.com/document/privacy-payments/#woocommerce-gateway-amazon-payments-advanced' ) );

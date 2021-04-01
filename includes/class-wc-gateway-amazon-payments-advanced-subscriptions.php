@@ -61,7 +61,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Set redirect URL if the result redirect URL is empty
 	 *
-	 * @param mixed $result
+	 * @param mixed           $result
 	 * @param WC_Subscription $subscription
 	 *
 	 * @return mixed

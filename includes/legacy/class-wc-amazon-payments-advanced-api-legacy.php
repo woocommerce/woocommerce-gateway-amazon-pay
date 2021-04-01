@@ -297,12 +297,12 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	}
 
 	/**
-	* Validate API keys when settings are updated.
-	*
-	* @since 1.6.0
-	*
-	* @return bool Returns true if API keys are valid
-	*/
+	 * Validate API keys when settings are updated.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @return bool Returns true if API keys are valid
+	 */
 	public static function validate_api_keys() {
 
 		$settings = self::get_settings();
@@ -685,7 +685,6 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 
 	/**
 	 * Handle the result of an sync authorization request.
-	 *
 	 *
 	 * @param object       $result         IPN payload.
 	 * @param int|WC_Order $order          Order object.
