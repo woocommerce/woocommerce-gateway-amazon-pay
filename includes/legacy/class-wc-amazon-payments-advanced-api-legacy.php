@@ -807,7 +807,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		$args     = wp_parse_args(
 			$args,
 			array(
-				'capture_now'         => false,
+				'capture_now' => false,
 			)
 		);
 
@@ -1010,7 +1010,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @return array Request args.
 	 */
 	public static function get_authorize_recurring_request_args( WC_Order $order, $args ) {
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
+		$order_id        = wc_apa_get_order_prop( $order, 'id' );
 		$order_shippable = self::maybe_subscription_is_shippable( $order );
 
 		return array(

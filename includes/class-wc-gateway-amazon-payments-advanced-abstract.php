@@ -76,7 +76,12 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	}
 
 	public function get_amazon_payments_clean_logout_url() {
-		$url = add_query_arg( array( 'amazon_payments_advanced' => 'true', 'amazon_logout' => false ) );
+		$url = add_query_arg(
+			array(
+				'amazon_payments_advanced' => 'true',
+				'amazon_logout'            => false,
+			)
+		);
 		return $url;
 	}
 
