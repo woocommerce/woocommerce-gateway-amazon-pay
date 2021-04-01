@@ -97,6 +97,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 							'name'  => __( 'Amazon subscription token', 'woocommerce-gateway-amazon-payments-advanced' ),
 							'value' => get_post_meta( $order->get_id(), 'amazon_billing_agreement_id', true ),
 						),
+						array(
+							'name'  => __( 'Amazon Pay charge permission id', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'value' => get_post_meta( $order->get_id(), 'amazon_charge_permission_id', true ),
+						),
+						array(
+							'name'  => __( 'Amazon Pay charge id', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'value' => get_post_meta( $order->get_id(), 'amazon_charge_id', true ),
+						),
 					),
 				);
 			}
@@ -157,6 +165,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 						array(
 							'name'  => __( 'Amazon subscription token', 'woocommerce-gateway-amazon-payments-advanced' ),
 							'value' => get_post_meta( $subscription->get_id(), 'amazon_billing_agreement_id', true ),
+						),
+						array(
+							'name'  => __( 'Amazon Pay charge permission id', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'value' => get_post_meta( $subscription->get_id(), 'amazon_charge_permission_id', true ),
 						),
 					),
 				);
@@ -255,6 +267,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 			'amazon_refunds',
 			'amazon_billing_agreement_id',
 			'amazon_billing_agreement_state',
+			'amazon_charge_permission_id',
+			'amazon_charge_permission_status',
+			'amazon_charge_id',
+			'amazon_charge_status',
 		);
 
 		$deleted = false;
