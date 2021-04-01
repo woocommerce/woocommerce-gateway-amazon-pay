@@ -1,10 +1,4 @@
 <?php // phpcs:ignore
-/**
- * Main class and core functions.
- *
- * @package WC_Gateway_Amazon_Pay
- */
-
 /*
  * Plugin Name: WooCommerce Amazon Pay
  * Plugin URI: https://woocommerce.com/products/pay-with-amazon/
@@ -12,19 +6,20 @@
  * Version: 2.0.0-alpha12
  * Author: WooCommerce
  * Author URI: https://woocommerce.com
- *
  * Text Domain: woocommerce-gateway-amazon-payments-advanced
  * Domain Path: /languages/
  * Tested up to: 5.6
  * WC tested up to: 5.0
  * WC requires at least: 2.6
  *
- * Copyright: © 2020 WooCommerce
+ * Copyright: © 2021 WooCommerce
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
+ *
+ * @package WC_Gateway_Amazon_Pay
  */
 
-define( 'WC_AMAZON_PAY_VERSION', '2.0.0' );
+define( 'WC_AMAZON_PAY_VERSION', '2.0.0' ); // WRCS: DEFINED_VERSION.
 define( 'WC_AMAZON_PAY_VERSION_CV1', '1.13.1' );
 
 /**
