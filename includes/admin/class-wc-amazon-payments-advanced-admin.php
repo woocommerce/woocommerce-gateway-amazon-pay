@@ -320,7 +320,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 			'description'           => WC_Amazon_Payments_Advanced::get_site_description(),
 			'ajax_url'              => admin_url( 'admin-ajax.php' ),
 			'credentials_nonce'     => wp_create_nonce( 'amazon_pay_check_credentials' ),
-			'login_redirect_url'    => add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ),
+			'login_redirect_url'    => wc_apa()->get_gateway()->get_amazon_payments_checkout_url(),
 			'woo_version'           => 'WooCommerce: ' . WC()->version,
 			'plugin_version'        => 'WooCommerce Amazon Pay: ' . wc_apa()->version,
 			'language_combinations' => WC_Amazon_Payments_Advanced_API::get_languages_per_region(),

@@ -50,14 +50,34 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 *
 	 * @return string Amazon logout URL
 	 */
-	public function get_amazon_logout_url() {
+	public function get_amazon_logout_url( $url = null ) {
+		if ( empty( $url ) ) {
+			$url = get_permalink( wc_get_page_id( 'checkout' ) );
+		}
+		if ( empty( $url ) ) {
+			$url = trailingslashit( home_url() );
+		}
 		return add_query_arg(
 			array(
 				'amazon_payments_advanced' => 'true',
 				'amazon_logout'            => 'true',
 			),
-			get_permalink( wc_get_page_id( 'checkout' ) )
+			$url
 		);
+	}
+
+	public function get_amazon_payments_checkout_url() {
+		$url = get_permalink( wc_get_page_id( 'checkout' ) );
+		if ( empty( $url ) ) {
+			$url = trailingslashit( home_url() );
+		}
+		$url = add_query_arg( array( 'amazon_payments_advanced' => 'true' ), $url );
+		return $url;
+	}
+
+	public function get_amazon_payments_clean_logout_url() {
+		$url = add_query_arg( array( 'amazon_payments_advanced' => 'true', 'amazon_logout' => false ) );
+		return $url;
 	}
 
 	/**
@@ -125,7 +145,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			)
 		);
 		$enable_login_app_label = sprintf( $label_format, $login_app_setup_url );
-		$redirect_url           = add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) );
+		$redirect_url           = $this->get_amazon_payments_checkout_url();
 		$valid                  = isset( $this->settings['amazon_keys_setup_and_validated'] ) ? $this->settings['amazon_keys_setup_and_validated'] : false;
 
 		$button_desc = __( 'Register for a new Amazon Pay merchant account, or sign in with your existing Amazon Pay Seller Central credentials to complete the plugin upgrade and configuration', 'woocommerce-gateway-amazon-payments-advanced' );
