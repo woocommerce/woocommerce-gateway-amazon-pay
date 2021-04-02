@@ -1,6 +1,8 @@
 <?php
 /**
  * Abstract Gateway Class with common implementations between v1 and v2
+ *
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**

@@ -1,6 +1,8 @@
 <?php
 /**
  * IPN Legacy Handling.
+ *
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**

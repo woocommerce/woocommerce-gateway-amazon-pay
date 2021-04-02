@@ -1,6 +1,8 @@
 <?php
 /**
  * Admin Related Functionality
+ *
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**

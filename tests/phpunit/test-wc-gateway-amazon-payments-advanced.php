@@ -1,6 +1,7 @@
 <?php
 /**
  * PHPUnit bootstrap file
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**

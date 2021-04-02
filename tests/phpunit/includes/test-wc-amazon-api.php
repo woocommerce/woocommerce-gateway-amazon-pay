@@ -2,7 +2,7 @@
 /**
  * Test cases for WC_Amazon_Payments_Advanced_API.
  *
- * @package WC_Amazon_Payments_Advanced
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**

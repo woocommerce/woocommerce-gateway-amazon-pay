@@ -1,6 +1,8 @@
 <?php
 /**
  * Legacy Order Admin Functionality
+ *
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**

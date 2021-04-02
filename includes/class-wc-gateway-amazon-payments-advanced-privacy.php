@@ -1,6 +1,8 @@
 <?php
 /**
  * Handle Privacy Cleanup and Export.
+ *
+ * @package WC_Gateway_Amazon_Pay
  */
 
 if ( ! class_exists( 'WC_Abstract_Privacy' ) ) {

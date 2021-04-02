@@ -1,6 +1,8 @@
 <?php
 /**
  * Legacy Gateway for v1 orders.
+ *
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**

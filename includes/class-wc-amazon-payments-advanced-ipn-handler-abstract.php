@@ -1,6 +1,8 @@
 <?php
 /**
  * Common handling for IPNs.
+ *
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**
