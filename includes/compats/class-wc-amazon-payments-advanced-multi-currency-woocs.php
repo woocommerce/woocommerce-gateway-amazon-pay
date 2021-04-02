@@ -70,7 +70,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_Woocs extends WC_Amazon_Payment
 	 */
 	public function remove_currency_switcher_on_order_reference_suspended( $value ) {
 		if ( $this->is_order_reference_checkout_suspended() ) {
-			// By Pass Multi-currency, so we don't trigger a new set_order_reference_details on process_payment
+			// By Pass Multi-currency, so we don't trigger a new set_order_reference_details on process_payment.
 			$this->bypass_currency_session();
 			return 1;
 		}
@@ -84,7 +84,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_Woocs extends WC_Amazon_Payment
 	 */
 	public function remove_shortcode_currency_switcher_on_order_reference_suspended( $value ) {
 		if ( $this->is_order_reference_checkout_suspended() ) {
-			// By Pass Multi-currency, so we don't trigger a new set_order_reference_details on process_payment
+			// By Pass Multi-currency, so we don't trigger a new set_order_reference_details on process_payment.
 			$this->bypass_currency_session();
 			remove_shortcode( 'woocs' );
 		}

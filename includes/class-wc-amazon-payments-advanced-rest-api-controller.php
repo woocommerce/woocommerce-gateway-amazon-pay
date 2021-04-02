@@ -557,7 +557,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		} else {
 			$amount = $request['amount'];
 
-			// TODO: Reason is not implemented in API v2
+			// TODO: Reason is not implemented in API v2.
 			$reason = ! empty( $request['reason'] ) ? $request['reason'] : null;
 
 			if ( 0 > $amount ) {

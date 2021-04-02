@@ -70,9 +70,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 * Do the order action
 	 *
 	 * @param  WC_Order $order
-	 * @param  string   $id A charge_id, refund_id, charge_permission_id
-	 * @param  string   $action Action to be performed
-	 * @param  string   $version Version of the order
+	 * @param  string   $id A charge_id, refund_id or charge_permission_id.
+	 * @param  string   $action Action to be performed.
+	 * @param  string   $version Version of the order.
 	 * @return void
 	 */
 	public function do_order_action( $order, $id, $action, $version ) {
@@ -247,7 +247,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					$need_refresh                   = true;
 					break;
 				case 'Captured':
-					// TODO: Handle fully refunded charges
+					// TODO: Handle fully refunded charges.
 					$actions['refund'] = array(
 						'id'     => $charge_id,
 						'button' => __( 'Make a refund?', 'woocommerce-gateway-amazon-payments-advanced' ),

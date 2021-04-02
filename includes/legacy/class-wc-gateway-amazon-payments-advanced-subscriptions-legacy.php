@@ -29,7 +29,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	public function init_handlers( $version ) {
 		$id = wc_apa()->get_gateway()->id;
 
-		// Legacy methods needed when dealing with legacy subscriptions
+		// Legacy methods needed when dealing with legacy subscriptions.
 		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
 		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
 		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $id, array( $this, 'update_failing_payment_method' ), 10, 2 );
@@ -39,7 +39,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		add_action( 'woocommerce_amazon_pa_v1_order_admin_action_authorize_capture_recurring', array( $this, 'admin_action_authorize_capture_recurring' ), 10, 2 );
 		add_action( 'woocommerce_amazon_pa_v1_cleared_stored_states', array( $this, 'clear_stored_billing_agreement_state' ) );
 
-		if ( 'v1' === strtolower( $version ) ) { // These are only needed when legacy is the active gateway (prior to migration)
+		if ( 'v1' === strtolower( $version ) ) { // These are only needed when legacy is the active gateway (prior to migration).
 			add_filter( 'woocommerce_amazon_pa_process_payment', array( $this, 'process_payment' ), 10, 2 );
 			add_filter( 'woocommerce_amazon_pa_get_amazon_order_details', array( $this, 'get_amazon_order_details' ), 10, 2 );
 			add_filter( 'woocommerce_amazon_pa_handle_sca_success', array( $this, 'handle_sca_success' ), 10, 3 );
@@ -247,8 +247,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * Do authorization on an order with a recurring charge.
 	 *
-	 * @param WC_Order $order WC_Order object
-	 * @param string   $amazon_billing_agreement_id Recurring object
+	 * @param WC_Order $order WC_Order object.
+	 * @param string   $amazon_billing_agreement_id Recurring object.
 	 *
 	 * @return void
 	 */
@@ -480,7 +480,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * If redirected to success url, proceed with payment and redirect to thank you page.
 	 *
 	 * @param mixed    $process Shortcircuit parameter.
-	 * @param WC_Order $order Order Object
+	 * @param WC_Order $order Order Object.
 	 * @param string   $amazon_reference_id Reference ID.
 	 *
 	 * @return mixed|void $process parameter if not supposed to run, will redirect and exit if it runs.

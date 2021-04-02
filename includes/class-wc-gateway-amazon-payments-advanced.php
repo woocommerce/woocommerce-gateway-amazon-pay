@@ -30,7 +30,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function __construct() {
 		parent::__construct();
 
-		// Init Handlers
+		// Init Handlers.
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
 		add_action( 'woocommerce_create_refund', array( $this, 'current_refund_set' ) );
 	}
@@ -48,7 +48,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function is_available() {
 		$is_available = parent::is_available() && ! empty( $this->settings['merchant_id'] );
 
-		if ( ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) { // TODO: Check with multicurrency implementation
+		if ( ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) { // TODO: Check with multicurrency implementation.
 			$is_available = false;
 		}
 
@@ -86,7 +86,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				}
 				$this->display_payment_method_selected( $checkout_session );
 				// ASK: Maybe add a note that address is not used?
-				// TODO: If using addresses from checkoutSession, maybe fix shipping and billing state issues by displaying a custom form from WC
+				// TODO: If using addresses from checkoutSession, maybe fix shipping and billing state issues by displaying a custom form from WC.
 			} else {
 				$this->checkout_button();
 			}
@@ -109,7 +109,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		add_action( 'template_redirect', array( $this, 'maybe_handle_apa_action' ) );
 
-		// Scripts
+		// Scripts.
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 
 		// Checkout.
@@ -120,14 +120,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 		}
 
-		// Cart
+		// Cart.
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
 		if ( wp_doing_ajax() ) {
 			add_action( 'woocommerce_review_order_before_order_total', array( $this, 'update_js' ) );
 		}
 
-		// Maybe Hide Cart Buttons
+		// Maybe Hide Cart Buttons.
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
 
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
@@ -161,7 +161,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
 			'checkout_session_id'            => $this->get_checkout_session_id(),
 			'button_language'                => $this->settings['button_language'],
-			'ledger_currency'                => $this->get_ledger_currency(), // TODO: Implement multicurrency
+			'ledger_currency'                => $this->get_ledger_currency(), // TODO: Implement multicurrency.
 		);
 
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
@@ -356,7 +356,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return int Return the customer id
 	 */
 	public function handle_account_registration( $customer_id ) {
-		// unhook ourselves, since we only need this after checkout started, not every time
+		// unhook ourselves, since we only need this after checkout started, not every time.
 		remove_filter( 'woocommerce_checkout_customer_id', array( $this, 'handle_account_registration' ) );
 
 		$checkout = WC()->checkout();
@@ -372,11 +372,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 		}
 
-		if ( $customer_id ) { // Already registered, or logged in. Return normally
+		if ( $customer_id ) { // Already registered, or logged in. Return normally.
 			return $customer_id;
 		}
 
-		// FROM: WC_Checkout->process_customer
+		// FROM: WC_Checkout->process_customer.
 		if ( ! is_user_logged_in() && ( $checkout->is_registration_required() || ! empty( $data['createaccount'] ) ) ) {
 			$checkout_session = $this->get_checkout_session();
 			$buyer_id         = $checkout_session->buyer->buyerId;
@@ -385,11 +385,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			if ( isset( $data['amazon_validate'] ) ) {
 				if ( $buyer_user_id ) {
-					return; // We shouldn't be here anyways
+					return; // We shouldn't be here anyways.
 				}
 				$user_id = email_exists( $buyer_email );
 				if ( ! $user_id ) {
-					return; // We shouldn't be here anyways
+					return; // We shouldn't be here anyways.
 				}
 
 				if ( empty( $data['amazon_validate'] ) ) {
@@ -779,7 +779,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	protected function hijack_checkout_field_account( $checkout ) {
 		if ( is_user_logged_in() ) {
-			return; // There's nothing to do here if the user is logged in
+			return; // There's nothing to do here if the user is logged in.
 		}
 
 		$checkout_session = $this->get_checkout_session();
@@ -789,12 +789,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 
 		if ( $buyer_user_id ) {
-			return; // We shouldn't be here anyways
+			return; // We shouldn't be here anyways.
 		}
 
 		$user_id = email_exists( $buyer_email );
 		if ( ! $user_id ) {
-			return; // We shouldn't be here anyways
+			return; // We shouldn't be here anyways.
 		}
 
 		/**
@@ -1009,7 +1009,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return array
 	 */
 	protected function get_woocommerce_data() {
-		// TODO: Store in session for performance, always clear when coming back from AMZ
+		// TODO: Store in session for performance, always clear when coming back from AMZ.
 		$checkout_session_id = $this->get_checkout_session_id();
 		if ( empty( $checkout_session_id ) ) {
 			return array();
@@ -1020,7 +1020,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$data = array();
 
 		if ( ! empty( $checkout_session->buyer ) ) {
-			// Billing
+			// Billing.
 			$wc_billing_address = array();
 			if ( ! empty( $checkout_session->billingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
 				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ); // phpcs:ignore WordPress.NamingConventions
@@ -1043,7 +1043,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$wc_shipping_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ); // phpcs:ignore WordPress.NamingConventions
 			}
 
-			// Shipping
+			// Shipping.
 			foreach ( $wc_shipping_address as $field => $val ) {
 				$data[ 'shipping_' . $field ] = $val;
 			}
@@ -1065,7 +1065,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$formatted_session_data = $this->get_woocommerce_data();
 
-		$data = array_merge( $data, array_intersect_key( $formatted_session_data, $data ) ); // only set data that exists in data
+		$data = array_merge( $data, array_intersect_key( $formatted_session_data, $data ) ); // only set data that exists in data.
 
 		if ( isset( $_REQUEST['amazon_link'] ) ) {
 			$data['amazon_link'] = $_REQUEST['amazon_link'];
@@ -1077,7 +1077,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Filter a single value for session data.
 	 *
-	 * @param  mixed $ret Previous value
+	 * @param  mixed $ret Previous value.
 	 * @param  mixed $input Field being retrieved.
 	 * @return mixed
 	 */
@@ -1166,7 +1166,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
 
-			$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // ASK: ask if WC 2.6 support is still needed (it's a 2017 release)
+			$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // ASK: ask if WC 2.6 support is still needed (it's a 2017 release).
 			$order->update_meta_data( 'woocommerce_version', WC()->version );
 
 			$payment_intent = 'AuthorizeWithCapture';
@@ -1370,7 +1370,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$new_time   = strtotime( $new_charge->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
 				if ( $old_time > $new_time ) {
 					wc_apa()->log( sprintf( 'Discarding change of chargeId on #%1$d from "%2$s" to "%3$s". "%2$s" is actually newer and shoud stay linked to #%1$d.', $order->get_id(), $charge_id, $charge->chargeId ) ); // phpcs:ignore WordPress.NamingConventions
-					// An old charge cannot replace a newer one created for the same order
+					// An old charge cannot replace a newer one created for the same order.
 					return;
 				}
 				wc_apa()->log( sprintf( 'Changing ChargeId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_id, $charge->chargeId ) ); // phpcs:ignore WordPress.NamingConventions
@@ -1386,7 +1386,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 			$charge = WC_Amazon_Payments_Advanced_API::get_charge( $charge_id );
 		}
-		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
+		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications.
 		$old_status    = $this->get_cached_charge_status( $order, true )->status;
 		$charge_status = $charge->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
 		if ( $charge_status === $old_status ) {
@@ -1401,7 +1401,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 		$this->refresh_cached_charge_status( $order, $charge );
 		$order->update_meta_data( 'amazon_charge_id', $charge_id );
-		$order->save(); // Save early for less race conditions
+		$order->save(); // Save early for less race conditions.
 
 		// @codingStandardsIgnoreStart
 		$order->add_order_note( sprintf(
@@ -1463,7 +1463,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$new_time              = strtotime( $new_charge_permission->creationTimestamp ); // phpcs:ignore WordPress.NamingConventions
 				if ( $old_time > $new_time ) {
 					wc_apa()->log( sprintf( 'Discarding change of chargePermissionId on #%1$d from "%2$s" to "%3$s". "%2$s" is actually newer and shoud stay linked to #%1$d.', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
-					// An old charge permission cannot replace a newer one created for the same order
+					// An old charge permission cannot replace a newer one created for the same order.
 					return;
 				}
 				wc_apa()->log( sprintf( 'Changing chargePermissionId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
@@ -1479,7 +1479,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			}
 			$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
 		}
-		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications
+		$order->read_meta_data( true ); // Force read from db to avoid concurrent notifications.
 		$old_status               = $this->get_cached_charge_permission_status( $order, true )->status;
 		$charge_permission_status = $charge_permission->statusDetails->state; // phpcs:ignore WordPress.NamingConventions
 		if ( $charge_permission_status === $old_status ) {
@@ -1493,7 +1493,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 		$this->refresh_cached_charge_permission_status( $order, $charge_permission );
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id ); // phpcs:ignore WordPress.NamingConventions
-		$order->save(); // Save early for less race conditions
+		$order->save(); // Save early for less race conditions.
 
 		$this->add_status_change_note( $order, (string) $charge_permission_id, (string) $charge_permission_status );
 
@@ -1610,7 +1610,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Check wether the checkout session is still valid.
 	 *
-	 * @param  object $checkout_session Checkout Session Object from the Amazon API
+	 * @param  object $checkout_session Checkout Session Object from the Amazon API.
 	 * @return bool|WP_Error True if valid, WP_Error in case of error.
 	 */
 	public function is_checkout_session_still_valid( $checkout_session ) {
@@ -1631,7 +1631,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Maybe render login button again, if the session is not valid anymore
 	 *
-	 * @param  object $checkout_session Checkout Session Object from the Amazon API
+	 * @param  object $checkout_session Checkout Session Object from the Amazon API.
 	 * @param  bool   $wrap Wether to wrap the button in columns or not.
 	 * @return void
 	 */
@@ -1868,7 +1868,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param  WC_Order $order
 	 * @param  object   $refund Refund object from the Amazon API.
-	 * @param  int      $wc_refund_id Optional. WC Refund ID (if it's already created)
+	 * @param  int      $wc_refund_id Optional. WC Refund ID (if it's already created).
 	 * @return bool
 	 */
 	public function handle_refund( $order, $refund, $wc_refund_id = null ) {
@@ -1946,7 +1946,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function current_refund_set( $wc_refund ) {
-		$this->current_refund = $wc_refund; // Cache refund object in a hook before process_refund is called
+		$this->current_refund = $wc_refund; // Cache refund object in a hook before process_refund is called.
 	}
 
 	/**
@@ -1966,8 +1966,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Lock an order to be processed only in the current request.
 	 *
-	 * @param  int  $order Order ID
-	 * @param  bool $force Wether to force acquisition or not
+	 * @param  int  $order Order ID.
+	 * @param  bool $force Wether to force acquisition or not.
 	 * @return bool True if acquired, false if not.
 	 */
 	public function get_lock_for_order( $order, $force = false ) {
@@ -1979,14 +1979,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				return false;
 			}
 		}
-		set_transient( $key, 'yes', 2 * MINUTE_IN_SECONDS ); // This is shortlived to avoid issues
+		set_transient( $key, 'yes', 2 * MINUTE_IN_SECONDS ); // This is shortlived to avoid issues.
 		return true;
 	}
 
 	/**
 	 * Release an acquired lock for an order.
 	 *
-	 * @param  int $order Order ID
+	 * @param  int $order Order ID.
 	 * @return void
 	 */
 	public function release_lock_for_order( $order ) {
@@ -2022,7 +2022,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param  WC_Order $order
 	 * @param  bool     $capture_now Wether to capture now or not.
-	 * @param  string   $id Charge Permission ID
+	 * @param  string   $id Charge Permission ID.
 	 * @return object|WP_Error Charge object from the API, or WP_Error in case of error.
 	 */
 	public function perform_authorization( $order, $capture_now = true, $id = null ) {
@@ -2073,7 +2073,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Cancel an authorization
 	 *
 	 * @param  WC_Order $order
-	 * @param  string   $id Charge ID
+	 * @param  string   $id Charge ID.
 	 * @return object|WP_Error Charge object from the API, or WP_Error in case of error.
 	 */
 	public function perform_cancel_auth( $order, $id = null ) {
@@ -2106,7 +2106,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Capture an authorization
 	 *
 	 * @param  WC_Order $order
-	 * @param  string   $id Charge ID
+	 * @param  string   $id Charge ID.
 	 * @return object|WP_Error Charge object from the API, or WP_Error in case of error.
 	 */
 	public function perform_capture( $order, $id = null ) {
@@ -2139,8 +2139,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Perform a refund on an order
 	 *
 	 * @param  WC_Order $order
-	 * @param  float    $amount Amount to refund
-	 * @param  string   $id Charge ID
+	 * @param  float    $amount Amount to refund.
+	 * @param  string   $id Charge ID.
 	 * @return object|WP_Error Refund object from the API, or WP_Error in case of error.
 	 */
 	public function perform_refund( $order, $amount = null, $id = null ) {

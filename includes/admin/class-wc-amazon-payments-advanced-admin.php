@@ -290,7 +290,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 	/**
 	 * Add scripts to dashboard settings.
 	 *
-	 * @param string $hook
+	 * @param string $hook Admin screen ID.
 	 *
 	 * @throws Exception On Errors.
 	 */

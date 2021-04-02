@@ -45,7 +45,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * Constructor
 	 */
 	public function __construct() {
-		// Validate Keys for V1 Messages
+		// Validate Keys for V1 Messages.
 		add_action( 'woocommerce_amazon_payments_advanced_ipn_validate_notification_keys', array( $this, 'validate_notification_keys_v1' ), 10, 2 );
 		add_action( 'woocommerce_amazon_payments_advanced_ipn_validate_subscription_keys', array( $this, 'validate_subscription_keys_v1' ), 10, 1 );
 
@@ -226,7 +226,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 
 		$order->add_order_note(
 			sprintf(
-				// translators: 1) Amazon refund ID 2) refund status 3) refund amount
+				// translators: 1) Amazon refund ID 2) refund status 3) refund amount.
 				__( 'Received IPN for payment refund %1$s with status %2$s. Refund amount: %3$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				$refund_id,
 				$refund_status,

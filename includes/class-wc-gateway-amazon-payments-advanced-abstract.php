@@ -43,7 +43,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'validate_api_keys' ) );
 
-		// Import / Export
+		// Import / Export.
 		add_action( 'admin_init', array( $this, 'process_settings_import' ) );
 		add_action( 'admin_init', array( $this, 'process_settings_export' ) );
 		add_action( 'woocommerce_after_settings_checkout', array( $this, 'import_export_fields_output' ) );
@@ -580,7 +580,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Process settings in a file
 	 *
 	 * @param array $import_file PHP $_FILES (or similar) entry.
-	 * @param  bool  $clean_post Wether to clean the post or not
+	 * @param  bool  $clean_post Wether to clean the post or not.
 	 */
 	protected function process_settings_from_file( $import_file, $clean_post = false ) {
 		$fn_parts  = explode( '.', $import_file['name'] );
@@ -771,7 +771,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Triggered from the 'woocommerce_proceed_to_checkout' action.
 	 *
 	 * @param  bool   $echo Wether to echo or not.
-	 * @param  string $elem HTML tag to render
+	 * @param  string $elem HTML tag to render.
 	 * @return bool|string
 	 */
 	public function checkout_button( $echo = true, $elem = 'div' ) {
@@ -860,12 +860,12 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @return void
 	 */
 	public function checkout_init_common() {
-		// Remove other gateways after being logged in
+		// Remove other gateways after being logged in.
 		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_gateways' ) );
 		// Some fields are not enforced on Amazon's side. Marking them as optional avoids issues with checkout.
 		add_filter( 'woocommerce_billing_fields', array( $this, 'override_billing_fields' ) );
 		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_shipping_fields' ) );
-		// Always ship to different address
+		// Always ship to different address.
 		add_action( 'woocommerce_ship_to_different_address_checked', '__return_true' );
 	}
 

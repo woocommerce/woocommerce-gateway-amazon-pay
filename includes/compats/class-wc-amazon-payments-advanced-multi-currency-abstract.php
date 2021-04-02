@@ -29,7 +29,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
 		if ( 'v1' === $version ) {
-			// Add AJAX call to retrieve current currency on frontend
+			// Add AJAX call to retrieve current currency on frontend.
 			add_action( 'wp_ajax_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
 			add_action( 'wp_ajax_nopriv_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
 		}

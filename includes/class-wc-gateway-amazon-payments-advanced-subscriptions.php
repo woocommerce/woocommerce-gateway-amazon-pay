@@ -27,7 +27,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		add_filter( 'woocommerce_amazon_pa_supports', array( $this, 'add_subscription_support' ) );
 
-		// WC Subscription Hook
+		// WC Subscription Hook.
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
 	}
 
@@ -51,7 +51,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_filter( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( $this, 'add_subscription_post_type' ) );
 		add_filter( 'woocommerce_amazon_pa_order_admin_actions', array( $this, 'remove_charge_permission_actions_on_recurring' ), 10, 2 );
 
-		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
+		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before).
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
 			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
 			add_filter( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array( $this, 'recurring_complete_checkout_session_update' ), 10, 3 );
@@ -95,7 +95,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				'subscription_cancellation',
 				'multiple_subscriptions',
 				'subscription_payment_method_change_customer',
-				// TODO: Implement upgrades/downgrades
+				// TODO: Implement upgrades/downgrades.
 			)
 		);
 
@@ -526,7 +526,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$capture_now = true;
 		switch ( WC_Amazon_Payments_Advanced_API::get_settings( 'payment_capture' ) ) {
 			case 'authorize':
-			case 'manual': // Force manual to be authorize as well
+			case 'manual': // Force manual to be authorize as well.
 				$capture_now = false;
 				break;
 		}
@@ -577,7 +577,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		// Prevent double running. WCS Bug.
-		// TODO: Report bug. PR that introduced this in WCS https://github.com/woocommerce/woocommerce-subscriptions/pull/2777
+		// TODO: Report bug. PR that introduced this in WCS https://github.com/woocommerce/woocommerce-subscriptions/pull/2777 .
 		if ( isset( $subscription->handled_cancel ) ) {
 			return;
 		}
@@ -647,7 +647,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$this->handle_order_propagation( $order, $charge_permission_id, $charge_permission_status );
 		}
 
-		$subs = wcs_get_subscriptions_for_order( $order ); // TODO: Test with multiple subs
+		$subs = wcs_get_subscriptions_for_order( $order ); // TODO: Test with multiple subs.
 
 		foreach ( $subs as $subscription ) {
 			if ( $_order->get_id() !== $subscription->get_id() ) {
@@ -726,7 +726,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * Change payment method after processing order.
 	 *
 	 * @param  WC_Order $order
-	 * @param  object   $response Charge Completion response from the Amazon API
+	 * @param  object   $response Charge Completion response from the Amazon API.
 	 * @return void
 	 */
 	public function maybe_change_payment_method( $order, $response ) {

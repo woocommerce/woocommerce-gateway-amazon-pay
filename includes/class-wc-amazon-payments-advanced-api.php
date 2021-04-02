@@ -35,7 +35,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	protected static function get_amazonpay_sdk_config( $fresh = false ) {
 		if ( $fresh || empty( self::$amazonpay_sdk_config ) ) {
 			$settings = self::get_settings();
-			$region   = $settings['payment_region']; // TODO: Maybe normalize v1 and v2 different region management
+			$region   = $settings['payment_region']; // TODO: Maybe normalize v1 and v2 different region management.
 			if ( 'gb' === $region ) {
 				$region = 'eu';
 			}
@@ -198,14 +198,14 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$methods  = $row_zone->get_shipping_methods( true, 'json' );
 		if ( ! empty( $methods ) ) {
 			// Rest of the World has shipping methods, so we can assume we can ship to all shipping countries
-			// Skip the whole thing
+			// Skip the whole thing.
 			if ( count( $shipping_countries ) !== count( $all_countries ) ) {
 				foreach ( $shipping_countries as $country => $name ) {
-					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
+					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
 				}
 				return $zones;
 			} else {
-				return false; // No restrictions
+				return false; // No restrictions.
 			}
 		}
 
@@ -213,19 +213,19 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$zone    = new WC_Shipping_Zone( $raw_zone );
 			$methods = $zone->get_shipping_methods( true, 'json' );
 			if ( empty( $methods ) ) {
-				continue; // If no shipping methods, we assume no support on this region
+				continue; // If no shipping methods, we assume no support on this region.
 			}
 
 			$locations  = $zone->get_zone_locations( 'json' );
 			$continents = array_filter( $locations, array( __CLASS__, 'location_is_continent' ) );
 			$countries  = array_filter( $locations, array( __CLASS__, 'location_is_country' ) );
 			$states     = array_filter( $locations, array( __CLASS__, 'location_is_state' ) );
-			$postcodes  = array_filter( $locations, array( __CLASS__, 'location_is_postcode' ) ); // HARD TODO: Postcode wildcards can't be implemented afaik
+			$postcodes  = array_filter( $locations, array( __CLASS__, 'location_is_postcode' ) ); // HARD TODO: Postcode wildcards can't be implemented afaik.
 
 			foreach ( $continents as $location ) {
 				foreach ( $all_continents[ $location->code ]['countries'] as $country ) {
 					if ( ! isset( $zones[ $country ] ) ) {
-						$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
+						$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
 					}
 				}
 			}
@@ -233,7 +233,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			foreach ( $countries as $location ) {
 				$country = $location->code;
 				if ( ! isset( $zones[ $country ] ) ) {
-					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
+					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
 				}
 			}
 
@@ -242,7 +242,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				$country        = strtoupper( $location_codes[0] );
 				$state          = $location_codes[1];
 				if ( ! isset( $zones[ $country ] ) ) {
-					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON
+					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
 				}
 
 				if ( ! isset( $zones[ $country ]->statesOrRegions ) ) {
@@ -354,7 +354,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Normalize Address Data from the API
 	 *
-	 * @param  object $address Object that will be adjusted
+	 * @param  object $address Object that will be adjusted.
 	 * @return void
 	 */
 	protected static function normalize_address( $address ) {
@@ -548,11 +548,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( empty( $data ) ) {
 			$data = array();
 		}
-		// TODO: Validate entered data
+		// TODO: Validate entered data.
 		if ( empty( $data['captureAmount'] ) ) {
 			$charge                = self::get_charge( $charge_id );
 			$data['captureAmount'] = (array) $charge->chargeAmount; // phpcs:ignore WordPress.NamingConventions
-			// TODO: Test with lower amount of captured than charge (multiple charges per capture)
+			// TODO: Test with lower amount of captured than charge (multiple charges per capture).
 		}
 
 		$headers = self::get_extra_headers( __FUNCTION__ );
@@ -602,7 +602,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$data = array();
 		}
 		$data['chargeId'] = $charge_id;
-		// TODO: Validate entered data
+		// TODO: Validate entered data.
 		if ( empty( $data['refundAmount'] ) ) {
 			$charge                          = self::get_charge( $charge_id );
 			$data['refundAmount']            = (array) $charge->captureAmount; // phpcs:ignore WordPress.NamingConventions
@@ -658,7 +658,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$result = $client->cancelCharge(
 			$charge_id,
 			array(
-				'cancellationReason' => $reason, // TODO: Make dynamic
+				'cancellationReason' => $reason, // TODO: Make dynamic.
 			)
 		);
 
@@ -752,7 +752,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$data = array();
 		}
 		$data['chargePermissionId'] = $charge_permission_id;
-		// TODO: Validate entered data
+		// TODO: Validate entered data.
 		if ( empty( $data['chargeAmount'] ) ) {
 			$charge_permission    = self::get_charge_permission( $charge_permission_id );
 			$data['chargeAmount'] = (array) $charge_permission->limits->amountBalance; // phpcs:ignore WordPress.NamingConventions
@@ -807,7 +807,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$result = $client->closeChargePermission(
 			$charge_permission_id,
 			array(
-				'closureReason' => $reason, // TODO: Make dynamic
+				'closureReason' => $reason, // TODO: Make dynamic.
 			),
 			$headers
 		);

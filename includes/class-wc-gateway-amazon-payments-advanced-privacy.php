@@ -227,7 +227,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 			$messages                          = array_merge( $messages, $msgs );
 		}
 
-		// Tell core if we have more orders to work on still
+		// Tell core if we have more orders to work on still.
 		$done = count( $orders ) < 10;
 
 		return array(

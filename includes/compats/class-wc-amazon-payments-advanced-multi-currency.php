@@ -42,7 +42,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 */
 	public static function init( $region = null ) {
 		if ( self::$compatible_instance ) {
-			return; // already initialized
+			return; // already initialized.
 		}
 
 		// Load multicurrency fields if compatibility. (Only on settings admin).

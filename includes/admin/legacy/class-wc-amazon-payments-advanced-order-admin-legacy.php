@@ -29,7 +29,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 	 * @param WC_Order $order  Order ID.
 	 * @param int      $id        Reference ID.
 	 * @param string   $action    Action to perform.
-	 * @param string   $version    Version of the order
+	 * @param string   $version    Version of the order.
 	 */
 	public function do_order_action( $order, $id, $action, $version ) {
 		if ( 'v1' !== strtolower( $version ) ) {

@@ -268,7 +268,7 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Helper method to get a sanitized version of a string.
 	 *
-	 * @param string $string Sanitize some elements
+	 * @param string $string Sanitize some elements.
 	 *
 	 * @return string
 	 */
@@ -314,7 +314,7 @@ class WC_Amazon_Payments_Advanced {
 
 		if ( empty( $context ) ) {
 			$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );  // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
-			array_shift( $backtrace ); // drop current
+			array_shift( $backtrace ); // drop current.
 
 			$context = isset( $backtrace[0]['function'] ) ? $backtrace[0]['function'] : '';
 
