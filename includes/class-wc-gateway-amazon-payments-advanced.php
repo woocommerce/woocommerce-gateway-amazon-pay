@@ -1127,15 +1127,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				throw new Exception( __( 'An Amazon Pay payment method was not chosen.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 
-			if ( is_wc_endpoint_url( 'order-pay' ) ) {
-				/**
-				 * ASK: We could change billing and shipping address, but that could affect shipping costs calculation.
-				 * They can change, but that would be a big change on top of the way WC does things, and as such, could
-				 * carry compatibility issues with shipping methods, and how they do calculations.
-				 *
-				 * For now, we're keeping the billing and shipping address unchanged.
-				 */
-			}
+			/**
+			 * ASK: We could change billing and shipping address, but that could affect shipping costs calculation.
+			 * They can change, but that would be a big change on top of the way WC does things, and as such, could
+			 * carry compatibility issues with shipping methods, and how they do calculations.
+			 *
+			 * For now, we're keeping the billing and shipping address unchanged.
+			 *
+			 * if ( is_wc_endpoint_url( 'order-pay' ) ) {
+			 *
+			 * }
+			 */
 
 			$order_total = $order->get_total();
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
