@@ -1,4 +1,13 @@
 <?php
+/**
+ * Common handling for IPNs.
+ *
+ * @package WC_Gateway_Amazon_Pay
+ */
+
+/**
+ * WC_Amazon_Payments_Advanced_IPN_Handler_Abstract
+ */
 abstract class WC_Amazon_Payments_Advanced_IPN_Handler_Abstract {
 	/**
 	 * Validate required keys that need to be present in message.

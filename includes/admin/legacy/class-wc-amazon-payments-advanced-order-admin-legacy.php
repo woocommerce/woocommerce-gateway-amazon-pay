@@ -1,6 +1,18 @@
 <?php
+/**
+ * Legacy Order Admin Functionality
+ *
+ * @package WC_Gateway_Amazon_Pay
+ */
+
+/**
+ * WC_Amazon_Payments_Advanced_Order_Admin_Legacy
+ */
 class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
 		add_action( 'wc_amazon_authorization_box_render', array( $this, 'auth_box_render' ), 10, 2 );
 		add_action( 'wc_amazon_do_order_action', array( $this, 'do_order_action' ), 10, 4 );
@@ -14,9 +26,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 	 *
 	 * @since 1.6.0
 	 *
-	 * @param int    $order_id  Order ID.
-	 * @param int    $id        Reference ID.
-	 * @param string $action    Action to perform.
+	 * @param WC_Order $order Order object.
+	 * @param int      $id        Reference ID.
+	 * @param string   $action    Action to perform.
+	 * @param string   $version Version of the order.
 	 */
 	public function do_order_action( $order, $id, $action, $version ) {
 		if ( 'v1' !== strtolower( $version ) ) {
@@ -122,6 +135,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 
 	/**
 	 * Authorization metabox content.
+	 *
+	 * @param  WC_Order $order Order object.
+	 * @param  string   $version Version of the order.
 	 */
 	public function auth_box_render( $order, $version ) {
 		if ( 'v1' !== strtolower( $version ) ) {

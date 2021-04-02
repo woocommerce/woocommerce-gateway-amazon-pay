@@ -13,6 +13,8 @@
 class WC_Amazon_Payments_Advanced_Multi_Currency_WPML extends WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 	/**
+	 * WPML instance
+	 *
 	 * @var woocommerce_wpml
 	 */
 	protected $wpml;
@@ -50,7 +52,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_WPML extends WC_Amazon_Payments
 	 */
 	public function remove_currency_switcher_on_order_reference_suspended() {
 		if ( $this->is_order_reference_checkout_suspended() ) {
-			// By Pass Multi-currency, so we don't trigger a new set_order_reference_details on process_payment
+			// By Pass Multi-currency, so we don't trigger a new set_order_reference_details on process_payment.
 			$this->bypass_currency_session();
 
 			// Remove all WPML hooks to display switchers.

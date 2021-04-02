@@ -297,12 +297,14 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	}
 
 	/**
-	* Validate API keys when settings are updated.
-	*
-	* @since 1.6.0
-	*
-	* @return bool Returns true if API keys are valid
-	*/
+	 * Validate API keys when settings are updated.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @return bool Returns true if API keys are valid
+	 *
+	 * @throws Exception On Errors.
+	 */
 	public static function validate_api_keys() {
 
 		$settings = self::get_settings();
@@ -624,9 +626,9 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		$authorization_status = self::get_auth_state_from_reponse( $ipn_payload );
 		switch ( $authorization_status ) {
 			case 'open':
-				// Updating amazon_authorization_state
+				// Updating amazon_authorization_state.
 				update_post_meta( $order_id, 'amazon_authorization_state', 'Open' );
-				// Delete amazon_timed_out_transaction meta
+				// Delete amazon_timed_out_transaction meta.
 				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
 				$order->add_order_note( sprintf( __( 'Authorized (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 				$order->add_order_note( __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
@@ -636,7 +638,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 				update_post_meta( $order_id, 'amazon_authorization_state', $authorization_status );
 				$order->add_order_note( sprintf( __( 'Captured (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), str_replace( '-A', '-C', $auth_id ) ) );
 				$order->payment_complete();
-				// Delete amazon_timed_out_transaction meta
+				// Delete amazon_timed_out_transaction meta.
 				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
 				// Close order reference.
 				self::close_order_reference( $order_id );
@@ -644,7 +646,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 			case 'declined':
 				$state_reason_code = self::get_auth_state_reason_code_from_response( $ipn_payload );
 				if ( 'InvalidPaymentMethod' === $state_reason_code ) {
-					// Soft Decline
+					// Soft Decline.
 					update_post_meta( $order_id, 'amazon_authorization_state', 'Suspended' );
 					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
@@ -652,7 +654,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					wc_apa()->log( 'EMAIL ' . $message );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
-					// Hard decline
+					// Hard decline.
 					$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 					// Hard Decline client's email.
 					$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
@@ -664,13 +666,13 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 						$order->update_meta_data( 'amazon_timed_out_times', 1 );
 					} else {
 						$order->update_meta_data( 'amazon_timed_out_times', 2 );
-						// Hard Decline
+						// Hard Decline.
 						$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 						// Hard Decline client's email.
 						$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
 						$message = wc_get_template_html( 'emails/legacy/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
 						self::send_email_notification( $subject, $message, $order->get_billing_email() );
-						// Delete amazon_timed_out_transaction meta
+						// Delete amazon_timed_out_transaction meta.
 						$order->delete_meta_data( $order_id, 'amazon_timed_out_transaction' );
 						// Cancel amazon order.
 						self::cancel_order_reference( $order_id );
@@ -686,10 +688,9 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	/**
 	 * Handle the result of an sync authorization request.
 	 *
-	 *
-	 * @param object       $result         IPN payload.
-	 * @param int|WC_Order $order          Order object.
-	 *
+	 * @param  mixed    $response Authorization Details object from the Amazon API.
+	 * @param  WC_Order $order Order object.
+	 * @param  string   $auth_id Authorization ID.
 	 * @return string Authorization status.
 	 */
 	public static function handle_synch_payment_authorization_payload( $response, $order, $auth_id = false ) {
@@ -704,9 +705,9 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 
 		switch ( $authorization_status ) {
 			case 'open':
-				// Updating amazon_authorization_state
+				// Updating amazon_authorization_state.
 				update_post_meta( $order_id, 'amazon_authorization_state', 'Open' );
-				// Delete amazon_timed_out_transaction meta
+				// Delete amazon_timed_out_transaction meta.
 				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
 				$order->add_order_note( sprintf( __( 'Authorized (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 				$order->add_order_note( __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
@@ -716,7 +717,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 				update_post_meta( $order_id, 'amazon_authorization_state', $authorization_status );
 				$order->add_order_note( sprintf( __( 'Captured (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), str_replace( '-A', '-C', $auth_id ) ) );
 				$order->payment_complete();
-				// Delete amazon_timed_out_transaction meta
+				// Delete amazon_timed_out_transaction meta.
 				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
 				// Close order reference.
 				self::close_order_reference( $order_id );
@@ -724,7 +725,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 			case 'declined':
 				$state_reason_code = self::get_auth_state_reason_code_from_response( $response );
 				if ( 'InvalidPaymentMethod' === $state_reason_code ) {
-					// Soft Decline
+					// Soft Decline.
 					update_post_meta( $order_id, 'amazon_authorization_state', 'Suspended' );
 					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
@@ -732,7 +733,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					wc_apa()->log( 'EMAIL ' . $message );
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
-					// Hard decline
+					// Hard decline.
 					$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 					// Hard Decline client's email.
 					$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
@@ -741,13 +742,13 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 				} elseif ( 'TransactionTimedOut' === $state_reason_code ) {
 					if ( ! $order->meta_exists( 'amazon_timed_out_times' ) ) {
 						$order->update_meta_data( 'amazon_timed_out_times', 1 );
-						// Hard Decline
+						// Hard Decline.
 						$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 						// Hard Decline client's email.
 						$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
 						$message = wc_get_template_html( 'emails/legacy/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
 						self::send_email_notification( $subject, $message, $order->get_billing_email() );
-						// Delete amazon_timed_out_transaction meta
+						// Delete amazon_timed_out_transaction meta.
 						$order->delete_meta_data( $order_id, 'amazon_timed_out_transaction' );
 						// Cancel amazon order.
 						self::cancel_order_reference( $order_id );
@@ -909,7 +910,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @param WC_Order $order Order object.
 	 * @param array    $args  Base args.
 	 */
-	public static function get_authorize_request_args( WC_Order $order, $args ) {
+	public static function get_authorize_request_args( $order, $args ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
 		return apply_filters(
@@ -1009,7 +1010,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @return array Request args.
 	 */
-	public static function get_authorize_recurring_request_args( WC_Order $order, $args ) {
+	public static function get_authorize_recurring_request_args( $order, $args ) {
 		$order_id        = wc_apa_get_order_prop( $order, 'id' );
 		$order_shippable = self::maybe_subscription_is_shippable( $order );
 
@@ -1060,7 +1061,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @since 1.6.0
 	 *
-	 * @param WC_Order $order       Order object.
+	 * @param WC_Order $order Order object.
 	 * @param Object   $response    Response from self::request.
 	 * @param bool     $capture_now Whether to capture immediately.
 	 *
@@ -1107,7 +1108,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @since 1.7.0
 	 *
-	 * @param WC_Order $order  WC Order object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $reason Reason for the cancellation.
 	 *
 	 * @return bool|WP_Error Return true when succeed. Otherwise WP_Error is returned.
@@ -1335,12 +1336,10 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * Handle the result of an async ipn order reference request.
 	 * We need only to cover the change to Open status.
 	 *
-	 * https://m.media-amazon.com/images/G/03/AMZNPayments/IntegrationGuide/AmazonPay_-_Order_Confirm_And_Omnichronous_Authorization_Including-IPN-Handler._V516642695_.svg
+	 * URL: https://m.media-amazon.com/images/G/03/AMZNPayments/IntegrationGuide/AmazonPay_-_Order_Confirm_And_Omnichronous_Authorization_Including-IPN-Handler._V516642695_.svg
 	 *
 	 * @param object       $ipn_payload    IPN payload.
 	 * @param int|WC_Order $order          Order object.
-	 *
-	 * @return string Authorization status.
 	 */
 	public static function handle_async_ipn_order_reference_payload( $ipn_payload, $order ) {
 		$order                 = is_int( $order ) ? wc_get_order( $order ) : $order;
@@ -1350,7 +1349,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		update_post_meta( $order_id, 'amazon_reference_state', $order_reference_state );
 
 		if ( 'open' === strtolower( $order_reference_state ) ) {
-			// New Async Auth
+			// New Async Auth.
 			$order->add_order_note( __( 'Async Authorized attempt.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			$amazon_reference_id = get_post_meta( $order_id, 'amazon_reference_id', true );
 			do_action( 'wc_amazon_async_authorize', $order, $amazon_reference_id );
@@ -1385,7 +1384,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		$amazon_billing_agreement_id = get_post_meta( $order_id, 'amazon_billing_agreement_id', true );
 		if ( $amazon_billing_agreement_id ) {
 			// If it has a billing agreement Amazon close it on auth, no need to close the order.
-			// https://developer.amazon.com/docs/amazon-pay-api/order-reference-states-and-reason-codes.html
+			// https://developer.amazon.com/docs/amazon-pay-api/order-reference-states-and-reason-codes.html .
 			$order->add_order_note( sprintf( __( 'Order reference %s closed ', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_reference_id ) );
 			return true;
 		}
@@ -1510,7 +1509,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @return array
 	 */
-	public static function get_capture_request_args( WC_Order $order, $args ) {
+	public static function get_capture_request_args( $order, $args ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
 		return array(
@@ -1568,7 +1567,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @since 1.6.0
 	 *
-	 * @param WC_Order $order    Order object.
+	 * @param WC_Order $order Order object.
 	 * @param Object   $response Response from self::request.
 	 *
 	 * @return bool Returns true if succeed.
@@ -1680,9 +1679,9 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	/**
 	 * Send an email notification to the recipient in the woocommerce mail template.
 	 *
-	 * @param string $subject
-	 * @param string $message
-	 * @param string $recipient
+	 * @param string $subject Subject.
+	 * @param string $message Message to be sent.
+	 * @param string $recipient Email address.
 	 */
 	public static function send_email_notification( $subject, $message, $recipient ) {
 		$mailer  = WC()->mailer();

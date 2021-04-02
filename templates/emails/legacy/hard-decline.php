@@ -1,6 +1,8 @@
 <?php
 /**
  * Hard Decline email body template
+ *
+ * @package WC_Gateway_Amazon_Pay
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

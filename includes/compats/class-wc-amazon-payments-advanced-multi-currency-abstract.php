@@ -18,15 +18,18 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 */
 	const CURRENCY_BYPASS_SESSION = 'currency_bypass';
 
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
-		//If multi-currency plugin acts only on frontend level, no need to hook.
+		// If multi-currency plugin acts only on frontend level, no need to hook.
 		if ( $this->is_front_end_compatible() ) {
 			return;
 		}
 
 		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
 		if ( 'v1' === $version ) {
-			// Add AJAX call to retrieve current currency on frontend
+			// Add AJAX call to retrieve current currency on frontend.
 			add_action( 'wp_ajax_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
 			add_action( 'wp_ajax_nopriv_amazon_get_currency', array( $this, 'ajax_get_currency' ) );
 		}
@@ -46,6 +49,8 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	}
 
 	/**
+	 * Interface for get selected currency function
+	 *
 	 * @return string
 	 */
 	abstract public function get_selected_currency();
@@ -62,7 +67,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	/**
 	 * Check if the $currency_selected is compatible with amazon (and has been selected on settings).
 	 *
-	 * @param string $currency_selected
+	 * @param string $currency_selected Current currency selected from the frontend.
 	 *
 	 * @return bool
 	 */
@@ -107,6 +112,12 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		return ( WC()->session->get( self::CURRENCY_BYPASS_SESSION ) ) ? 0 : WC()->session->get( self::CURRENCY_TIMES_SWITCHED_SESSION );
 	}
 
+	/**
+	 * Set presentmentCurrency on the payment details
+	 *
+	 * @param  array $payload Payload on the checkout session object.
+	 * @return array
+	 */
 	public function set_presentment_currency( $payload ) {
 		if ( ! isset( $payload['paymentDetails'] ) ) {
 			$payload['paymentDetails'] = array();
@@ -140,6 +151,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 	/**
 	 * Flag if we need to reload Amazon wallet on frontend.
+	 *
 	 * @return bool
 	 */
 	public function reload_wallet_widget() {

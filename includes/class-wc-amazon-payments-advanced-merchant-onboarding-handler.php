@@ -37,6 +37,8 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 
 	/**
 	 * Check Onboarding Request.
+	 *
+	 * @throws Exception On errors.
 	 */
 	public function check_onboarding_request() {
 		wc_apa()->log( 'Received Onboarding Key Exchage request.' );
@@ -95,10 +97,10 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 *   b. Use the private decrypt function of the openSSL package (specifying the OPENSSL_PKCS1_OAEP_PADDING algorithm),
 	 *      to decrypt the result of 2a, passing in the private key that was generated on opening the workflow.
 	 *
-	 * @param $payload
+	 * @param string $public_key_id Public Key ID.
 	 *
 	 * @return string
-	 * @throws Exception
+	 * @throws Exception On Errors.
 	 */
 	protected function decrypt_encrypted_public_key_id( $public_key_id ) {
 		$decrypted_key = null;
@@ -162,6 +164,11 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 		return $HTTP_RAW_POST_DATA;
 	}
 
+	/**
+	 * Return temporary private keys
+	 *
+	 * @return array
+	 */
 	protected function get_temp_private_keys() {
 		$temps = get_option( self::KEYS_OPTION_TEMP_PRIVATE_KEYS, array() );
 		if ( ! is_array( $temps ) ) {
@@ -176,7 +183,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 *
 	 * @param bool $public Returns public or private key.
 	 * @return mixed
-	 * @throws Exception
+	 * @throws Exception On Errors.
 	 */
 	protected function generate_keys( $public = false ) {
 
@@ -212,7 +219,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Gets amazon gateway settings and update them with the new credentials from exchange.
 	 *
-	 * @param obj $payload
+	 * @param obj $payload Payload received from Amazon.
 	 */
 	protected function save_payload( $payload ) {
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
@@ -228,7 +235,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Convert key to PEM format for openssl functions
 	 *
-	 * @param $key
+	 * @param string $key Key data.
 	 *
 	 * @return string
 	 */
@@ -239,11 +246,11 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Return RSA public key.
 	 *
-	 * @param bool $pem_format
-	 * @param bool $reset
+	 * @param bool $pem_format Wether to return the Key in PEM format.
+	 * @param bool $reset Wether to reset the private key.
 	 *
 	 * @return string
-	 * @throws Exception
+	 * @throws Exception On Errors.
 	 */
 	public function get_public_key( $pem_format = false, $reset = false ) {
 		$priv_key = $this->get_private_key( $reset );
@@ -264,10 +271,10 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Return RSA private key.
 	 *
-	 * @param bool $reset
+	 * @param bool $reset Wether to force reset the private key.
 	 *
 	 * @return string
-	 * @throws Exception
+	 * @throws Exception On Errors.
 	 */
 	public function get_private_key( $reset = false ) {
 		$private_key = get_option( self::KEYS_OPTION_PRIVATE_KEY, false );
@@ -282,7 +289,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * From Incoming Exchange message we need to know which country belong the registration.
 	 *
-	 * @param $headers
+	 * @param array $headers Headers received.
 	 *
 	 * @return string
 	 */
@@ -298,8 +305,9 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	}
 
 	/**
-	 * getallheaders is only available for apache, we need a fallback in case of nginx or others,
+	 * Check because getallheaders is only available for apache, we need a fallback in case of nginx or others,
 	 * http://php.net/manual/es/function.getallheaders.php
+	 *
 	 * @return array|false
 	 */
 	private function get_all_headers() {
@@ -319,7 +327,8 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 
 	/**
 	 * Apache uses capital, nginx uses not capitalised.
-	 * @param $headers
+	 *
+	 * @param array $headers Headers received.
 	 *
 	 * @return string
 	 */

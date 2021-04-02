@@ -2,7 +2,7 @@
 /**
  * Test cases for WC_Amazon_Payments_Advanced_API.
  *
- * @package WC_Amazon_Payments_Advanced
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**
@@ -819,6 +819,11 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 		$this->assertEquals( 'InvalidPaymentMethod', $resp->get_error_code() );
 	}
 
+	/**
+	 * Test authorize() with a declined response
+	 *
+	 * @since 1.8.0
+	 */
 	public function test_authorize_declined_with_amazon_rejected() {
 		$order    = WC_Helper_Order::create_order();
 		$order_id = wc_apa_get_order_prop( $order, 'id' );

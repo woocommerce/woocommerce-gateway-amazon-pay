@@ -1,4 +1,13 @@
 <?php
+/**
+ * IPN Legacy Handling.
+ *
+ * @package WC_Gateway_Amazon_Pay
+ */
+
+/**
+ * WC_Amazon_Payments_Advanced_IPN_Handler_Legacy
+ */
 class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_Advanced_IPN_Handler_Abstract {
 	/**
 	 * Required keys for subscription confirmation type.
@@ -32,8 +41,11 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		'SellerId',
 	);
 
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
-		// Validate Keys for V1 Messages
+		// Validate Keys for V1 Messages.
 		add_action( 'woocommerce_amazon_payments_advanced_ipn_validate_notification_keys', array( $this, 'validate_notification_keys_v1' ), 10, 2 );
 		add_action( 'woocommerce_amazon_payments_advanced_ipn_validate_subscription_keys', array( $this, 'validate_subscription_keys_v1' ), 10, 1 );
 
@@ -46,6 +58,12 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn_order', array( $this, 'unschedule_pending_syncro_payments' ) );
 	}
 
+	/**
+	 * Validate IPN Legacy Message
+	 *
+	 * @param  array  $message IPN Message.
+	 * @param  string $notification_version Notification Version.
+	 */
 	public function validate_notification_keys_v1( $message, $notification_version ) {
 		if ( 'v1' !== $notification_version ) {
 			return;
@@ -53,6 +71,11 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		$this->validate_required_keys( $message['Message'], $this->required_notification_message_keys_v1 );
 	}
 
+	/**
+	 * Validate IPN Legacy Message for subscriptions
+	 *
+	 * @param  mixed $message IPN Message.
+	 */
 	public function validate_subscription_keys_v1( $message ) {
 		$this->validate_required_keys( $message['Message'], $this->required_subscription_keys_v1 );
 	}
@@ -113,7 +136,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * @since 1.8.0
 	 * @version 1.8.0
 	 *
-	 * @param WC_Order         $order             Order object.
+	 * @param WC_Order         $order Order object.
 	 * @param SimpleXMLElement $notification_data Notification data.
 	 */
 	protected function handle_ipn_order_reference( $order, $notification_data ) {
@@ -139,7 +162,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * @since 1.8.0
 	 * @version 1.8.0
 	 *
-	 * @param WC_Order         $order             Order object.
+	 * @param WC_Order         $order Order object.
 	 * @param SimpleXMLElement $notification_data Notification data.
 	 */
 	protected function handle_ipn_payment_authorize( $order, $notification_data ) {
@@ -165,7 +188,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * @since 1.8.0
 	 * @version 1.8.0
 	 *
-	 * @param WC_Order         $order             Order object.
+	 * @param WC_Order         $order Order object.
 	 * @param SimpleXMLElement $notification_data Notification data.
 	 */
 	protected function handle_ipn_payment_capture( $order, $notification_data ) {
@@ -187,7 +210,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * @since 1.8.0
 	 * @version 1.8.0
 	 *
-	 * @param WC_Order         $order             Order object.
+	 * @param WC_Order         $order Order object.
 	 * @param SimpleXMLElement $notification_data Notification data.
 	 */
 	protected function handle_ipn_payment_refund( $order, $notification_data ) {
@@ -201,7 +224,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 
 		$order->add_order_note(
 			sprintf(
-				// translators: 1) Amazon refund ID 2) refund status 3) refund amount
+				// translators: 1) Amazon refund ID 2) refund status 3) refund amount.
 				__( 'Received IPN for payment refund %1$s with status %2$s. Refund amount: %3$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				$refund_id,
 				$refund_status,
@@ -338,6 +361,10 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 
 	/**
 	 * Process pending syncronuos payments.
+	 *
+	 * @param  int    $order_id Order ID.
+	 * @param  string $amazon_authorization_id Authorization ID.
+	 * @return null|WP_Error WP_Error on error, null if processed
 	 */
 	public function process_pending_syncro_payments( $order_id, $amazon_authorization_id ) {
 
@@ -365,6 +392,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 
 	/**
 	 * Unschedule Action for Order.
+	 *
+	 * @param  WC_Order $order Order object.
 	 */
 	public function unschedule_pending_syncro_payments( $order ) {
 		// Unschedule the Action for this order.

@@ -27,10 +27,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		add_filter( 'woocommerce_amazon_pa_supports', array( $this, 'add_subscription_support' ) );
 
-		// WC Subscription Hook
+		// WC Subscription Hook.
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
 	}
 
+	/**
+	 * Initialize Handlers For subscriptions
+	 */
 	public function init_handlers() {
 		$id      = wc_apa()->get_gateway()->id;
 		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
@@ -46,7 +49,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_filter( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( $this, 'add_subscription_post_type' ) );
 		add_filter( 'woocommerce_amazon_pa_order_admin_actions', array( $this, 'remove_charge_permission_actions_on_recurring' ), 10, 2 );
 
-		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before)
+		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before).
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
 			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
 			add_filter( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array( $this, 'recurring_complete_checkout_session_update' ), 10, 3 );
@@ -61,8 +64,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Set redirect URL if the result redirect URL is empty
 	 *
-	 * @param mixed $result
-	 * @param WC_Subscription $subscription
+	 * @param mixed           $result Result object to filter.
+	 * @param WC_Subscription $subscription Subscription object.
 	 *
 	 * @return mixed
 	 */
@@ -73,6 +76,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $result;
 	}
 
+	/**
+	 * Add subscription support to the gateway
+	 *
+	 * @param  array $supports List of supported features.
+	 * @return array
+	 */
 	public function add_subscription_support( $supports ) {
 		$supports = array_merge(
 			$supports,
@@ -84,13 +93,22 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				'subscription_cancellation',
 				'multiple_subscriptions',
 				'subscription_payment_method_change_customer',
-				// TODO: Implement upgrades/downgrades
+				// TODO: Implement upgrades/downgrades.
 			)
 		);
 
 		return $supports;
 	}
 
+	/**
+	 * Insert an item in an array before or after another item.
+	 *
+	 * @param  array $array Source array.
+	 * @param  mixed $element Element to insert.
+	 * @param  mixed $key Key to insert around.
+	 * @param  int   $operation Operation to perform.
+	 * @return array Returns a new array
+	 */
 	public static function array_insert( $array, $element, $key, $operation = 1 ) {
 		$keys = array_keys( $array );
 		$pos  = array_search( $key, $keys, true );
@@ -115,6 +133,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $first + $element + $last;
 	}
 
+	/**
+	 * Add subscription field to the gateway settings
+	 *
+	 * @param  array $fields Admin fields.
+	 * @return array
+	 */
 	public function add_enable_subscriptions_field( $fields ) {
 		$fields = self::array_insert(
 			$fields,
@@ -148,6 +172,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order ) || wcs_order_contains_renewal( $order ) );
 	}
 
+	/**
+	 * Get recurring frequency from the cart
+	 *
+	 * @return array Standard data object to be used in API calls.
+	 */
 	private function get_recurring_frequency() {
 		$apa_period    = null;
 		$apa_interval  = null;
@@ -192,6 +221,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $this->parse_interval_to_apa_frequency( $apa_period, $apa_interval );
 	}
 
+	/**
+	 * Parse WC interval into Amazon Pay frequency object.
+	 *
+	 * @param  string $apa_period WC Period.
+	 * @param  int    $apa_interval WC Interval.
+	 * @return array
+	 */
 	public function parse_interval_to_apa_frequency( $apa_period = null, $apa_interval = null ) {
 		switch ( strtolower( $apa_period ) ) {
 			case 'year':
@@ -216,6 +252,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		);
 	}
 
+	/**
+	 * Filter the payload to add recurring data to the checkout session creation object.
+	 *
+	 * @param  array $payload Payload to create checkout session (JS button).
+	 * @return array
+	 */
 	public function recurring_checkout_session( $payload ) {
 		if ( ! class_exists( 'WC_Subscriptions_Cart' ) ) {
 			return $payload;
@@ -288,6 +330,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $payload;
 	}
 
+	/**
+	 * Filter the payload to add recurring data to the checkout session update object.
+	 *
+	 * @param  array    $payload Payload to send to the API before proceding to checkout.
+	 * @param  string   $checkout_session_id Checkout Session Id.
+	 * @param  WC_Order $order Order object.
+	 * @return array
+	 */
 	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order ) {
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) && $order->get_id() === absint( $_POST['woocommerce_change_payment'] ) ) {
 			$checkout_session = wc_apa()->get_gateway()->get_checkout_session();
@@ -342,6 +392,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $payload;
 	}
 
+	/**
+	 * Filter payload to complete recurring checkout session
+	 *
+	 * @param  array $payload Payload for the complete checkout session API call.
+	 * @return array
+	 */
 	public function recurring_complete_checkout_session_update( $payload ) {
 		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
 			return $payload;
@@ -372,6 +428,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $payload;
 	}
 
+	/**
+	 * Copy meta from order to the relevant subscriptions
+	 *
+	 * @param  WC_Order $order Order object.
+	 * @param  object   $response Response from the API.
+	 */
 	public function copy_meta_to_sub( $order, $response ) {
 		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
 		if ( 'v2' !== strtolower( $version ) ) {
@@ -406,6 +468,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 	}
 
+	/**
+	 * Filter data to be copied from the subscription to the renewal
+	 *
+	 * @param  array           $meta Array of meta to copy from the subscription.
+	 * @param  WC_Order        $order Order object.
+	 * @param  WC_Subscription $subscription Susbcription Object.
+	 * @return array
+	 */
 	public function copy_meta_from_sub( $meta, $order, $subscription ) {
 		$version = version_compare( $subscription->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
 		if ( 'v2' !== strtolower( $version ) ) {
@@ -437,7 +507,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * Process a scheduled subscription payment.
 	 *
 	 * @param float    $amount_to_charge The amount to charge.
-	 * @param WC_Order $order            The WC_Order object of the order which
+	 * @param WC_Order $order Order object.
 	 *                                   the subscription was purchased in.
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
@@ -453,7 +523,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$capture_now = true;
 		switch ( WC_Amazon_Payments_Advanced_API::get_settings( 'payment_capture' ) ) {
 			case 'authorize':
-			case 'manual': // Force manual to be authorize as well
+			case 'manual': // Force manual to be authorize as well.
 				$capture_now = false;
 				break;
 		}
@@ -492,6 +562,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	/**
+	 * Cancelled subscription hook
+	 *
 	 * @param WC_Subscription $subscription Subscription object.
 	 */
 	public function cancelled_subscription( $subscription ) {
@@ -501,7 +573,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		// Prevent double running. WCS Bug.
-		// TODO: Report bug. PR that introduced this in WCS https://github.com/woocommerce/woocommerce-subscriptions/pull/2777
+		// TODO: Report bug. PR that introduced this in WCS https://github.com/woocommerce/woocommerce-subscriptions/pull/2777 .
 		if ( isset( $subscription->handled_cancel ) ) {
 			return;
 		}
@@ -530,6 +602,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		unset( $subscription->handled_cancel );
 	}
 
+	/**
+	 * Wether the subscription should move to on-hold
+	 *
+	 * @param  bool     $fail Wether to fail or not.
+	 * @param  WC_Order $order Order object.
+	 * @return bool
+	 */
 	public function subs_not_on_hold( $fail, $order ) {
 		if ( is_a( $order, 'WC_Subscription' ) ) {
 			return false;
@@ -537,7 +616,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $fail;
 	}
 
-	public function propagate_status_update_to_related( WC_Order $_order, $charge_permission_id, $charge_permission_status ) {
+	/**
+	 * Propagate status change from one order or subscription, to related orders.
+	 *
+	 * @param  WC_Order $_order Order object.
+	 * @param  string   $charge_permission_id Charge Permission ID.
+	 * @param  string   $charge_permission_status Charge Permission Status.
+	 */
+	public function propagate_status_update_to_related( $_order, $charge_permission_id, $charge_permission_status ) {
 		$order = $_order;
 
 		if ( wcs_is_subscription( $order ) ) {
@@ -556,7 +642,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$this->handle_order_propagation( $order, $charge_permission_id, $charge_permission_status );
 		}
 
-		$subs = wcs_get_subscriptions_for_order( $order ); // TODO: Test with multiple subs
+		$subs = wcs_get_subscriptions_for_order( $order ); // TODO: Test with multiple subs.
 
 		foreach ( $subs as $subscription ) {
 			if ( $_order->get_id() !== $subscription->get_id() ) {
@@ -572,6 +658,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 	}
 
+	/**
+	 * Do a specific order status propagation action
+	 *
+	 * @param  WC_Order $rel_order Order Object.
+	 * @param  string   $charge_permission_id Charge Permission ID.
+	 * @param  object   $charge_permission_status Charge Permission Status.
+	 */
 	protected function handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status ) {
 		$rel_type = 'order';
 		if ( is_a( $rel_order, 'WC_Subscription' ) ) {
@@ -594,6 +687,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 	}
 
+	/**
+	 * Maybe change session key to store checkout session on order pay screen.
+	 *
+	 * @param  string $session_key Session Key Used.
+	 * @return string
+	 */
 	public function maybe_change_session_key( $session_key ) {
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) ) {
 			$order_id = absint( $_POST['woocommerce_change_payment'] );
@@ -602,6 +701,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $session_key;
 	}
 
+	/**
+	 * Maybe not update payment method if it's already the same.
+	 *
+	 * @param  bool   $update Wether to Update.
+	 * @param  string $method New method.
+	 * @return bool|string False if the gateway shouldn't update, the gateway id if it should be updated.
+	 */
 	public function maybe_not_update_payment_method( $update, $method ) {
 		$id = wc_apa()->get_gateway()->id;
 		if ( $method === $id ) {
@@ -610,6 +716,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $id;
 	}
 
+	/**
+	 * Change payment method after processing order.
+	 *
+	 * @param  WC_Order $order Order object.
+	 * @param  object   $response Charge Completion response from the Amazon API.
+	 */
 	public function maybe_change_payment_method( $order, $response ) {
 		if ( ! isset( $_GET['change_payment_method'] ) ) {
 			return;
@@ -622,6 +734,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		WC_Subscriptions_Change_Payment_Gateway::update_payment_method( $order, wc_apa()->get_gateway()->id );
 	}
 
+	/**
+	 * Filter the redirect URL
+	 *
+	 * @param  string   $redirect Redirect URL.
+	 * @param  WC_Order $order Order object.
+	 * @return string
+	 */
 	public function maybe_redirect_to_subscription( $redirect, $order ) {
 		if ( ! isset( $_GET['change_payment_method'] ) ) {
 			return $redirect;
@@ -634,11 +753,24 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		return $order->get_view_order_url();
 	}
 
+	/**
+	 * Add subscription post type to the admin meta box to be rendered.
+	 *
+	 * @param  array $post_types Post Types to render the meta box on.
+	 * @return array
+	 */
 	public function add_subscription_post_type( $post_types ) {
 		$post_types[] = 'shop_subscription';
 		return $post_types;
 	}
 
+	/**
+	 * Clean up some charge permission meta box actions on recurring.
+	 *
+	 * @param  array    $actions Ations on the meta box.
+	 * @param  WC_Order $order Order object.
+	 * @return array
+	 */
 	public function remove_charge_permission_actions_on_recurring( $actions, $order ) {
 		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order );
 		if ( ! isset( $charge_permission_cached_status->type ) || 'Recurring' !== $charge_permission_cached_status->type ) {

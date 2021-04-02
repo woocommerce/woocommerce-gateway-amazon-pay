@@ -11,6 +11,8 @@
 class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 	/**
+	 * Instance for the compatible plugin handler
+	 *
 	 * @var WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
 	 */
 	public static $compatible_instance;
@@ -40,7 +42,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 */
 	public static function init( $region = null ) {
 		if ( self::$compatible_instance ) {
-			return; // already initialized
+			return; // already initialized.
 		}
 
 		// Load multicurrency fields if compatibility. (Only on settings admin).
@@ -88,7 +90,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	/**
 	 * Checks if region is compatible.
 	 *
-	 * @param string|null $region
+	 * @param string|null $region Region to check for compatibility.
 	 *
 	 * @return bool
 	 */
@@ -100,7 +102,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	/**
 	 * Singleton to get if there is a compatible instance running. Region can be injected.
 	 *
-	 * @param bool $region
+	 * @param bool $region Region to check for compatibility.
 	 *
 	 * @return WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
 	 */
@@ -122,6 +124,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	}
 
 	/**
+	 * Reload wallet widget wrapper around the instance
+	 *
 	 * @return bool
 	 */
 	public static function reload_wallet_widget() {
@@ -180,6 +184,11 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 		return false;
 	}
 
+	/**
+	 * Are we on the settings page?
+	 *
+	 * @return bool
+	 */
 	public function is_amazon_settings_page() {
 		if ( is_admin() &&
 			( isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) &&
@@ -191,6 +200,9 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 	/**
 	 * Adds multicurrency settings to form fields.
+	 *
+	 * @param  array $form_fields Admin fields.
+	 * @return array
 	 */
 	public static function add_currency_fields( $form_fields ) {
 		if ( ! self::$compatible_instance ) {

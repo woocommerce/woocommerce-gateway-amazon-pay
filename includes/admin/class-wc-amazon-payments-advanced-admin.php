@@ -1,5 +1,13 @@
 <?php
+/**
+ * Admin Related Functionality
+ *
+ * @package WC_Gateway_Amazon_Pay
+ */
 
+/**
+ * WC_Amazon_Payments_Advanced_Admin
+ */
 class WC_Amazon_Payments_Advanced_Admin {
 
 	/**
@@ -282,9 +290,9 @@ class WC_Amazon_Payments_Advanced_Admin {
 	/**
 	 * Add scripts to dashboard settings.
 	 *
-	 * @param $hook
+	 * @param string $hook Admin screen ID.
 	 *
-	 * @throws Exception
+	 * @throws Exception On Errors.
 	 */
 	public function admin_scripts( $hook ) {
 		global $current_section;

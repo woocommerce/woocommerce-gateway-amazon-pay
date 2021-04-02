@@ -1,4 +1,13 @@
 <?php
+/**
+ * Abstract Gateway Class with common implementations between v1 and v2
+ *
+ * @package WC_Gateway_Amazon_Pay
+ */
+
+/**
+ * WC_Gateway_Amazon_Payments_Advanced_Abstract
+ */
 abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_Gateway {
 
 	/**
@@ -34,7 +43,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'validate_api_keys' ) );
 
-		// Import / Export
+		// Import / Export.
 		add_action( 'admin_init', array( $this, 'process_settings_import' ) );
 		add_action( 'admin_init', array( $this, 'process_settings_export' ) );
 		add_action( 'woocommerce_after_settings_checkout', array( $this, 'import_export_fields_output' ) );
@@ -47,6 +56,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Get Amazon logout URL.
 	 *
 	 * @since 1.6.0
+	 * @param  string $url URL to logout from.
 	 *
 	 * @return string Amazon logout URL
 	 */
@@ -66,6 +76,11 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		);
 	}
 
+	/**
+	 * Get Amazon Payments Checkout URL
+	 *
+	 * @return string
+	 */
 	public function get_amazon_payments_checkout_url() {
 		$url = get_permalink( wc_get_page_id( 'checkout' ) );
 		if ( empty( $url ) ) {
@@ -75,6 +90,11 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		return $url;
 	}
 
+	/**
+	 * Remove Amazon Payments Checkout URL from the current URL
+	 *
+	 * @return string
+	 */
 	public function get_amazon_payments_clean_logout_url() {
 		$url = add_query_arg(
 			array(
@@ -464,6 +484,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 	/**
 	 * Generate Custom HTML.
+	 *
+	 * @param  string $id Field ID.
+	 * @param  array  $conf Field configuration.
+	 * @return string
 	 */
 	public function generate_custom_html( $id, $conf ) {
 		$html = isset( $conf['html'] ) ? wp_kses_post( $conf['html'] ) : '';
@@ -556,6 +580,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Process settings in a file
 	 *
 	 * @param array $import_file PHP $_FILES (or similar) entry.
+	 * @param  bool  $clean_post Wether to clean the post or not.
 	 */
 	protected function process_settings_from_file( $import_file, $clean_post = false ) {
 		$fn_parts  = explode( '.', $import_file['name'] );
@@ -700,7 +725,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Print the forms to import and export the settings.
 	 *
 	 * @since 2.0.0
-	 * @return void
 	 */
 	public function import_export_fields_output() {
 		if ( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) { //  phpcs:ignore WordPress.Security.NonceVerification.Recommended 
@@ -744,6 +768,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Checkout Button
 	 *
 	 * Triggered from the 'woocommerce_proceed_to_checkout' action.
+	 *
+	 * @param  bool   $echo Wether to echo or not.
+	 * @param  string $elem HTML tag to render.
+	 * @return bool|string
 	 */
 	public function checkout_button( $echo = true, $elem = 'div' ) {
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
@@ -767,7 +795,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	/**
 	 * Remove amazon gateway.
 	 *
-	 * @param $gateways
+	 * @param array $gateways Gateways registered.
 	 *
 	 * @return array
 	 */
@@ -825,13 +853,16 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		return $fields;
 	}
 
+	/**
+	 * Init common hooks on checkout_init hook
+	 */
 	public function checkout_init_common() {
-		// Remove other gateways after being logged in
+		// Remove other gateways after being logged in.
 		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_gateways' ) );
 		// Some fields are not enforced on Amazon's side. Marking them as optional avoids issues with checkout.
 		add_filter( 'woocommerce_billing_fields', array( $this, 'override_billing_fields' ) );
 		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_shipping_fields' ) );
-		// Always ship to different address
+		// Always ship to different address.
 		add_action( 'woocommerce_ship_to_different_address_checked', '__return_true' );
 	}
 

@@ -81,7 +81,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		// Handle valid IPN message.
 		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn', array( $this, 'handle_notification_ipn_v2' ) );
 
-		// Do async polling action (as a fallback)
+		// Do async polling action (as a fallback).
 		add_action( 'wc_amazon_async_polling', array( $this, 'handle_async_polling' ), 10, 2 );
 	}
 
@@ -355,6 +355,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	 *
 	 * @since 1.8.0
 	 * @version 1.8.0
+	 * @throws Exception On Errors.
 	 */
 	public function check_ipn_request() {
 		$raw_post_data = $this->get_raw_post_data();
@@ -410,7 +411,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		$notification = $message['Message'];
 
-		if ( ! isset( $notification['MockedIPN'] ) ) { // Only log real IPNs received
+		if ( ! isset( $notification['MockedIPN'] ) ) { // Only log real IPNs received.
 			wc_apa()->log( 'Received IPN', $notification );
 		}
 
@@ -424,7 +425,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 				$order_id = $object->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				break;
 			case 'REFUND':
-				// on refunds, order_id can be fetched from the charge
+				// on refunds, order_id can be fetched from the charge.
 				$object   = WC_Amazon_Payments_Advanced_API::get_refund( $notification['ObjectId'] );
 				$charge   = WC_Amazon_Payments_Advanced_API::get_charge( $object->chargeId ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				$order_id = $charge->merchantMetadata->merchantReferenceId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -484,6 +485,14 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		wc_apa()->get_gateway()->release_lock_for_order( $order_id );
 	}
 
+	/**
+	 * Check if the next hook is scheduled.
+	 *
+	 * @param  string $hook Hook to check.
+	 * @param  array  $args Args to check.
+	 * @param  string $group Group to check for.
+	 * @return bool
+	 */
 	private function is_next_scheduled( $hook, $args = null, $group = '' ) {
 		$actions = as_get_scheduled_actions(
 			array(
@@ -497,22 +506,40 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		return count( $actions ) > 0;
 	}
 
+	/**
+	 * Schedule the hook for polling.
+	 *
+	 * @param  string $id Object ID to check for.
+	 * @param  string $type Object Type.
+	 */
 	public function schedule_hook( $id, $type ) {
 		$args = array( $id, $type );
 		// Schedule action to check pending order next hour.
 		if ( false === $this->is_next_scheduled( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
 			wc_apa()->log( sprintf( 'Scheduling check for %s %s', $type, $id ) );
-			// TODO: Change time to a more stable timeframe
+			// TODO: Change time to a more stable timeframe.
 			as_schedule_single_action( strtotime( 'next minute' ), 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 		}
 	}
 
+	/**
+	 * Unschedule the hook for polling.
+	 *
+	 * @param  string $id Object ID to check for.
+	 * @param  string $type Object Type.
+	 */
 	public function unschedule_hook( $id, $type ) {
 		$args = array( $id, $type );
 		wc_apa()->log( sprintf( 'Unscheduling check for %s %s', $type, $id ) );
 		as_unschedule_all_actions( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 	}
 
+	/**
+	 * Simulate an IPN request when polling
+	 *
+	 * @param  string $amazon_id Object ID to check for.
+	 * @param  string $type Object Type.
+	 */
 	public function handle_async_polling( $amazon_id, $type ) {
 		switch ( strtoupper( $type ) ) {
 			case 'CHARGE':

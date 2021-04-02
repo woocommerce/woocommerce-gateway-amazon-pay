@@ -3,7 +3,9 @@
  * Backwards compat.
  *
  * @since 1.6.1
+ * @package WC_Gateway_Amazon_Pay
  */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

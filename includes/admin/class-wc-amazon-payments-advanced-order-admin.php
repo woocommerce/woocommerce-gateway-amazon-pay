@@ -10,6 +10,9 @@
  */
 class WC_Amazon_Payments_Advanced_Order_Admin {
 
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
 		add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
 		add_action( 'wp_ajax_amazon_order_action', array( $this, 'order_actions' ) );
@@ -63,7 +66,15 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		exit;
 	}
 
-	public function do_order_action( WC_Order $order, $id, $action, $version ) {
+	/**
+	 * Do the order action
+	 *
+	 * @param  WC_Order $order Order object.
+	 * @param  string   $id A charge_id, refund_id or charge_permission_id.
+	 * @param  string   $action Action to be performed.
+	 * @param  string   $version Version of the order.
+	 */
+	public function do_order_action( $order, $id, $action, $version ) {
 		if ( 'v2' !== strtolower( $version ) ) {
 			return;
 		}
@@ -128,6 +139,12 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		do_action( 'wc_amazon_authorization_box_render', $order, $version );
 	}
 
+	/**
+	 * Turn a status object into a string for a label
+	 *
+	 * @param  object $status_details Status details object.
+	 * @return string
+	 */
 	private function status_details_label( $status_details ) {
 		$charge_status_full = $status_details->status;
 		if ( ! empty( $status_details->reasons ) ) {
@@ -137,6 +154,12 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		return $charge_status_full;
 	}
 
+	/**
+	 * Render the Admin meta box
+	 *
+	 * @param  WC_Order $order Order object.
+	 * @param  string   $version Version of the order.
+	 */
 	public function auth_box_render( $order, $version ) {
 		if ( 'v2' !== strtolower( $version ) ) {
 			return;
@@ -222,7 +245,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					$need_refresh                   = true;
 					break;
 				case 'Captured':
-					// TODO: Handle fully refunded charges
+					// TODO: Handle fully refunded charges.
 					$actions['refund'] = array(
 						'id'     => $charge_id,
 						'button' => __( 'Make a refund?', 'woocommerce-gateway-amazon-payments-advanced' ),

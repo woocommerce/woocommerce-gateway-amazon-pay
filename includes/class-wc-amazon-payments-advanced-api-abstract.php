@@ -103,6 +103,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	/**
 	 * Get settings
 	 *
+	 * @param  string $key Key, if retrieving a single key.
+	 *
 	 * @return array
 	 */
 	public static function get_settings( $key = null ) {
@@ -205,7 +207,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 */
 	public static function is_region_supports_shop_currency() {
 		$region = self::get_region();
-		// Avoid interferences of external multi-currency plugins
+		// Avoid interferences of external multi-currency plugins.
 		$currency = get_option( 'woocommerce_currency' );
 
 		switch ( $region ) {
@@ -249,6 +251,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @since 1.8.0
 	 * @version 1.8.0
+	 * @param  string $region Region, if checking for a specific region. If not defined, will get label for current region.
 	 *
 	 * @return string Payment region label.
 	 */
@@ -327,7 +330,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @see http://docs.developer.amazonservices.com/en_UK/apa_guide/APAGuide_GetAuthorizationStatus.html
 	 *
-	 * @param int   $order_id Order ID.
+	 * @param int    $order_id Order ID.
 	 * @param object $result   Result from API response.
 	 *
 	 * @deprecated
@@ -515,6 +518,11 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 	}
 
+	/**
+	 * Validate API Keys signature
+	 *
+	 * @return bool
+	 */
 	public static function validate_api_keys() {
 		return false;
 	}

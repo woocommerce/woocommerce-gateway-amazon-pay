@@ -12,8 +12,11 @@
  */
 class WC_Amazon_Payments_Advanced_Compat {
 
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
-		$this->require_compats(); // Need to require early for some static methods to be available
+		$this->require_compats(); // Need to require early for some static methods to be available.
 		add_action( 'woocommerce_amazon_pa_init', array( $this, 'load_compats' ) );
 		add_action( 'woocommerce_amazon_pa_init', array( $this, 'load_multicurrency' ) );
 	}
@@ -29,7 +32,7 @@ class WC_Amazon_Payments_Advanced_Compat {
 		require_once 'compats/class-wc-amazon-payments-advanced-subscribe-to-newsletter-compat.php';
 		require_once 'compats/class-wc-amazon-payments-advanced-woocommerce-multilingual-compat.php';
 
-		// Require multi-currency compat class
+		// Require multi-currency compat class.
 		require_once 'compats/class-wc-amazon-payments-advanced-multi-currency.php';
 	}
 
@@ -61,6 +64,9 @@ class WC_Amazon_Payments_Advanced_Compat {
 		}
 	}
 
+	/**
+	 * Init Multicurrency hooks
+	 */
 	public function load_multicurrency() {
 		WC_Amazon_Payments_Advanced_Multi_Currency::init();
 	}
