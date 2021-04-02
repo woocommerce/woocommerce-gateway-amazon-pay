@@ -48,10 +48,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * Process payment
 	 *
-	 * @param mixed|null $process Shortcircuit parameter. If not a subscription, will return null.
-	 * @param int        $order_id Order that payment is being processed for.
+	 * @param mixed $process Shortcircuit parameter.
+	 * @param int   $order_id Order that payment is being processed for.
 	 *
-	 * @return [type]
+	 * @return mixed|array If not a subscription, will return the shortcircuit parameter. Otherwise the process_payment typical array.
 	 * @throws Exception On errors with payment processing.
 	 */
 	public function process_payment( $process, $order_id ) {
@@ -708,7 +708,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @param WC_Order $order Order object.
 	 * @param array    $actions Actions defined so far.
 	 *
-	 * @return [type]
+	 * @return array
 	 */
 	public function admin_actions_panel( $ret, $order, $actions ) {
 		$order_id = $order->get_id();
