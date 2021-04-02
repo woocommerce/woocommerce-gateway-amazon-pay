@@ -20,8 +20,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 */
 	const COMPATIBLE_PLUGINS = array(
 		'global_WOOCS'                         => 'WOOCS – Currency Switcher for WooCommerce',
-		'global_woocommerce_wpml'              => 'WPML WooCommerce Multilingual',
 		'class_WC_Product_Price_Based_Country' => 'Price Based on Country for WooCommerce',
+		'global_woocommerce_wpml'              => 'WPML WooCommerce Multilingual',
 		'class_WC_Currency_Converter'          => 'Currency Converter Widget',
 	);
 
@@ -163,8 +163,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 			$match = false;
 			if ( 0 === strpos( $definition_name, 'global' ) ) {
 				$global_name = str_replace( 'global_', '', $definition_name );
-				global ${$global_name};
-				if ( ${$global_name} ) {
+
+				if ( isset( $GLOBALS[ $global_name ] ) && $GLOBALS[ $global_name ] ) {
 					$match = true;
 				}
 			} elseif ( 0 === strpos( $definition_name, 'class' ) ) {

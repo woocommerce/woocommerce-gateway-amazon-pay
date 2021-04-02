@@ -968,13 +968,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			WC_Amazon_Payments_Advanced_API_Legacy::cancel_order_reference( $order, 'MFA Failure' );
 
 			// Redirect to cart and amazon logout.
-			$redirect = add_query_arg(
-				array(
-					'amazon_payments_advanced' => 'true',
-					'amazon_logout'            => 'true',
-				),
-				wc_get_cart_url()
-			);
+			$redirect = wc_apa()->get_gateway()->get_amazon_logout_url( wc_get_cart_url() );
 
 			// Adds notice and logging.
 			wc_add_notice( __( 'There was a problem authorizing your transaction using Amazon Pay. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
@@ -1634,12 +1628,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * Init Amazon login app widget.
 	 */
 	public function init_amazon_login_app_widget() {
-		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg(
-			array(
-				'amazon_payments_advanced' => 'true',
-				'amazon_logout'            => false,
-			)
-		);
+		$redirect_page = is_cart() ? $this->get_amazon_payments_checkout_url() : $this->get_amazon_payments_clean_logout_url();
 		?>
 		<script type='text/javascript'>
 			function getURLParameter(name, source) {
@@ -1764,12 +1753,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		wp_enqueue_script( 'amazon_payments_advanced_widgets', WC_Amazon_Payments_Advanced_API_Legacy::get_widgets_url(), array(), wc_apa()->version, true );
 		wp_enqueue_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/legacy/amazon-' . $type . '-widgets' . $js_suffix, array(), wc_apa()->version, true );
 
-		$redirect_page = is_cart() ? add_query_arg( 'amazon_payments_advanced', 'true', get_permalink( wc_get_page_id( 'checkout' ) ) ) : add_query_arg(
-			array(
-				'amazon_payments_advanced' => 'true',
-				'amazon_logout'            => false,
-			)
-		);
+		$redirect_page = is_cart() ? $this->get_amazon_payments_checkout_url() : $this->get_amazon_payments_clean_logout_url();
 
 		$params = array(
 			'ajax_url'              => admin_url( 'admin-ajax.php' ),
