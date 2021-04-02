@@ -1687,6 +1687,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$language = $_POST['woocommerce_amazon_payments_advanced_button_language'];
 				$regions  = WC_Amazon_Payments_Advanced_API::get_languages_per_region();
 				if ( ! isset( $regions[ $region ] ) || ! in_array( $language, $regions[ $region ], true ) ) {
+					/* translators: 1) Language 2) Region */
 					WC_Admin_Settings::add_error( sprintf( __( '%1$s is not a valid language for the %2$s region.', 'woocommerce-gateway-amazon-payments-advanced' ), $language, WC_Amazon_Payments_Advanced_API::get_region_label( $region ) ) );
 					$_POST['woocommerce_amazon_payments_advanced_button_language'] = '';
 				}

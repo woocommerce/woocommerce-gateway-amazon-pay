@@ -165,6 +165,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 
 			switch ( $amazon_capture_state ) {
 				case 'Pending':
+					/* translators: 1) Capture ID 2) Capture Status. */
 					echo wpautop( sprintf( __( 'Capture Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_capture_id ), esc_html( $amazon_capture_state ) ) );
 
 					// Admin will need to re-check this, so clear the stored value.
@@ -180,6 +181,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 
 					break;
 				case 'Completed':
+					/* translators: 1) Capture ID 2) Capture Status. */
 					echo wpautop( sprintf( __( 'Capture Reference %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_capture_id ), esc_html( $amazon_capture_state ) ) . ' <a href="#" class="toggle_refund">' . __( 'Make a refund?', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>' );
 
 					// Refund form.
@@ -206,6 +208,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 				foreach ( $amazon_refund_ids as $amazon_refund_id ) {
 
 					if ( isset( $refunds[ $amazon_refund_id ] ) ) {
+						/* translators: 1) Refund ID 2) Amount 3) Status 4) Reason. */
 						echo wpautop( sprintf( __( 'Refund %1$s of %2$s is <strong>%3$s</strong> (%4$s).', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_refund_id, wc_price( $refunds[ $amazon_refund_id ]['amount'] ), $refunds[ $amazon_refund_id ]['state'], $refunds[ $amazon_refund_id ]['note'] ) );
 					} else {
 
@@ -224,6 +227,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 							$amount = (string) $response->GetRefundDetailsResult->RefundDetails->RefundAmount->Amount;
 							// @codingStandardsIgnoreEnd
 
+							/* translators: 1) Refund ID 2) Amount 3) Status 4) Reason. */
 							echo wpautop( sprintf( __( 'Refund %1$s of %2$s is <strong>%3$s</strong> (%4$s).', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_refund_id ), wc_price( $amount ), esc_html( $state ), esc_html( $note ) ) );
 
 							if ( 'Completed' === $state ) {

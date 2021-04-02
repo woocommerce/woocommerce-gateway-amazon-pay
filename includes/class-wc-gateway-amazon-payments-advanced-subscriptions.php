@@ -550,6 +550,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		if ( is_wp_error( $response ) ) {
 			wc_apa()->log( "Error processing payment for renewal order #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
+			/* translators: 1) Reason. */
 			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
 			wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
 			$order->update_status( 'failed' );

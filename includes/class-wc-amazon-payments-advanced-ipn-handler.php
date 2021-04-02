@@ -448,6 +448,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		}
 
 		if ( 'STATE_CHANGE' !== strtoupper( $notification['NotificationType'] ) ) {
+			/* translators: 1) Notification Type. */
 			throw new Exception( sprintf( __( 'Notification type "%s" not supported', 'woocommerce-gateway-amazon-payments-advanced' ), $notification['NotificationType'] ) );
 		}
 

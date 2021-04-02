@@ -630,12 +630,14 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 				update_post_meta( $order_id, 'amazon_authorization_state', 'Open' );
 				// Delete amazon_timed_out_transaction meta.
 				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
+				/* translators: 1) Auth ID. */
 				$order->add_order_note( sprintf( __( 'Authorized (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 				$order->add_order_note( __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 				break;
 			case 'closed':
 				update_post_meta( $order_id, 'amazon_capture_id', str_replace( '-A', '-C', $auth_id ) );
 				update_post_meta( $order_id, 'amazon_authorization_state', $authorization_status );
+				/* translators: 1) Auth ID. */
 				$order->add_order_note( sprintf( __( 'Captured (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), str_replace( '-A', '-C', $auth_id ) ) );
 				$order->payment_complete();
 				// Delete amazon_timed_out_transaction meta.
@@ -655,6 +657,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
 					// Hard decline.
+					/* translators: 1) Reason. */
 					$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 					// Hard Decline client's email.
 					$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
@@ -667,6 +670,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					} else {
 						$order->update_meta_data( 'amazon_timed_out_times', 2 );
 						// Hard Decline.
+						/* translators: 1) Reason. */
 						$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 						// Hard Decline client's email.
 						$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
@@ -709,12 +713,14 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 				update_post_meta( $order_id, 'amazon_authorization_state', 'Open' );
 				// Delete amazon_timed_out_transaction meta.
 				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
+				/* translators: 1) Auth ID. */
 				$order->add_order_note( sprintf( __( 'Authorized (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 				$order->add_order_note( __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 				break;
 			case 'closed':
 				update_post_meta( $order_id, 'amazon_capture_id', str_replace( '-A', '-C', $auth_id ) );
 				update_post_meta( $order_id, 'amazon_authorization_state', $authorization_status );
+				/* translators: 1) Auth ID. */
 				$order->add_order_note( sprintf( __( 'Captured (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), str_replace( '-A', '-C', $auth_id ) ) );
 				$order->payment_complete();
 				// Delete amazon_timed_out_transaction meta.
@@ -734,6 +740,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					self::send_email_notification( $subject, $message, $order->get_billing_email() );
 				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
 					// Hard decline.
+					/* translators: 1) Reason. */
 					$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 					// Hard Decline client's email.
 					$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
@@ -743,6 +750,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 					if ( ! $order->meta_exists( 'amazon_timed_out_times' ) ) {
 						$order->update_meta_data( 'amazon_timed_out_times', 1 );
 						// Hard Decline.
+						/* translators: 1) Reason. */
 						$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
 						// Hard Decline client's email.
 						$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
@@ -1048,6 +1056,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		}
 
 		if ( is_wp_error( $response ) ) {
+			/* translators: 1) Reason. */
 			$order->add_order_note( sprintf( __( 'Error: Unable to authorize funds with Amazon. Reason: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
 
 			return false;
@@ -1086,6 +1095,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 
 		$state = self::get_auth_state_from_reponse( $response );
 		if ( 'declined' === $state ) {
+			/* translators: 1) Reason. */
 			$order->add_order_note( sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), self::get_auth_state_reason_code_from_response( $response ) ) );
 			// Payment was not authorized.
 			return false;
@@ -1094,9 +1104,11 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		if ( $capture_now ) {
 			update_post_meta( $order_id, 'amazon_capture_id', str_replace( '-A', '-C', $auth_id ) );
 
+			/* translators: 1) Auth ID. */
 			$order->add_order_note( sprintf( __( 'Captured (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), str_replace( '-A', '-C', $auth_id ) ) );
 			$order->payment_complete();
 		} else {
+			/* translators: 1) Auth ID. */
 			$order->add_order_note( sprintf( __( 'Authorized (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
 		}
 
@@ -1385,6 +1397,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		if ( $amazon_billing_agreement_id ) {
 			// If it has a billing agreement Amazon close it on auth, no need to close the order.
 			// https://developer.amazon.com/docs/amazon-pay-api/order-reference-states-and-reason-codes.html .
+				/* translators: 1) Reference ID. */
 			$order->add_order_note( sprintf( __( 'Order reference %s closed ', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_reference_id ) );
 			return true;
 		}
@@ -1554,6 +1567,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		$order = wc_get_order( $order );
 
 		if ( is_wp_error( $response ) ) {
+			/* translators: 1) Reason. */
 			$order->add_order_note( sprintf( __( 'Error: Unable to capture funds with Amazon Pay. Reason: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
 
 			return false;
@@ -1581,6 +1595,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		}
 		// @codingStandardsIgnoreEnd
 
+				/* translators: 1) Capture ID. */
 		$order->add_order_note( sprintf( __( 'Capture Attempted (Capture ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $capture_id ) );
 
 		update_post_meta( $order_id, 'amazon_capture_id', $capture_id );
@@ -1606,10 +1621,12 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 
 		if ( 'amazon_payments_advanced' === wc_apa_get_order_prop( $order, 'payment_method' ) ) {
 			if ( 'US' === WC()->countries->get_base_country() && $amount > $order->get_total() ) {
+				/* translators: 1) Reason. */
 				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), __( 'Refund amount is greater than order total.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
 
 				return false;
 			} elseif ( $amount > min( ( $order->get_total() * 1.15 ), ( $order->get_total() + 75 ) ) ) {
+				/* translators: 1) Reason. */
 				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), __( 'Refund amount is greater than the max refund amount.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
 
 				return false;
