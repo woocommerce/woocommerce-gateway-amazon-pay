@@ -13,6 +13,8 @@
 class WC_Amazon_Payments_Advanced_Multi_Currency_WPML extends WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 	/**
+	 * WPML instance
+	 *
 	 * @var woocommerce_wpml
 	 */
 	protected $wpml;

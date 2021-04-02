@@ -1,4 +1,8 @@
 <?php
+/**
+ * PHPUnit bootstrap file
+ */
+
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
 if ( ! $_tests_dir ) {
 	$_tests_dir = sys_get_temp_dir() . '/wordpress-tests-lib';
@@ -6,6 +10,11 @@ if ( ! $_tests_dir ) {
 
 require_once $_tests_dir . '/includes/functions.php';
 
+/**
+ * Loads the plugin early
+ *
+ * @return void
+ */
 function _manually_load_plugin() {
 	$base_dir = dirname( dirname( dirname( __FILE__ ) ) );
 	require $base_dir . '/woocommerce-gateway-amazon-payments-advanced.php';

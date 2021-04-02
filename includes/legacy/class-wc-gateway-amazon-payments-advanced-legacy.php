@@ -1,4 +1,11 @@
 <?php
+/**
+ * Legacy Gateway for v1 orders.
+ */
+
+/**
+ * WC_Gateway_Amazon_Payments_Advanced_Legacy
+ */
 class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payments_Advanced_Abstract {
 
 	/**
@@ -269,6 +276,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @version 1.7.1
 	 *
 	 * @param int $order_id Order ID.
+	 *
+	 * @throws Exception On Errors.
 	 */
 	public function process_payment( $order_id ) {
 		$process = apply_filters( 'woocommerce_amazon_pa_process_payment', null, $order_id );
@@ -649,6 +658,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		return $ret;
 	}
 
+	/**
+	 * Instance wrapper to process refund
+	 *
+	 * @param  int    $order_id      Order ID.
+	 * @param  float  $refund_amount Amount to refund.
+	 * @param  string $reason        Reason to refund.
+	 * @return WP_Error|boolean True or false based on success, or a WP_Error object.
+	 */
 	public function process_refund( $order_id, $refund_amount = null, $reason = '' ) {
 		return self::do_process_refund( $order_id, $refund_amount, $reason );
 	}
@@ -1001,7 +1018,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	/**
 	 * Maybe render timeout transaction order received text.
 	 *
-	 * @param $text
+	 * @param string   $text
 	 * @param WC_Order $order
 	 *
 	 * @return string
@@ -1832,10 +1849,24 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		do_action( 'wc_amazon_pa_scripts_enqueued', $type, $params );
 	}
 
+	/**
+	 * Init legacy hooks
+	 *
+	 * @return void
+	 */
 	public static function legacy_hooks() {
 		add_filter( 'woocommerce_amazon_pa_process_refund', array( __CLASS__, 'maybe_handle_v1_refund' ), 10, 4 );
 	}
 
+	/**
+	 * Handle v1 refunds
+	 *
+	 * @param  mixed  $ret
+	 * @param  int    $order_id
+	 * @param  float  $amount
+	 * @param  string $reason
+	 * @return bool|WP_Error
+	 */
 	public static function maybe_handle_v1_refund( $ret, $order_id, $amount, $reason ) {
 		$order = wc_get_order( $order_id );
 

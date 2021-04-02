@@ -64,6 +64,9 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_Woocs extends WC_Amazon_Payment
 
 	/**
 	 * On OrderReferenceStatus === Suspended, hide currency switcher.
+	 *
+	 * @param  bool $value
+	 * @return bool
 	 */
 	public function remove_currency_switcher_on_order_reference_suspended( $value ) {
 		if ( $this->is_order_reference_checkout_suspended() ) {
@@ -76,6 +79,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_Woocs extends WC_Amazon_Payment
 
 	/**
 	 * On OrderReferenceStatus === Suspended, hide currency switcher.
+	 *
+	 * @param  bool $value
 	 */
 	public function remove_shortcode_currency_switcher_on_order_reference_suspended( $value ) {
 		if ( $this->is_order_reference_checkout_suspended() ) {

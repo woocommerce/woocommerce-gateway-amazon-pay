@@ -10,14 +10,25 @@
  */
 class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Abstract {
 
+	/**
+	 * Helper to store the current refund being handled
+	 *
+	 * @var array
+	 */
 	protected static $amazonpay_sdk_config;
 
+	/**
+	 * Helper to store the current refund being handled
+	 *
+	 * @var \Amazon\Pay\API\Client
+	 */
 	protected static $amazonpay_client;
 
 	/**
 	 * Set up API V2 SDK.
 	 *
 	 * @since 2.0.0
+	 * @param  bool $fresh
 	 *
 	 * @return array Returns SDK configuration
 	 */
@@ -45,6 +56,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * @since 2.0.0
 	 *
 	 * @return bool Returns true if API keys are valid
+	 *
+	 * @throws Exception On Errors.
 	 */
 	public static function validate_api_keys() {
 
@@ -115,7 +128,6 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 *
 	 * @return Amazon\Pay\API\Client Instance
 	 */
-
 	protected static function get_client() {
 		if ( isset( self::$amazonpay_client ) ) {
 			return self::$amazonpay_client;
@@ -167,6 +179,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return 'postcode' === $location->type;
 	}
 
+	/**
+	 * Return shipping restrictions for checkout sessions
+	 *
+	 * @return bool|array
+	 */
 	protected static function get_shipping_restrictions() {
 		$data_store         = WC_Data_Store::load( 'shipping-zone' );
 		$raw_zones          = $data_store->get_zones();
@@ -244,6 +261,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $zones;
 	}
 
+	/**
+	 * Create checkout session parameters for button
+	 *
+	 * @param  string $redirect_url
+	 * @return string JSON encoded object
+	 */
 	protected static function create_checkout_session_params( $redirect_url = null ) {
 
 		$settings = self::get_settings();
@@ -284,6 +307,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	}
 
+	/**
+	 * Get create checkout session config to send to the
+	 *
+	 * @param  string $redirect_url
+	 * @return array
+	 */
 	public static function get_create_checkout_session_config( $redirect_url = null ) {
 		$settings = self::get_settings();
 		$client   = self::get_client();
@@ -297,6 +326,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		);
 	}
 
+	/**
+	 * Get Checkout Session Data.
+	 *
+	 * @param  string $checkout_session_id
+	 * @return object Checkout Session from the API
+	 */
 	public static function get_checkout_session_data( $checkout_session_id ) {
 		$client = self::get_client();
 		$result = $client->getCheckoutSession( $checkout_session_id );
@@ -316,6 +351,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $checkout_session;
 	}
 
+	/**
+	 * Normalize Address Data from the API
+	 *
+	 * @param  object $address Object that will be adjusted
+	 * @return void
+	 */
 	protected static function normalize_address( $address ) {
 		foreach ( (array) $address as $prop => $val ) {
 			switch ( strtolower( $prop ) ) {
@@ -331,6 +372,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		}
 	}
 
+	/**
+	 * Update Checkout Session Data
+	 *
+	 * @param  string $checkout_session_id
+	 * @param  array  $data
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function update_checkout_session_data( $checkout_session_id, $data = array() ) {
 		$client = self::get_client();
 
@@ -358,6 +406,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	/**
+	 * Complete Checkout session
+	 *
+	 * @param  string $checkout_session_id
+	 * @param  array  $data
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function complete_checkout_session( $checkout_session_id, $data = array() ) {
 		$client = self::get_client();
 		wc_apa()->log( sprintf( 'Checkout Session ID %s', $checkout_session_id ), $data );
@@ -375,6 +430,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	/**
+	 * Get Languages available per region
+	 *
+	 * @return array
+	 */
 	public static function get_languages_per_region() {
 		return array(
 			'eu' => array(
@@ -400,6 +460,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		);
 	}
 
+	/**
+	 * Get Charge Permission object
+	 *
+	 * @param  string $charge_permission_id
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function get_charge_permission( $charge_permission_id ) {
 		$client = self::get_client();
 		$result = $client->getChargePermission( $charge_permission_id );
@@ -413,6 +479,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	/**
+	 * Get Charge object
+	 *
+	 * @param  string $charge_id
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function get_charge( $charge_id ) {
 		$client = self::get_client();
 		$result = $client->getCharge( $charge_id );
@@ -426,6 +498,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	/**
+	 * Get Refund object
+	 *
+	 * @param  string $refund_id
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function get_refund( $refund_id ) {
 		$client = self::get_client();
 		$result = $client->getRefund( $refund_id );
@@ -439,6 +517,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	/**
+	 * Generate UUID to use as idempotency
+	 *
+	 * @return string
+	 */
 	private static function generate_uuid() {
 		return sprintf(
 			'%04x%04x%04x%04x%04x%04x%04x%04x',
@@ -453,6 +536,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		);
 	}
 
+	/**
+	 * Capture a Charge
+	 *
+	 * @param  string $charge_id
+	 * @param  array  $data
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function capture_charge( $charge_id, $data = array() ) {
 		$client = self::get_client();
 		if ( empty( $data ) ) {
@@ -498,6 +588,14 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	/**
+	 * Refund a Charge
+	 *
+	 * @param  string $charge_id
+	 * @param  float  $amount
+	 * @param  array  $data
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function refund_charge( $charge_id, $amount = null, $data = array() ) {
 		$client = self::get_client();
 		if ( empty( $data ) ) {
@@ -546,6 +644,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	/**
+	 * Cancel a charge
+	 *
+	 * @param  string $charge_id
+	 * @param  string $reason
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function cancel_charge( $charge_id, $reason = 'Order Cancelled' ) {
 		$client = self::get_client();
 		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ) );
@@ -569,6 +674,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	/**
+	 * Get Merchant Metadata object
+	 *
+	 * @param  int $order_id
+	 * @return array
+	 */
 	public static function get_merchant_metadata( $order_id ) {
 		/* translators: Plugin version */
 		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
@@ -580,6 +691,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		);
 	}
 
+	/**
+	 * Function to handle simulation strings
+	 *
+	 * @param  string $type
+	 * @return array
+	 */
 	protected static function get_extra_headers( $type ) {
 		$settings = self::get_settings();
 		$headers  = array();
@@ -595,7 +712,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				/**
 				 * Define here things in the following form
 				 *
-				 * array( 'create_charge', 'HardDeclined' ),
+				 * > array( 'create_charge', 'HardDeclined' ),
 				 *
 				 * where:
 				 *  * create_charge is the name of the call to add the header to (function name on this class)
@@ -622,6 +739,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $headers;
 	}
 
+	/**
+	 * Create a charge
+	 *
+	 * @param  string $charge_permission_id
+	 * @param  array  $data
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function create_charge( $charge_permission_id, $data ) {
 		$client = self::get_client();
 		if ( empty( $data ) ) {
@@ -666,6 +790,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $response;
 	}
 
+	/**
+	 * Close Charge Permission
+	 *
+	 * @param  string $charge_permission_id
+	 * @param  string $reason
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
 	public static function close_charge_permission( $charge_permission_id, $reason = 'Subscription Cancelled' ) {
 		$client = self::get_client();
 

@@ -355,6 +355,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	 *
 	 * @since 1.8.0
 	 * @version 1.8.0
+	 * @throws Exception On Errors.
 	 */
 	public function check_ipn_request() {
 		$raw_post_data = $this->get_raw_post_data();
@@ -484,6 +485,14 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		wc_apa()->get_gateway()->release_lock_for_order( $order_id );
 	}
 
+	/**
+	 * Check if the next hook is scheduled.
+	 *
+	 * @param  string $hook
+	 * @param  array  $args
+	 * @param  string $group
+	 * @return bool
+	 */
 	private function is_next_scheduled( $hook, $args = null, $group = '' ) {
 		$actions = as_get_scheduled_actions(
 			array(
@@ -497,6 +506,13 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		return count( $actions ) > 0;
 	}
 
+	/**
+	 * Schedule the hook for polling.
+	 *
+	 * @param  string $id Object ID to check for
+	 * @param  string $type Object Type
+	 * @return void
+	 */
 	public function schedule_hook( $id, $type ) {
 		$args = array( $id, $type );
 		// Schedule action to check pending order next hour.
@@ -507,12 +523,26 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		}
 	}
 
+	/**
+	 * Unschedule the hook for polling.
+	 *
+	 * @param  string $id Object ID to check for
+	 * @param  string $type Object Type
+	 * @return void
+	 */
 	public function unschedule_hook( $id, $type ) {
 		$args = array( $id, $type );
 		wc_apa()->log( sprintf( 'Unscheduling check for %s %s', $type, $id ) );
 		as_unschedule_all_actions( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 	}
 
+	/**
+	 * Simulate an IPN request when polling
+	 *
+	 * @param  string $amazon_id Object ID to check for
+	 * @param  string $type Object Type
+	 * @return void
+	 */
 	public function handle_async_polling( $amazon_id, $type ) {
 		switch ( strtoupper( $type ) ) {
 			case 'CHARGE':

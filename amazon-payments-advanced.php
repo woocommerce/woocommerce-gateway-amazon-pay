@@ -4,6 +4,7 @@
  *
  * @since 1.6.1
  */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

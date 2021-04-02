@@ -1,4 +1,11 @@
 <?php
+/**
+ * Abstract Gateway Class with common implementations between v1 and v2
+ */
+
+/**
+ * WC_Gateway_Amazon_Payments_Advanced_Abstract
+ */
 abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_Gateway {
 
 	/**
@@ -47,6 +54,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Get Amazon logout URL.
 	 *
 	 * @since 1.6.0
+	 * @param  string $url
 	 *
 	 * @return string Amazon logout URL
 	 */
@@ -66,6 +74,11 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		);
 	}
 
+	/**
+	 * Get Amazon Payments Checkout URL
+	 *
+	 * @return string
+	 */
 	public function get_amazon_payments_checkout_url() {
 		$url = get_permalink( wc_get_page_id( 'checkout' ) );
 		if ( empty( $url ) ) {
@@ -75,6 +88,11 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		return $url;
 	}
 
+	/**
+	 * Remove Amazon Payments Checkout URL from the current URL
+	 *
+	 * @return string
+	 */
 	public function get_amazon_payments_clean_logout_url() {
 		$url = add_query_arg(
 			array(
@@ -464,6 +482,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 	/**
 	 * Generate Custom HTML.
+	 *
+	 * @param  string $id
+	 * @param  array  $conf
+	 * @return string
 	 */
 	public function generate_custom_html( $id, $conf ) {
 		$html = isset( $conf['html'] ) ? wp_kses_post( $conf['html'] ) : '';
@@ -556,6 +578,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Process settings in a file
 	 *
 	 * @param array $import_file PHP $_FILES (or similar) entry.
+	 * @param  bool  $clean_post Wether to clean the post or not
 	 */
 	protected function process_settings_from_file( $import_file, $clean_post = false ) {
 		$fn_parts  = explode( '.', $import_file['name'] );
@@ -744,6 +767,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Checkout Button
 	 *
 	 * Triggered from the 'woocommerce_proceed_to_checkout' action.
+	 *
+	 * @param  bool   $echo Wether to echo or not.
+	 * @param  string $elem HTML tag to render
+	 * @return bool|string
 	 */
 	public function checkout_button( $echo = true, $elem = 'div' ) {
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
@@ -767,7 +794,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	/**
 	 * Remove amazon gateway.
 	 *
-	 * @param $gateways
+	 * @param array $gateways
 	 *
 	 * @return array
 	 */
@@ -825,6 +852,11 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		return $fields;
 	}
 
+	/**
+	 * Init common hooks on checkout_init hook
+	 *
+	 * @return void
+	 */
 	public function checkout_init_common() {
 		// Remove other gateways after being logged in
 		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_gateways' ) );

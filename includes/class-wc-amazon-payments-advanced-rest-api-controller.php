@@ -580,7 +580,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	/**
 	 * Get error from request when no reference_id from specified order.
 	 *
-	 * @param WP_REST_Request $request WP HTTP request.
+	 * @param WP_Post $order_post WP Post object.
 	 *
 	 * @return null|WP_Error Null if there's no error in the request.
 	 */
@@ -596,7 +596,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	/**
 	 * Get error from request when no authorization_id from specified order.
 	 *
-	 * @param WP_REST_Request $request WP HTTP request.
+	 * @param WP_Post $order_post WP Post object.
 	 *
 	 * @return null|WP_Error Null if there's no error in the request.
 	 */
@@ -612,7 +612,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	/**
 	 * Get error from request when no capture_id from specified order.
 	 *
-	 * @param WP_REST_Request $request WP HTTP request.
+	 * @param WP_Post $order_post WP Post object.
 	 *
 	 * @return null|WP_Error Null if there's no error in the request.
 	 */
@@ -628,7 +628,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	/**
 	 * Check whether order is valid to proceed.
 	 *
-	 * @param int $order_post Order post object.
+	 * @param int $order_id Order post ID.
 	 *
 	 * @return WP_Post|WP_Error Post object if it's valid, WP_Error if it's invalid.
 	 */

@@ -302,6 +302,8 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @since 1.6.0
 	 *
 	 * @return bool Returns true if API keys are valid
+	 *
+	 * @throws Exception On Errors.
 	 */
 	public static function validate_api_keys() {
 
@@ -686,9 +688,9 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	/**
 	 * Handle the result of an sync authorization request.
 	 *
-	 * @param object       $result         IPN payload.
-	 * @param int|WC_Order $order          Order object.
-	 *
+	 * @param  mixed    $response Authorization Details object from the Amazon API
+	 * @param  WC_Order $order
+	 * @param  string   $auth_id
 	 * @return string Authorization status.
 	 */
 	public static function handle_synch_payment_authorization_payload( $response, $order, $auth_id = false ) {
@@ -908,7 +910,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @param WC_Order $order Order object.
 	 * @param array    $args  Base args.
 	 */
-	public static function get_authorize_request_args( WC_Order $order, $args ) {
+	public static function get_authorize_request_args( $order, $args ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
 		return apply_filters(
@@ -1008,7 +1010,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @return array Request args.
 	 */
-	public static function get_authorize_recurring_request_args( WC_Order $order, $args ) {
+	public static function get_authorize_recurring_request_args( $order, $args ) {
 		$order_id        = wc_apa_get_order_prop( $order, 'id' );
 		$order_shippable = self::maybe_subscription_is_shippable( $order );
 
@@ -1334,12 +1336,12 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * Handle the result of an async ipn order reference request.
 	 * We need only to cover the change to Open status.
 	 *
-	 * https://m.media-amazon.com/images/G/03/AMZNPayments/IntegrationGuide/AmazonPay_-_Order_Confirm_And_Omnichronous_Authorization_Including-IPN-Handler._V516642695_.svg
+	 * URL: https://m.media-amazon.com/images/G/03/AMZNPayments/IntegrationGuide/AmazonPay_-_Order_Confirm_And_Omnichronous_Authorization_Including-IPN-Handler._V516642695_.svg
 	 *
 	 * @param object       $ipn_payload    IPN payload.
 	 * @param int|WC_Order $order          Order object.
 	 *
-	 * @return string Authorization status.
+	 * @return void
 	 */
 	public static function handle_async_ipn_order_reference_payload( $ipn_payload, $order ) {
 		$order                 = is_int( $order ) ? wc_get_order( $order ) : $order;
@@ -1509,7 +1511,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @return array
 	 */
-	public static function get_capture_request_args( WC_Order $order, $args ) {
+	public static function get_capture_request_args( $order, $args ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
 		return array(

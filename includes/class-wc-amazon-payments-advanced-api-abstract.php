@@ -103,6 +103,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	/**
 	 * Get settings
 	 *
+	 * @param  string $key
+	 *
 	 * @return array
 	 */
 	public static function get_settings( $key = null ) {
@@ -249,6 +251,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @since 1.8.0
 	 * @version 1.8.0
+	 * @param  string $region
 	 *
 	 * @return string Payment region label.
 	 */
@@ -515,6 +518,11 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 	}
 
+	/**
+	 * Validate API Keys signature
+	 *
+	 * @return bool
+	 */
 	public static function validate_api_keys() {
 		return false;
 	}

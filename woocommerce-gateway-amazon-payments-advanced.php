@@ -268,7 +268,7 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Helper method to get a sanitized version of a string.
 	 *
-	 * @param $string
+	 * @param string $string Sanitize some elements
 	 *
 	 * @return string
 	 */
@@ -293,8 +293,11 @@ class WC_Amazon_Payments_Advanced {
 	 *
 	 * @since 1.6.0
 	 *
-	 * @param string $context Context for the log.
-	 * @param string $message Log message.
+	 * @param string      $message Log message.
+	 * @param null|mixed  $object Data to be printed for more detail about the entry.
+	 * @param null|string $context Context for the log.
+	 *
+	 * @return void
 	 */
 	public function log( $message, $object = null, $context = null ) {
 		if ( empty( $this->settings['debug'] ) ) {

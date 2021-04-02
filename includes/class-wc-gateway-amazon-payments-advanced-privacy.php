@@ -1,8 +1,15 @@
 <?php
+/**
+ * Handle Privacy Cleanup and Export.
+ */
+
 if ( ! class_exists( 'WC_Abstract_Privacy' ) ) {
 	return;
 }
 
+/**
+ * WC_Gateway_Amazon_Payments_Advanced_Privacy
+ */
 class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Constructor

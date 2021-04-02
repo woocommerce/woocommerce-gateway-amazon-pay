@@ -19,6 +19,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 	}
 
+	/**
+	 * Init Handlers for subscription products
+	 *
+	 * @param mixed $version gateway current version.
+	 *
+	 * @return void
+	 */
 	public function init_handlers( $version ) {
 		$id = wc_apa()->get_gateway()->id;
 
@@ -43,7 +50,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * Process payment
 	 *
-	 * @param int $order_id Order ID.
+	 * @param mixed|null $process Shortcircuit parameter. If not a subscription, will return null.
+	 * @param int        $order_id Order that payment is being processed for.
+	 *
+	 * @return [type]
+	 * @throws Exception On errors with payment processing.
 	 */
 	public function process_payment( $process, $order_id ) {
 
@@ -233,6 +244,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 	}
 
+	/**
+	 * Do authorization on an order with a recurring charge.
+	 *
+	 * @param WC_Order $order WC_Order object
+	 * @param string   $amazon_billing_agreement_id Recurring object
+	 *
+	 * @return void
+	 */
 	private function do_authorize_payment( $order, $amazon_billing_agreement_id ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
@@ -414,9 +433,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * Retrieve full details from the order using 'GetBillingAgreementDetails' (if it contains a subscription).
 	 *
+	 * @param mixed  $process Shortcircuit parameter.
 	 * @param string $amazon_reference_id Reference ID.
 	 *
-	 * @return bool|object Boolean false on failure, object of OrderReferenceDetails on success.
+	 * @return mixed|bool|object $process parameter if not supposed to run, Boolean false on failure, object of OrderReferenceDetails on success.
 	 */
 	public function get_amazon_order_details( $process, $amazon_reference_id ) {
 		$not_subscription = (
@@ -459,8 +479,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * If redirected to success url, proceed with payment and redirect to thank you page.
 	 *
-	 * @param WC_Order $order
-	 * @param string   $amazon_reference_id
+	 * @param mixed    $process Shortcircuit parameter.
+	 * @param WC_Order $order Order Object
+	 * @param string   $amazon_reference_id Reference ID.
+	 *
+	 * @return mixed|void $process parameter if not supposed to run, will redirect and exit if it runs.
 	 */
 	public function handle_sca_success( $process, $order, $amazon_reference_id ) {
 		if ( ! WC_Gateway_Amazon_Payments_Advanced_Subscriptions::order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
@@ -497,9 +520,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * If redirected to failure url, add a notice with right information for the user.
 	 *
+	 * @param mixed    $process
 	 * @param WC_Order $order
 	 * @param string   $amazon_reference_id
 	 * @param string   $authorization_status
+	 *
+	 * @return mixed|void $process parameter if not supposed to run, will redirect and exit if it runs.
 	 */
 	public function handle_sca_failure( $process, $order, $amazon_reference_id, $authorization_status ) {
 		if ( ! WC_Gateway_Amazon_Payments_Advanced_Subscriptions::order_contains_subscription( $order ) && ! wcs_is_subscription( $order ) ) {
@@ -537,8 +563,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * Process a scheduled subscription payment.
 	 *
 	 * @param float    $amount_to_charge The amount to charge.
-	 * @param WC_Order $order            The WC_Order object of the order which
-	 *                                   the subscription was purchased in.
+	 * @param WC_Order $order            The WC_Order object of the renewal order.
+	 *
+	 * @throws Exception When there's an error with the payment.
+	 *
+	 * @return void
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
 		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
@@ -678,6 +707,15 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		}
 	}
 
+	/**
+	 * Filter the admin actions available on the admin for the orders.
+	 *
+	 * @param array    $ret
+	 * @param WC_Order $order
+	 * @param array    $actions
+	 *
+	 * @return [type]
+	 */
 	public function admin_actions_panel( $ret, $order, $actions ) {
 		$order_id = $order->get_id();
 
@@ -728,6 +766,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		);
 	}
 
+	/**
+	 * Perform an authorization on a recurring billing agreement
+	 *
+	 * @param WC_Order $order
+	 * @param string   $amazon_billing_agreement_id
+	 *
+	 * @return void
+	 */
 	public function admin_action_authorize_recurring( $order, $amazon_billing_agreement_id ) {
 		$order_id = $order->get_id();
 		delete_post_meta( $order_id, 'amazon_authorization_id' );
@@ -739,6 +785,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		WC_Amazon_Payments_Advanced_API_Legacy::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
 	}
 
+	/**
+	 * Perform an authorization and capture on a recurring billing agreement
+	 *
+	 * @param WC_Order $order
+	 * @param string   $amazon_billing_agreement_id
+	 *
+	 * @return void
+	 */
 	public function admin_action_authorize_capture_recurring( $order, $amazon_billing_agreement_id ) {
 		$order_id = $order->get_id();
 		delete_post_meta( $order_id, 'amazon_authorization_id' );
@@ -754,7 +808,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * Get auth state from amazon API.
 	 *
 	 * @param string $order_id Order ID.
-	 * @param string $id       Reference ID.
+	 * @param string $amazon_billing_agreement_id       Reference ID.
 	 *
 	 * @return string|bool Returns false if failed
 	 */
@@ -779,6 +833,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		return $state;
 	}
 
+	/**
+	 * Clear stored billing agreement state
+	 *
+	 * @param mixed $order_id
+	 *
+	 * @return void
+	 */
 	public function clear_stored_billing_agreement_state( $order_id ) {
 		delete_post_meta( $order_id, 'amazon_billing_agreement_state' );
 	}

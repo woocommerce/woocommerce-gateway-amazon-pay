@@ -1,4 +1,11 @@
 <?php
+/**
+ * IPN Legacy Handling.
+ */
+
+/**
+ * WC_Amazon_Payments_Advanced_IPN_Handler_Legacy
+ */
 class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_Advanced_IPN_Handler_Abstract {
 	/**
 	 * Required keys for subscription confirmation type.
@@ -32,6 +39,9 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		'SellerId',
 	);
 
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
 		// Validate Keys for V1 Messages
 		add_action( 'woocommerce_amazon_payments_advanced_ipn_validate_notification_keys', array( $this, 'validate_notification_keys_v1' ), 10, 2 );
@@ -46,6 +56,13 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		add_action( 'woocommerce_amazon_payments_advanced_handle_ipn_order', array( $this, 'unschedule_pending_syncro_payments' ) );
 	}
 
+	/**
+	 * Validate IPN Legacy Message
+	 *
+	 * @param  array  $message
+	 * @param  string $notification_version
+	 * @return void
+	 */
 	public function validate_notification_keys_v1( $message, $notification_version ) {
 		if ( 'v1' !== $notification_version ) {
 			return;
@@ -53,6 +70,12 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		$this->validate_required_keys( $message['Message'], $this->required_notification_message_keys_v1 );
 	}
 
+	/**
+	 * Validate IPN Legacy Message for subscriptions
+	 *
+	 * @param  mixed $message
+	 * @return void
+	 */
 	public function validate_subscription_keys_v1( $message ) {
 		$this->validate_required_keys( $message['Message'], $this->required_subscription_keys_v1 );
 	}
@@ -338,6 +361,10 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 
 	/**
 	 * Process pending syncronuos payments.
+	 *
+	 * @param  int    $order_id
+	 * @param  string $amazon_authorization_id
+	 * @return null|WP_Error WP_Error on error, null if processed
 	 */
 	public function process_pending_syncro_payments( $order_id, $amazon_authorization_id ) {
 
@@ -365,6 +392,9 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 
 	/**
 	 * Unschedule Action for Order.
+	 *
+	 * @param  WC_Order $order
+	 * @return void
 	 */
 	public function unschedule_pending_syncro_payments( $order ) {
 		// Unschedule the Action for this order.

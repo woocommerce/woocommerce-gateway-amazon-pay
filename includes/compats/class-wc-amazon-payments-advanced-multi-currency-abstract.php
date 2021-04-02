@@ -18,6 +18,9 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 */
 	const CURRENCY_BYPASS_SESSION = 'currency_bypass';
 
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
 		// If multi-currency plugin acts only on frontend level, no need to hook.
 		if ( $this->is_front_end_compatible() ) {
@@ -46,6 +49,8 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	}
 
 	/**
+	 * Interface for get selected currency function
+	 *
 	 * @return string
 	 */
 	abstract public function get_selected_currency();
@@ -107,6 +112,12 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		return ( WC()->session->get( self::CURRENCY_BYPASS_SESSION ) ) ? 0 : WC()->session->get( self::CURRENCY_TIMES_SWITCHED_SESSION );
 	}
 
+	/**
+	 * Set presentmentCurrency on the payment details
+	 *
+	 * @param  array $payload
+	 * @return array
+	 */
 	public function set_presentment_currency( $payload ) {
 		if ( ! isset( $payload['paymentDetails'] ) ) {
 			$payload['paymentDetails'] = array();

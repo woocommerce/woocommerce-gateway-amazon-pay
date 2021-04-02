@@ -12,6 +12,9 @@
  */
 class WC_Amazon_Payments_Advanced_Compat {
 
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
 		$this->require_compats(); // Need to require early for some static methods to be available
 		add_action( 'woocommerce_amazon_pa_init', array( $this, 'load_compats' ) );
@@ -61,6 +64,9 @@ class WC_Amazon_Payments_Advanced_Compat {
 		}
 	}
 
+	/**
+	 * Init Multicurrency hooks
+	 */
 	public function load_multicurrency() {
 		WC_Amazon_Payments_Advanced_Multi_Currency::init();
 	}

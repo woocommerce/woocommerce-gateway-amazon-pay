@@ -11,6 +11,8 @@
 class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 	/**
+	 * Instance for the compatible plugin handler
+	 *
 	 * @var WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
 	 */
 	public static $compatible_instance;
@@ -122,6 +124,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	}
 
 	/**
+	 * Reload wallet widget wrapper around the instance
+	 *
 	 * @return bool
 	 */
 	public static function reload_wallet_widget() {
@@ -180,6 +184,11 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 		return false;
 	}
 
+	/**
+	 * Are we on the settings page?
+	 *
+	 * @return bool
+	 */
 	public function is_amazon_settings_page() {
 		if ( is_admin() &&
 			( isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) &&
@@ -191,6 +200,9 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 	/**
 	 * Adds multicurrency settings to form fields.
+	 *
+	 * @param  array $form_fields
+	 * @return array
 	 */
 	public static function add_currency_fields( $form_fields ) {
 		if ( ! self::$compatible_instance ) {
