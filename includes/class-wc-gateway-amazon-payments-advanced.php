@@ -48,7 +48,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function is_available() {
 		$is_available = parent::is_available() && ! empty( $this->settings['merchant_id'] );
 
-		if ( ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) { // TODO: Check with multicurrency implementation.
+		if ( ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) {
 			$is_available = false;
 		}
 
@@ -161,7 +161,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'shipping_title'                 => esc_html__( 'Shipping details', 'woocommerce' ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
 			'checkout_session_id'            => $this->get_checkout_session_id(),
 			'button_language'                => $this->settings['button_language'],
-			'ledger_currency'                => $this->get_ledger_currency(), // TODO: Implement multicurrency.
+			'ledger_currency'                => $this->get_ledger_currency(),
 		);
 
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
