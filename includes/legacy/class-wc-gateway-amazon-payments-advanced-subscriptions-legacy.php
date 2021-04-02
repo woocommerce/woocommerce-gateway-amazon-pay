@@ -151,6 +151,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		} catch ( Exception $e ) {
 
 			wc_apa()->log( "Error: Exception encountered: {$e->getMessage()}" );
+			/* translators: 1) Error message. */
 			wc_add_notice( sprintf( __( 'Error: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ), 'error' );
 			return false;
 		}
@@ -182,12 +183,15 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		} else {
 			$subscription_ids = wp_list_pluck( $subscriptions, 'id' );
 		}
+		/* translators: 1) Amazon Pay Version 2) WooCommerce Version. */
 		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION_CV1, WC()->version );
 
 		$request_args = array(
 			'Action'                                => 'SetBillingAgreementDetails',
 			'AmazonBillingAgreementId'              => $amazon_billing_agreement_id,
-			'BillingAgreementAttributes.SellerNote' => sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), urlencode( $site_name ) ),
+			/* translators: 1) Order Number 2) Site URL. */
+			'BillingAgreementAttributes.SellerNote' => sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), urlencode( $site_name ) ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode
+			/* translators: 1) Subscription IDs */
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.SellerBillingAgreementId' => sprintf( __( 'Subscription(s): %s.', 'woocommerce-gateway-amazon-payments-advanced' ), implode( ', ', $subscription_ids ) ),
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName' => $site_name,
 			'BillingAgreementAttributes.PlatformId' => 'A1BVJDFFHQ7US4',
@@ -600,6 +604,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			$this->do_authorize_payment( $order, $amazon_billing_agreement_id );
 		} catch ( Exception $e ) {
+			/* translators: 1) Reason. */
 			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );
 
 			wc_apa()->log( "Error: Exception encountered: {$e->getMessage()}" );
@@ -727,6 +732,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 		$amazon_billing_agreement_state = $this->get_billing_agreement_state( $order_id, $amazon_billing_agreement_id ); // phpcs:ignore WordPress.NamingConventions
 
+		/* translators: 1) Billing Agreement ID 2) Billing Agreement Status. */
 		echo wpautop( sprintf( __( 'Billing Agreement %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_billing_agreement_id ), esc_html( $amazon_billing_agreement_state ) ) );
 
 		switch ( $amazon_billing_agreement_state ) {

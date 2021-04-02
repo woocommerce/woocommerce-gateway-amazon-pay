@@ -58,6 +58,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	 * Gets the message of the privacy to display.
 	 */
 	public function get_privacy_message() {
+		/* translators: 1) URL to privacy page. */
 		return wpautop( sprintf( __( 'By using this extension, you may be storing personal data or sharing data with an external service. <a href="%s" target="_blank">Learn more about how this works, including what you may want to include in your privacy policy.</a>', 'woocommerce-gateway-amazon-payments-advanced' ), 'https://docs.woocommerce.com/document/privacy-payments/#woocommerce-gateway-amazon-payments-advanced' ) );
 	}
 
@@ -257,6 +258,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 		$subscription_id = $subscription->get_id();
 
 		if ( $subscription->has_status( apply_filters( 'wc_amazon_pay_privacy_eraser_subs_statuses', array( 'on-hold', 'active' ) ) ) ) {
+			/* translators: 1) Subscription ID. */
 			return array( false, true, array( sprintf( __( 'Amazon Payments Advanced data within subscription %1$s has been retained because it is an active Subscription. ', 'woocommerce-gateway-amazon-payments-advanced' ), $subscription_id ) ) );
 		}
 
@@ -300,13 +302,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 
 		$messages = array();
 		if ( $deleted ) {
-			$type = 'order';
+			$type = __( 'order', 'woocommerce-gateway-amazon-payments-advanced' );
 			if ( 'shop_subscription' === $order->get_type() ) {
-				$type = 'subscription';
+				$type = __( 'subscription', 'woocommerce-gateway-amazon-payments-advanced' );
 			}
 			if ( 'shop_order_refund' === $order->get_type() ) {
-				$type = 'refund';
+				$type = __( 'refund', 'woocommerce-gateway-amazon-payments-advanced' );
 			}
+			/* translators: 1) Object ID 2) Object Type. */
 			$messages = array( sprintf( __( 'Amazon Payments Advanced data within %2$s %1$s has been removed.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id, $type ) );
 		}
 
