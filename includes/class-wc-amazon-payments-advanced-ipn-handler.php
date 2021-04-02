@@ -150,7 +150,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 
 		// Verify the signature of the message.
 		$content   = $this->get_string_to_sign( $message );
-		$signature = base64_decode( $message['Signature'] );
+		$signature = base64_decode( $message['Signature'] ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 		if ( 1 !== openssl_verify( $content, $signature, $key, OPENSSL_ALGO_SHA1 ) ) {
 			throw new Exception( 'The message signature is invalid.' );

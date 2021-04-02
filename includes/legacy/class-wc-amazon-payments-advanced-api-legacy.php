@@ -282,13 +282,13 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		$canonical = preg_replace( '/&$/', '', $canonical );
 
 		// Some common replacements and ones that Amazon specifically mentions.
-		$canonical = str_replace( array( ' ', '+', ',', ';' ), array( '%20', '%20', urlencode( ',' ), urlencode( ':' ) ), $canonical );
+		$canonical = str_replace( array( ' ', '+', ',', ';' ), array( '%20', '%20', urlencode( ',' ), urlencode( ':' ) ), $canonical ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode
 
 		// Build the sign.
 		$string_to_sign = "GET\n{$urlparts['host']}\n{$urlparts['path']}\n$canonical";
 
 		// Calculate our actual signature and base64 encode it.
-		$signature = base64_encode( hash_hmac( 'sha256', $string_to_sign, $secret_key, true ) );
+		$signature = base64_encode( hash_hmac( 'sha256', $string_to_sign, $secret_key, true ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 
 		// Finally re-build the URL with the proper string and include the Signature.
 		$url = "{$urlparts['scheme']}://{$urlparts['host']}{$urlparts['path']}?$canonical&Signature=" . rawurlencode( $signature );

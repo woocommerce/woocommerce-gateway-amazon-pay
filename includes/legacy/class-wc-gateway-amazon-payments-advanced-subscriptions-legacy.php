@@ -187,7 +187,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		$request_args = array(
 			'Action'                                => 'SetBillingAgreementDetails',
 			'AmazonBillingAgreementId'              => $amazon_billing_agreement_id,
-			'BillingAgreementAttributes.SellerNote' => sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), urlencode( $site_name ) ),
+			'BillingAgreementAttributes.SellerNote' => sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), urlencode( $site_name ) ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.SellerBillingAgreementId' => sprintf( __( 'Subscription(s): %s.', 'woocommerce-gateway-amazon-payments-advanced' ), implode( ', ', $subscription_ids ) ),
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName' => $site_name,
 			'BillingAgreementAttributes.PlatformId' => 'A1BVJDFFHQ7US4',
