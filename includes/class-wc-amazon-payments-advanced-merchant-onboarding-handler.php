@@ -155,6 +155,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 * @return string Raw request data.
 	 */
 	protected function get_raw_post_data() {
+		// phpcs:disable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved
 		global $HTTP_RAW_POST_DATA;
 
 		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
@@ -162,6 +163,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 		}
 
 		return $HTTP_RAW_POST_DATA;
+		// phpcs:enable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved
 	}
 
 	/**
