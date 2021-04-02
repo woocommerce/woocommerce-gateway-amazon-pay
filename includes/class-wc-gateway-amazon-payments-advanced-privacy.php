@@ -91,7 +91,19 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 						),
 						array(
 							'name'  => __( 'Amazon Pay refunds id', 'woocommerce-gateway-amazon-payments-advanced' ),
-							'value' => wp_json_encode( get_post_meta( $order->get_id(), 'amazon_refunds', true ) ),
+							'value' => wp_json_encode( get_post_meta( $order->get_id(), 'amazon_refund_id', false ) ),
+						),
+						array(
+							'name'  => __( 'Amazon subscription token', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'value' => get_post_meta( $order->get_id(), 'amazon_billing_agreement_id', true ),
+						),
+						array(
+							'name'  => __( 'Amazon Pay charge permission id', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'value' => get_post_meta( $order->get_id(), 'amazon_charge_permission_id', true ),
+						),
+						array(
+							'name'  => __( 'Amazon Pay charge id', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'value' => get_post_meta( $order->get_id(), 'amazon_charge_id', true ),
 						),
 					),
 				);
@@ -154,6 +166,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 							'name'  => __( 'Amazon subscription token', 'woocommerce-gateway-amazon-payments-advanced' ),
 							'value' => get_post_meta( $subscription->get_id(), 'amazon_billing_agreement_id', true ),
 						),
+						array(
+							'name'  => __( 'Amazon Pay charge permission id', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'value' => get_post_meta( $subscription->get_id(), 'amazon_charge_permission_id', true ),
+						),
 					),
 				);
 			}
@@ -185,12 +201,20 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 		foreach ( (array) $orders as $order ) {
 			$order = wc_get_order( $order->get_id() );
 
-			list( $removed, $retained, $msgs ) = $this->maybe_handle_order( $order );
+			$refunds = $order->get_refunds();
+			foreach ( $refunds as $refund ) {
+				list( $removed, $retained, $msgs ) = $this->maybe_handle_order( $refund );
+				$items_removed                    |= $removed;
+				$items_retained                   |= $retained;
+				$messages                          = array_merge( $messages, $msgs );
+			}
+
+			list( $removed, $retained, $msgs ) = $this->maybe_handle_subscription( $order );
 			$items_removed                    |= $removed;
 			$items_retained                   |= $retained;
 			$messages                          = array_merge( $messages, $msgs );
 
-			list( $removed, $retained, $msgs ) = $this->maybe_handle_subscription( $order );
+			list( $removed, $retained, $msgs ) = $this->maybe_handle_order( $order );
 			$items_removed                    |= $removed;
 			$items_retained                   |= $retained;
 			$messages                          = array_merge( $messages, $msgs );
@@ -225,25 +249,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 		$subscription    = current( wcs_get_subscriptions_for_order( $order->get_id() ) );
 		$subscription_id = $subscription->get_id();
 
-		$amazon_source_id = get_post_meta( $subscription_id, 'amazon_billing_agreement_id', true );
-
-		if ( empty( $amazon_source_id ) ) {
-			return array( false, false, array() );
-		}
-
 		if ( $subscription->has_status( apply_filters( 'wc_amazon_pay_privacy_eraser_subs_statuses', array( 'on-hold', 'active' ) ) ) ) {
-			return array( false, true, array( sprintf( __( 'Order ID %d contains an active Subscription', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_id() ) ) );
+			return array( false, true, array( sprintf( __( 'Amazon Payments Advanced data within subscription %1$s has been retained because it is an active Subscription. ', 'woocommerce-gateway-amazon-payments-advanced' ), $subscription_id ) ) );
 		}
 
-		$renewal_orders = WC_Subscriptions_Renewal_Order::get_renewal_orders( $order->get_id() );
-
-		foreach ( $renewal_orders as $renewal_order_id ) {
-			delete_post_meta( $renewal_order_id, 'amazon_billing_agreement_id' );
-		}
-
-		delete_post_meta( $subscription_id, 'amazon_billing_agreement_id' );
-
-		return array( true, false, array( __( 'Amazon Payments Advanced Subscriptions Data Erased.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
+		return $this->maybe_handle_order( $subscription );
 	}
 
 	/**
@@ -253,22 +263,47 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	 * @return array
 	 */
 	protected function maybe_handle_order( $order ) {
-		$order_id   = $order->get_id();
-		$auth_id    = get_post_meta( $order_id, 'amazon_authorization_id', true );
-		$capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
-		$ref_id     = get_post_meta( $order_id, 'amazon_reference_id', true );
-		$refund_ids = get_post_meta( $order_id, 'amazon_refunds', true );
+		$order_id       = $order->get_id();
+		$meta_to_delete = array(
+			'amazon_authorization_id',
+			'amazon_authorization_state',
+			'amazon_capture_id',
+			'amazon_capture_state',
+			'amazon_reference_id',
+			'amazon_reference_state',
+			'amazon_refund_id',
+			'amazon_refunds',
+			'amazon_billing_agreement_id',
+			'amazon_billing_agreement_state',
+			'amazon_charge_permission_id',
+			'amazon_charge_permission_status',
+			'amazon_charge_id',
+			'amazon_charge_status',
+		);
 
-		if ( empty( $auth_id ) && empty( $capture_id ) && empty( $ref_id ) && empty( $refund_ids ) ) {
-			return array( false, false, array() );
+		$deleted = false;
+		foreach ( $meta_to_delete as $key ) {
+			$meta_value = get_post_meta( $order_id, $key, true );
+			if ( empty( $meta_value ) ) {
+				continue;
+			}
+			delete_post_meta( $order_id, $key );
+			$deleted = true;
 		}
 
-		delete_post_meta( $order_id, 'amazon_authorization_id' );
-		delete_post_meta( $order_id, 'amazon_capture_id' );
-		delete_post_meta( $order_id, 'amazon_reference_id' );
-		delete_post_meta( $order_id, 'amazon_refunds' );
+		$messages = array();
+		if ( $deleted ) {
+			$type = 'order';
+			if ( 'shop_subscription' === $order->get_type() ) {
+				$type = 'subscription';
+			}
+			if ( 'shop_order_refund' === $order->get_type() ) {
+				$type = 'refund';
+			}
+			$messages = array( sprintf( __( 'Amazon Payments Advanced data within %2$s %1$s has been removed.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id, $type ) );
+		}
 
-		return array( true, false, array( __( 'Amazon Payments Advanced Order Data Erased.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
+		return array( $deleted, false, $messages );
 	}
 }
 
