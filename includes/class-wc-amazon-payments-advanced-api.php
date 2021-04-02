@@ -355,7 +355,6 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * Normalize Address Data from the API
 	 *
 	 * @param  object $address Object that will be adjusted.
-	 * @return void
 	 */
 	protected static function normalize_address( $address ) {
 		foreach ( (array) $address as $prop => $val ) {

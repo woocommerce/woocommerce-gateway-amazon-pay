@@ -33,8 +33,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 	/**
 	 * Initialize Handlers For subscriptions
-	 *
-	 * @return void
 	 */
 	public function init_handlers() {
 		$id      = wc_apa()->get_gateway()->id;
@@ -435,7 +433,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @param  WC_Order $order Order object.
 	 * @param  object   $response Response from the API.
-	 * @return void
 	 */
 	public function copy_meta_to_sub( $order, $response ) {
 		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
@@ -568,7 +565,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * Cancelled subscription hook
 	 *
 	 * @param WC_Subscription $subscription Subscription object.
-	 * @return void
 	 */
 	public function cancelled_subscription( $subscription ) {
 		$version = version_compare( $subscription->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
@@ -626,7 +622,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param  WC_Order $_order Order object.
 	 * @param  string   $charge_permission_id Charge Permission ID.
 	 * @param  string   $charge_permission_status Charge Permission Status.
-	 * @return void
 	 */
 	public function propagate_status_update_to_related( $_order, $charge_permission_id, $charge_permission_status ) {
 		$order = $_order;
@@ -669,7 +664,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param  WC_Order $rel_order Order Object.
 	 * @param  string   $charge_permission_id Charge Permission ID.
 	 * @param  object   $charge_permission_status Charge Permission Status.
-	 * @return void
 	 */
 	protected function handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status ) {
 		$rel_type = 'order';
@@ -727,7 +721,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @param  WC_Order $order Order object.
 	 * @param  object   $response Charge Completion response from the Amazon API.
-	 * @return void
 	 */
 	public function maybe_change_payment_method( $order, $response ) {
 		if ( ! isset( $_GET['change_payment_method'] ) ) {

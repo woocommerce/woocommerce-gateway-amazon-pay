@@ -14,7 +14,6 @@ require_once $_tests_dir . '/includes/functions.php';
 /**
  * Loads the plugin early
  *
- * @return void
  */
 function _manually_load_plugin() {
 	$base_dir = dirname( dirname( dirname( __FILE__ ) ) );

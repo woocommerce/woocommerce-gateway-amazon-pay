@@ -138,7 +138,6 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 	 *
 	 * @param  WC_Order $order Order object.
 	 * @param  string   $version Version of the order.
-	 * @return void
 	 */
 	public function auth_box_render( $order, $version ) {
 		if ( 'v1' !== strtolower( $version ) ) {

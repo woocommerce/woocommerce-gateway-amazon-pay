@@ -1340,8 +1340,6 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @param object       $ipn_payload    IPN payload.
 	 * @param int|WC_Order $order          Order object.
-	 *
-	 * @return void
 	 */
 	public static function handle_async_ipn_order_reference_payload( $ipn_payload, $order ) {
 		$order                 = is_int( $order ) ? wc_get_order( $order ) : $order;

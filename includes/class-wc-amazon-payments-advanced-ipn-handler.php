@@ -511,7 +511,6 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	 *
 	 * @param  string $id Object ID to check for.
 	 * @param  string $type Object Type.
-	 * @return void
 	 */
 	public function schedule_hook( $id, $type ) {
 		$args = array( $id, $type );
@@ -528,7 +527,6 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	 *
 	 * @param  string $id Object ID to check for.
 	 * @param  string $type Object Type.
-	 * @return void
 	 */
 	public function unschedule_hook( $id, $type ) {
 		$args = array( $id, $type );
@@ -541,7 +539,6 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	 *
 	 * @param  string $amazon_id Object ID to check for.
 	 * @param  string $type Object Type.
-	 * @return void
 	 */
 	public function handle_async_polling( $amazon_id, $type ) {
 		switch ( strtoupper( $type ) ) {

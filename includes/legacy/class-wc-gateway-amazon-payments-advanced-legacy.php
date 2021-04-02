@@ -1853,8 +1853,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 	/**
 	 * Init legacy hooks
-	 *
-	 * @return void
 	 */
 	public static function legacy_hooks() {
 		add_filter( 'woocommerce_amazon_pa_process_refund', array( __CLASS__, 'maybe_handle_v1_refund' ), 10, 4 );

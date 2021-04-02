@@ -73,7 +73,6 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 * @param  string   $id A charge_id, refund_id or charge_permission_id.
 	 * @param  string   $action Action to be performed.
 	 * @param  string   $version Version of the order.
-	 * @return void
 	 */
 	public function do_order_action( $order, $id, $action, $version ) {
 		if ( 'v2' !== strtolower( $version ) ) {
@@ -160,7 +159,6 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 *
 	 * @param  WC_Order $order Order object.
 	 * @param  string   $version Version of the order.
-	 * @return void
 	 */
 	public function auth_box_render( $order, $version ) {
 		if ( 'v2' !== strtolower( $version ) ) {

@@ -178,8 +178,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Actually enqueue scripts if needed.
-	 *
-	 * @return void
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_style( 'amazon_payments_advanced' );
@@ -268,8 +266,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Will maybe create the buyer index table.
-	 *
-	 * @return void
 	 */
 	public function maybe_create_index_table() {
 		// TODO: Do a better check here to make this less heavy.
@@ -340,8 +336,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Add filter that will self remove and will validate data entered to validate ownership of an account already created.
-	 *
-	 * @return void
 	 */
 	public function signal_account_hijack() {
 		add_filter( 'woocommerce_checkout_customer_id', array( $this, 'handle_account_registration' ) );
@@ -457,7 +451,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Initialize hooks when on checkout
 	 *
 	 * @param  WC_Checkout $checkout WC_Checkout instance.
-	 * @return void
 	 */
 	public function checkout_init( $checkout ) {
 
@@ -495,8 +488,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Checkout Message
-	 *
-	 * @return void
 	 */
 	public function checkout_message() {
 		echo '<div class="wc-amazon-checkout-message wc-amazon-payments-advanced-populated">';
@@ -513,8 +504,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Print logout notice at the top of the checkout.
-	 *
-	 * @return void
 	 */
 	public function logout_checkout_message() {
 		$logout_url      = $this->get_amazon_logout_url();
@@ -533,8 +522,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Actually logout the user from Amazon.
-	 *
-	 * @return void
 	 */
 	protected function do_logout() {
 		$session_key = $this->get_checkout_session_key();
@@ -547,7 +534,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Signal a force refresh of the checkout session is required.
 	 *
 	 * @param  string $reason Reason to do the refresh for.
-	 * @return void
 	 */
 	protected function do_force_refresh( $reason ) {
 		WC()->session->force_refresh_message = $reason;
@@ -564,8 +550,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Remove the signal for a force refresh.
-	 *
-	 * @return void
 	 */
 	protected function unset_force_refresh() {
 		unset( WC()->session->force_refresh_message );
@@ -582,8 +566,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Handle the Amazon Payments actions (login, logout, return)
-	 *
-	 * @return void
 	 */
 	public function maybe_handle_apa_action() {
 
@@ -688,7 +670,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Hijack the checkout fields when logged in to amazon.
 	 *
 	 * @param  WC_Checkout $checkout WC_Checkout instance.
-	 * @return void
 	 */
 	public function hijack_checkout_fields( $checkout ) {
 		$this->hijack_checkout_field_account( $checkout );
@@ -850,7 +831,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Render the selected payment method information widget.
 	 *
 	 * @param  null|object $checkout_session Checkout session object to use.
-	 * @return void
 	 */
 	public function display_payment_method_selected( $checkout_session = null ) {
 		if ( is_null( $checkout_session ) ) {
@@ -886,7 +866,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Render billing address information widget
 	 *
 	 * @param  null|object $checkout_session Checkout session object to use.
-	 * @return void
 	 */
 	public function display_billing_address_selected( $checkout_session = null ) {
 		if ( is_null( $checkout_session ) ) {
@@ -910,7 +889,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Render shipping address information widget.
 	 *
 	 * @param  null|object $checkout_session Checkout session object to use.
-	 * @return void
 	 */
 	public function display_shipping_address_selected( $checkout_session = null ) {
 		if ( is_null( $checkout_session ) ) {
@@ -933,8 +911,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Render layout for Amazon Checkout
-	 *
-	 * @return void
 	 */
 	public function display_amazon_customer_info() {
 
@@ -1233,8 +1209,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Handle the return from amazon after a confirmed checkout.
-	 *
-	 * @return void
 	 */
 	public function handle_return() {
 		$checkout_session_id = $this->get_checkout_session_id();
@@ -1354,7 +1328,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param  WC_Order           $order Order object.
 	 * @param  null|string|object $charge Optional. Can be the charge_id, or the charge object from the amazon API.
-	 * @return void
 	 */
 	public function log_charge_status_change( $order, $charge = null ) {
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
@@ -1525,7 +1498,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param  WC_Order $order Order object.
 	 * @param  string   $charge_permission_id Charge Permission ID.
 	 * @param  string   $new_status New status.
-	 * @return void
 	 */
 	public function add_status_change_note( $order, $charge_permission_id, $new_status ) {
 		// @codingStandardsIgnoreStart
@@ -1540,8 +1512,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Render tag that will be read in the browser to update data in the JS environment.
-	 *
-	 * @return void
 	 */
 	public function update_js() {
 		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
@@ -1577,7 +1547,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param  string $message Message to render along with the button.
 	 * @param  bool   $col_wrap Wether to wrap the button in columns or not.
-	 * @return void
 	 */
 	public function render_login_button_again( $message = null, $col_wrap = true ) {
 		?>
@@ -1633,7 +1602,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param  object $checkout_session Checkout Session Object from the Amazon API.
 	 * @param  bool   $wrap Wether to wrap the button in columns or not.
-	 * @return void
 	 */
 	public function maybe_render_login_button_again( $checkout_session, $wrap = true ) {
 		$is_valid = $this->is_checkout_session_still_valid( $checkout_session );
@@ -1711,8 +1679,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Unset keys json box.
-	 *
-	 * @return void
 	 */
 	public function process_admin_options() {
 		if ( check_admin_referer( 'woocommerce-settings' ) ) {
@@ -1943,7 +1909,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Store wc refund object in a previous hook for later use.
 	 *
 	 * @param  WC_Order_Refund $wc_refund Current Order Refund.
-	 * @return void
 	 */
 	public function current_refund_set( $wc_refund ) {
 		$this->current_refund = $wc_refund; // Cache refund object in a hook before process_refund is called.
@@ -1987,7 +1952,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Release an acquired lock for an order.
 	 *
 	 * @param  int $order Order ID.
-	 * @return void
 	 */
 	public function release_lock_for_order( $order ) {
 		$key = 'amazon_processing_order_' . $order;

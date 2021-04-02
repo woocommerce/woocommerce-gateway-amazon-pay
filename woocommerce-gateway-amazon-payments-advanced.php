@@ -296,8 +296,6 @@ class WC_Amazon_Payments_Advanced {
 	 * @param string      $message Log message.
 	 * @param null|mixed  $object Data to be printed for more detail about the entry.
 	 * @param null|string $context Context for the log.
-	 *
-	 * @return void
 	 */
 	public function log( $message, $object = null, $context = null ) {
 		if ( empty( $this->settings['debug'] ) ) {

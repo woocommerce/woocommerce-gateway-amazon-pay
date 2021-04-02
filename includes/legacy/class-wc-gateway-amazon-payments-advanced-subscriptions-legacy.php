@@ -23,8 +23,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * Init Handlers for subscription products
 	 *
 	 * @param mixed $version gateway current version.
-	 *
-	 * @return void
 	 */
 	public function init_handlers( $version ) {
 		$id = wc_apa()->get_gateway()->id;
@@ -249,8 +247,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 *
 	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_billing_agreement_id Recurring object.
-	 *
-	 * @return void
 	 */
 	private function do_authorize_payment( $order, $amazon_billing_agreement_id ) {
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
@@ -566,8 +562,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @param WC_Order $order Order object.
 	 *
 	 * @throws Exception When there's an error with the payment.
-	 *
-	 * @return void
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
 		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
@@ -771,8 +765,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 *
 	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_billing_agreement_id Billing Agreement ID.
-	 *
-	 * @return void
 	 */
 	public function admin_action_authorize_recurring( $order, $amazon_billing_agreement_id ) {
 		$order_id = $order->get_id();
@@ -790,8 +782,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 *
 	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_billing_agreement_id Billing Agreement ID.
-	 *
-	 * @return void
 	 */
 	public function admin_action_authorize_capture_recurring( $order, $amazon_billing_agreement_id ) {
 		$order_id = $order->get_id();
@@ -837,8 +827,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * Clear stored billing agreement state
 	 *
 	 * @param int $order_id Order ID.
-	 *
-	 * @return void
 	 */
 	public function clear_stored_billing_agreement_state( $order_id ) {
 		delete_post_meta( $order_id, 'amazon_billing_agreement_state' );

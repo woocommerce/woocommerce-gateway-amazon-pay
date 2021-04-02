@@ -38,8 +38,6 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 
 	/**
 	 * Register the routes for order notes.
-	 *
-	 * @return void
 	 */
 	public function register_routes() {
 

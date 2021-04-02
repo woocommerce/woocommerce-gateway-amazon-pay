@@ -11,7 +11,6 @@ class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	/**
 	 * Test wc_apa
 	 *
-	 * @return void
 	 */
 	public function test_wc_apa() {
 		$this->assertTrue( is_a( wc_apa(), 'WC_Amazon_Payments_Advanced' ) );
@@ -20,7 +19,6 @@ class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	/**
 	 * Test API Class is loaded
 	 *
-	 * @return void
 	 */
 	public function test_api_class_is_loaded() {
 		$this->assertTrue( class_exists( 'WC_Amazon_Payments_Advanced_API' ) );
@@ -29,7 +27,6 @@ class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	/**
 	 * Test Compat Class is loaded
 	 *
-	 * @return void
 	 */
 	public function test_compat_class_is_loaded() {
 		$this->assertTrue( class_exists( 'WC_Amazon_Payments_Advanced_Compat' ) );
@@ -38,7 +35,6 @@ class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	/**
 	 * Test hooks are registered
 	 *
-	 * @return void
 	 */
 	public function test_callbacks_hooks_are_registered() {
 		$this->assertEquals( has_action( 'init', array( wc_apa(), 'init' ) ), 10 );
@@ -53,7 +49,6 @@ class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	/**
 	 * Test gateway is registered
 	 *
-	 * @return void
 	 */
 	public function test_gateway_is_registered() {
 		$this->assertContains(
@@ -65,7 +60,6 @@ class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	/**
 	 * Test log methods
 	 *
-	 * @return void
 	 */
 	public function test_has_log_methods() {
 		$this->assertTrue( is_callable( array( wc_apa(), 'log' ) ) );
@@ -76,7 +70,6 @@ class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	/**
 	 * Test amazon logout URL
 	 *
-	 * @return void
 	 */
 	public function test_get_amazon_logout_url() {
 		$this->assertTrue( false !== strpos( wc_apa()->get_amazon_logout_url(), 'amazon_payments_advanced=true&amazon_logout=true' ) );

@@ -725,7 +725,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Print the forms to import and export the settings.
 	 *
 	 * @since 2.0.0
-	 * @return void
 	 */
 	public function import_export_fields_output() {
 		if ( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) { //  phpcs:ignore WordPress.Security.NonceVerification.Recommended 
@@ -856,8 +855,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 	/**
 	 * Init common hooks on checkout_init hook
-	 *
-	 * @return void
 	 */
 	public function checkout_init_common() {
 		// Remove other gateways after being logged in.

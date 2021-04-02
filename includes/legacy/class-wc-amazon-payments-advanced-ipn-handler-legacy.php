@@ -63,7 +63,6 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 *
 	 * @param  array  $message IPN Message.
 	 * @param  string $notification_version Notification Version.
-	 * @return void
 	 */
 	public function validate_notification_keys_v1( $message, $notification_version ) {
 		if ( 'v1' !== $notification_version ) {
@@ -76,7 +75,6 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * Validate IPN Legacy Message for subscriptions
 	 *
 	 * @param  mixed $message IPN Message.
-	 * @return void
 	 */
 	public function validate_subscription_keys_v1( $message ) {
 		$this->validate_required_keys( $message['Message'], $this->required_subscription_keys_v1 );
@@ -396,7 +394,6 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * Unschedule Action for Order.
 	 *
 	 * @param  WC_Order $order Order object.
-	 * @return void
 	 */
 	public function unschedule_pending_syncro_payments( $order ) {
 		// Unschedule the Action for this order.
