@@ -166,7 +166,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 *
 	 * @throws Exception Exception from API response error.
 	 *
-	 * @param WC_Order $order                       Order object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_billing_agreement_id Billing agreement ID.
 	 *
 	 * @return WP_Error|array WP_Error or parsed response array.
@@ -247,7 +247,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * Do authorization on an order with a recurring charge.
 	 *
-	 * @param WC_Order $order WC_Order object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_billing_agreement_id Recurring object.
 	 *
 	 * @return void
@@ -480,7 +480,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * If redirected to success url, proceed with payment and redirect to thank you page.
 	 *
 	 * @param mixed    $process Shortcircuit parameter.
-	 * @param WC_Order $order Order Object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_reference_id Reference ID.
 	 *
 	 * @return mixed|void $process parameter if not supposed to run, will redirect and exit if it runs.
@@ -520,10 +520,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * If redirected to failure url, add a notice with right information for the user.
 	 *
-	 * @param mixed    $process
-	 * @param WC_Order $order
-	 * @param string   $amazon_reference_id
-	 * @param string   $authorization_status
+	 * @param mixed    $process Shortcircuit parameter.
+	 * @param WC_Order $order Order object.
+	 * @param string   $amazon_reference_id Reference ID.
+	 * @param string   $authorization_status Authorization Status.
 	 *
 	 * @return mixed|void $process parameter if not supposed to run, will redirect and exit if it runs.
 	 */
@@ -563,7 +563,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * Process a scheduled subscription payment.
 	 *
 	 * @param float    $amount_to_charge The amount to charge.
-	 * @param WC_Order $order            The WC_Order object of the renewal order.
+	 * @param WC_Order $order Order object.
 	 *
 	 * @throws Exception When there's an error with the payment.
 	 *
@@ -710,9 +710,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * Filter the admin actions available on the admin for the orders.
 	 *
-	 * @param array    $ret
-	 * @param WC_Order $order
-	 * @param array    $actions
+	 * @param array    $ret Shortcircuit parameter.
+	 * @param WC_Order $order Order object.
+	 * @param array    $actions Actions defined so far.
 	 *
 	 * @return [type]
 	 */
@@ -769,8 +769,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * Perform an authorization on a recurring billing agreement
 	 *
-	 * @param WC_Order $order
-	 * @param string   $amazon_billing_agreement_id
+	 * @param WC_Order $order Order object.
+	 * @param string   $amazon_billing_agreement_id Billing Agreement ID.
 	 *
 	 * @return void
 	 */
@@ -788,8 +788,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * Perform an authorization and capture on a recurring billing agreement
 	 *
-	 * @param WC_Order $order
-	 * @param string   $amazon_billing_agreement_id
+	 * @param WC_Order $order Order object.
+	 * @param string   $amazon_billing_agreement_id Billing Agreement ID.
 	 *
 	 * @return void
 	 */
@@ -836,7 +836,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	/**
 	 * Clear stored billing agreement state
 	 *
-	 * @param mixed $order_id
+	 * @param int $order_id Order ID.
 	 *
 	 * @return void
 	 */

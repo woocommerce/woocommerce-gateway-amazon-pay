@@ -67,7 +67,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	/**
 	 * Check if the $currency_selected is compatible with amazon (and has been selected on settings).
 	 *
-	 * @param string $currency_selected
+	 * @param string $currency_selected Current currency selected from the frontend.
 	 *
 	 * @return bool
 	 */
@@ -115,7 +115,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	/**
 	 * Set presentmentCurrency on the payment details
 	 *
-	 * @param  array $payload
+	 * @param  array $payload Payload on the checkout session object.
 	 * @return array
 	 */
 	public function set_presentment_currency( $payload ) {

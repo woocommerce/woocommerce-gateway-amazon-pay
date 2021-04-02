@@ -488,9 +488,9 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	/**
 	 * Check if the next hook is scheduled.
 	 *
-	 * @param  string $hook
-	 * @param  array  $args
-	 * @param  string $group
+	 * @param  string $hook Hook to check.
+	 * @param  array  $args Args to check.
+	 * @param  string $group Group to check for.
 	 * @return bool
 	 */
 	private function is_next_scheduled( $hook, $args = null, $group = '' ) {

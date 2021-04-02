@@ -97,7 +97,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 *   b. Use the private decrypt function of the openSSL package (specifying the OPENSSL_PKCS1_OAEP_PADDING algorithm),
 	 *      to decrypt the result of 2a, passing in the private key that was generated on opening the workflow.
 	 *
-	 * @param string $public_key_id
+	 * @param string $public_key_id Public Key ID.
 	 *
 	 * @return string
 	 * @throws Exception On Errors.
@@ -219,7 +219,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Gets amazon gateway settings and update them with the new credentials from exchange.
 	 *
-	 * @param obj $payload
+	 * @param obj $payload Payload received from Amazon.
 	 */
 	protected function save_payload( $payload ) {
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
@@ -235,7 +235,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Convert key to PEM format for openssl functions
 	 *
-	 * @param string $key
+	 * @param string $key Key data.
 	 *
 	 * @return string
 	 */
@@ -246,8 +246,8 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Return RSA public key.
 	 *
-	 * @param bool $pem_format
-	 * @param bool $reset
+	 * @param bool $pem_format Wether to return the Key in PEM format.
+	 * @param bool $reset Wether to reset the private key.
 	 *
 	 * @return string
 	 * @throws Exception On Errors.
@@ -271,7 +271,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Return RSA private key.
 	 *
-	 * @param bool $reset
+	 * @param bool $reset Wether to force reset the private key.
 	 *
 	 * @return string
 	 * @throws Exception On Errors.
@@ -289,7 +289,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * From Incoming Exchange message we need to know which country belong the registration.
 	 *
-	 * @param array $headers
+	 * @param array $headers Headers received.
 	 *
 	 * @return string
 	 */
@@ -328,7 +328,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Apache uses capital, nginx uses not capitalised.
 	 *
-	 * @param array $headers
+	 * @param array $headers Headers received.
 	 *
 	 * @return string
 	 */

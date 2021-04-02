@@ -411,7 +411,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	/**
 	 * Checks payment_capture mode and process payment accordingly.
 	 *
-	 * @param WC_Order $order               Order to process payment for.
+	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_reference_id Associated Amazon reference ID.
 	 *
 	 * @throws Exception Declined transaction.
@@ -436,8 +436,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	/**
 	 * Process asynchronous Authorization.
 	 *
-	 * @param WC_Order $order
-	 * @param string   $amazon_reference_id
+	 * @param WC_Order $order Order object.
+	 * @param string   $amazon_reference_id Reference ID.
 	 */
 	public function process_async_auth( $order, $amazon_reference_id ) {
 
@@ -468,7 +468,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 *
 	 * @since 1.7.0
 	 *
-	 * @param WC_Order $order               WC Order object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_reference_id Amazon Order Reference ID.
 	 */
 	protected function process_payment_with_manual( $order, $amazon_reference_id ) {
@@ -493,7 +493,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 *
 	 * @since 1.7.0
 	 *
-	 * @param WC_Order $order               WC Order object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_reference_id Amazon Order Reference ID.
 	 *
 	 * @throws Exception Declined transaction.
@@ -539,7 +539,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * The processing time varies and can be a minute or more. After processing is complete, Amazon notifies you of the final processing status.
 	 * Transaction Timeout always set to 1440.
 	 *
-	 * @param WC_Order $order               WC Order object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_reference_id Amazon Order Reference ID.
 	 *
 	 * @return SimpleXMLElement Response.
@@ -561,7 +561,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 *
 	 * @since 1.7.0
 	 *
-	 * @param WC_Order $order               WC Order object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_reference_id Amazon Order Reference ID.
 	 *
 	 * @throws Exception Declined transaction.
@@ -679,7 +679,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 *
 	 * @throws Exception Error from API request.
 	 *
-	 * @param WC_Order $order               Order object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $amazon_reference_id Reference ID.
 	 * @param array    $overrides           Optional. Override values sent to
 	 *                                      the Amazon Pay API for the
@@ -936,8 +936,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	/**
 	 * If redirected to success url, proceed with payment and redirect to thank you page.
 	 *
-	 * @param WC_Order $order
-	 * @param string   $amazon_reference_id
+	 * @param WC_Order $order Order object.
+	 * @param string   $amazon_reference_id Reference ID.
 	 */
 	protected function handle_sca_success( $order, $amazon_reference_id ) {
 		$process = apply_filters( 'woocommerce_amazon_pa_handle_sca_success', null, $order, $amazon_reference_id );
@@ -967,9 +967,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	/**
 	 * If redirected to failure url, add a notice with right information for the user.
 	 *
-	 * @param WC_Order $order
-	 * @param string   $amazon_reference_id
-	 * @param string   $authorization_status
+	 * @param WC_Order $order Order object.
+	 * @param string   $amazon_reference_id Reference ID.
+	 * @param string   $authorization_status Authorization Status.
 	 */
 	protected function handle_sca_failure( $order, $amazon_reference_id, $authorization_status ) {
 		$process = apply_filters( 'woocommerce_amazon_pa_handle_sca_failure', null, $order, $amazon_reference_id, $authorization_status );
@@ -1020,8 +1020,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	/**
 	 * Maybe render timeout transaction order received text.
 	 *
-	 * @param string   $text
-	 * @param WC_Order $order
+	 * @param string   $text Text to be displayed.
+	 * @param WC_Order $order Order object.
 	 *
 	 * @return string
 	 */
@@ -1863,10 +1863,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	/**
 	 * Handle v1 refunds
 	 *
-	 * @param  mixed  $ret
-	 * @param  int    $order_id
-	 * @param  float  $amount
-	 * @param  string $reason
+	 * @param  mixed  $ret Shortcircuit parameter.
+	 * @param  int    $order_id Order ID.
+	 * @param  float  $amount Amount to refund.
+	 * @param  string $reason Reason for the refund.
+	 *
 	 * @return bool|WP_Error
 	 */
 	public static function maybe_handle_v1_refund( $ret, $order_id, $amount, $reason ) {

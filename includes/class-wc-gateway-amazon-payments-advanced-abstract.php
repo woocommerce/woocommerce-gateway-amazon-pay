@@ -56,7 +56,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Get Amazon logout URL.
 	 *
 	 * @since 1.6.0
-	 * @param  string $url
+	 * @param  string $url URL to logout from.
 	 *
 	 * @return string Amazon logout URL
 	 */
@@ -485,8 +485,8 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	/**
 	 * Generate Custom HTML.
 	 *
-	 * @param  string $id
-	 * @param  array  $conf
+	 * @param  string $id Field ID.
+	 * @param  array  $conf Field configuration.
 	 * @return string
 	 */
 	public function generate_custom_html( $id, $conf ) {
@@ -796,7 +796,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	/**
 	 * Remove amazon gateway.
 	 *
-	 * @param array $gateways
+	 * @param array $gateways Gateways registered.
 	 *
 	 * @return array
 	 */

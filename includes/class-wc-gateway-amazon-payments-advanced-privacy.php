@@ -31,8 +31,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Returns a list of orders that are using one of Amazon's payment methods.
 	 *
-	 * @param string $email_address
-	 * @param int    $page
+	 * @param string $email_address Email address to search orders for.
+	 * @param int    $page Page being processed.
 	 *
 	 * @return array WP_Post
 	 */
@@ -241,7 +241,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Handle eraser of data tied to Subscriptions
 	 *
-	 * @param WC_Order $order
+	 * @param WC_Order $order Order object.
 	 * @return array
 	 */
 	protected function maybe_handle_subscription( $order ) {
@@ -266,7 +266,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 	/**
 	 * Handle eraser of data tied to Orders
 	 *
-	 * @param WC_Order $order
+	 * @param WC_Order $order Order object.
 	 * @return array
 	 */
 	protected function maybe_handle_order( $order ) {

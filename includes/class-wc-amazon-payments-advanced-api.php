@@ -28,7 +28,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * Set up API V2 SDK.
 	 *
 	 * @since 2.0.0
-	 * @param  bool $fresh
+	 * @param  bool $fresh Force refresh, or get from cache.
 	 *
 	 * @return array Returns SDK configuration
 	 */
@@ -264,7 +264,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Create checkout session parameters for button
 	 *
-	 * @param  string $redirect_url
+	 * @param  string $redirect_url Redirect URL on success.
 	 * @return string JSON encoded object
 	 */
 	protected static function create_checkout_session_params( $redirect_url = null ) {
@@ -310,7 +310,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Get create checkout session config to send to the
 	 *
-	 * @param  string $redirect_url
+	 * @param  string $redirect_url Redirect URL on success.
 	 * @return array
 	 */
 	public static function get_create_checkout_session_config( $redirect_url = null ) {
@@ -329,7 +329,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Get Checkout Session Data.
 	 *
-	 * @param  string $checkout_session_id
+	 * @param  string $checkout_session_id Checkout Session Id.
 	 * @return object Checkout Session from the API
 	 */
 	public static function get_checkout_session_data( $checkout_session_id ) {
@@ -375,8 +375,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Update Checkout Session Data
 	 *
-	 * @param  string $checkout_session_id
-	 * @param  array  $data
+	 * @param  string $checkout_session_id Checkout Session Id.
+	 * @param  array  $data Data to send to the API.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function update_checkout_session_data( $checkout_session_id, $data = array() ) {
@@ -409,8 +409,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Complete Checkout session
 	 *
-	 * @param  string $checkout_session_id
-	 * @param  array  $data
+	 * @param  string $checkout_session_id Checkout Session Id.
+	 * @param  array  $data Data to send to the API.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function complete_checkout_session( $checkout_session_id, $data = array() ) {
@@ -463,7 +463,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Get Charge Permission object
 	 *
-	 * @param  string $charge_permission_id
+	 * @param  string $charge_permission_id Charge Permission ID.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function get_charge_permission( $charge_permission_id ) {
@@ -482,7 +482,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Get Charge object
 	 *
-	 * @param  string $charge_id
+	 * @param  string $charge_id Charge ID.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function get_charge( $charge_id ) {
@@ -501,7 +501,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Get Refund object
 	 *
-	 * @param  string $refund_id
+	 * @param  string $refund_id Refund ID.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function get_refund( $refund_id ) {
@@ -539,8 +539,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Capture a Charge
 	 *
-	 * @param  string $charge_id
-	 * @param  array  $data
+	 * @param  string $charge_id Charge ID.
+	 * @param  array  $data Data to send to the API.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function capture_charge( $charge_id, $data = array() ) {
@@ -591,9 +591,9 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Refund a Charge
 	 *
-	 * @param  string $charge_id
-	 * @param  float  $amount
-	 * @param  array  $data
+	 * @param  string $charge_id Charge ID.
+	 * @param  float  $amount Amount to refund.
+	 * @param  array  $data Data to send to the API.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function refund_charge( $charge_id, $amount = null, $data = array() ) {
@@ -647,8 +647,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Cancel a charge
 	 *
-	 * @param  string $charge_id
-	 * @param  string $reason
+	 * @param  string $charge_id Charge ID.
+	 * @param  string $reason Reason for the cancellation of the charge.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function cancel_charge( $charge_id, $reason = 'Order Cancelled' ) {
@@ -677,7 +677,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Get Merchant Metadata object
 	 *
-	 * @param  int $order_id
+	 * @param  int $order_id Order ID.
 	 * @return array
 	 */
 	public static function get_merchant_metadata( $order_id ) {
@@ -694,7 +694,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Function to handle simulation strings
 	 *
-	 * @param  string $type
+	 * @param  string $type Function being called.
 	 * @return array
 	 */
 	protected static function get_extra_headers( $type ) {
@@ -742,8 +742,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Create a charge
 	 *
-	 * @param  string $charge_permission_id
-	 * @param  array  $data
+	 * @param  string $charge_permission_id Charge Permission ID.
+	 * @param  array  $data Data to send to the API.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function create_charge( $charge_permission_id, $data ) {
@@ -793,8 +793,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Close Charge Permission
 	 *
-	 * @param  string $charge_permission_id
-	 * @param  string $reason
+	 * @param  string $charge_permission_id Charge Permission ID.
+	 * @param  string $reason Reason for cancelling the recurring charge permission.
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function close_charge_permission( $charge_permission_id, $reason = 'Subscription Cancelled' ) {

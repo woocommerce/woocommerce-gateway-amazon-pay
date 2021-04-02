@@ -103,7 +103,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	/**
 	 * Get settings
 	 *
-	 * @param  string $key
+	 * @param  string $key Key, if retrieving a single key.
 	 *
 	 * @return array
 	 */
@@ -251,7 +251,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @since 1.8.0
 	 * @version 1.8.0
-	 * @param  string $region
+	 * @param  string $region Region, if checking for a specific region. If not defined, will get label for current region.
 	 *
 	 * @return string Payment region label.
 	 */

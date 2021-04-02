@@ -689,8 +689,8 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * Handle the result of an sync authorization request.
 	 *
 	 * @param  mixed    $response Authorization Details object from the Amazon API.
-	 * @param  WC_Order $order
-	 * @param  string   $auth_id
+	 * @param  WC_Order $order Order object.
+	 * @param  string   $auth_id Authorization ID.
 	 * @return string Authorization status.
 	 */
 	public static function handle_synch_payment_authorization_payload( $response, $order, $auth_id = false ) {
@@ -1061,7 +1061,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @since 1.6.0
 	 *
-	 * @param WC_Order $order       Order object.
+	 * @param WC_Order $order Order object.
 	 * @param Object   $response    Response from self::request.
 	 * @param bool     $capture_now Whether to capture immediately.
 	 *
@@ -1108,7 +1108,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @since 1.7.0
 	 *
-	 * @param WC_Order $order  WC Order object.
+	 * @param WC_Order $order Order object.
 	 * @param string   $reason Reason for the cancellation.
 	 *
 	 * @return bool|WP_Error Return true when succeed. Otherwise WP_Error is returned.
@@ -1569,7 +1569,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 *
 	 * @since 1.6.0
 	 *
-	 * @param WC_Order $order    Order object.
+	 * @param WC_Order $order Order object.
 	 * @param Object   $response Response from self::request.
 	 *
 	 * @return bool Returns true if succeed.
@@ -1681,9 +1681,9 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	/**
 	 * Send an email notification to the recipient in the woocommerce mail template.
 	 *
-	 * @param string $subject
-	 * @param string $message
-	 * @param string $recipient
+	 * @param string $subject Subject.
+	 * @param string $message Message to be sent.
+	 * @param string $recipient Email address.
 	 */
 	public static function send_email_notification( $subject, $message, $recipient ) {
 		$mailer  = WC()->mailer();

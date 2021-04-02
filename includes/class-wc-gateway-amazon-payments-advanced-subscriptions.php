@@ -66,8 +66,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Set redirect URL if the result redirect URL is empty
 	 *
-	 * @param mixed           $result
-	 * @param WC_Subscription $subscription
+	 * @param mixed           $result Result object to filter.
+	 * @param WC_Subscription $subscription Subscription object.
 	 *
 	 * @return mixed
 	 */
@@ -81,7 +81,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Add subscription support to the gateway
 	 *
-	 * @param  array $supports
+	 * @param  array $supports List of supported features.
 	 * @return array
 	 */
 	public function add_subscription_support( $supports ) {
@@ -105,10 +105,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Insert an item in an array before or after another item.
 	 *
-	 * @param  array $array
-	 * @param  mixed $element
-	 * @param  mixed $key
-	 * @param  int   $operation
+	 * @param  array $array Source array.
+	 * @param  mixed $element Element to insert.
+	 * @param  mixed $key Key to insert around.
+	 * @param  int   $operation Operation to perform.
 	 * @return array Returns a new array
 	 */
 	public static function array_insert( $array, $element, $key, $operation = 1 ) {
@@ -138,7 +138,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Add subscription field to the gateway settings
 	 *
-	 * @param  array $fields
+	 * @param  array $fields Admin fields.
 	 * @return array
 	 */
 	public function add_enable_subscriptions_field( $fields ) {
@@ -226,8 +226,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Parse WC interval into Amazon Pay frequency object.
 	 *
-	 * @param  string $apa_period
-	 * @param  int    $apa_interval
+	 * @param  string $apa_period WC Period.
+	 * @param  int    $apa_interval WC Interval.
 	 * @return array
 	 */
 	public function parse_interval_to_apa_frequency( $apa_period = null, $apa_interval = null ) {
@@ -257,7 +257,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Filter the payload to add recurring data to the checkout session creation object.
 	 *
-	 * @param  array $payload
+	 * @param  array $payload Payload to create checkout session (JS button).
 	 * @return array
 	 */
 	public function recurring_checkout_session( $payload ) {
@@ -335,9 +335,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Filter the payload to add recurring data to the checkout session update object.
 	 *
-	 * @param  array    $payload
-	 * @param  string   $checkout_session_id
-	 * @param  WC_Order $order
+	 * @param  array    $payload Payload to send to the API before proceding to checkout.
+	 * @param  string   $checkout_session_id Checkout Session Id.
+	 * @param  WC_Order $order Order object.
 	 * @return array
 	 */
 	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order ) {
@@ -397,7 +397,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Filter payload to complete recurring checkout session
 	 *
-	 * @param  array $payload
+	 * @param  array $payload Payload for the complete checkout session API call.
 	 * @return array
 	 */
 	public function recurring_complete_checkout_session_update( $payload ) {
@@ -433,8 +433,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Copy meta from order to the relevant subscriptions
 	 *
-	 * @param  WC_Order $order
-	 * @param  object   $response
+	 * @param  WC_Order $order Order object.
+	 * @param  object   $response Response from the API.
 	 * @return void
 	 */
 	public function copy_meta_to_sub( $order, $response ) {
@@ -474,9 +474,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Filter data to be copied from the subscription to the renewal
 	 *
-	 * @param  array           $meta
-	 * @param  WC_Order        $order
-	 * @param  WC_Subscription $subscription
+	 * @param  array           $meta Array of meta to copy from the subscription.
+	 * @param  WC_Order        $order Order object.
+	 * @param  WC_Subscription $subscription Susbcription Object.
 	 * @return array
 	 */
 	public function copy_meta_from_sub( $meta, $order, $subscription ) {
@@ -510,7 +510,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * Process a scheduled subscription payment.
 	 *
 	 * @param float    $amount_to_charge The amount to charge.
-	 * @param WC_Order $order            The WC_Order object of the order which
+	 * @param WC_Order $order Order object.
 	 *                                   the subscription was purchased in.
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
@@ -609,8 +609,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Wether the subscription should move to on-hold
 	 *
-	 * @param  bool     $fail
-	 * @param  WC_Order $order
+	 * @param  bool     $fail Wether to fail or not.
+	 * @param  WC_Order $order Order object.
 	 * @return bool
 	 */
 	public function subs_not_on_hold( $fail, $order ) {
@@ -623,9 +623,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Propagate status change from one order or subscription, to related orders.
 	 *
-	 * @param  WC_Order $_order
-	 * @param  string   $charge_permission_id
-	 * @param  string   $charge_permission_status
+	 * @param  WC_Order $_order Order object.
+	 * @param  string   $charge_permission_id Charge Permission ID.
+	 * @param  string   $charge_permission_status Charge Permission Status.
 	 * @return void
 	 */
 	public function propagate_status_update_to_related( $_order, $charge_permission_id, $charge_permission_status ) {
@@ -666,9 +666,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Do a specific order status propagation action
 	 *
-	 * @param  WC_Order $rel_order
-	 * @param  string   $charge_permission_id
-	 * @param  object   $charge_permission_status
+	 * @param  WC_Order $rel_order Order Object.
+	 * @param  string   $charge_permission_id Charge Permission ID.
+	 * @param  object   $charge_permission_status Charge Permission Status.
 	 * @return void
 	 */
 	protected function handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status ) {
@@ -696,7 +696,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Maybe change session key to store checkout session on order pay screen.
 	 *
-	 * @param  string $session_key
+	 * @param  string $session_key Session Key Used.
 	 * @return string
 	 */
 	public function maybe_change_session_key( $session_key ) {
@@ -710,8 +710,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Maybe not update payment method if it's already the same.
 	 *
-	 * @param  bool   $update
-	 * @param  string $method
+	 * @param  bool   $update Wether to Update.
+	 * @param  string $method New method.
 	 * @return bool|string False if the gateway shouldn't update, the gateway id if it should be updated.
 	 */
 	public function maybe_not_update_payment_method( $update, $method ) {
@@ -725,7 +725,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Change payment method after processing order.
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  object   $response Charge Completion response from the Amazon API.
 	 * @return void
 	 */
@@ -744,8 +744,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Filter the redirect URL
 	 *
-	 * @param  string   $redirect
-	 * @param  WC_Order $order
+	 * @param  string   $redirect Redirect URL.
+	 * @param  WC_Order $order Order object.
 	 * @return string
 	 */
 	public function maybe_redirect_to_subscription( $redirect, $order ) {
@@ -763,7 +763,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Add subscription post type to the admin meta box to be rendered.
 	 *
-	 * @param  array $post_types
+	 * @param  array $post_types Post Types to render the meta box on.
 	 * @return array
 	 */
 	public function add_subscription_post_type( $post_types ) {
@@ -772,10 +772,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	}
 
 	/**
-	 * Clean up some charge permission actions on recurring.
+	 * Clean up some charge permission meta box actions on recurring.
 	 *
-	 * @param  array    $actions
-	 * @param  WC_Order $order
+	 * @param  array    $actions Ations on the meta box.
+	 * @param  WC_Order $order Order object.
 	 * @return array
 	 */
 	public function remove_charge_permission_actions_on_recurring( $actions, $order ) {

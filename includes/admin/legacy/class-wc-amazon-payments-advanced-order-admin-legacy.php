@@ -26,10 +26,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 	 *
 	 * @since 1.6.0
 	 *
-	 * @param WC_Order $order  Order ID.
+	 * @param WC_Order $order Order object.
 	 * @param int      $id        Reference ID.
 	 * @param string   $action    Action to perform.
-	 * @param string   $version    Version of the order.
+	 * @param string   $version Version of the order.
 	 */
 	public function do_order_action( $order, $id, $action, $version ) {
 		if ( 'v1' !== strtolower( $version ) ) {
@@ -136,8 +136,8 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 	/**
 	 * Authorization metabox content.
 	 *
-	 * @param  WC_Order $order
-	 * @param  string   $version
+	 * @param  WC_Order $order Order object.
+	 * @param  string   $version Version of the order.
 	 * @return void
 	 */
 	public function auth_box_render( $order, $version ) {

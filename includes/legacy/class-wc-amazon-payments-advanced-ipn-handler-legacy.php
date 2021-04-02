@@ -61,8 +61,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	/**
 	 * Validate IPN Legacy Message
 	 *
-	 * @param  array  $message
-	 * @param  string $notification_version
+	 * @param  array  $message IPN Message.
+	 * @param  string $notification_version Notification Version.
 	 * @return void
 	 */
 	public function validate_notification_keys_v1( $message, $notification_version ) {
@@ -75,7 +75,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	/**
 	 * Validate IPN Legacy Message for subscriptions
 	 *
-	 * @param  mixed $message
+	 * @param  mixed $message IPN Message.
 	 * @return void
 	 */
 	public function validate_subscription_keys_v1( $message ) {
@@ -138,7 +138,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * @since 1.8.0
 	 * @version 1.8.0
 	 *
-	 * @param WC_Order         $order             Order object.
+	 * @param WC_Order         $order Order object.
 	 * @param SimpleXMLElement $notification_data Notification data.
 	 */
 	protected function handle_ipn_order_reference( $order, $notification_data ) {
@@ -164,7 +164,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * @since 1.8.0
 	 * @version 1.8.0
 	 *
-	 * @param WC_Order         $order             Order object.
+	 * @param WC_Order         $order Order object.
 	 * @param SimpleXMLElement $notification_data Notification data.
 	 */
 	protected function handle_ipn_payment_authorize( $order, $notification_data ) {
@@ -190,7 +190,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * @since 1.8.0
 	 * @version 1.8.0
 	 *
-	 * @param WC_Order         $order             Order object.
+	 * @param WC_Order         $order Order object.
 	 * @param SimpleXMLElement $notification_data Notification data.
 	 */
 	protected function handle_ipn_payment_capture( $order, $notification_data ) {
@@ -212,7 +212,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	 * @since 1.8.0
 	 * @version 1.8.0
 	 *
-	 * @param WC_Order         $order             Order object.
+	 * @param WC_Order         $order Order object.
 	 * @param SimpleXMLElement $notification_data Notification data.
 	 */
 	protected function handle_ipn_payment_refund( $order, $notification_data ) {
@@ -364,8 +364,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	/**
 	 * Process pending syncronuos payments.
 	 *
-	 * @param  int    $order_id
-	 * @param  string $amazon_authorization_id
+	 * @param  int    $order_id Order ID.
+	 * @param  string $amazon_authorization_id Authorization ID.
 	 * @return null|WP_Error WP_Error on error, null if processed
 	 */
 	public function process_pending_syncro_payments( $order_id, $amazon_authorization_id ) {
@@ -395,7 +395,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 	/**
 	 * Unschedule Action for Order.
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @return void
 	 */
 	public function unschedule_pending_syncro_payments( $order ) {

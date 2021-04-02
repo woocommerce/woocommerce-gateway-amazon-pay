@@ -90,7 +90,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	/**
 	 * Checks if region is compatible.
 	 *
-	 * @param string|null $region
+	 * @param string|null $region Region to check for compatibility.
 	 *
 	 * @return bool
 	 */
@@ -102,7 +102,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	/**
 	 * Singleton to get if there is a compatible instance running. Region can be injected.
 	 *
-	 * @param bool $region
+	 * @param bool $region Region to check for compatibility.
 	 *
 	 * @return WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
 	 */
@@ -201,7 +201,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	/**
 	 * Adds multicurrency settings to form fields.
 	 *
-	 * @param  array $form_fields
+	 * @param  array $form_fields Admin fields.
 	 * @return array
 	 */
 	public static function add_currency_fields( $form_fields ) {

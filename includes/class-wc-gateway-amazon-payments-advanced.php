@@ -300,7 +300,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Gets a customer ID from the buyer ID
 	 *
-	 * @param  mixed $buyer_id
+	 * @param  mixed $buyer_id Buyer ID.
 	 * @return bool|int The Customer ID
 	 */
 	public function get_customer_id_from_buyer( $buyer_id ) {
@@ -315,8 +315,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Stores in the index the buyer ID for a specific Customer ID.
 	 *
-	 * @param  string $buyer_id
-	 * @param  int    $customer_id
+	 * @param  string $buyer_id Buyer ID.
+	 * @param  int    $customer_id WC Customer ID.
 	 * @return bool True on success, false on failure.
 	 */
 	public function set_customer_id_for_buyer( $buyer_id, $customer_id ) {
@@ -352,7 +352,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @throws Exception When there's an error.
 	 *
-	 * @param  int $customer_id
+	 * @param  int $customer_id WC Customer ID.
 	 * @return int Return the customer id
 	 */
 	public function handle_account_registration( $customer_id ) {
@@ -443,7 +443,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Generate the HTML for the extra fields required for validation
 	 *
-	 * @param  string $html
+	 * @param  string $html HTML to be rendered.
 	 * @return string
 	 */
 	public function print_validate_button( $html ) {
@@ -546,7 +546,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Signal a force refresh of the checkout session is required.
 	 *
-	 * @param  string $reason
+	 * @param  string $reason Reason to do the refresh for.
 	 * @return void
 	 */
 	protected function do_force_refresh( $reason ) {
@@ -687,7 +687,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Hijack the checkout fields when logged in to amazon.
 	 *
-	 * @param  WC_Checkout $checkout
+	 * @param  WC_Checkout $checkout WC_Checkout instance.
 	 * @return void
 	 */
 	public function hijack_checkout_fields( $checkout ) {
@@ -1055,7 +1055,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Filters the session data and replaces relevant data with information from the Checkout Session
 	 *
-	 * @param  array $data
+	 * @param  array $data Data from WooCommerce.
 	 * @return array
 	 */
 	public function use_checkout_session_data( $data ) {
@@ -1352,7 +1352,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Log a change to the charge status stored in an order.
 	 *
-	 * @param  WC_Order           $order
+	 * @param  WC_Order           $order Order object.
 	 * @param  null|string|object $charge Optional. Can be the charge_id, or the charge object from the amazon API.
 	 * @return void
 	 */
@@ -1445,7 +1445,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Log a change to the charge permission status stored in an order.
 	 *
-	 * @param  WC_Order           $order
+	 * @param  WC_Order           $order Order object.
 	 * @param  null|string|object $charge_permission Optional. Can be the charge_permission_id, or the charge permission object from the amazon API.
 	 * @return null|string Returns null on error, or the new status (even if it's the same as the old one).
 	 */
@@ -1522,9 +1522,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Adds a note to an order stating the status change for a charge permission
 	 *
-	 * @param  WC_Order $order
-	 * @param  string   $charge_permission_id
-	 * @param  string   $new_status
+	 * @param  WC_Order $order Order object.
+	 * @param  string   $charge_permission_id Charge Permission ID.
+	 * @param  string   $new_status New status.
 	 * @return void
 	 */
 	public function add_status_change_note( $order, $charge_permission_id, $new_status ) {
@@ -1575,7 +1575,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Render the amazon button when the session is not valid anymore.
 	 *
-	 * @param  string $message
+	 * @param  string $message Message to render along with the button.
 	 * @param  bool   $col_wrap Wether to wrap the button in columns or not.
 	 * @return void
 	 */
@@ -1648,7 +1648,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Filter billing fields
 	 *
-	 * @param  array $fields
+	 * @param  array $fields Billing fields from WooCommerce.
 	 * @return array
 	 */
 	public function override_billing_fields( $fields ) {
@@ -1681,7 +1681,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Filter shipping fields
 	 *
-	 * @param  array $fields
+	 * @param  array $fields Shipping fields from WooCommerce.
 	 * @return array
 	 */
 	public function override_shipping_fields( $fields ) {
@@ -1732,7 +1732,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Standarize status and it's reasons from a Status Details object from the Amazon API
 	 *
-	 * @param  object $status_details
+	 * @param  object $status_details Amazon status details.
 	 * @return object
 	 */
 	private function format_status_details( $status_details ) {
@@ -1759,7 +1759,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Get cached charge permission status for an order
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  bool     $read_only If true, will not fetch status from API. Defaults to false.
 	 * @return object
 	 */
@@ -1783,7 +1783,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Refresh cached charge permission status for an order
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  object   $charge_permission Optional. Charge permission object from the Amazon API.
 	 * @return object
 	 */
@@ -1815,7 +1815,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Get cached charge status for an order
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  bool     $read_only If true, will not fetch status from API. Defaults to false.
 	 * @return object
 	 */
@@ -1839,7 +1839,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Refresh cached charge status for an order
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  object   $charge Optional. Charge object from the Amazon API.
 	 * @return object
 	 */
@@ -1866,7 +1866,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Handle refund creation on the WC side from an Amazon Refund object from the API.
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  object   $refund Refund object from the Amazon API.
 	 * @param  int      $wc_refund_id Optional. WC Refund ID (if it's already created).
 	 * @return bool
@@ -1915,8 +1915,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Do process refund on an order
 	 *
-	 * @param  int    $order_id
-	 * @param  float  $amount
+	 * @param  int    $order_id Order ID.
+	 * @param  float  $amount Amount to refund.
 	 * @param  string $reason Optional. Message to be added to the WC Refund object as reason for the refund.
 	 * @return bool|WP_Error WP_Error if error, otherwise, true on success, false on failure.
 	 */
@@ -1942,7 +1942,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Store wc refund object in a previous hook for later use.
 	 *
-	 * @param  WC_Order_Refund $wc_refund
+	 * @param  WC_Order_Refund $wc_refund Current Order Refund.
 	 * @return void
 	 */
 	public function current_refund_set( $wc_refund ) {
@@ -1952,7 +1952,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Maybe change session key when on the order-pay screen.
 	 *
-	 * @param  string $session_key
+	 * @param  string $session_key Session Key.
 	 * @return string
 	 */
 	public function maybe_change_session_key( $session_key ) {
@@ -2020,7 +2020,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Perform an authorization on an order.
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  bool     $capture_now Wether to capture now or not.
 	 * @param  string   $id Charge Permission ID.
 	 * @return object|WP_Error Charge object from the API, or WP_Error in case of error.
@@ -2072,7 +2072,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Cancel an authorization
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  string   $id Charge ID.
 	 * @return object|WP_Error Charge object from the API, or WP_Error in case of error.
 	 */
@@ -2105,7 +2105,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Capture an authorization
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  string   $id Charge ID.
 	 * @return object|WP_Error Charge object from the API, or WP_Error in case of error.
 	 */
@@ -2138,7 +2138,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Perform a refund on an order
 	 *
-	 * @param  WC_Order $order
+	 * @param  WC_Order $order Order object.
 	 * @param  float    $amount Amount to refund.
 	 * @param  string   $id Charge ID.
 	 * @return object|WP_Error Refund object from the API, or WP_Error in case of error.
