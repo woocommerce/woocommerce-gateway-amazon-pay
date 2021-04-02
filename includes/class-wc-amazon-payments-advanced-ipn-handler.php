@@ -113,7 +113,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		global $HTTP_RAW_POST_DATA;
 
 		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
-			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
+			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		}
 
 		return $HTTP_RAW_POST_DATA;

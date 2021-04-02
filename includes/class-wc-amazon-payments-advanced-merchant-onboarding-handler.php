@@ -158,7 +158,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 		global $HTTP_RAW_POST_DATA;
 
 		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
-			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
+			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		}
 
 		return $HTTP_RAW_POST_DATA;

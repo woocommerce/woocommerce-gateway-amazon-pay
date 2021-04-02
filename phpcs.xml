@@ -21,7 +21,6 @@
 		<exclude name="WordPress.Security.NonceVerification"/>
 		<exclude name="WordPress.Security.EscapeOutput"/>
 		<exclude name="WordPress.Security.ValidatedSanitizedInput"/>
-		<exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited"/>
 		<exclude name="Squiz.PHP.CommentedOutCode.Found"/>
 		<exclude name="Generic.Commenting.Todo.TaskFound"/>
 		<exclude name="Generic.Commenting.Todo.CommentFound"/>
