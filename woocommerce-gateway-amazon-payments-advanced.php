@@ -112,14 +112,6 @@ class WC_Amazon_Payments_Advanced {
 	public $ipn_handler;
 
 	/**
-	 * Synchronous handler.
-	 *
-	 * @since 1.8.0
-	 * @var WC_Amazon_Payments_Advanced_Synchronous_Handler
-	 */
-	public $synchro_handler;
-
-	/**
 	 * Simple Path handler.
 	 *
 	 * @var WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler
