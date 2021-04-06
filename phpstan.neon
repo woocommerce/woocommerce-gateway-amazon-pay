@@ -1,5 +1,5 @@
 parameters:
-	level: 1
+	level: 2
 	treatPhpDocTypesAsCertain: false
 	scanDirectories:
 		- ../woocommerce-subscriptions/
@@ -18,4 +18,12 @@ parameters:
 		- '#Function apply_filters invoked with#'
 		# PHPStan analysis error
 		- "#Cannot unset offset 'enable_login_app'#"
+		- '#Access to an undefined property WC_Subscription::\$handled_cancel#'
+		- '#Call to an undefined method WC_Order::get_related_orders#'
+		# WC Stub issues
+		- '#Access to an undefined property WC_Cart::#'
+		- '#Access to an undefined property WC_Session::#'
+		- '#Call to an undefined method WC_Data_Store::get_zones#'
+		- '#Call to an undefined method WC_Session::save_data#'
+		- '#Access to an undefined property WC_Checkout::\$checkout_fields#'
 		
