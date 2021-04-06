@@ -620,7 +620,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			}
 		}
 
-		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
+		update_option( $this->get_option_key(), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
 	}
 
 	/**
@@ -771,7 +771,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 *
 	 * @param  bool   $echo Wether to echo or not.
 	 * @param  string $elem HTML tag to render.
-	 * @return bool|string
+	 * @return bool|string|void
 	 */
 	public function checkout_button( $echo = true, $elem = 'div' ) {
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );

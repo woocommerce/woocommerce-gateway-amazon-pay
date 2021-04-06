@@ -20,7 +20,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 	/**
 	 * Plugin's settings.
 	 *
-	 * @var string
+	 * @var array
 	 */
 	protected $settings;
 
@@ -321,7 +321,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 			'spids'                 => WC_Amazon_Payments_Advanced_API::$sp_ids,
 			'onboarding_version'    => WC_Amazon_Payments_Advanced_API::$onboarding_version,
 			'locale'                => get_locale(),
-			'home_url'              => home_url( null, '', 'https' ),
+			'home_url'              => home_url( '', 'https' ),
 			'simple_path_url'       => wc_apa()->onboarding_handler->get_simple_path_registration_url(),
 			'public_key'            => WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ? wc_apa()->onboarding_handler->get_public_key() : wc_apa()->onboarding_handler->get_public_key( false, true ),
 			'privacy_url'           => get_option( 'wp_page_for_privacy_policy' ) ? get_permalink( (int) get_option( 'wp_page_for_privacy_policy' ) ) : '',
@@ -377,10 +377,8 @@ class WC_Amazon_Payments_Advanced_Admin {
 			wc_apa()->get_gateway()->update_option( 'store_id', '' );
 			wc_apa()->get_gateway()->update_option( 'merchant_id', '' );
 			wp_send_json_success();
-			wp_die();
 		}
 		wp_send_json_error();
-		wp_die();
 	}
 
 }

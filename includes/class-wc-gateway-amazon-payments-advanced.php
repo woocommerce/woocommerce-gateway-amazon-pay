@@ -379,11 +379,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			if ( isset( $data['amazon_validate'] ) ) {
 				if ( $buyer_user_id ) {
-					return; // We shouldn't be here anyways.
+					return $customer_id; // We shouldn't be here anyways.
 				}
 				$user_id = email_exists( $buyer_email );
 				if ( ! $user_id ) {
-					return; // We shouldn't be here anyways.
+					return $customer_id; // We shouldn't be here anyways.
 				}
 
 				if ( empty( $data['amazon_validate'] ) ) {
@@ -956,14 +956,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 						<div class="woocommerce-account-fields">
 							<div class="link-account">
 								<?php
-								$key = 'amazon_link';
+								$key   = 'amazon_link';
+								$value = $checkout->get_value( $key );
+								if ( empty( $value ) ) {
+									$value = '1';
+								}
 								woocommerce_form_field(
 									$key,
 									array(
 										'type'  => 'checkbox',
 										'label' => __( 'Link Amazon Pay Account', 'woocommerce-gateway-amazon-payments-advanced' ),
 									),
-									$checkout->get_value( $key ) || true
+									$value
 								);
 								?>
 								<p><?php _e( 'By checking this box, every time you will log in with the same Amazon account, you will also be logged in with your existing shop account.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
@@ -1187,13 +1191,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			if ( is_wp_error( $response ) ) {
 				wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}", $response );
 				wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-				return;
+				return array();
 			}
 
 			if ( ! empty( $response->constraints ) ) {
 				wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $response->constraints );
 				wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-				return;
+				return array();
 			}
 
 			$order->save();
@@ -1207,6 +1211,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		} catch ( Exception $e ) {
 			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(), 'error' );
 		}
+		return array();
 	}
 
 	/**
@@ -1439,7 +1444,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				if ( $old_time > $new_time ) {
 					wc_apa()->log( sprintf( 'Discarding change of chargePermissionId on #%1$d from "%2$s" to "%3$s". "%2$s" is actually newer and shoud stay linked to #%1$d.', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
 					// An old charge permission cannot replace a newer one created for the same order.
-					return;
+					return null;
 				}
 				wc_apa()->log( sprintf( 'Changing chargePermissionId on #%1$d from "%2$s" to "%3$s"', $order->get_id(), $charge_permission_id, $charge_permission->chargePermissionId ) ); // phpcs:ignore WordPress.NamingConventions
 				$order->delete_meta_data( 'amazon_charge_permission_id' );

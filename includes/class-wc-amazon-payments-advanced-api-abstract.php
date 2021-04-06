@@ -350,7 +350,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	/**
 	 * Remove address fields that have a string value of "undefined".
 	 *
-	 * @param array $address Address object from Amazon Pay API.
+	 * @param SimpleXMLElement $address Address object from Amazon Pay API.
 	 */
 	private static function remove_undefined_strings( $address ) {
 		if ( ! $address instanceof SimpleXMLElement ) {
@@ -489,7 +489,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		if ( ! is_null( $formatted['state'] ) ) {
 			$valid_states = WC()->countries->get_states( $formatted['country'] );
 
-			if ( ! empty( $valid_states ) && is_array( $valid_states ) && count( $valid_states ) > 0 ) {
+			if ( ! empty( $valid_states ) && is_array( $valid_states ) ) {
 				$valid_state_values = array_map( 'wc_strtoupper', array_flip( array_map( 'wc_strtoupper', $valid_states ) ) );
 				$uc_state       = wc_strtoupper( $formatted['state'] );
 
