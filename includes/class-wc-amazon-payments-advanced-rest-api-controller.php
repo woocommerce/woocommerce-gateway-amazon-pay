@@ -243,7 +243,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 *
 	 * @param WP_REST_Request $request Request instance.
 	 *
-	 * @return array
+	 * @return array|WP_Error|WP_REST_Response
 	 */
 	public function get_reference_state( $request ) {
 		$order_post = $this->is_valid_order( $request['order_id'] );
@@ -484,6 +484,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			if ( is_wp_error( $resp ) ) {
 				return $resp;
 			}
+
+			$order_closed = false;
 
 			$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_capture_response( $resp, $order_id );
 			if ( $result ) {

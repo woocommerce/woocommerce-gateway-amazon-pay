@@ -18,6 +18,111 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	protected $private_key;
 
 	/**
+	 * Debug enabled status
+	 *
+	 * @var bool
+	 */
+	protected $debug;
+
+	/**
+	 * Payment Region
+	 *
+	 * @var string
+	 */
+	protected $payment_region;
+
+	/**
+	 * Merchant ID
+	 *
+	 * @var string
+	 */
+	protected $merchant_id;
+
+	/**
+	 * Store ID
+	 *
+	 * @var string
+	 */
+	protected $store_id;
+
+	/**
+	 * Public Key ID
+	 *
+	 * @var string
+	 */
+	protected $public_key_id;
+
+	/**
+	 * Sandbox Environment
+	 *
+	 * @var string
+	 */
+	protected $sandbox;
+
+	/**
+	 * Capture Mode
+	 *
+	 * @var string
+	 */
+	protected $payment_capture;
+
+	/**
+	 * Authorization Mode
+	 *
+	 * @var string
+	 */
+	protected $authorization_mode;
+
+	/**
+	 * Redirect Authentication (v1)
+	 *
+	 * @var string
+	 */
+	protected $redirect_authentication;
+
+	/**
+	 * Seller ID (v1)
+	 *
+	 * @var string
+	 */
+	protected $seller_id;
+
+	/**
+	 * App Client ID (v1)
+	 *
+	 * @var string
+	 */
+	protected $app_client_id;
+
+	/**
+	 * App Client Secret (v1)
+	 *
+	 * @var string
+	 */
+	protected $app_client_secret;
+
+	/**
+	 * MWS Access Key (v1)
+	 *
+	 * @var string
+	 */
+	protected $mws_access_key;
+
+	/**
+	 * MWS Secret Key (v1)
+	 *
+	 * @var string
+	 */
+	protected $secret_key;
+
+	/**
+	 * Enable Login App (v1)
+	 *
+	 * @var string
+	 */
+	protected $enable_login_app;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -620,7 +725,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			}
 		}
 
-		update_option( $this->get_option_key( true ), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
+		update_option( $this->get_option_key(), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
 	}
 
 	/**
@@ -771,7 +876,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 *
 	 * @param  bool   $echo Wether to echo or not.
 	 * @param  string $elem HTML tag to render.
-	 * @return bool|string
+	 * @return bool|string|void
 	 */
 	public function checkout_button( $echo = true, $elem = 'div' ) {
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );

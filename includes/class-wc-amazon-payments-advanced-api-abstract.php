@@ -350,7 +350,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	/**
 	 * Remove address fields that have a string value of "undefined".
 	 *
-	 * @param array $address Address object from Amazon Pay API.
+	 * @param SimpleXMLElement $address Address object from Amazon Pay API.
 	 */
 	private static function remove_undefined_strings( $address ) {
 		if ( ! $address instanceof SimpleXMLElement ) {
@@ -414,17 +414,17 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		// @codingStandardsIgnoreStart
 		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'AT', 'DE' ) ) ) {
 
-			if ( ! empty( $address->AddressLine3 ) ) {
+			if ( ! empty( $address->AddressLine3 ) && ! empty( $address->AddressLine2 ) && ! empty( $address->AddressLine1 ) ) {
 
 				$formatted['company']   = trim( (string) $address->AddressLine1 . ' ' . (string) $address->AddressLine2 );
 				$formatted['address_1'] = (string) $address->AddressLine3;
 
-			} elseif ( ! empty( $address->AddressLine2 ) ) {
+			} elseif ( ! empty( $address->AddressLine2 ) && ! empty( $address->AddressLine1 ) ) {
 
 				$formatted['company']   = (string) $address->AddressLine1;
 				$formatted['address_1'] = (string) $address->AddressLine2;
 
-			} else {
+			} elseif ( ! empty( $address->AddressLine1 ) ) {
 
 				$formatted['address_1'] = (string) $address->AddressLine1;
 
@@ -432,7 +432,9 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 		} elseif ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
 
-			$formatted['address_1'] = (string) $address->AddressLine1;
+			if ( ! empty( $address->AddressLine1 ) ) {
+				$formatted['address_1'] = (string) $address->AddressLine1;
+			}
 
 			if ( ! empty( $address->AddressLine2 ) ) {
 				$formatted['address_2'] = (string) $address->AddressLine2;
@@ -457,18 +459,18 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 				$address_lines[] = (string) $address->AddressLine3;
 			}
 
-			if ( 3 === sizeof( $address_lines ) ) {
+			if ( 3 === count( $address_lines ) ) {
 
 				$formatted['company']   = $address_lines[0];
 				$formatted['address_1'] = $address_lines[1];
 				$formatted['address_2'] = $address_lines[2];
 
-			} elseif ( 2 === sizeof( $address_lines ) ) {
+			} elseif ( 2 === count( $address_lines ) ) {
 
 				$formatted['address_1'] = $address_lines[0];
 				$formatted['address_2'] = $address_lines[1];
 
-			} elseif ( sizeof( $address_lines ) ) {
+			} elseif ( count( $address_lines ) ) {
 				$formatted['address_1'] = $address_lines[0];
 			}
 
@@ -489,7 +491,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		if ( ! is_null( $formatted['state'] ) ) {
 			$valid_states = WC()->countries->get_states( $formatted['country'] );
 
-			if ( ! empty( $valid_states ) && is_array( $valid_states ) && count( $valid_states ) > 0 ) {
+			if ( ! empty( $valid_states ) && is_array( $valid_states ) ) {
 				$valid_state_values = array_map( 'wc_strtoupper', array_flip( array_map( 'wc_strtoupper', $valid_states ) ) );
 				$uc_state       = wc_strtoupper( $formatted['state'] );
 

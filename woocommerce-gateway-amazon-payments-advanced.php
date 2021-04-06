@@ -77,9 +77,23 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Amazon Pay Gateway
 	 *
-	 * @var WC_Gateway_Amazon_Payments_Advanced
+	 * @var WC_Gateway_Amazon_Payments_Advanced|WC_Gateway_Amazon_Payments_Advanced_Legacy
 	 */
 	private $gateway;
+
+	/**
+	 * Amazon Pay Gateway Admin Class
+	 *
+	 * @var WC_Amazon_Payments_Advanced_Admin
+	 */
+	private $admin;
+
+	/**
+	 * Amazon Pay Gateway Subscriptions Class
+	 *
+	 * @var WC_Gateway_Amazon_Payments_Advanced_Subscriptions
+	 */
+	private $subscriptions;
 
 	/**
 	 * WC logger instance.
@@ -110,14 +124,6 @@ class WC_Amazon_Payments_Advanced {
 	 * @var WC_Amazon_Payments_Advanced_IPN_Handler
 	 */
 	public $ipn_handler;
-
-	/**
-	 * Synchronous handler.
-	 *
-	 * @since 1.8.0
-	 * @var WC_Amazon_Payments_Advanced_Synchronous_Handler
-	 */
-	public $synchro_handler;
 
 	/**
 	 * Simple Path handler.
@@ -367,8 +373,8 @@ class WC_Amazon_Payments_Advanced {
 
 		require_once $this->includes_path . 'class-wc-amazon-payments-advanced-rest-api-controller.php';
 
-		WC()->api->WC_Amazon_Payments_Advanced_REST_API_Controller = new WC_Amazon_Payments_Advanced_REST_API_Controller();
-		WC()->api->WC_Amazon_Payments_Advanced_REST_API_Controller->register_routes();
+		$api_implementation = new WC_Amazon_Payments_Advanced_REST_API_Controller();
+		$api_implementation->register_routes();
 	}
 
 	/**
@@ -403,7 +409,7 @@ class WC_Amazon_Payments_Advanced {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @return WC_Gateway_Amazon_Payments_Advanced
+	 * @return WC_Gateway_Amazon_Payments_Advanced|WC_Gateway_Amazon_Payments_Advanced_Legacy
 	 */
 	public function get_gateway() {
 		return $this->gateway;

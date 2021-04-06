@@ -556,6 +556,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			case 'CHARGE_PERMISSION':
 				$charge_permission_id = $amazon_id;
 				break;
+			default:
+				return;
 		}
 
 		$mock_ipn = array(

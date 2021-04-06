@@ -114,10 +114,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$pos  = array_search( $key, $keys, true );
 
 		switch ( $operation ) {
-			case 1:
-				$read_until = $pos + $operation;
-				$read_from  = $pos + $operation;
-				break;
 			case 0:
 				$read_until = $pos;
 				$read_from  = $pos + 1;
@@ -125,6 +121,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			case -1:
 				$read_until = $pos;
 				$read_from  = $pos;
+				break;
+			default:
+				$read_until = $pos + $operation;
+				$read_from  = $pos + $operation;
 				break;
 		}
 
@@ -165,7 +165,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Check if order contains subscriptions.
 	 *
-	 * @param  WC_Order/int $order Order / Order ID.
+	 * @param  WC_Order|int $order Order / Order ID.
 	 * @return bool Returns true of order contains subscription.
 	 */
 	public static function order_contains_subscription( $order ) {
@@ -224,8 +224,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Parse WC interval into Amazon Pay frequency object.
 	 *
-	 * @param  string $apa_period WC Period.
-	 * @param  int    $apa_interval WC Interval.
+	 * @param  string     $apa_period WC Period.
+	 * @param  int|string $apa_interval WC Interval.
 	 * @return array
 	 */
 	public function parse_interval_to_apa_frequency( $apa_period = null, $apa_interval = null ) {
@@ -620,9 +620,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Propagate status change from one order or subscription, to related orders.
 	 *
-	 * @param  WC_Order $_order Order object.
-	 * @param  string   $charge_permission_id Charge Permission ID.
-	 * @param  string   $charge_permission_status Charge Permission Status.
+	 * @param  WC_Order|WC_Subscription $_order Order object.
+	 * @param  string                   $charge_permission_id Charge Permission ID.
+	 * @param  object                   $charge_permission_status Charge Permission Status.
 	 */
 	public function propagate_status_update_to_related( $_order, $charge_permission_id, $charge_permission_status ) {
 		$order = $_order;

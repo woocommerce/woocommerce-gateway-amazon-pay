@@ -99,7 +99,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 *
 	 * @param string $public_key_id Public Key ID.
 	 *
-	 * @return string
+	 * @return string|bool
 	 * @throws Exception On Errors.
 	 */
 	protected function decrypt_encrypted_public_key_id( $public_key_id ) {
@@ -221,7 +221,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	/**
 	 * Gets amazon gateway settings and update them with the new credentials from exchange.
 	 *
-	 * @param obj $payload Payload received from Amazon.
+	 * @param object $payload Payload received from Amazon.
 	 */
 	protected function save_payload( $payload ) {
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
@@ -310,7 +310,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 * Check because getallheaders is only available for apache, we need a fallback in case of nginx or others,
 	 * http://php.net/manual/es/function.getallheaders.php
 	 *
-	 * @return array|false
+	 * @return array
 	 */
 	private function get_all_headers() {
 		if ( ! function_exists( 'getallheaders' ) ) {

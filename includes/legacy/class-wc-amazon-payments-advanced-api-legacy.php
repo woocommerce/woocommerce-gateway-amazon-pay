@@ -1473,7 +1473,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @param int|WC_Order $order Order.
 	 * @param array        $args  Whether to immediately capture or not.
 	 *
-	 * @return bool|WP_Error
+	 * @return bool|object|WP_Error
 	 */
 	public static function capture( $order, $args = array() ) {
 		$order    = wc_get_order( $order );
@@ -1609,7 +1609,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @param int    $order_id   Order ID.
 	 * @param string $capture_id Refund ID.
 	 * @param float  $amount     Amount to refund.
-	 * @param stirng $note       Refund note.
+	 * @param string $note       Refund note.
 	 *
 	 * @return bool Returns true if succeed.
 	 */
