@@ -459,18 +459,18 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 				$address_lines[] = (string) $address->AddressLine3;
 			}
 
-			if ( 3 === sizeof( $address_lines ) ) {
+			if ( 3 === count( $address_lines ) ) {
 
 				$formatted['company']   = $address_lines[0];
 				$formatted['address_1'] = $address_lines[1];
 				$formatted['address_2'] = $address_lines[2];
 
-			} elseif ( 2 === sizeof( $address_lines ) ) {
+			} elseif ( 2 === count( $address_lines ) ) {
 
 				$formatted['address_1'] = $address_lines[0];
 				$formatted['address_2'] = $address_lines[1];
 
-			} elseif ( sizeof( $address_lines ) ) {
+			} elseif ( count( $address_lines ) ) {
 				$formatted['address_1'] = $address_lines[0];
 			}
 
