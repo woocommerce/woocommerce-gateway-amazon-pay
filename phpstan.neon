@@ -1,5 +1,5 @@
 parameters:
-	level: 6
+	level: 1
 	treatPhpDocTypesAsCertain: false
 	scanDirectories:
 		- ../woocommerce-subscriptions/
@@ -13,3 +13,9 @@ parameters:
 		analyse:
 			- *-legacy.php
 			- includes/compats/
+	ignoreErrors:
+		# Stub causes errors
+		- '#Function apply_filters invoked with#'
+		# PHPStan analysis error
+		- "#Cannot unset offset 'enable_login_app'#"
+		
