@@ -1601,7 +1601,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
 			return new WP_Error( 'product_type_changed', __( 'Your cart changed, and you need to confirm your selected payment method again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 		}
-		return true;
+		return apply_filters( 'woocommerce_amazon_pa_is_checkout_session_still_valid', true, $checkout_session );
 	}
 
 	/**
