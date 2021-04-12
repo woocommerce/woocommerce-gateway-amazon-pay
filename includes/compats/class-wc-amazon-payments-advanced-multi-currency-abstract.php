@@ -42,6 +42,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		// If selected currency is not compatible with Amazon.
 		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
 			add_filter( 'woocommerce_amazon_payments_init', '__return_false' );
+			add_filter( 'woocommerce_amazon_pa_is_gateway_available', '__return_false' );
 			return;
 		}
 
