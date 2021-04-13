@@ -103,15 +103,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
+		// Scripts.
+		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
+
+		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
+		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
+
+		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_fragments' ) );
+
 		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) ) {
 			add_filter( 'woocommerce_amazon_pa_is_gateway_available', '__return_false' );
 			return;
 		}
 
 		add_action( 'template_redirect', array( $this, 'maybe_handle_apa_action' ) );
-
-		// Scripts.
-		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 
 		// Checkout.
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
@@ -464,9 +469,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
-		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
-		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
-
 		if ( ! $this->is_logged_in() ) {
 			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
 			return;
@@ -491,12 +493,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Checkout Message
 	 */
 	public function checkout_message() {
-		echo '<div class="wc-amazon-checkout-message wc-amazon-payments-advanced-populated">';
+		$class = array( 'wc-amazon-checkout-message' );
+		if ( $this->is_available() ) {
+			$class[] = 'wc-amazon-payments-advanced-populated';
+		}
+		$class = implode( ' ', $class );
+		echo '<div class="' . esc_attr( $class ) . '">';
 
-		if ( ! $this->is_logged_in() ) {
-			echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info">' . $this->checkout_button( false ) . ' ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
-		} else {
-			$this->logout_checkout_message();
+		if ( $this->is_available() ) {
+			if ( ! $this->is_logged_in() ) {
+				echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info">' . $this->checkout_button( false ) . ' ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
+			} else {
+				$this->logout_checkout_message();
+			}
 		}
 
 		echo '</div>';
@@ -2157,6 +2166,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return false;
+	}
+
+	/**
+	 * Filters the fragments
+	 *
+	 * @param  array $fragments Fragments to be returned.
+	 * @return array
+	 */
+	public function update_amazon_fragments( $fragments ) {
+		ob_start();
+		$this->checkout_message();
+		$ret = ob_get_clean();
+		if ( $this->is_available() ) {
+			$fragments['.wc-amazon-checkout-message:not(.wc-amazon-payments-advanced-populated)'] = $ret;
+		} else {
+			$fragments['.wc-amazon-checkout-message.wc-amazon-payments-advanced-populated'] = $ret;
+		}
+		return $fragments;
 	}
 
 }
