@@ -39,6 +39,15 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		add_action( 'woocommerce_thankyou_amazon_payments_advanced', array( $this, 'delete_currency_session' ) );
 		add_action( 'woocommerce_amazon_pa_logout', array( $this, 'delete_currency_session' ) );
 
+		add_action( 'woocommerce_init', array( $this, 'maybe_disable_due_to_unsupported_currency' ), 10000 );
+	}
+
+	/**
+	 * After WC and relevant multicurrency plugins have initialized
+	 *
+	 * @return void
+	 */
+	public function maybe_disable_due_to_unsupported_currency() {
 		// If selected currency is not compatible with Amazon.
 		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
 			add_filter( 'woocommerce_amazon_payments_init', '__return_false' );
