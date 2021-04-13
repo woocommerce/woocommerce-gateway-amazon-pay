@@ -29,6 +29,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function __construct() {
 		parent::__construct();
+		if ( $this->is_logged_in() ) {
+			// This needs to be hooked early for other plugins to take advantage of it. wp_loaded is too late.
+			// At this point we're on woocommerce_init.
+			$wc_data = $this->get_woocommerce_data();
+			foreach ( $wc_data as $field => $value ) {
+				add_filter( 'woocommerce_customer_get_' . $field, array( $this, 'filter_customer_field' ) );
+			}
+		}
 
 		// Init Handlers.
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
@@ -103,31 +111,38 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
+		// Scripts.
+		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
+
+		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
+		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
+
+		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_fragments' ) );
+
 		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) ) {
+			add_filter( 'woocommerce_amazon_pa_is_gateway_available', '__return_false' );
 			return;
 		}
 
 		add_action( 'template_redirect', array( $this, 'maybe_handle_apa_action' ) );
 
-		// Scripts.
-		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
-
 		// Checkout.
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
 		add_filter( 'woocommerce_checkout_posted_data', array( $this, 'use_checkout_session_data' ) );
 		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
-		if ( wp_doing_ajax() ) {
+		if ( $this->doing_ajax() ) {
 			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 		}
 
 		// Cart.
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
-		if ( wp_doing_ajax() ) {
+		if ( $this->doing_ajax() ) {
 			add_action( 'woocommerce_review_order_before_order_total', array( $this, 'update_js' ) );
 		}
 
 		// Maybe Hide Cart Buttons.
+		add_action( 'wp_footer', array( $this, 'maybe_hide_standard_checkout_button' ) );
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
 
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
@@ -463,9 +478,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
-		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
-		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
-
 		if ( ! $this->is_logged_in() ) {
 			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
 			return;
@@ -490,12 +502,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Checkout Message
 	 */
 	public function checkout_message() {
-		echo '<div class="wc-amazon-checkout-message wc-amazon-payments-advanced-populated">';
+		$class = array( 'wc-amazon-checkout-message' );
+		if ( $this->is_available() ) {
+			$class[] = 'wc-amazon-payments-advanced-populated';
+		}
+		$class = implode( ' ', $class );
+		echo '<div class="' . esc_attr( $class ) . '">';
 
-		if ( ! $this->is_logged_in() ) {
-			echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info">' . $this->checkout_button( false ) . ' ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
-		} else {
-			$this->logout_checkout_message();
+		if ( $this->is_available() ) {
+			if ( ! $this->is_logged_in() ) {
+				echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info">' . $this->checkout_button( false ) . ' ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
+			} else {
+				$this->logout_checkout_message();
+			}
 		}
 
 		echo '</div>';
@@ -1601,7 +1620,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
 			return new WP_Error( 'product_type_changed', __( 'Your cart changed, and you need to confirm your selected payment method again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 		}
-		return true;
+		return apply_filters( 'woocommerce_amazon_pa_is_checkout_session_still_valid', true, $checkout_session );
 	}
 
 	/**
@@ -2138,6 +2157,86 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		wc_apa()->get_gateway()->handle_refund( $order, $refund );
 
 		return $refund;
+	}
+
+	/**
+	 * Check if we're on an AJAX call
+	 *
+	 * @return bool
+	 */
+	public function doing_ajax() {
+		$doing = wp_doing_ajax();
+		if ( $doing ) {
+			return $doing;
+		}
+
+		if ( isset( $_REQUEST['woocommerce-shipping-calculator-nonce'] ) && isset( $_REQUEST['calc_shipping'] ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Filters the fragments
+	 *
+	 * @param  array $fragments Fragments to be returned.
+	 * @return array
+	 */
+	public function update_amazon_fragments( $fragments ) {
+		ob_start();
+		$this->checkout_message();
+		$ret = ob_get_clean();
+		if ( $this->is_available() ) {
+			$fragments['.wc-amazon-checkout-message:not(.wc-amazon-payments-advanced-populated)'] = $ret;
+		} else {
+			$fragments['.wc-amazon-checkout-message.wc-amazon-payments-advanced-populated'] = $ret;
+		}
+		return $fragments;
+	}
+
+	/**
+	 * Filter a customer field.
+	 *
+	 * @param  string $value Value to filter.
+	 * @return string
+	 */
+	public function filter_customer_field( $value ) {
+		if ( ! $this->is_logged_in() ) {
+			return $value;
+		}
+		$current_field = str_replace( 'woocommerce_customer_get_', '', current_filter() );
+		$wc_data       = $this->get_woocommerce_data();
+		if ( ! isset( $wc_data[ $current_field ] ) ) {
+			return $value;
+		}
+		return $wc_data[ $current_field ];
+	}
+
+	/**
+	 * Maybe hide standard WC checkout button on the cart, if enabled
+	 */
+	public function maybe_hide_standard_checkout_button() {
+		if ( ! $this->is_available() ) {
+			return;
+		}
+
+		if ( 'yes' !== $this->settings['hide_standard_checkout_button'] ) {
+			return;
+		}
+
+		?>
+			<style type="text/css">
+				.woocommerce a.checkout-button,
+				.woocommerce input.checkout-button,
+				.cart input.checkout-button,
+				.cart a.checkout-button,
+				.widget_shopping_cart a.checkout,
+				.wc-apa-button-separator {
+					display: none !important;
+				}
+			</style>
+		<?php
 	}
 
 }
