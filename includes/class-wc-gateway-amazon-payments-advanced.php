@@ -29,6 +29,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function __construct() {
 		parent::__construct();
+		if ( $this->is_logged_in() ) {
+			// This needs to be hooked early for other plugins to take advantage of it. wp_loaded is too late.
+			// At this point we're on woocommerce_init.
+			$wc_data = $this->get_woocommerce_data();
+			foreach ( $wc_data as $field => $value ) {
+				add_filter( 'woocommerce_customer_get_' . $field, array( $this, 'filter_customer_field' ) );
+			}
+		}
 
 		// Init Handlers.
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
@@ -2184,6 +2192,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$fragments['.wc-amazon-checkout-message.wc-amazon-payments-advanced-populated'] = $ret;
 		}
 		return $fragments;
+	}
+
+	/**
+	 * Filter a customer field.
+	 *
+	 * @param  string $value Value to filter.
+	 * @return string
+	 */
+	public function filter_customer_field( $value ) {
+		if ( ! $this->is_logged_in() ) {
+			return $value;
+		}
+		$current_field = str_replace( 'woocommerce_customer_get_', '', current_filter() );
+		$wc_data       = $this->get_woocommerce_data();
+		if ( ! isset( $wc_data[ $current_field ] ) ) {
+			return $value;
+		}
+		return $wc_data[ $current_field ];
 	}
 
 }
