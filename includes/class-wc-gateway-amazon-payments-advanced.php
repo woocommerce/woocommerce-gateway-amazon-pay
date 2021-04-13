@@ -104,6 +104,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) ) {
+			add_filter( 'woocommerce_amazon_pa_is_gateway_available', '__return_false' );
 			return;
 		}
 
