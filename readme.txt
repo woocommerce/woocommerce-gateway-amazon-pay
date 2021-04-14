@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 5.6
-Stable tag: 1.13.1
+Stable tag: 1.13.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -60,6 +60,9 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 2. Picking billing and shipping addresses on the checkout page.
 
 == Changelog ==
+
+= 1.13.2 - 2021-04-12 =
+* Fix - Multiple pay buttons appearing when changing shipping method in the cart page.
 
 = 1.13.1 - 2021-02-25 =
 * Fix - Avoid hiding default shipping fields at checkout.

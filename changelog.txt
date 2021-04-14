@@ -1,5 +1,8 @@
 *** Amazon Pay Changelog ***
 
+= 1.13.2 - 2021-04-12 =
+* Fix - Multiple pay buttons appearing when changing shipping method in the cart page.
+
 = 1.13.1 - 2021-02-25 =
 * Fix - Avoid hiding default shipping fields at checkout.
 
