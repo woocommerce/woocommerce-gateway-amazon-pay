@@ -511,7 +511,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					),
 					'secret_key'               => array(
 						'title'       => __( 'MWS Secret Key', 'woocommerce-gateway-amazon-payments-advanced' ),
-						'type'        => 'hidden',
+						'type'        => 'hidden_masked',
 						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'default'     => '',
 					),
@@ -523,7 +523,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					),
 					'app_client_secret'        => array(
 						'title'       => __( 'App Client Secret', 'woocommerce-gateway-amazon-payments-advanced' ),
-						'type'        => 'hidden',
+						'type'        => 'hidden_masked',
 						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'default'     => '',
 					),
@@ -603,6 +603,47 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		}
 
 		return $html;
+	}
+
+	/**
+	 * Generate Text Input HTML.
+	 *
+	 * @param string $key Field key.
+	 * @param array  $data Field data.
+	 * @return string
+	 */
+	public function generate_hidden_masked_html( $key, $data ) {
+		$field_key = $this->get_field_key( $key );
+		$defaults  = array(
+			'title'             => '',
+			'disabled'          => false,
+			'class'             => '',
+			'css'               => '',
+			'placeholder'       => '',
+			'type'              => 'text',
+			'desc_tip'          => false,
+			'description'       => '',
+			'custom_attributes' => array(),
+		);
+
+		$data = wp_parse_args( $data, $defaults );
+
+		ob_start();
+		?>
+		<tr valign="top">
+			<th scope="row" class="titledesc">
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data ); // WPCS: XSS ok. ?></label>
+			</th>
+			<td class="forminp">
+				<fieldset>
+					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
+					<?php echo $this->get_description_html( $data ); // WPCS: XSS ok. ?>
+				</fieldset>
+			</td>
+		</tr>
+		<?php
+
+		return ob_get_clean();
 	}
 
 	/**
