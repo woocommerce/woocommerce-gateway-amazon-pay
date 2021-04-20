@@ -400,7 +400,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), self::sanitize_remote_response_log( $response ) );
 
 		return $response;
 	}
@@ -424,7 +424,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), self::sanitize_remote_response_log( $response ) );
 
 		return $response;
 	}
@@ -582,7 +582,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), self::sanitize_remote_response_log( $response ) );
 
 		return $response;
 	}
@@ -638,7 +638,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), self::sanitize_remote_response_log( $response ) );
 
 		return $response;
 	}
@@ -668,7 +668,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), self::sanitize_remote_response_log( $response ) );
 
 		return $response;
 	}
@@ -784,7 +784,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), self::sanitize_remote_response_log( $response ) );
 
 		return $response;
 	}
@@ -818,9 +818,41 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		wc_apa()->log( sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), $response );
+		wc_apa()->log( sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), self::sanitize_remote_response_log( $response ) );
 
 		return $response;
+	}
+
+	/**
+	 * Sanitize the object before sending it to the logs
+	 *
+	 * @param  object|array $obj Object to send to the logs.
+	 * @param  bool         $recursing If we're recursing or not.
+	 * @return array
+	 */
+	private static function sanitize_remote_response_log( $obj, $recursing = false ) {
+		if ( ! $recursing ) { // Only force array on the first call.
+			$obj = json_decode( wp_json_encode( $obj ), true );
+		}
+		foreach ( $obj as $key => $val ) {
+			switch ( $key ) {
+				case 'billingAddress':
+				case 'shippingAddress':
+				case 'paymentPreferences':
+				case 'buyer':
+					if ( ! is_null( $val ) ) {
+						$val = '*** REMOVED FROM LOGS ***';
+					}
+					break;
+				default:
+					if ( is_array( $val ) ) {
+						$val = self::sanitize_remote_response_log( $val, true );
+					}
+					break;
+			}
+			$obj[ $key ] = $val;
+		}
+		return $obj;
 	}
 
 }
