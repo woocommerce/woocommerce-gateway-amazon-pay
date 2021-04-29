@@ -58,6 +58,7 @@
 		renderButton();
 		$( document.body ).on( 'updated_wc_div', renderButton );
 		$( document.body ).on( 'updated_checkout', renderButton );
+		$( document.body ).on( 'payment_method_selected', renderButton );
 
 		function attemptRefreshData() {
 			var dataCont = $( '#wc-apa-update-vals' );
@@ -183,5 +184,6 @@
 		initAmazonPaymentFields();
 
 		$( 'body' ).on( 'updated_checkout', initAmazonPaymentFields );
+		$( 'body' ).on( 'payment_method_selected', initAmazonPaymentFields );
 	} );
 } )( jQuery );
