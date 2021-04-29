@@ -479,7 +479,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( ! $this->is_logged_in() ) {
-			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
+			if ( ! is_wc_endpoint_url( 'order-pay' ) ) {
+				add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
+			}
 			return;
 		}
 
