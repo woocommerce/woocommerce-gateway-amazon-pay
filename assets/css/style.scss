@@ -1,5 +1,6 @@
 #pay_with_amazon {
-	margin: 0;
+	margin: 0px auto;
+	max-width: 100%;
 	line-height: 1em;
 	display: block;
 	border: 0;
@@ -86,10 +87,6 @@ span.wc-apa-amazon-logo {
 
 
 .woocommerce-order-pay {
-	#pay_with_amazon {
-		margin: 0px auto;
-		max-width: 100%;
-	}
 	.wc_apa_login_again_text + #pay_with_amazon {
 		margin-top: 1em;
 	}
