@@ -1607,6 +1607,37 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	/**
+	 * Validate checkout session with desired current config
+	 *
+	 * @param  mixed $current Compare source.
+	 * @param  mixed $desired Optional. Desired values to compare against.
+	 * @return bool
+	 */
+	private function validate_session_properties( $current, $desired = null ) {
+		$current = (array) $current;
+
+		if ( is_null( $desired ) ) {
+			$current_create_checkout_session = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+
+			$desired = json_decode( $current_create_checkout_session['payloadJSON'], true );
+		}
+
+		$desired = (array) $desired; // recast, just in case.
+
+		foreach ( $desired as $prop => $value ) {
+			if ( is_object( $value ) || is_array( $value ) ) {
+				$valid = $this->validate_session_properties( $current[ $prop ], $value );
+			} else {
+				$valid = $current[ $prop ] === $value;
+			}
+			if ( ! $valid ) {
+				return $valid;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Check wether the checkout session is still valid.
 	 *
 	 * @param  object $checkout_session Checkout Session Object from the Amazon API.
@@ -1615,6 +1646,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function is_checkout_session_still_valid( $checkout_session ) {
 		if ( $this->need_to_force_refresh() ) {
 			return new WP_Error( 'force_refresh', $this->get_force_refresh() );
+		}
+
+		if ( ! $this->validate_session_properties( $checkout_session ) ) {
+			return new WP_Error( 'session_changed', __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 		}
 
 		if ( 'Open' !== $checkout_session->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
