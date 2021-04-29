@@ -502,6 +502,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Checkout Message
 	 */
 	public function checkout_message() {
+		if ( is_wc_endpoint_url( 'order-pay' ) ) {
+			return;
+		}
+
 		$class = array( 'wc-amazon-checkout-message' );
 		if ( $this->is_available() ) {
 			$class[] = 'wc-amazon-payments-advanced-populated';
