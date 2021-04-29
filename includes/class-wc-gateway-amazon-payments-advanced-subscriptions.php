@@ -275,7 +275,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			return $payload;
 		}
 
-		if ( $cart_contains_subscription ) {
+		if ( ! is_wc_endpoint_url( 'order-pay' ) && $cart_contains_subscription ) {
 			WC()->cart->calculate_totals();
 
 			$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
