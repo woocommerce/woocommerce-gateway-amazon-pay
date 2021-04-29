@@ -8,7 +8,10 @@
         "exclude": [
             "!/assets",
             "!/languages",
-            "!/vendor"
+            "!/vendor",
+            "phpcs.xml",
+            "phpstan.neon",
+            ".idea"
         ]
     },
     "config": {
