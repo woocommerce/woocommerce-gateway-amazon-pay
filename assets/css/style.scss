@@ -1,5 +1,6 @@
 #pay_with_amazon {
-	margin: 0;
+	margin: 0px auto;
+	max-width: 100%;
 	line-height: 1em;
 	display: block;
 	border: 0;
@@ -11,11 +12,12 @@
 	cursor: pointer;
 	box-shadow: none;
 	border: 0;
-	padding:0;
-	margin:0;
+	padding: 0;
+	margin: 0;
 	display: inline-block;
 }
-#amazon_addressbook_widget div, #amazon_wallet_widget div {
+#amazon_addressbook_widget div,
+#amazon_wallet_widget div {
 	min-width: 300px;
 	min-height: 300px;
 	margin: 0 auto !important;
@@ -23,7 +25,8 @@
 .woocommerce-info #pay_with_amazon {
 	float: right;
 }
-#amazon_customer_details.wc-amazon-payments-advanced-populated + #customer_details {
+#amazon_customer_details.wc-amazon-payments-advanced-populated
+	+ #customer_details {
 	display: none;
 }
 #amazon_consent_widget {
@@ -48,4 +51,66 @@
 }
 form.checkout .hidden {
 	display: none !important;
+}
+.wc-apa-widget-change {
+	float: right;
+}
+
+.wc-apa-amazon-logo {
+	display: inline-block;
+	vertical-align: baseline;
+	position: relative;
+	height: 1em;
+	width: 5.75em;
+	padding-right: 0.5em;
+	margin-right: 0.5em;
+	bottom: -0.4375em;
+}
+
+img.wc-apa-amazon-logo {
+	object-fit: contain;
+	object-position: 0 0;
+}
+
+span.wc-apa-amazon-logo {
+	background-image: url("../images/logo-amazonpay-primary-fullcolor-positive.svg");
+	background-position: 0 0;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+#shipping_address_widget,
+#payment_method_widget,
+#billing_address_widget {
+	margin-bottom: 1.618em;
+}
+
+
+.woocommerce-order-pay {
+	.wc_apa_login_again_text + #pay_with_amazon {
+		margin-top: 1em;
+	}
+	#order_review {
+		#payment {
+			.payment_box.payment_method_amazon_payments_advanced {
+				#payment_method_widget, #shipping_address_widget, #billing_address_widget {
+					margin-bottom: 0;
+					& + #payment_method_widget,
+					& + #shipping_address_widget,
+					& + #billing_address_widget {
+						margin-top: 1.618em;
+					}
+					h3 {
+						padding: 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+.wc-apa-button-separator { 
+	margin: 1.5em 0;
+	text-align: center;
+	display: none;
 }

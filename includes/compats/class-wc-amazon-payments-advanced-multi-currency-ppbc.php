@@ -10,7 +10,7 @@
 /**
  * WooCommerce WooCommerce Price Based on Country Multi-currency compatibility.
  */
-class WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country extends WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
+class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 	/**
 	 * Session key to force new region.
@@ -28,14 +28,51 @@ class WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country extends WC_A
 	 * Specify hooks where compatibility action takes place.
 	 */
 	public function __construct() {
-		// Hooks before PPBC inits to inject new zone if needed.
-		add_action( 'wc_price_based_country_before_frontend_init', array( $this, 'hook_before_ppbc_update_order_review' ) );
-		add_action( 'wc_price_based_country_before_frontend_init', array( $this, 'hook_before_ppbc_get_refreshed_fragments' ) );
+		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
+		if ( 'v1' === $version ) {
+			// Hooks before PPBC inits to inject new zone if needed.
+			add_action( 'wc_price_based_country_before_frontend_init', array( $this, 'hook_before_ppbc_update_order_review' ) );
+			add_action( 'wc_price_based_country_before_frontend_init', array( $this, 'hook_before_ppbc_get_refreshed_fragments' ) );
 
-		add_action( 'widgets_init', array( $this, 'remove_currency_switcher_on_order_reference_suspended' ) );
+			add_action( 'widgets_init', array( $this, 'remove_currency_switcher_on_order_reference_suspended' ) );
+		}
 
 		$this->ppbc = WC_Product_Price_Based_Country::instance();
 		parent::__construct();
+	}
+
+	/**
+	 * Get PPBC selected currency.
+	 *
+	 * @return string
+	 */
+	public function get_selected_currency() {
+		// This is for sandbox mode, changing countries manually.
+		if ( isset( $_REQUEST['wcpbc-manual-country'] ) ) {
+			$manual_country = wc_clean( wp_unslash( $_REQUEST['wcpbc-manual-country'] ) );
+			$selected_zone  = WCPBC_Pricing_Zones::get_zone_by_country( $manual_country );
+		} else {
+			$selected_zone = wcpbc_get_zone_by_country();
+		}
+		return ( $selected_zone ) ? $selected_zone->get_currency() : get_woocommerce_currency();
+	}
+
+	/**
+	 * LEGACY v1 METHODS AND HOOKS
+	 */
+
+	/**
+	 * Get selected currency, to be used on frontend.
+	 */
+	public function ajax_get_currency() {
+		check_ajax_referer( 'multi_currency_nonce', 'nonce' );
+		if ( $this->is_currency_compatible( $this->get_selected_currency() ) ) {
+			$currency = $this->get_selected_currency();
+		} else {
+			$currency = wcpbc_get_base_currency();
+		}
+		echo $currency;
+		wp_die();
 	}
 
 	/**
@@ -55,11 +92,11 @@ class WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country extends WC_A
 	 */
 	public function hook_before_ppbc_update_order_review() {
 		if ( defined( 'WC_DOING_AJAX' ) &&
-			 WC_DOING_AJAX &&
-			 isset( $_GET['wc-ajax'] ) &&
-			 'update_order_review' === $_GET['wc-ajax'] &&
-			 isset( $_REQUEST['payment_method'] ) &&
-			 'amazon_payments_advanced' === $_REQUEST['payment_method']
+			WC_DOING_AJAX &&
+			isset( $_GET['wc-ajax'] ) &&
+			'update_order_review' === $_GET['wc-ajax'] &&
+			isset( $_REQUEST['payment_method'] ) &&
+			'amazon_payments_advanced' === $_REQUEST['payment_method']
 		) {
 			$order_details = $this->get_amazon_order_details();
 			// @codingStandardsIgnoreStart
@@ -135,22 +172,6 @@ class WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country extends WC_A
 	}
 
 	/**
-	 * Get PPBC selected currency.
-	 *
-	 * @return string
-	 */
-	public function get_selected_currency() {
-		// This is for sandbox mode, changing countries manually.
-		if ( isset( $_REQUEST['wcpbc-manual-country'] ) ) {
-			$manual_country = wc_clean( wp_unslash( $_REQUEST['wcpbc-manual-country'] ) );
-			$selected_zone = WCPBC_Pricing_Zones::get_zone_by_country( $manual_country );
-		} else {
-			$selected_zone = wcpbc_get_zone_by_country();
-		}
-		return ( $selected_zone ) ? $selected_zone->get_currency() : get_woocommerce_currency();
-	}
-
-	/**
 	 * Get Amazon Order Details from current Reference id.
 	 *
 	 * @return bool|SimpleXMLElement
@@ -159,7 +180,7 @@ class WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country extends WC_A
 
 		$request_args = array(
 			'Action'                 => 'GetOrderReferenceDetails',
-			'AmazonOrderReferenceId' => WC_Amazon_Payments_Advanced_API::get_reference_id(),
+			'AmazonOrderReferenceId' => WC_Amazon_Payments_Advanced_API_Legacy::get_reference_id(),
 		);
 
 		/**
@@ -170,10 +191,10 @@ class WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country extends WC_A
 		 */
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		if ( 'yes' == $settings['enable_login_app'] ) {
-			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API::get_access_token();
+			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API_Legacy::get_access_token();
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 
 		// @codingStandardsIgnoreStart
 		if ( ! is_wp_error( $response ) && isset( $response->GetOrderReferenceDetailsResult->OrderReferenceDetails ) ) {
@@ -185,25 +206,11 @@ class WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country extends WC_A
 	}
 
 	/**
-	 * Get selected currency, to be used on frontend.
-	 */
-	public function ajax_get_currency() {
-		check_ajax_referer( 'multi_currency_nonce', 'nonce' );
-		if ( $this->is_currency_compatible( $this->get_selected_currency() ) ) {
-			$currency = $this->get_selected_currency();
-		} else {
-			$currency = wcpbc_get_base_currency();
-		}
-		echo $currency;
-		wp_die();
-	}
-
-	/**
 	 * On OrderReferenceStatus === Suspended, hide currency switcher.
 	 */
 	public function remove_currency_switcher_on_order_reference_suspended() {
 		if ( $this->is_order_reference_checkout_suspended() ) {
-			// By Pass Multi-currency, so we don't trigger a new set_order_reference_details on process_payment
+			// By Pass Multi-currency, so we don't trigger a new set_order_reference_details on process_payment.
 			$this->bypass_currency_session();
 			unregister_widget( 'WCPBC_Widget_Country_Selector' );
 		}

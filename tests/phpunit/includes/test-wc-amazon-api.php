@@ -2,7 +2,7 @@
 /**
  * Test cases for WC_Amazon_Payments_Advanced_API.
  *
- * @package WC_Amazon_Payments_Advanced
+ * @package WC_Gateway_Amazon_Pay
  */
 
 /**
@@ -52,7 +52,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.6.3
 	 */
 	public function test_update_settings_reflected_in_get_settings() {
-		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
+		$settings            = WC_Amazon_Payments_Advanced_API::get_settings();
 		$settings['enabled'] = 'yes';
 
 		update_option( 'woocommerce_amazon_payments_advanced_settings', $settings );
@@ -482,9 +482,12 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_request_error() {
-		$resp = $this->filtered_request( array(), function() {
-			return new WP_Error( 'foo', 'bar' );
-		} );
+		$resp = $this->filtered_request(
+			array(),
+			function() {
+				return new WP_Error( 'foo', 'bar' );
+			}
+		);
 
 		$this->assertInstanceOf( 'WP_Error', $resp );
 	}
@@ -495,11 +498,14 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_request_authorize() {
-		$resp = $this->filtered_request( array(), function() {
-			return array(
-				'body' => $this->get_authorize_response(),
-			);
-		} );
+		$resp = $this->filtered_request(
+			array(),
+			function() {
+				return array(
+					'body' => $this->get_authorize_response(),
+				);
+			}
+		);
 		$this->assertInstanceOf( 'SimpleXMLElement', $resp );
 
 		// @codingStandardsIgnoreStart
@@ -516,11 +522,14 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_request_cancel_order_reference() {
-		$resp = $this->filtered_request( array(), function() {
-			return array(
-				'body' => $this->get_cancel_order_reference_response(),
-			);
-		} );
+		$resp = $this->filtered_request(
+			array(),
+			function() {
+				return array(
+					'body' => $this->get_cancel_order_reference_response(),
+				);
+			}
+		);
 		$this->assertInstanceOf( 'SimpleXMLElement', $resp );
 	}
 
@@ -530,11 +539,14 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_request_capture() {
-		$resp = $this->filtered_request( array(), function() {
-			return array(
-				'body' => $this->get_capture_response(),
-			);
-		} );
+		$resp = $this->filtered_request(
+			array(),
+			function() {
+				return array(
+					'body' => $this->get_capture_response(),
+				);
+			}
+		);
 		$this->assertInstanceOf( 'SimpleXMLElement', $resp );
 
 		// @codingStandardsIgnoreStart
@@ -551,9 +563,9 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_get_signed_amazon_url() {
-		$url = 'https://mws-eu.amazonservices.com/OffAmazonPayments_Sandbox/2013-01-01/?AWSAccessKeyId=AKIAIXTU75HETA53PS4Q&Action=Authorize&AmazonOrderReferenceId=S02-3703223-9973137&AuthorizationAmount.Amount=14.8&AuthorizationAmount.CurrencyCode=EUR&AuthorizationReferenceId=2382-1510161652&CaptureNow=1&SellerId=A3SA32H56X44JJ&SellerOrderAttributes.SellerOrderId=2382&SellerOrderAttributes.StoreName=Local%20WP%20Dev&Timestamp=2017-11-08T17%3A20%3A52Z&TransactionTimeout=0';
+		$url        = 'https://mws-eu.amazonservices.com/OffAmazonPayments_Sandbox/2013-01-01/?AWSAccessKeyId=AKIAIXTU75HETA53PS4Q&Action=Authorize&AmazonOrderReferenceId=S02-3703223-9973137&AuthorizationAmount.Amount=14.8&AuthorizationAmount.CurrencyCode=EUR&AuthorizationReferenceId=2382-1510161652&CaptureNow=1&SellerId=A3SA32H56X44JJ&SellerOrderAttributes.SellerOrderId=2382&SellerOrderAttributes.StoreName=Local%20WP%20Dev&Timestamp=2017-11-08T17%3A20%3A52Z&TransactionTimeout=0';
 		$secret_key = '123';
-		$url = WC_Amazon_Payments_Advanced_API::get_signed_amazon_url( $url, $secret_key );
+		$url        = WC_Amazon_Payments_Advanced_API::get_signed_amazon_url( $url, $secret_key );
 		$this->assertEquals( 'https://mws-eu.amazonservices.com/OffAmazonPayments_Sandbox/2013-01-01/?AWSAccessKeyId=AKIAIXTU75HETA53PS4Q&Action=Authorize&AmazonOrderReferenceId=S02-3703223-9973137&AuthorizationAmount.Amount=14.8&AuthorizationAmount.CurrencyCode=EUR&AuthorizationReferenceId=2382-1510161652&CaptureNow=1&SellerId=A3SA32H56X44JJ&SellerOrderAttributes.SellerOrderId=2382&SellerOrderAttributes.StoreName=Local%20WP%20Dev&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2017-11-08T17%3A20%3A52Z&TransactionTimeout=0&Signature=dkmsSiOMp8BClfC%2BDMVw3tghDg7u6WdkYHIq35GyIrQ%3D', $url );
 	}
 
@@ -734,7 +746,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_authorize_with_order_paid_with_another_payment_method() {
-		$order = WC_Helper_Order::create_order();
+		$order    = WC_Helper_Order::create_order();
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 		update_post_meta( $order_id, '_payment_method', 'paypal' );
 
@@ -750,7 +762,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_authorize_with_missing_amazon_reference_id() {
-		$order = WC_Helper_Order::create_order();
+		$order    = WC_Helper_Order::create_order();
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 		update_post_meta( $order_id, '_payment_method', 'amazon_payments_advanced' );
 
@@ -766,7 +778,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_authorize_succeed() {
-		$order = WC_Helper_Order::create_order();
+		$order    = WC_Helper_Order::create_order();
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 		update_post_meta( $order_id, '_payment_method', 'amazon_payments_advanced' );
 		update_post_meta( $order_id, 'amazon_reference_id', '123' );
@@ -789,7 +801,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_authorize_declined_with_invalid_payment_method() {
-		$order = WC_Helper_Order::create_order();
+		$order    = WC_Helper_Order::create_order();
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 		update_post_meta( $order_id, '_payment_method', 'amazon_payments_advanced' );
 		update_post_meta( $order_id, 'amazon_reference_id', '123' );
@@ -807,8 +819,13 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 		$this->assertEquals( 'InvalidPaymentMethod', $resp->get_error_code() );
 	}
 
+	/**
+	 * Test authorize() with a declined response
+	 *
+	 * @since 1.8.0
+	 */
 	public function test_authorize_declined_with_amazon_rejected() {
-		$order = WC_Helper_Order::create_order();
+		$order    = WC_Helper_Order::create_order();
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 		update_post_meta( $order_id, '_payment_method', 'amazon_payments_advanced' );
 		update_post_meta( $order_id, 'amazon_reference_id', '123' );
@@ -842,7 +859,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 			array(
 				'Action'                              => 'Authorize',
 				'AmazonOrderReferenceId'              => '123',
-				'AuthorizationReferenceId'            => $order_id . '-' . current_time( 'timestamp', true ),
+				'AuthorizationReferenceId'            => $order_id . '-' . time(),
 				'AuthorizationAmount.Amount'          => $order->get_total(),
 				'AuthorizationAmount.CurrencyCode'    => strtoupper( get_woocommerce_currency() ),
 				'CaptureNow'                          => true,
@@ -850,10 +867,13 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 				'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
 				'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
 			),
-			WC_Amazon_Payments_Advanced_API::get_authorize_request_args( $order, array(
-				'amazon_reference_id' => '123',
-				'capture_now'         => true,
-			) )
+			WC_Amazon_Payments_Advanced_API::get_authorize_request_args(
+				$order,
+				array(
+					'amazon_reference_id' => '123',
+					'capture_now'         => true,
+				)
+			)
 		);
 	}
 
@@ -875,7 +895,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_authorize_recurring_with_order_paid_with_another_payment_method() {
-		$order = WC_Helper_Order::create_order();
+		$order    = WC_Helper_Order::create_order();
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 		update_post_meta( $order_id, '_payment_method', 'paypal' );
 
@@ -891,13 +911,16 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_authorize_recurring_with_missing_billing_agreement_id() {
-		$order = WC_Helper_Order::create_order();
+		$order    = WC_Helper_Order::create_order();
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 		update_post_meta( $order_id, '_payment_method', 'amazon_payments_advanced' );
 
-		$resp = WC_Amazon_Payments_Advanced_API::authorize_recurring( $order, array(
-			'amazon_billing_agreement_id' => '',
-		) );
+		$resp = WC_Amazon_Payments_Advanced_API::authorize_recurring(
+			$order,
+			array(
+				'amazon_billing_agreement_id' => '',
+			)
+		);
 
 		$this->assertInstanceOf( 'WP_Error', $resp );
 		$this->assertEquals( 'order_missing_billing_agreement_id', $resp->get_error_code() );
@@ -909,7 +932,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 * @since 1.8.0
 	 */
 	public function test_authorize_recurring_succeed() {
-		$order = WC_Helper_Order::create_order();
+		$order    = WC_Helper_Order::create_order();
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 		update_post_meta( $order_id, '_payment_method', 'amazon_payments_advanced' );
 
@@ -919,9 +942,12 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 			);
 		};
 		add_filter( 'pre_http_request', $filter );
-		$resp = WC_Amazon_Payments_Advanced_API::authorize_recurring( $order, array(
-			'amazon_billing_agreement_id' => '123',
-		) );
+		$resp = WC_Amazon_Payments_Advanced_API::authorize_recurring(
+			$order,
+			array(
+				'amazon_billing_agreement_id' => '123',
+			)
+		);
 		remove_filter( 'pre_http_request', $filter );
 
 		$this->assertInstanceOf( 'SimpleXMLElement', $resp );
@@ -940,7 +966,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 			array(
 				'Action'                              => 'AuthorizeOnBillingAgreement',
 				'AmazonBillingAgreementId'            => '123',
-				'AuthorizationReferenceId'            => $order_id . '-' . current_time( 'timestamp', true ),
+				'AuthorizationReferenceId'            => $order_id . '-' . time(),
 				'AuthorizationAmount.Amount'          => $order->get_total(),
 				'AuthorizationAmount.CurrencyCode'    => strtoupper( get_woocommerce_currency() ),
 				'CaptureNow'                          => true,
@@ -949,10 +975,13 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 				'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
 				'InheritShippingAddress'              => false,
 			),
-			WC_Amazon_Payments_Advanced_API::get_authorize_recurring_request_args( $order, array(
-				'amazon_billing_agreement_id' => '123',
-				'capture_now'                 => true,
-			) )
+			WC_Amazon_Payments_Advanced_API::get_authorize_recurring_request_args(
+				$order,
+				array(
+					'amazon_billing_agreement_id' => '123',
+					'capture_now'                 => true,
+				)
+			)
 		);
 	}
 
@@ -979,7 +1008,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 		$this->assertEquals(
 			array(
 				'first_name' => 'Tester',
-				'last_name' => '.',
+				'last_name'  => '.',
 			),
 			$formatted_address
 		);
