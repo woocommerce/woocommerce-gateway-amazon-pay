@@ -61,6 +61,9 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.2.0 - 2021-xx-xx =
+* Upgrade to use the latest Amazon Pay frontend technology and backend API. Functionalities in parity with the previous version.
+
 = 1.13.1 - 2021-02-25 =
 * Fix - Avoid hiding default shipping fields at checkout.
 
