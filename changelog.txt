@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.0.0 - 2021-xx-xx =
+= 2.0.0 - 2021-05-11 =
 * Upgrade to use the latest Amazon Pay frontend technology and backend API. Functionalities in parity with the previous version.
 
 = 1.13.1 - 2021-02-25 =
