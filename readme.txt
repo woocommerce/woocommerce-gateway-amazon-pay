@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 5.6
-Stable tag: 2.2.0
+Stable tag: 2.0.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -61,7 +61,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.2.0 - 2021-05-11 =
+= 2.0.0 - 2021-xx-xx =
 * Upgrade to use the latest Amazon Pay frontend technology and backend API. Functionalities in parity with the previous version.
 
 = 1.13.1 - 2021-02-25 =
