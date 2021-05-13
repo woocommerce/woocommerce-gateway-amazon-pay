@@ -54,11 +54,6 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
-== Screenshots ==
-
-1. The Amazon Pay button on the cart page.
-2. Picking billing and shipping addresses on the checkout page.
-
 == Changelog ==
 
 = 2.0.0 - 2021-05-11 =
