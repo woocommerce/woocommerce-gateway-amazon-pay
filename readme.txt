@@ -54,6 +54,9 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.0.1 - 2021-xx-xx =
+* Test woorelease support for custom build file name.
+
 = 2.0.0 - 2021-05-11 =
 * Upgrade to use the latest Amazon Pay frontend technology and backend API. Functionalities in parity with the previous version.
 
