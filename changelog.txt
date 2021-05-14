@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.0.1 - 2021-xx-xx =
+= 2.0.1 - 2021-05-14 =
 * Update - WP tested up to 5.7.
 * Update - WC tested up to 5.3.
 * Fix - Properly compose url for order action buttons.

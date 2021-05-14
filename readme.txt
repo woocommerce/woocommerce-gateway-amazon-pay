@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 5.7
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -54,7 +54,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.0.1 - 2021-xx-xx =
+= 2.0.1 - 2021-05-14 =
 * Update - WP tested up to 5.7.
 * Update - WC tested up to 5.3.
 * Fix - Properly compose url for order action buttons.
