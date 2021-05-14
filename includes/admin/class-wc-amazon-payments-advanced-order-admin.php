@@ -281,7 +281,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 					$url = $action['href'];
 				}
 
-				echo '<a href="' . $url . '" class="button">' . esc_html( $action['button'] ) . '</a> ';
+				echo '<a href="' . esc_url( $url ) . '" class="button">' . esc_html( $action['button'] ) . '</a> ';
 			}
 			echo '</p>';
 		}
