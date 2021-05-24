@@ -647,6 +647,20 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	}
 
 	/**
+	 * Get field value.
+	 *
+	 * @param string $key Field key.
+	 * @param array  $value Field value.
+	 * @return string
+	 */
+	public function validate_hidden_masked_field( $key, $value ) {
+		if ( ! empty( $this->settings[ $key ] ) ) {
+			$value = $this->settings[ $key ];
+		}
+		return $value;
+	}
+
+	/**
 	 * Admin Panel Options
 	 * - Options for bits like 'title' and availability on a country-by-country basis
 	 */
