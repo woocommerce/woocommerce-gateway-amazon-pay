@@ -512,7 +512,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					'secret_key'               => array(
 						'title'       => __( 'MWS Secret Key', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden_masked',
-						'description' => ! empty( $this->settings['secret_key'] ) ? __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ) : sprintf( '<span style="color: red;">%s</span>', __( 'Corrupted. Need to reconnect!', 'woocommerce-gateway-amazon-payments-advanced' ) ),
+						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'default'     => '',
 					),
 					'app_client_id'            => array(
@@ -524,7 +524,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					'app_client_secret'        => array(
 						'title'       => __( 'App Client Secret', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden_masked',
-						'description' => ! empty( $this->settings['app_client_secret'] ) ? __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ) : sprintf( '<span style="color: red;">%s</span>', __( 'Corrupted. Need to reconnect!', 'woocommerce-gateway-amazon-payments-advanced' ) ),
+						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'default'     => '',
 					),
 					'enable_login_app'         => array(
@@ -565,6 +565,44 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					),
 				)
 			);
+
+			if ( empty( $this->settings['secret_key'] ) ) {
+				$this->form_fields['secret_key'] = array(
+					'title'       => __( 'MWS Secret Key', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'type'        => 'text',
+					'description' => sprintf(
+						'<span style="color: red;">%s</span> %s',
+						__( 'Corrupted.', 'woocommerce-gateway-amazon-payments-advanced' ),
+						sprintf(
+							/* translators: 1) Label from Seller Central 2) Seller Central URL 3) Seller Central Guide. */
+							__( 'Please log in to <a href="%2$s" target="_blank">Seller Central</a> and get your <strong>%1$s</strong> from there. More details about this <a href="%3$s" target="_blank">here</a>.', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'Secret Access Key',
+							esc_url( 'https://sellercentral-europe.amazon.com/gp/pyop/seller/mwsaccess' ),
+							esc_url( 'https://sellercentral-europe.amazon.com/gp/pyop/seller/mwsaccess' )
+						)
+					),
+					'default'     => '',
+				);
+			}
+
+			if ( empty( $this->settings['app_client_secret'] ) ) {
+				$this->form_fields['app_client_secret'] = array(
+					'title'       => __( 'App Client Secret', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'type'        => 'text',
+					'description' => sprintf(
+						'<span style="color: red;">%s</span> %s',
+						__( 'Corrupted.', 'woocommerce-gateway-amazon-payments-advanced' ),
+						sprintf(
+							/* translators: 1) Label from Seller Central 2) Seller Central URL 3) Seller Central Guide. */
+							__( 'Please log in to <a href="%2$s" target="_blank">Seller Central</a> and get your <strong>%1$s</strong> from there. More details about this <a href="%3$s" target="_blank">here</a>.', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'Client Secret',
+							esc_url( 'https://sellercentral-europe.amazon.com/gp/pyop/seller/mwsaccess' ),
+							esc_url( 'https://sellercentral-europe.amazon.com/gp/pyop/seller/mwsaccess' )
+						)
+					),
+					'default'     => '',
+				);
+			}
 
 			/**
 			 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
