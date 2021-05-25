@@ -512,7 +512,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					'secret_key'               => array(
 						'title'       => __( 'MWS Secret Key', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden_masked',
-						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'description' => ! empty( $this->settings['secret_key'] ) ? __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ) : sprintf( '<span style="color: red;">%s</span>', __( 'Corrupted. Need to reconnect!', 'woocommerce-gateway-amazon-payments-advanced' ) ),
 						'default'     => '',
 					),
 					'app_client_id'            => array(
@@ -524,7 +524,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					'app_client_secret'        => array(
 						'title'       => __( 'App Client Secret', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden_masked',
-						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'description' => ! empty( $this->settings['app_client_secret'] ) ? __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ) : sprintf( '<span style="color: red;">%s</span>', __( 'Corrupted. Need to reconnect!', 'woocommerce-gateway-amazon-payments-advanced' ) ),
 						'default'     => '',
 					),
 					'enable_login_app'         => array(
