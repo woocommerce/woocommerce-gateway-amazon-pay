@@ -108,7 +108,55 @@ class WC_Amazon_Payments_Advanced_Admin {
 		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		global $current_section;
 
+		$login_app_enabled         = 'yes' === $this->settings['enable_login_app'];
+		$wc_version_3_9_or_greater = class_exists( 'WooCommerce' ) && version_compare( WC_VERSION, '3.9', '>=' );
+
+		// If we are running WooCommerce 3.9 and up we want the store to be running with the Login App enabled. This
+		// allows us to use the features of Login to properly populate order information that these version of
+		// WooCommerce expect (as well as other plugins).
+		$current_screen = get_current_screen();
+
+		// Send out a different notification if we're on the Amazon Pay settings screen. Non-dismissable when on the
+		// settings screen, dismissable if we're anywhere else.
+		if ( isset( $current_screen ) &&
+			'woocommerce_page_wc-settings' === $current_screen->id &&
+			'amazon_payments_advanced' === $current_section
+		) {
+			$in_settings                    = true;
+			$in_amazon_pay_settings_section = 'in_settings';
+			$is_dismissable                 = false;
+		} else {
+			$in_settings                    = false;
+			$in_amazon_pay_settings_section = '';
+			$is_dismissable                 = true;
+		}
+
 		$notices = array();
+
+		$gateway = wc_apa()->get_gateway();
+
+		if ( $gateway->has_v1_settings() && ! $gateway->is_v1_configured() ) {
+			if ( ! $in_settings ) {
+				$notices[] = array(
+					'dismiss_action' => 'amazon_pay_dismiss_cv1_broken',
+					'class'          => 'notice notice-warning',
+					'text'           => sprintf(
+						/* translators: 1) The URL to the Amazon Pay settings screen. */
+						'<p>' . __( 'Your Amazon Pay legacy settings seem corrupted. If you see issues processing legacy orders/subscriptions. Please follow the instructions in the <a href="%1$s">Amazon Pay Settings</a> to go through a recovery process.', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
+						esc_url( $this->get_settings_url() )
+					),
+					'is_dismissable' => false,
+				);
+			} else {
+				$notices[] = array(
+					'dismiss_action' => 'amazon_pay_dismiss_cv1_broken',
+					'class'          => 'notice notice-warning',
+					'text'           => '<p>' . __( 'Your Amazon Pay legacy settings seem corrupted. If you see issues processing legacy orders/subscriptions. Please follow the instructions in the <a href="#" class="wcapa-toggle-section wcapa-toggle-scroll"  data-toggle="#v1-settings-container">Previous Version Configuration</a> area go through a recovery process.', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
+					'is_dismissable' => false,
+				);
+			}
+			return $notices; // Return early, as this is a critical issue.
+		}
 
 		if ( class_exists( 'WooCommerce_Germanized' ) && 'yes' === get_option( 'woocommerce_gzd_checkout_stop_order_cancellation' ) ) {
 			$notices[] = array(
@@ -141,29 +189,6 @@ class WC_Amazon_Payments_Advanced_Admin {
 				),
 				'is_dismissable' => true,
 			);
-		}
-
-		$login_app_enabled         = 'yes' === $this->settings['enable_login_app'];
-		$wc_version_3_9_or_greater = class_exists( 'WooCommerce' ) && version_compare( WC_VERSION, '3.9', '>=' );
-
-		// If we are running WooCommerce 3.9 and up we want the store to be running with the Login App enabled. This
-		// allows us to use the features of Login to properly populate order information that these version of
-		// WooCommerce expect (as well as other plugins).
-		$current_screen = get_current_screen();
-
-		// Send out a different notification if we're on the Amazon Pay settings screen. Non-dismissable when on the
-		// settings screen, dismissable if we're anywhere else.
-		if ( isset( $current_screen ) &&
-			'woocommerce_page_wc-settings' === $current_screen->id &&
-			'amazon_payments_advanced' === $current_section
-		) {
-			$in_settings                    = true;
-			$in_amazon_pay_settings_section = 'in_settings';
-			$is_dismissable                 = false;
-		} else {
-			$in_settings                    = false;
-			$in_amazon_pay_settings_section = '';
-			$is_dismissable                 = true;
 		}
 
 		if ( $wc_version_3_9_or_greater && ! $login_app_enabled ) {
@@ -245,8 +270,10 @@ class WC_Amazon_Payments_Advanced_Admin {
 					$notice['text'],
 					array(
 						'a'      => array(
-							'href'  => array(),
-							'title' => array(),
+							'href'        => array(),
+							'title'       => array(),
+							'class'       => array(),
+							'data-toggle' => array(),
 						),
 						'strong' => array(),
 						'em'     => array(),

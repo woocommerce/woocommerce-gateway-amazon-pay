@@ -349,7 +349,13 @@
 		},
 		toggle_visibility: function( e ) {
 			e.preventDefault();
-			$( $( this ).data( 'toggle' ) ).toggleClass( 'hidden' );
+			var target = $( $( this ).data( 'toggle' ) );
+			target.toggleClass( 'hidden' );
+			if ( ! $( this ).hasClass( 'wcapa-toggle-scroll' ) ) {
+				return;
+			}
+			var body = $( 'html, body' );
+			body.stop().animate( { scrollTop: target.offset().top - 100 }, 1000, 'swing' );
 		}
 	};
 	if ( $( 'body' ).hasClass( 'woocommerce_page_wc-settings' ) ) {

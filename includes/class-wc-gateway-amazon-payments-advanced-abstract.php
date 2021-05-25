@@ -907,6 +907,21 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	}
 
 	/**
+	 * Check if the v1 settings are configured
+	 *
+	 * @return bool
+	 */
+	public function is_v1_configured() {
+		if ( empty( $this->settings['secret_key'] ) || empty( $this->settings['mws_access_key'] ) ) {
+			return false;
+		}
+		if ( empty( $this->settings['app_client_secret'] ) || empty( $this->settings['app_client_id'] ) ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Checks if there's settings for v1
 	 *
 	 * @return bool
