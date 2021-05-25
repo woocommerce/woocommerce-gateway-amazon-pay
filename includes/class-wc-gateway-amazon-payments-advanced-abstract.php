@@ -561,9 +561,9 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 						__( 'Corrupted.', 'woocommerce-gateway-amazon-payments-advanced' ),
 						sprintf(
 							/* translators: 1) Label from Seller Central 2) Seller Central URL 3) Seller Central Guide. */
-							__( 'Please log in to <a href="%2$s" target="_blank">Seller Central</a> and get your <strong>%1$s</strong> from there. More details about this <a href="%3$s" target="_blank">here</a>.', 'woocommerce-gateway-amazon-payments-advanced' ),
+							__( 'Please log in to <a href="%2$s" class="wcapa-seller-central-secret-key-url" target="_blank">Seller Central</a> and get your <strong>%1$s</strong> from there. More details about this <a href="%3$s" target="_blank">here</a>.', 'woocommerce-gateway-amazon-payments-advanced' ),
 							'Secret Access Key',
-							esc_url( 'https://sellercentral-europe.amazon.com/gp/pyop/seller/mwsaccess' ),
+							esc_url( WC_Amazon_Payments_Advanced_API::get_secret_key_page_url() ),
 							esc_url( 'https://eps-eu-external-file-share.s3.eu-central-1.amazonaws.com/bianchif/WooCommerce/WooCommerce+legacy+fix.pdf' )
 						)
 					),

@@ -855,4 +855,29 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $obj;
 	}
 
+	/**
+	 * Get URLs from where to get the secret key in seller central, per region.
+	 *
+	 * @return array
+	 */
+	public static function get_secret_key_page_urls() {
+		return array(
+			'us' => 'https://sellercentral.amazon.com/gp/pyop/seller/mwsaccess',
+			'eu' => 'https://sellercentral-europe.amazon.com/gp/pyop/seller/mwsaccess',
+			'gb' => 'https://sellercentral-europe.amazon.com/gp/pyop/seller/mwsaccess',
+			'jp' => 'https://sellercentral-japan.amazon.com/gp/pyop/seller/mwsaccess',
+		);
+	}
+
+	/**
+	 * Get URL from where to get the secret key in seller central, for the current region.
+	 *
+	 * @return string|bool
+	 */
+	public static function get_secret_key_page_url() {
+		$region = self::get_settings( 'payment_region' );
+		$urls   = self::get_secret_key_page_urls();
+		return isset( $urls[ $region ] ) ? $urls[ $region ] : false;
+	}
+
 }

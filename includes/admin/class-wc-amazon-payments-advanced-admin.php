@@ -359,6 +359,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 			'woo_version'           => 'WooCommerce: ' . WC()->version,
 			'plugin_version'        => 'WooCommerce Amazon Pay: ' . wc_apa()->version,
 			'language_combinations' => WC_Amazon_Payments_Advanced_API::get_languages_per_region(),
+			'secret_keys_urls'      => WC_Amazon_Payments_Advanced_API::get_secret_key_page_urls(), // LEGACY FIX.
 		);
 
 		wp_register_script( 'amazon_payments_admin', wc_apa()->plugin_url . '/assets/js/amazon-wc-admin' . $js_suffix, array(), wc_apa()->version, true );
