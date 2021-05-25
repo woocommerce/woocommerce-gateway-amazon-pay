@@ -95,13 +95,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	protected $app_client_id;
 
 	/**
-	 * App Client Secret (v1)
-	 *
-	 * @var string
-	 */
-	protected $app_client_secret;
-
-	/**
 	 * MWS Access Key (v1)
 	 *
 	 * @var string
@@ -245,7 +238,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$this->secret_key              = $settings['secret_key'];
 		$this->enable_login_app        = $settings['enable_login_app'];
 		$this->app_client_id           = $settings['app_client_id'];
-		$this->app_client_secret       = $settings['app_client_secret'];
 		$this->sandbox                 = $settings['sandbox'];
 		$this->payment_capture         = $settings['payment_capture'];
 		$this->authorization_mode      = $settings['authorization_mode'];
@@ -484,7 +476,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields_before_legacy', $this->form_fields );
 
-		if ( ! empty( $this->settings['seller_id'] ) ) {
+		if ( $this->has_v1_settings() ) {
 			$this->form_fields = array_merge(
 				$this->form_fields,
 				array(
@@ -519,12 +511,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 						'title'       => __( 'App Client ID', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'type'        => 'hidden',
 						'description' => $this->settings['app_client_id'],
-						'default'     => '',
-					),
-					'app_client_secret'        => array(
-						'title'       => __( 'App Client Secret', 'woocommerce-gateway-amazon-payments-advanced' ),
-						'type'        => 'hidden_masked',
-						'description' => __( 'Hidden secret key', 'woocommerce-gateway-amazon-payments-advanced' ),
 						'default'     => '',
 					),
 					'enable_login_app'         => array(
@@ -565,6 +551,25 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 					),
 				)
 			);
+
+			if ( empty( $this->settings['secret_key'] ) ) {
+				$this->form_fields['secret_key'] = array(
+					'title'       => __( 'MWS Secret Key', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'type'        => 'text',
+					'description' => sprintf(
+						'<span style="color: red;">%s</span> %s',
+						__( 'Corrupted.', 'woocommerce-gateway-amazon-payments-advanced' ),
+						sprintf(
+							/* translators: 1) Label from Seller Central 2) Seller Central URL 3) Seller Central Guide. */
+							__( 'Please log in to <a href="%2$s" class="wcapa-seller-central-secret-key-url" target="_blank">Seller Central</a> and get your <strong>%1$s</strong> from there. More details about this <a href="%3$s" target="_blank">here</a>.', 'woocommerce-gateway-amazon-payments-advanced' ),
+							'Secret Access Key',
+							esc_url( WC_Amazon_Payments_Advanced_API::get_secret_key_page_url() ),
+							esc_url( 'https://eps-eu-external-file-share.s3.eu-central-1.amazonaws.com/bianchif/WooCommerce/WooCommerce+legacy+fix.pdf' )
+						)
+					),
+					'default'     => '',
+				);
+			}
 
 			/**
 			 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
@@ -904,6 +909,27 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_shipping_fields' ) );
 		// Always ship to different address.
 		add_action( 'woocommerce_ship_to_different_address_checked', '__return_true' );
+	}
+
+	/**
+	 * Check if the v1 settings are configured
+	 *
+	 * @return bool
+	 */
+	public function is_v1_configured() {
+		if ( empty( $this->settings['secret_key'] ) || empty( $this->settings['mws_access_key'] ) ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Checks if there's settings for v1
+	 *
+	 * @return bool
+	 */
+	public function has_v1_settings() {
+		return ! empty( $this->settings['seller_id'] );
 	}
 
 }

@@ -110,6 +110,7 @@
 			}
 		},
 		payment_region_on_change: function() {
+			$( '.wcapa-seller-central-secret-key-url' ).attr('href', amazon_admin_params.secret_keys_urls[ wc_simple_path_form.get_region_selected() ] );
 			if ( 'jp' === wc_simple_path_form.get_region_selected() ) {
 				// JP does not have Simple Path Registration, we open a new url for it.
 				wc_simple_path_form.register_now_link.attr( 'href', wc_simple_path_form.get_simple_path_url() );
@@ -349,7 +350,13 @@
 		},
 		toggle_visibility: function( e ) {
 			e.preventDefault();
-			$( $( this ).data( 'toggle' ) ).toggleClass( 'hidden' );
+			var target = $( $( this ).data( 'toggle' ) );
+			target.toggleClass( 'hidden' );
+			if ( ! $( this ).hasClass( 'wcapa-toggle-scroll' ) ) {
+				return;
+			}
+			var body = $( 'html, body' );
+			body.stop().animate( { scrollTop: target.offset().top - 100 }, 1000, 'swing' );
 		}
 	};
 	if ( $( 'body' ).hasClass( 'woocommerce_page_wc-settings' ) ) {
