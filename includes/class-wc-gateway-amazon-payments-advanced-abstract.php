@@ -484,7 +484,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields_before_legacy', $this->form_fields );
 
-		if ( ! empty( $this->settings['seller_id'] ) ) {
+		if ( $this->has_v1_settings() ) {
 			$this->form_fields = array_merge(
 				$this->form_fields,
 				array(
@@ -904,6 +904,15 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_shipping_fields' ) );
 		// Always ship to different address.
 		add_action( 'woocommerce_ship_to_different_address_checked', '__return_true' );
+	}
+
+	/**
+	 * Checks if there's settings for v1
+	 *
+	 * @return bool
+	 */
+	public function has_v1_settings() {
+		return ! empty( $this->settings['seller_id'] );
 	}
 
 }
