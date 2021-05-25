@@ -123,7 +123,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'payment_region'                  => self::get_payment_region_from_country( WC()->countries->get_base_country() ),
 			'enable_login_app'                => ( self::is_new_installation() ) ? 'yes' : 'no',
 			'app_client_id'                   => '',
-			'app_client_secret'               => '',
 			'sandbox'                         => 'yes',
 			'payment_capture'                 => 'no',
 			'authorization_mode'              => 'async',
