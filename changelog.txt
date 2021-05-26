@@ -1,5 +1,9 @@
 *** Amazon Pay Changelog ***
 
+= 2.0.2 - 2021-xx-xx =
+* Fix - Issue that caused secret key from pre v2 to be lost after migrating to v2.
+* Add - Allow recovery of v1 secret key if lost during migration to v2.
+
 = 2.0.1 - 2021-05-14 =
 * Update - WP tested up to 5.7.
 * Update - WC tested up to 5.3.
