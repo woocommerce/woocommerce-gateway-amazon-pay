@@ -1627,8 +1627,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$desired = (array) $desired; // recast, just in case.
 
 		foreach ( $desired as $prop => $value ) {
-			if ( is_object( $value ) || is_array( $value ) ) {
+			if ( is_object( $value ) ) {
 				$valid = $this->validate_session_properties( $current[ $prop ], $value );
+			} elseif ( is_array( $value ) ) {
+				if ( array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) {
+					// associative array, recurse.
+					$valid = $this->validate_session_properties( $current[ $prop ], $value );
+				} else {
+					// sequential array, which might be in different order, so lets just diff.
+					$valid = array_diff( $value, $current[ $prop ] );
+					$valid = count( $valid ) === 0;
+				}
 			} else {
 				$valid = $current[ $prop ] === $value;
 			}
