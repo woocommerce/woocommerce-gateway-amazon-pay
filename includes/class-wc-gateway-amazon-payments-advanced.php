@@ -105,6 +105,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Load handlers for cart and orders after WC Cart is loaded.
 	 */
 	public function init_handlers() {
+		if ( is_null( WC()->cart ) ) {
+			return;
+		}
+
 		$available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
 
 		if ( ! isset( $available_gateways[ $this->id ] ) ) {
