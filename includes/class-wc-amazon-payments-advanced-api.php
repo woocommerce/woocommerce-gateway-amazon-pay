@@ -232,9 +232,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 			foreach ( $countries as $location ) {
 				$country = $location->code;
-				if ( ! isset( $zones[ $country ] ) ) {
-					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
-				}
+				// We're forcing it to be an empty, since it will override if the full country is allowed anywhere.
+				$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
 			}
 
 			foreach ( $states as $location ) {
@@ -242,11 +241,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				$country        = strtoupper( $location_codes[0] );
 				$state          = $location_codes[1];
 				if ( ! isset( $zones[ $country ] ) ) {
-					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
-				}
-
-				if ( ! isset( $zones[ $country ]->statesOrRegions ) ) {
+					$zones[ $country ]                  = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
 					$zones[ $country ]->statesOrRegions = array();
+				} else {
+					if ( ! isset( $zones[ $country ]->statesOrRegions ) ) {
+						// Do not override anything if the country is allowed fully.
+						continue;
+					}
 				}
 
 				$zones[ $country ]->statesOrRegions[] = $state;
