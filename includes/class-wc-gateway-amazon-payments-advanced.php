@@ -1650,16 +1650,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			if ( false === $valid ) {
 				$full_prop = implode( '.', $path );
-				$valid     = new WP_Error(
-					'invalid_prop',
-					sprintf( 'Invalid property \'%s\'', $full_prop ),
-					(object) array(
-						'prop'      => $full_prop,
-						'is'        => $current[ $prop ],
-						'should_be' => $value,
-					)
+
+				$data = (object) array(
+					'prop'      => $full_prop,
+					'is'        => $current[ $prop ],
+					'should_be' => $value,
 				);
-				return $valid;
+
+				$valid = apply_filters( 'woocommerce_amazon_pa_invalid_session_property', $valid, $data );
+
+				if ( false === $valid ) {
+					$valid = new WP_Error(
+						'invalid_prop',
+						sprintf( 'Invalid property \'%s\'', $full_prop ),
+						$data
+					);
+					return $valid;
+				}
 			}
 
 			if ( is_wp_error( $valid ) ) {
