@@ -1705,6 +1705,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function maybe_render_login_button_again( $checkout_session, $wrap = true ) {
 		$is_valid = $this->is_checkout_session_still_valid( $checkout_session );
 		if ( is_wp_error( $is_valid ) ) {
+			wc_apa()->log( $is_valid );
 			$this->render_login_button_again( $is_valid->get_error_message(), $wrap );
 			return;
 		}
