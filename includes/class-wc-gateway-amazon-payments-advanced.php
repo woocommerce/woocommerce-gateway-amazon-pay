@@ -1617,9 +1617,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param  mixed $current Compare source.
 	 * @param  mixed $desired Optional. Desired values to compare against.
-	 * @return bool
+	 * @param  mixed $path    Optional. Current property path, to add to the error data. Used recursively.
+	 * @return bool|WP_Error
 	 */
-	private function validate_session_properties( $current, $desired = null ) {
+	private function validate_session_properties( $current, $desired = null, $path = array() ) {
 		$current = (array) $current;
 
 		if ( is_null( $desired ) ) {
@@ -1631,12 +1632,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$desired = (array) $desired; // recast, just in case.
 
 		foreach ( $desired as $prop => $value ) {
+			array_push( $path, $prop );
 			if ( is_object( $value ) ) {
-				$valid = $this->validate_session_properties( $current[ $prop ], $value );
+				$valid = $this->validate_session_properties( $current[ $prop ], $value, $path );
 			} elseif ( is_array( $value ) ) {
 				if ( array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) {
 					// associative array, recurse.
-					$valid = $this->validate_session_properties( $current[ $prop ], $value );
+					$valid = $this->validate_session_properties( $current[ $prop ], $value, $path );
 				} else {
 					// sequential array, which might be in different order, so lets just diff.
 					$valid = array_diff( $value, $current[ $prop ] );
@@ -1645,9 +1647,32 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			} else {
 				$valid = $current[ $prop ] === $value;
 			}
-			if ( ! $valid ) {
+
+			if ( false === $valid ) {
+				$full_prop = implode( '.', $path );
+
+				$data = (object) array(
+					'prop'      => $full_prop,
+					'is'        => $current[ $prop ],
+					'should_be' => $value,
+				);
+
+				$valid = apply_filters( 'woocommerce_amazon_pa_invalid_session_property', $valid, $data );
+
+				if ( false === $valid ) {
+					$valid = new WP_Error(
+						'invalid_prop',
+						sprintf( 'Invalid property \'%s\'', $full_prop ),
+						$data
+					);
+					return $valid;
+				}
+			}
+
+			if ( is_wp_error( $valid ) ) {
 				return $valid;
 			}
+			array_pop( $path );
 		}
 		return true;
 	}
@@ -1663,12 +1688,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return new WP_Error( 'force_refresh', $this->get_force_refresh() );
 		}
 
-		if ( ! $this->validate_session_properties( $checkout_session ) ) {
-			return new WP_Error( 'session_changed', __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		$props_validation = $this->validate_session_properties( $checkout_session );
+		if ( is_wp_error( $props_validation ) ) {
+			return new WP_Error( 'session_changed', __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ), $props_validation->get_error_data() );
 		}
 
 		if ( 'Open' !== $checkout_session->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			return new WP_Error( 'not_open', __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			return new WP_Error( 'not_open', __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ), $checkout_session->statusDetails->state ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		}
 
 		if ( $checkout_session->productType !== $this->get_current_cart_action() ) { // phpcs:ignore WordPress.NamingConventions
@@ -1686,6 +1712,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function maybe_render_login_button_again( $checkout_session, $wrap = true ) {
 		$is_valid = $this->is_checkout_session_still_valid( $checkout_session );
 		if ( is_wp_error( $is_valid ) ) {
+			wc_apa()->log( $is_valid );
 			$this->render_login_button_again( $is_valid->get_error_message(), $wrap );
 			return;
 		}

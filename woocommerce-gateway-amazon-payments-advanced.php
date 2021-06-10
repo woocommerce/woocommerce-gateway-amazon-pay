@@ -299,9 +299,9 @@ class WC_Amazon_Payments_Advanced {
 	 *
 	 * @since 1.6.0
 	 *
-	 * @param string      $message Log message.
-	 * @param null|mixed  $object Data to be printed for more detail about the entry.
-	 * @param null|string $context Context for the log.
+	 * @param string|WP_Error $message Log message.
+	 * @param null|mixed      $object Data to be printed for more detail about the entry.
+	 * @param null|string     $context Context for the log.
 	 */
 	public function log( $message, $object = null, $context = null ) {
 		if ( empty( $this->settings['debug'] ) ) {
@@ -314,6 +314,14 @@ class WC_Amazon_Payments_Advanced {
 
 		if ( ! is_a( $this->logger, 'WC_Logger' ) ) {
 			$this->logger = new WC_Logger();
+		}
+
+		if ( is_wp_error( $message ) ) {
+			$error_data = $message->get_error_data();
+			if ( ! is_null( $error_data ) ) {
+				$object = $error_data;
+			}
+			$message = $message->get_error_message();
 		}
 
 		if ( empty( $context ) ) {
