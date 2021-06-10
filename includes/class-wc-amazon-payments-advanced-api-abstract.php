@@ -105,7 +105,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 *
 	 * @param  string $key Key, if retrieving a single key.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 */
 	public static function get_settings( $key = null ) {
 		$settings_options_name = 'woocommerce_amazon_payments_advanced_settings';
