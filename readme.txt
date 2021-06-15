@@ -54,6 +54,12 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.0.3 - 2021-xx-xx =
+* Fix - Issues with state level handling of shipping zones.
+* Fix - Issue that attempted to initialize the plugin in the REST API, throwing a fatal error.
+* Fix - Issue with subscriptions and checkout session validation, which forced customers to login again.
+* Add - Logging when users are asked to log in again, to debug other potential issues with this validation.
+
 = 2.0.2 - 2021-05-26 =
 * Fix - Issue that caused secret key from pre v2 to be lost after migrating to v2.
 * Add - Allow recovery of v1 secret key if lost during migration to v2.
