@@ -48,6 +48,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		add_filter( 'woocommerce_amazon_pa_processed_order_redirect', array( $this, 'maybe_redirect_to_subscription' ), 10, 2 );
 		add_filter( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( $this, 'add_subscription_post_type' ) );
 		add_filter( 'woocommerce_amazon_pa_order_admin_actions', array( $this, 'remove_charge_permission_actions_on_recurring' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_invalid_session_property', array( $this, 'ignore_amounts_in_session_validation' ), 10, 2 );
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before).
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
@@ -793,5 +794,25 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			unset( $actions['authorize_capture'] );
 		}
 		return $actions;
+	}
+
+	/**
+	 * Ignore recurring properties
+	 *
+	 * @param  bool   $valid Wether the data is invalid or not.
+	 * @param  object $data Order object.
+	 * @return bool
+	 */
+	public function ignore_amounts_in_session_validation( $valid, $data ) {
+		if ( $valid ) {
+			return $valid;
+		}
+
+		switch ( $data->prop ) {
+			case 'recurringMetadata.amount.amount':
+				return true; // returning true turns ignores the invalid value, and considers it valid.
+		}
+
+		return $valid;
 	}
 }
