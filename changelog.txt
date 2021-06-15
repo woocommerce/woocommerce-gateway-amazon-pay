@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.0.3 - 2021-xx-xx =
+= 2.0.3 - 2021-06-15 =
 * Fix - Issues with state level handling of shipping zones.
 * Fix - Issue that attempted to initialize the plugin in the REST API, throwing a fatal error.
 * Fix - Issue with subscriptions and checkout session validation, which forced customers to login again.

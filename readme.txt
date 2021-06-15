@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 5.7
-Stable tag: 2.0.2
+Stable tag: 2.0.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -54,7 +54,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.0.3 - 2021-xx-xx =
+= 2.0.3 - 2021-06-15 =
 * Fix - Issues with state level handling of shipping zones.
 * Fix - Issue that attempted to initialize the plugin in the REST API, throwing a fatal error.
 * Fix - Issue with subscriptions and checkout session validation, which forced customers to login again.
