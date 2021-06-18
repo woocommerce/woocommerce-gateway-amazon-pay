@@ -708,14 +708,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *
 	 * @param  bool   $update Wether to Update.
 	 * @param  string $method New method.
-	 * @return bool|string False if the gateway shouldn't update, the gateway id if it should be updated.
+	 * @return bool   False if the gateway shouldn't update. True, otherwise.
 	 */
 	public function maybe_not_update_payment_method( $update, $method ) {
 		$id = wc_apa()->get_gateway()->id;
 		if ( $method === $id ) {
 			return false;
 		}
-		return $id;
+		return $update;
 	}
 
 	/**
