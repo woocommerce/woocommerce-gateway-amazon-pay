@@ -55,7 +55,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 == Changelog ==
 
 = 2.0.4 - 2021-xx-xx =
-* Fix - Interference when subcsriptions' payment changes to other payment method.
+* Fix - Interference when subcsriptions' payment method changes to other payment method.
 
 = 2.0.3 - 2021-06-15 =
 * Fix - Issues with state level handling of shipping zones.
