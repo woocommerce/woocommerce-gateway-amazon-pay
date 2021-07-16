@@ -94,6 +94,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				'subscription_cancellation',
 				'multiple_subscriptions',
 				'subscription_payment_method_change_customer',
+				'subscription_amount_changes',
 				// TODO: Implement upgrades/downgrades.
 			)
 		);
