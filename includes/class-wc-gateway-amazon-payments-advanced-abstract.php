@@ -438,6 +438,8 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			),
 			'hide_standard_checkout_button' => array(
 				'title'   => __( 'Standard checkout button', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'Hide standard checkout button on chart page. Only applies when there are not other gateways enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
 				'type'    => 'checkbox',
 				'label'   => __( 'Hide standard checkout button on cart page', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'default' => 'no',
@@ -464,6 +466,15 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			),
 		);
 
+		if ( $this->has_other_gateways_enabled() ) {
+			$this->form_fields[ 'hide_standard_checkout_button' ] = array_merge(
+				$this->form_fields[ 'hide_standard_checkout_button' ],
+				array(
+					'disabled' => true,
+				)
+			);
+		}
+	
 		/**
 		 * For new merchants "enforce" the use of LPA ( Hide "Use Login with Amazon App" and consider it ticked.)
 		 * For old merchants, keep "Use Login with Amazon App" checkbox, as they can fallback to APA (no client id)
@@ -932,4 +943,21 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		return ! empty( $this->settings['seller_id'] );
 	}
 
+	/**
+	 * Checks if site has other gateways enabled.
+	 *
+	 * @return bool
+	 */
+	public function has_other_gateways_enabled() {
+		$gateways = WC()->payment_gateways->get_available_payment_gateways();
+		unset( $gateways['amazon_payments_advanced'] );
+		if ( ! empty( $gateways ) ) {
+			foreach ( $gateways as $gateway ) {
+				if ( $gateway->enabled == 'yes' ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }

@@ -2302,7 +2302,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
-		if ( 'yes' !== $this->settings['hide_standard_checkout_button'] ) {
+		if ( 'yes' !== $this->settings['hide_standard_checkout_button'] || $this->has_other_gateways_enabled() ) {
 			return;
 		}
 
