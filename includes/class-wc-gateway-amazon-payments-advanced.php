@@ -926,8 +926,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( ! empty( $checkout_session->shippingAddress ) ) : // phpcs:ignore WordPress.NamingConventions
 			?>
 			<div id="shipping_address_widget">
+				<?php
+				$change_label = esc_html__( 'Change', 'woocommerce-gateway-amazon-payments-advanced' );
+				?>
 				<h3>
-					<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change">Change</a>
+					<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change"><?php echo $change_label; ?></a>
 					<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 				</h3>
 				<div class="shipping_address_display">
@@ -937,7 +940,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			<?php
 		endif;
 	}
-
+	
 	/**
 	 * Render layout for Amazon Checkout
 	 */
