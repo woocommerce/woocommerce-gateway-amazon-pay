@@ -475,7 +475,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 		}
 
-		$formatted['phone'] = isset( $address->Phone ) ? (string) $address->Phone : null;
+		$formatted['phone'] = isset( $address->Phone ) ? (string) preg_replace('/[^0-9-_]/', '', $address->Phone) : null;
 		$formatted['city'] = isset( $address->City ) ? (string) $address->City : null;
 		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
 			if ( empty( $formatted['city'] ) ) {
