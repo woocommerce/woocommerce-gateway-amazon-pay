@@ -629,6 +629,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$order = $_order;
 
 		if ( wcs_is_subscription( $order ) ) {
+			/** @var \WC_Subscription $order */
 			$related = $order->get_related_orders( 'all', array( 'parent' ) );
 			$order   = reset( $related );
 		}

@@ -185,6 +185,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * @return bool|array
 	 */
 	protected static function get_shipping_restrictions() {
+		/** @var \WC_Shipping_Zone_Data_Store $data_store */
 		$data_store         = WC_Data_Store::load( 'shipping-zone' );
 		$raw_zones          = $data_store->get_zones();
 		$zones              = array();

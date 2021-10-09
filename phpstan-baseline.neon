@@ -1,0 +1,41 @@
+parameters:
+	ignoreErrors:
+		# Impossible
+		-
+			message: "#^Cannot unset offset 'enable_login_app' on array\\('important_note' \\=\\> array\\('title' \\=\\> string, 'type' \\=\\> 'title', 'description' \\=\\> string\\), 'payment_region' \\=\\> array\\('title' \\=\\> string, 'type' \\=\\> 'select', 'description' \\=\\> '', 'default' \\=\\> string, 'options' \\=\\> array\\), 'register_now' \\=\\> array\\('title' \\=\\> string, 'type' \\=\\> 'title', 'description' \\=\\> string\\), 'enabled' \\=\\> array\\('title' \\=\\> string, 'label' \\=\\> string, 'type' \\=\\> 'checkbox', 'description' \\=\\> '', 'default' \\=\\> 'yes'\\), 'account_details' \\=\\> array\\('title' \\=\\> string, 'type' \\=\\> 'title', 'description' \\=\\> ''\\), 'manual_notice' \\=\\> array\\('type' \\=\\> 'custom', 'html' \\=\\> '\\<p\\>Problems with…'\\), 'manual_container_start' \\=\\> array\\('type' \\=\\> 'custom', 'html' \\=\\> '\\<div id\\=\"manual…'\\), 'keys_json' \\=\\> array\\('title' \\=\\> string, 'type' \\=\\> 'file', 'description' \\=\\> string, 'default' \\=\\> '', 'desc_tip' \\=\\> true\\), \\.\\.\\.\\)\\.$#"
+			count: 1
+			path: includes/class-wc-gateway-amazon-payments-advanced-abstract.php
+
+		# WC()->cart is really an instance of WC_Subscriptions_Cart
+		-
+			message: "#^Access to an undefined property WC_Cart\\:\\:\\$recurring_carts\\.$#"
+			count: 4
+			path: includes/class-wc-gateway-amazon-payments-advanced-subscriptions.php
+
+		# Mangled property of WC_Subscription
+		-
+			message: "#^Access to an undefined property WC_Subscription\\:\\:\\$handled_cancel\\.$#"
+			count: 1
+			path: includes/class-wc-gateway-amazon-payments-advanced-subscriptions.php
+
+		# WC_Checkout::__get()
+		-
+			message: "#^Access to an undefined property WC_Checkout\\:\\:\\$checkout_fields\\.$#"
+			count: 4
+			path: includes/class-wc-gateway-amazon-payments-advanced.php
+
+		# Mangled properties of WC_Session
+		-
+			message: "#^Access to an undefined property WC_Session\\:\\:\\$amazon_checkout_do_logout\\.$#"
+			count: 2
+			path: includes/class-wc-gateway-amazon-payments-advanced.php
+		-
+			message: "#^Access to an undefined property WC_Session\\:\\:\\$force_refresh_message\\.$#"
+			count: 3
+			path: includes/class-wc-gateway-amazon-payments-advanced.php
+
+		# WC()->session is a WC_Session_Handler, not WC_Session
+		-
+			message: "#^Call to an undefined method WC_Session\\:\\:save_data\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wc-gateway-amazon-payments-advanced.php
