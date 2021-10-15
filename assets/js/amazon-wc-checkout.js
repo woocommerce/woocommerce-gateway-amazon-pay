@@ -59,6 +59,7 @@
 		$( document.body ).on( 'updated_wc_div', renderButton );
 		$( document.body ).on( 'updated_checkout', renderButton );
 		$( document.body ).on( 'payment_method_selected', renderButton );
+		$( document.body ).on( 'updated_shipping_method', renderButton );
 
 		function attemptRefreshData() {
 			var dataCont = $( '#wc-apa-update-vals' );
