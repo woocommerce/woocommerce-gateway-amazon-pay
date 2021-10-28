@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Amazon Pay
  * Plugin URI: https://woocommerce.com/products/pay-with-amazon/
  * Description: Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.
- * Version: 2.0.3
+ * Version: 2.0.4 - alpha 2
  * Author: WooCommerce
  * Author URI: https://woocommerce.com
  * Text Domain: woocommerce-gateway-amazon-payments-advanced
@@ -269,6 +269,17 @@ class WC_Amazon_Payments_Advanced {
 		// Get site setting for blog name.
 		$site_description = get_bloginfo( 'description' );
 		return self::sanitize_string( $site_description );
+	}
+
+	/**
+	 * Helper method to get order Version.
+	 *
+	 * @return string
+	 */
+	public static function get_order_version( $order_id ) {
+		$order   = wc_get_order( $order_id );
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		return $version;
 	}
 
 	/**

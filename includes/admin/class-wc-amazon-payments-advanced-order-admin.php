@@ -29,7 +29,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		$order_id = absint( $_POST['order_id'] );
 		$order    = wc_get_order( $order_id );
-		$version  = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version  = WC_Amazon_Payments_Advanced::get_order_version( $order_id );
 		$id       = isset( $_POST['amazon_id'] ) ? wc_clean( $_POST['amazon_id'] ) : '';
 		$action   = sanitize_title( $_POST['amazon_action'] );
 
@@ -55,7 +55,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		$order_id = absint( $_GET['post'] ); // TODO: This may break when custom data stores are implemented in the future.
 		$order    = wc_get_order( $order_id );
 
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_id );
 
 		$id     = isset( $_GET['amazon_id'] ) ? wc_clean( $_GET['amazon_id'] ) : '';
 		$action = sanitize_title( $_GET['amazon_action'] );
@@ -134,7 +134,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		$order_id = absint( $post->ID );
 		$order    = wc_get_order( $order_id );
 
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_id );
 
 		do_action( 'wc_amazon_authorization_box_render', $order, $version );
 	}

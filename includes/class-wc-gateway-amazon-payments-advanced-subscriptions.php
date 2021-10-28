@@ -437,7 +437,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param  object   $response Response from the API.
 	 */
 	public function copy_meta_to_sub( $order, $response ) {
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v2' !== strtolower( $version ) ) {
 			return;
 		}
@@ -479,7 +479,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return array
 	 */
 	public function copy_meta_from_sub( $meta, $order, $subscription ) {
-		$version = version_compare( $subscription->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $subscription->get_id() );
 		if ( 'v2' !== strtolower( $version ) ) {
 			return $meta;
 		}
@@ -513,7 +513,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *                                   the subscription was purchased in.
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v2' !== strtolower( $version ) ) {
 			return;
 		}
@@ -570,7 +570,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param WC_Subscription $subscription Subscription object.
 	 */
 	public function cancelled_subscription( $subscription ) {
-		$version = version_compare( $subscription->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $subscription->get_id() );
 		if ( 'v2' !== strtolower( $version ) ) {
 			return;
 		}

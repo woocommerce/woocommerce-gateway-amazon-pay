@@ -303,9 +303,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		if ( is_wp_error( $order_post ) ) {
 			return $order_post;
 		}
-
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_reference_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {
@@ -342,9 +341,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		if ( is_wp_error( $order_post ) ) {
 			return $order_post;
 		}
-
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_reference_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {
@@ -423,7 +421,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		}
 
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_authorization_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {
@@ -471,7 +469,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		}
 
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_authorization_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {
@@ -530,7 +528,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		}
 
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_capture_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {
