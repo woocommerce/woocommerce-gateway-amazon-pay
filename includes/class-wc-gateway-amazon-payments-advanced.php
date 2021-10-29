@@ -1459,7 +1459,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return null|string Returns null on error, or the new status (even if it's the same as the old one).
 	 */
 	public function log_charge_permission_status_change( $order, $charge_permission = null ) {
-		$charge_permission_id = $charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
+		$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
 
 		// TODO: Maybe support multple charges to be tracked?
 		if ( ! is_null( $charge_permission ) ) {
