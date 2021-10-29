@@ -520,8 +520,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$order_id = $order->get_id();
 
-		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
-
+		$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
+		
 		$capture_now = true;
 		switch ( WC_Amazon_Payments_Advanced_API::get_settings( 'payment_capture' ) ) {
 			case 'authorize':
@@ -585,7 +585,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$order_id = $subscription->get_id();
 
-		$charge_permission_id = $subscription->get_meta( 'amazon_charge_permission_id' );
+		$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order_id );
 
 		if ( empty( $charge_permission_id ) ) {
 			unset( $subscription->handled_cancel );
@@ -673,7 +673,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		if ( is_a( $rel_order, 'WC_Subscription' ) ) {
 			$rel_type = 'subscription';
 		}
-		$current_charge_permission_id = $rel_order->get_meta( 'amazon_charge_permission_id' );
+		$current_charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $rel_order->get_id() );
 		if ( $current_charge_permission_id !== $charge_permission_id ) {
 			return;
 		}

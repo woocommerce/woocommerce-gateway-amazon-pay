@@ -174,7 +174,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		$need_refresh = false;
 
-		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+		$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
 
 		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order );
 
@@ -208,7 +208,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 				break;
 		}
 
-		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		$charge_id = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 
 		if ( ! empty( $charge_id ) ) {
 			$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order );

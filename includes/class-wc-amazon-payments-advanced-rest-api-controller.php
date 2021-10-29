@@ -264,10 +264,10 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			wc_apa()->get_gateway()->get_cached_charge_status( $order );
 		}
 
-		$charge_permission_id            = $order->get_meta( 'amazon_charge_permission_id' );
+		$charge_permission_id            = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
 		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order, true );
 
-		$charge_id            = $order->get_meta( 'amazon_charge_id' );
+		$charge_id            = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 		$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order, true );
 
 		// TODO: Implement subscriptions v1 billing agreement, along with auth and capture methods for that.
@@ -320,7 +320,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				$result['authorized'] = false;
 			} else {
 				$result['authorized']       = true;
-				$result['amazon_charge_id'] = $order->get_meta( 'amazon_charge_id' );
+				$result['amazon_charge_id'] = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 			}
 			return rest_ensure_response( $result );
 		}
@@ -359,7 +359,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			} else {
 				$result['authorized']       = true;
 				$result['captured']         = true;
-				$result['amazon_charge_id'] = $order->get_meta( 'amazon_charge_id' );
+				$result['amazon_charge_id'] = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 			}
 			return rest_ensure_response( $result );
 		}
@@ -505,7 +505,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				$result['captured'] = false;
 			} else {
 				$result['captured']         = true;
-				$result['amazon_charge_id'] = $order->get_meta( 'amazon_charge_id' );
+				$result['amazon_charge_id'] = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 			}
 			return rest_ensure_response( $result );
 		}

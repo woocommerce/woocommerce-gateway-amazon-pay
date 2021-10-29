@@ -1366,7 +1366,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param  null|string|object $charge Optional. Can be the charge_id, or the charge object from the amazon API.
 	 */
 	public function log_charge_status_change( $order, $charge = null ) {
-		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		$charge_id = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 		// TODO: Maybe support multple charges to be tracked?
 		if ( ! is_null( $charge ) ) {
 			if ( is_string( $charge ) ) {
@@ -1459,7 +1459,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return null|string Returns null on error, or the new status (even if it's the same as the old one).
 	 */
 	public function log_charge_permission_status_change( $order, $charge_permission = null ) {
-		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+		$charge_permission_id = $charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
+
 		// TODO: Maybe support multple charges to be tracked?
 		if ( ! is_null( $charge_permission ) ) {
 			if ( is_string( $charge_permission ) ) {
@@ -1863,7 +1864,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function refresh_cached_charge_permission_status( $order, $charge_permission = null ) {
 		if ( ! is_object( $charge_permission ) ) {
-			$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+			$charge_permission_id = $charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
+
 			if ( empty( $charge_permission_id ) ) {
 				return new WP_Error( 'no_charge_permission', 'You cannot refresh this order\'s charge_permission, as it has no charge_permission_id, and you didn\'t specify a charge permission object' );
 			}
@@ -1919,7 +1921,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function refresh_cached_charge_status( $order, $charge = null ) {
 		if ( ! is_object( $charge ) ) {
-			$charge_id = $order->get_meta( 'amazon_charge_id' );
+			$charge_id = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
+
 			if ( empty( $charge_id ) ) {
 				return new WP_Error( 'no_charge', 'You cannot refresh this order\'s charge, as it has no charge_id, and you didn\'t specify a charge object' );
 			}
@@ -2001,7 +2004,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		$order     = wc_get_order( $order_id );
-		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		$charge_id = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 		if ( empty( $charge_id ) ) {
 			wc_apa()->log( 'Order #' . $order_id . ' doesnt have a charge' );
 			return new WP_Error( 'no_charge', 'No charge to refund on this order' );
@@ -2104,7 +2107,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order_id = $order->get_id();
 		if ( empty( $id ) ) {
-			$id = $order->get_meta( 'amazon_charge_permission_id' );
+			$id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order_id );
 		}
 
 		if ( empty( $id ) ) {
@@ -2155,7 +2158,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order_id = $order->get_id();
 		if ( empty( $id ) ) {
-			$id = $order->get_meta( 'amazon_charge_id' );
+			$id = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 		}
 
 		if ( empty( $id ) ) {
@@ -2188,7 +2191,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order_id = $order->get_id();
 		if ( empty( $id ) ) {
-			$id = $order->get_meta( 'amazon_charge_id' );
+			$id = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 		}
 
 		if ( empty( $id ) ) {
@@ -2222,7 +2225,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order_id = $order->get_id();
 		if ( empty( $id ) ) {
-			$id = $order->get_meta( 'amazon_charge_id' );
+			$id = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 		}
 
 		if ( empty( $id ) ) {

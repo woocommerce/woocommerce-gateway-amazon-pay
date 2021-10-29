@@ -283,6 +283,43 @@ class WC_Amazon_Payments_Advanced {
 	}
 
 	/**
+	 * Helper method to get order Version.
+	 *
+	 * @return string
+	 */
+	public static function get_order_charge_permission( $order_id ) {
+		$order   = wc_get_order( $order_id );
+		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+		if ( empty( $charge_permission_id ) ) {
+			// For the subscriptions created on versions previous V2 we update the meta.
+			$charge_permission_id = $order->get_meta( 'amazon_billing_agreement_id' );
+			if ( empty( $charge_permission_id ) ) {
+				// For the orders created on versions previous V2 we update the meta.
+				$charge_permission_id = $order->get_meta( 'amazon_reference_id' );
+			}
+			$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
+		}
+		return $charge_permission_id;
+	}
+
+	/**
+	 * Helper method to get order Version.
+	 *
+	 * @return string
+	 */
+	public static function get_order_charge_id( $order_id ) {
+		$order   = wc_get_order( $order_id );
+		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		if ( empty( $charge_id ) ) {
+			// For the orders created on versions previous V2 we update the meta. 
+			$charge_id = $order->get_meta( 'amazon_capture_id');
+			$order->update_meta_data( 'amazon_charge_id', $charge_id );
+		}
+
+		return $charge_id;
+	}
+
+	/**
 	 * Helper method to get a sanitized version of a string.
 	 *
 	 * @param string $string Sanitize some elements.

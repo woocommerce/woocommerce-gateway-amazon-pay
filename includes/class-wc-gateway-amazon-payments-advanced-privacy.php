@@ -107,11 +107,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 						),
 						array(
 							'name'  => __( 'Amazon Pay charge permission id', 'woocommerce-gateway-amazon-payments-advanced' ),
-							'value' => get_post_meta( $order->get_id(), 'amazon_charge_permission_id', true ),
+							'value' => WC_Amazon_Payments_Advanced::get_order_charge_permisssion( $order->get_id() ),
 						),
 						array(
 							'name'  => __( 'Amazon Pay charge id', 'woocommerce-gateway-amazon-payments-advanced' ),
-							'value' => get_post_meta( $order->get_id(), 'amazon_charge_id', true ),
+							'value' => WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() ),
 						),
 					),
 				);
@@ -176,7 +176,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 						),
 						array(
 							'name'  => __( 'Amazon Pay charge permission id', 'woocommerce-gateway-amazon-payments-advanced' ),
-							'value' => get_post_meta( $subscription->get_id(), 'amazon_charge_permission_id', true ),
+							'value' => WC_Amazon_Payments_Advanced::get_order_charge_permisssion( $subscription->get_id()),
 						),
 					),
 				);
