@@ -276,7 +276,10 @@ class WC_Amazon_Payments_Advanced {
 	 *
 	 * @return string
 	 */
-	public static function get_order_version( $order_id ) {
+	public static function get_order_version( $order_id, $force = true ) {
+		if ( $force && WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
+			return 'v2';
+		}
 		$order   = wc_get_order( $order_id );
 		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
 		return $version;
