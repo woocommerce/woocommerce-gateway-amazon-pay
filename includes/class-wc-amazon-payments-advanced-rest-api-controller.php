@@ -264,10 +264,10 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			wc_apa()->get_gateway()->get_cached_charge_status( $order );
 		}
 
-		$charge_permission_id            = $order->get_meta( 'amazon_charge_permission_id' );
+		$charge_permission_id            = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
 		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order, true );
 
-		$charge_id            = $order->get_meta( 'amazon_charge_id' );
+		$charge_id            = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 		$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order, true );
 
 		// TODO: Implement subscriptions v1 billing agreement, along with auth and capture methods for that.
@@ -303,9 +303,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		if ( is_wp_error( $order_post ) ) {
 			return $order_post;
 		}
-
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_reference_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {
@@ -321,7 +320,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				$result['authorized'] = false;
 			} else {
 				$result['authorized']       = true;
-				$result['amazon_charge_id'] = $order->get_meta( 'amazon_charge_id' );
+				$result['amazon_charge_id'] = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 			}
 			return rest_ensure_response( $result );
 		}
@@ -342,9 +341,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		if ( is_wp_error( $order_post ) ) {
 			return $order_post;
 		}
-
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_reference_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {
@@ -361,7 +359,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			} else {
 				$result['authorized']       = true;
 				$result['captured']         = true;
-				$result['amazon_charge_id'] = $order->get_meta( 'amazon_charge_id' );
+				$result['amazon_charge_id'] = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 			}
 			return rest_ensure_response( $result );
 		}
@@ -423,7 +421,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		}
 
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_authorization_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {
@@ -471,7 +469,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		}
 
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_authorization_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {
@@ -507,7 +505,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				$result['captured'] = false;
 			} else {
 				$result['captured']         = true;
-				$result['amazon_charge_id'] = $order->get_meta( 'amazon_charge_id' );
+				$result['amazon_charge_id'] = WC_Amazon_Payments_Advanced::get_order_charge_id( $order->get_id() );
 			}
 			return rest_ensure_response( $result );
 		}
@@ -530,7 +528,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		}
 
 		$order   = wc_get_order( $order_post->ID );
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
 		if ( 'v1' === strtolower( $version ) ) {
 			$error = $this->get_missing_capture_id_request_error( $order_post );
 			if ( is_wp_error( $error ) ) {

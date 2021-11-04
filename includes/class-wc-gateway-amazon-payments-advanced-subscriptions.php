@@ -437,7 +437,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param  object   $response Response from the API.
 	 */
 	public function copy_meta_to_sub( $order, $response ) {
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v2' !== strtolower( $version ) ) {
 			return;
 		}
@@ -479,7 +479,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return array
 	 */
 	public function copy_meta_from_sub( $meta, $order, $subscription ) {
-		$version = version_compare( $subscription->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $subscription->get_id() );
 		if ( 'v2' !== strtolower( $version ) ) {
 			return $meta;
 		}
@@ -513,14 +513,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 *                                   the subscription was purchased in.
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v2' !== strtolower( $version ) ) {
 			return;
 		}
 
 		$order_id = $order->get_id();
 
-		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+		$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
 
 		$capture_now = true;
 		switch ( WC_Amazon_Payments_Advanced_API::get_settings( 'payment_capture' ) ) {
@@ -570,7 +570,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param WC_Subscription $subscription Subscription object.
 	 */
 	public function cancelled_subscription( $subscription ) {
-		$version = version_compare( $subscription->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $subscription->get_id() );
 		if ( 'v2' !== strtolower( $version ) ) {
 			return;
 		}
@@ -585,7 +585,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$order_id = $subscription->get_id();
 
-		$charge_permission_id = $subscription->get_meta( 'amazon_charge_permission_id' );
+		$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order_id );
 
 		if ( empty( $charge_permission_id ) ) {
 			unset( $subscription->handled_cancel );
@@ -673,7 +673,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		if ( is_a( $rel_order, 'WC_Subscription' ) ) {
 			$rel_type = 'subscription';
 		}
-		$current_charge_permission_id = $rel_order->get_meta( 'amazon_charge_permission_id' );
+		$current_charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $rel_order->get_id() );
 		if ( $current_charge_permission_id !== $charge_permission_id ) {
 			return;
 		}
