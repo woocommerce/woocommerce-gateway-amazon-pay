@@ -301,6 +301,7 @@ class WC_Amazon_Payments_Advanced {
 				$charge_permission_id = $order->get_meta( 'amazon_reference_id' );
 			}
 			$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
+			$order->save();
 		}
 		return $charge_permission_id;
 	}
@@ -320,10 +321,11 @@ class WC_Amazon_Payments_Advanced {
 				// For the orders created on versions previous V2 with pending capture 
 				// we adapt the existing meta. 
 				$authorization_id = $order->get_meta( 'amazon_authorization_id' );
-				$charge_id = substr_replace( $authorization_id, 'C', 20, 1 );
+				$charge_id = str_replace( '-A', '-C', $authorization_id );
 			}
 			// For the orders created on versions previous V2 we update the meta.
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
+			$order->save();
 		}
 
 		return $charge_id;
