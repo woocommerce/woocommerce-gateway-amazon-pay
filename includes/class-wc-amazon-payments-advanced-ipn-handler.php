@@ -425,7 +425,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			}
 
 			$notification  = array(
-				'NotificationVersion' => 'V1',
+				'NotificationVersion' => 'v1',
 				'NotificationType'    => 'STATE_CHANGE',
 				'ObjectType'          => $type,
 				'ObjectId'            => $charge_id,
