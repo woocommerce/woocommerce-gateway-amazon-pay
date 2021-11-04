@@ -1864,7 +1864,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function refresh_cached_charge_permission_status( $order, $charge_permission = null ) {
 		if ( ! is_object( $charge_permission ) ) {
-			$charge_permission_id = $charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
+			$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
 
 			if ( empty( $charge_permission_id ) ) {
 				return new WP_Error( 'no_charge_permission', 'You cannot refresh this order\'s charge_permission, as it has no charge_permission_id, and you didn\'t specify a charge permission object' );

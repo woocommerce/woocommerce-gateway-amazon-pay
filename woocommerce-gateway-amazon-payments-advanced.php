@@ -274,6 +274,9 @@ class WC_Amazon_Payments_Advanced {
 	/**
 	 * Helper method to get order Version.
 	 *
+	 * @param int     $order_id Order ID.
+	 * @param boolean $force   Wether to force version to be v2 or not.
+	 *
 	 * @return string
 	 */
 	public static function get_order_version( $order_id, $force = true ) {
@@ -287,6 +290,8 @@ class WC_Amazon_Payments_Advanced {
 
 	/**
 	 * Helper method to get order Version.
+	 *
+	 * @param int $order_id Order ID.
 	 *
 	 * @return string
 	 */
@@ -308,6 +313,8 @@ class WC_Amazon_Payments_Advanced {
 
 	/**
 	 * Helper method to get order Version.
+	 *
+	 * @param int $order_id Order ID.
 	 *
 	 * @return string
 	 */

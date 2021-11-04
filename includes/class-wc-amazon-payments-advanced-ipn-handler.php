@@ -413,11 +413,11 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			switch ( $message['Message']['NotificationType'] ) {
 				case 'PaymentCapture':
 					$type      = 'CHARGE';
-					$charge_id = (string) $notification_data->CaptureDetails->AmazonCaptureId;
+					$charge_id = (string) $notification_data->CaptureDetails->AmazonCaptureId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
 					break;
 				case 'PaymentRefund':
 					$type      = 'REFUND';
-					$charge_id = (string) $notification_data->RefundDetails->AmazonRefundId;
+					$charge_id = (string) $notification_data->RefundDetails->AmazonRefundId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
 					break;
 				default:
 					wc_apa()->log( 'No handler for notification with type ' . $message['Message']['NotificationType'], $notification_data );
