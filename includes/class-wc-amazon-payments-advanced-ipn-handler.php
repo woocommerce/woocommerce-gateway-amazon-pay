@@ -420,7 +420,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 					$charge_id     = (string) $notification_data->RefundDetails->AmazonRefundId;
 					break;
 				default:
-					wc_apa()->log( 'No handler for notification with type ' . $message['Message']['NotificationType'] );
+					wc_apa()->log( 'No handler for notification with type ' . $message['Message']['NotificationType'], $notification_data );
 					return;
 			}
 
@@ -430,6 +430,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 				'ObjectType'          => $type,
 				'ObjectId'            => $charge_id,
 			);
+			wc_apa()->log( 'Parsed IPN Notification from V1 to V2', $notification_data );
 		} else {
 			$notification = $message['Message'];
 		}
