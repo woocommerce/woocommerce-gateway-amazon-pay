@@ -314,8 +314,15 @@ class WC_Amazon_Payments_Advanced {
 		$order   = wc_get_order( $order_id );
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
 		if ( empty( $charge_id ) ) {
-			// For the orders created on versions previous V2 we update the meta. 
+			// For the orders created on versions previous V2 we get the equivalent meta. 
 			$charge_id = $order->get_meta( 'amazon_capture_id');
+			if ( empty( $charge_id ) ) {
+				// For the orders created on versions previous V2 with pending capture 
+				// we adapt the existing meta. 
+				$authorization_id = $order->get_meta( 'amazon_authorization_id' );
+				$charge_id = substr_replace( $authorization_id, 'C', 20, 1 );
+			}
+			// For the orders created on versions previous V2 we update the meta.
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
 		}
 
