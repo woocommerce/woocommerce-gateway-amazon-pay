@@ -521,7 +521,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$order_id = $order->get_id();
 
 		$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
-		
+
 		$capture_now = true;
 		switch ( WC_Amazon_Payments_Advanced_API::get_settings( 'payment_capture' ) ) {
 			case 'authorize':

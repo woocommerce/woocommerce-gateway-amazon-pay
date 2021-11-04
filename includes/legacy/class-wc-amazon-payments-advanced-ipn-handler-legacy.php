@@ -100,7 +100,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 
 		$notification_version = isset( $message['Message']['NotificationVersion'] ) ? strtolower( $message['Message']['NotificationVersion'] ) : 'v1';
 
-		if ( 'v1' !== $notification_version || WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status()  ) {
+		if ( 'v1' !== $notification_version || WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
 			return;
 		}
 

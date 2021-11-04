@@ -176,7 +176,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Privacy extends WC_Abstract_Privacy {
 						),
 						array(
 							'name'  => __( 'Amazon Pay charge permission id', 'woocommerce-gateway-amazon-payments-advanced' ),
-							'value' => WC_Amazon_Payments_Advanced::get_order_charge_permission( $subscription->get_id()),
+							'value' => WC_Amazon_Payments_Advanced::get_order_charge_permission( $subscription->get_id() ),
 						),
 					),
 				);

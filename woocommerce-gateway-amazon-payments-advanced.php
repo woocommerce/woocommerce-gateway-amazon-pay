@@ -291,7 +291,7 @@ class WC_Amazon_Payments_Advanced {
 	 * @return string
 	 */
 	public static function get_order_charge_permission( $order_id ) {
-		$order   = wc_get_order( $order_id );
+		$order                = wc_get_order( $order_id );
 		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
 		if ( empty( $charge_permission_id ) ) {
 			// For the subscriptions created on versions previous V2 we update the meta.
@@ -312,16 +312,16 @@ class WC_Amazon_Payments_Advanced {
 	 * @return string
 	 */
 	public static function get_order_charge_id( $order_id ) {
-		$order   = wc_get_order( $order_id );
+		$order     = wc_get_order( $order_id );
 		$charge_id = $order->get_meta( 'amazon_charge_id' );
 		if ( empty( $charge_id ) ) {
-			// For the orders created on versions previous V2 we get the equivalent meta. 
-			$charge_id = $order->get_meta( 'amazon_capture_id');
+			// For the orders created on versions previous V2 we get the equivalent meta.
+			$charge_id = $order->get_meta( 'amazon_capture_id' );
 			if ( empty( $charge_id ) ) {
-				// For the orders created on versions previous V2 with pending capture 
-				// we adapt the existing meta. 
+				// For the orders created on versions previous V2 with pending capture
+				// we adapt the existing meta.
 				$authorization_id = $order->get_meta( 'amazon_authorization_id' );
-				$charge_id = str_replace( '-A', '-C', $authorization_id );
+				$charge_id        = str_replace( '-A', '-C', $authorization_id );
 			}
 			// For the orders created on versions previous V2 we update the meta.
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
