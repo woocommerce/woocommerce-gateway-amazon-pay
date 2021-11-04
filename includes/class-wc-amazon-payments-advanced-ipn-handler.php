@@ -408,10 +408,31 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		$notification_version = isset( $message['Message']['NotificationVersion'] ) ? strtolower( $message['Message']['NotificationVersion'] ) : 'v1';
 
 		if ( 'v2' !== $notification_version ) {
-			return;
-		}
+			$notification_data = self::safe_load_xml( $message['Message']['NotificationData'], LIBXML_NOCDATA );
 
-		$notification = $message['Message'];
+			switch ( $message['Message']['NotificationType'] ) {
+				case 'PaymentCapture':
+					$type = 'CHARGE';
+					$charge_id = (string) $notification_data->CaptureDetails->AmazonCaptureId;
+					break;
+				case 'PaymentRefund':
+					$type = 'REFUND';
+					$charge_id     = (string) $notification_data->RefundDetails->AmazonRefundId;
+					break;
+				default:
+					wc_apa()->log( 'No handler for notification with type ' . $message['Message']['NotificationType'] );
+					return;
+			}
+
+			$notification  = array(
+				'NotificationVersion' => 'V1',
+				'NotificationType'    => 'STATE_CHANGE',
+				'ObjectType'          => $type,
+				'ObjectId'            => $charge_id,
+			);
+		} else {
+			$notification = $message['Message'];
+		}
 
 		if ( ! isset( $notification['MockedIPN'] ) ) { // Only log real IPNs received.
 			wc_apa()->log( 'Received IPN', $notification );
@@ -573,5 +594,42 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		);
 
 		$this->handle_notification_ipn_v2( $mock_ipn );
+	}
+
+	/**
+	 * Safe load XML.
+	 *
+	 * @param  string $source  XML input.
+	 * @param  int    $options Options.
+	 *
+	 * @return SimpleXMLElement|bool
+	 */
+	public static function safe_load_xml( $source, $options = 0 ) {
+		$old = null;
+
+		if ( '<' !== substr( $source, 0, 1 ) ) {
+			return false;
+		}
+
+		if ( function_exists( 'libxml_disable_entity_loader' ) ) {
+			$old = libxml_disable_entity_loader( true );
+		}
+
+		$dom    = new DOMDocument();
+		$return = $dom->loadXML( $source, $options );
+
+		if ( ! is_null( $old ) ) {
+			libxml_disable_entity_loader( $old );
+		}
+
+		if ( ! $return ) {
+			return false;
+		}
+
+		if ( isset( $dom->doctype ) ) {
+			return false;
+		}
+
+		return simplexml_import_dom( $dom );
 	}
 }
