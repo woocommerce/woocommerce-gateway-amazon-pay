@@ -487,7 +487,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 		$this->form_fields = apply_filters( 'woocommerce_amazon_pa_form_fields_before_legacy', $this->form_fields );
 
-		if ( $this->has_v1_settings() ) {
+		if ( $this->has_v1_settings() && ! WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
 			$this->form_fields = array_merge(
 				$this->form_fields,
 				array(
