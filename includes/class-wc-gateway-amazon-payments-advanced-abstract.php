@@ -949,7 +949,8 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @return bool
 	 */
 	public function has_other_gateways_enabled() {
-		$gateways = WC()->payment_gateways()->get_available_payment_gateways();
+		$wc_gateways = new WC_Payment_Gateways();
+		$gateways    = $wc_gateways->get_available_payment_gateways();
 		unset( $gateways['amazon_payments_advanced'] );
 		if ( ! empty( $gateways ) ) {
 			foreach ( $gateways as $gateway ) {
