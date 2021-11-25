@@ -928,7 +928,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			<div id="shipping_address_widget">
 				<h3>
 					<a href="#" class="wc-apa-widget-change" id="shipping_address_widget_change">
-						<?php esc_html_e( 'Change', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+					<?php esc_html_e( 'Change', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 					</a>
 					<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 				</h3>
