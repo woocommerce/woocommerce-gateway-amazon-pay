@@ -1326,6 +1326,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$charge_permission_id = $response->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
+		$order->set_transaction_id( $charge_permission_id );
+
 		$order->save();
 		$this->log_charge_permission_status_change( $order );
 		$charge_id   = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
@@ -1503,6 +1505,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 		$this->refresh_cached_charge_permission_status( $order, $charge_permission );
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id ); // phpcs:ignore WordPress.NamingConventions
+		$order->set_transaction_id( $charge_permission_id );
+
 		$order->save(); // Save early for less race conditions.
 
 		$this->add_status_change_note( $order, (string) $charge_permission_id, (string) $charge_permission_status );
