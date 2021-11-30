@@ -1172,7 +1172,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			 * }
 			 */
 
-			$order_total = $order->get_total();
+			$order_total = number_format( $order->get_total(), 2 );
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
 			wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
@@ -1262,7 +1262,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order = wc_get_order( $order_id );
 
-		$order_total = $order->get_total();
+		$order_total = number_format( $order->get_total(), 2 );
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
 		wc_apa()->log( "Completing checkout session data for #{$order_id}." );
@@ -2132,7 +2132,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'captureNow'                    => $capture_now,
 				'canHandlePendingAuthorization' => $can_do_async,
 				'chargeAmount'                  => array(
-					'amount'       => $order->get_total(),
+					'amount'       => number_format( $order->get_total(), 2 ),
 					'currencyCode' => $currency,
 				),
 			)
