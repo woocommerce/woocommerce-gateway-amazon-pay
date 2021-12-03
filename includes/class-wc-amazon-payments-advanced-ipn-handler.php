@@ -457,6 +457,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 			default:
 				throw new Exception( 'Not Implemented' );
 		}
+		
+		$order_id = apply_filters( 'woocommerce_amazon_pa_ipn_notification_order_id', $order_id );
 
 		if ( is_numeric( $order_id ) ) {
 			$order = wc_get_order( $order_id );
