@@ -568,7 +568,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @throws Exception When there's an error with the payment.
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v1' !== strtolower( $version ) ) {
 			return;
 		}
@@ -618,7 +618,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 * @param WC_Order $order Order object.
 	 */
 	public function cancelled_subscription( $order ) {
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v1' !== strtolower( $version ) ) {
 			return;
 		}
@@ -672,7 +672,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 	 *                                       automatic payment).
 	 */
 	public function update_failing_payment_method( $subscription, $renewal_order ) {
-		$version = version_compare( $renewal_order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $renewal_order->get_id() );
 		if ( 'v1' !== strtolower( $version ) ) {
 			return;
 		}

@@ -1869,9 +1869,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @return bool|WP_Error
 	 */
 	public static function maybe_handle_v1_refund( $ret, $order_id, $amount, $reason ) {
-		$order = wc_get_order( $order_id );
-
-		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_id );
 		if ( 'v1' !== strtolower( $version ) ) {
 			return $ret;
 		}

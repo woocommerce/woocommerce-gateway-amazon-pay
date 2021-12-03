@@ -272,6 +272,73 @@ class WC_Amazon_Payments_Advanced {
 	}
 
 	/**
+	 * Helper method to get order Version.
+	 *
+	 * @param int     $order_id Order ID.
+	 * @param boolean $force   Wether to force version to be v2 or not.
+	 *
+	 * @return string
+	 */
+	public static function get_order_version( $order_id, $force = true ) {
+		if ( $force && WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
+			return 'v2';
+		}
+		$order   = wc_get_order( $order_id );
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		return $version;
+	}
+
+	/**
+	 * Helper method to get order Version.
+	 *
+	 * @param int $order_id Order ID.
+	 *
+	 * @return string
+	 */
+	public static function get_order_charge_permission( $order_id ) {
+		$order                = wc_get_order( $order_id );
+		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+		if ( empty( $charge_permission_id ) ) {
+			// For the subscriptions created on versions previous V2 we update the meta.
+			$charge_permission_id = $order->get_meta( 'amazon_billing_agreement_id' );
+			if ( empty( $charge_permission_id ) ) {
+				// For the orders created on versions previous V2 we update the meta.
+				$charge_permission_id = $order->get_meta( 'amazon_reference_id' );
+			}
+			$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
+			$order->save();
+		}
+		return $charge_permission_id;
+	}
+
+	/**
+	 * Helper method to get order Version.
+	 *
+	 * @param int $order_id Order ID.
+	 *
+	 * @return string
+	 */
+	public static function get_order_charge_id( $order_id ) {
+		$order     = wc_get_order( $order_id );
+		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		if ( empty( $charge_id ) ) {
+			// For the orders created on versions previous V2 we get the equivalent meta.
+			$charge_id = $order->get_meta( 'amazon_capture_id' );
+			if ( empty( $charge_id ) ) {
+				// For the orders created on versions previous V2 with pending capture
+				// we adapt the existing meta.
+				$authorization_id = $order->get_meta( 'amazon_authorization_id' );
+				$charge_id        = str_replace( '-A', '-C', $authorization_id );
+			}
+			// For the orders created on versions previous V2 we update the meta.
+			$order->update_meta_data( 'amazon_charge_id', $charge_id );
+			$order->save();
+		}
+
+		return $charge_id;
+	}
+
+	/**
 	 * Helper method to get a sanitized version of a string.
 	 *
 	 * @param string $string Sanitize some elements.
