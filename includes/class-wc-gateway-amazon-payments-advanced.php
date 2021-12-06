@@ -2305,11 +2305,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Maybe hide standard WC checkout button on the cart, if enabled
 	 */
 	public function maybe_hide_standard_checkout_button() {
-		if ( ! $this->is_available() ) {
+		if ( ! $this->is_available() || $this->has_other_gateways_enabled() ) {
 			return;
 		}
 
-		if ( 'yes' !== $this->settings['hide_standard_checkout_button'] || $this->has_other_gateways_enabled() ) {
+		if ( 'yes' !== $this->settings['hide_standard_checkout_button'] ) {
 			return;
 		}
 
