@@ -123,7 +123,6 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$this->method_description   = __( 'Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.', 'woocommerce-gateway-amazon-payments-advanced' );
 		$this->id                   = 'amazon_payments_advanced';
 		$this->icon                 = apply_filters( 'woocommerce_amazon_pa_logo', wc_apa()->plugin_url . '/assets/images/amazon-payments.png' );
-		$this->debug                = ( 'yes' === $this->get_option( 'debug' ) );
 		$this->view_transaction_url = $this->get_transaction_url_format();
 		$this->supports             = array(
 			'products',
@@ -132,17 +131,27 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$this->supports             = apply_filters( 'woocommerce_amazon_pa_supports', $this->supports, $this );
 		$this->private_key          = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 
+		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'validate_api_keys' ) );
+
+		add_action( 'woocommerce_amazon_checkout_init', array( $this, 'checkout_init_common' ) );
+
+	}
+
+	/**
+	 * Gateway Settings Init
+	 *
+	 * @since 2.3.4
+	 */
+	public function gateway_settings_init() {
 		// Load the settings.
 		$this->init_settings();
 
 		// Load saved settings.
 		$this->load_settings();
 
-		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
-		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'validate_api_keys' ) );
-
-		add_action( 'woocommerce_amazon_checkout_init', array( $this, 'checkout_init_common' ) );
-
+		// Set Debug option.
+		$this->debug = ( 'yes' === $this->get_option( 'debug' ) );
 	}
 
 	/**
@@ -949,8 +958,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @return bool
 	 */
 	public function has_other_gateways_enabled() {
-		$wc_gateways = new WC_Payment_Gateways();
-		$gateways    = $wc_gateways->get_available_payment_gateways();
+		$gateways = WC()->payment_gateways()->get_available_payment_gateways();
 		unset( $gateways['amazon_payments_advanced'] );
 		if ( ! empty( $gateways ) ) {
 			foreach ( $gateways as $gateway ) {

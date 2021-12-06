@@ -224,6 +224,8 @@ class WC_Amazon_Payments_Advanced {
 
 		}
 
+		add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ) );
+
 		include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php';
 		if ( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
 			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php';
@@ -232,8 +234,7 @@ class WC_Amazon_Payments_Advanced {
 		} else {
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Legacy();
 		}
-
-		add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ) );
+		$this->gateway->gateway_settings_init();
 	}
 
 	/**
