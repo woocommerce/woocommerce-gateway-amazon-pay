@@ -1326,7 +1326,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$charge_permission_id = $response->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
-		$order->set_transaction_id( $charge_permission_id );
+
+		$this->maybe_set_transaction_id( $order, $charge_permission_id, $response->chargeId );
 
 		$order->save();
 		$this->log_charge_permission_status_change( $order );
@@ -1412,6 +1413,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 		$this->refresh_cached_charge_status( $order, $charge );
 		$order->update_meta_data( 'amazon_charge_id', $charge_id );
+		$this->maybe_set_transaction_id( $order, '', $charge_id );
 		$order->save(); // Save early for less race conditions.
 
 		// @codingStandardsIgnoreStart
@@ -1505,7 +1507,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 		$this->refresh_cached_charge_permission_status( $order, $charge_permission );
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id ); // phpcs:ignore WordPress.NamingConventions
-		$order->set_transaction_id( $charge_permission_id );
 
 		$order->save(); // Save early for less race conditions.
 
@@ -2327,4 +2328,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		<?php
 	}
 
+	/**
+	 * Maybe set order transaction id.
+	 * 
+	 * @param  WC_Order $order Order object.
+	 * @param  string $charge_permission_id Charge Permission.
+	 * @param  string $charge_id Charge Id.
+	 */
+	public function maybe_set_transaction_id( $order, $charge_permission_id, $charge_id ) {
+		if ( function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order ) || wcs_order_contains_renewal( $order ) ) ) {
+			$charge_permission_id = substr( $charge_id, 0, strrpos(  $charge_id, '-C' ) );
+		}
+		if ( ! empty( $charge_permission_id ) ) {
+			$order->set_transaction_id( $charge_permission_id );
+		}
+	}
 }
