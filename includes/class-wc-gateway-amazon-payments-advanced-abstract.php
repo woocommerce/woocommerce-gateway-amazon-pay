@@ -911,7 +911,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @param array $fields default address fields.
 	 */
 	public function override_shipping_fields( $fields ) {
-		// Last name and State are not required on Amazon shipping addrress forms.
+		// Last name and State are not required on Amazon shipping address forms.
 		$fields['shipping_last_name']['required'] = false;
 		$fields['shipping_state']['required']     = false;
 

@@ -24,7 +24,8 @@
         "woocommerce/woocommerce-sniffs": "0.1.0",
         "php-stubs/woocommerce-stubs": "^5.1",
         "szepeviktor/phpstan-wordpress": "^0.7.5",
-        "phpstan/extension-installer": "^1.1"
+        "phpstan/extension-installer": "^1.1",
+        "yoast/phpunit-polyfills": "^1.0"
     },
     "require": {
         "amzn/amazon-pay-api-sdk-php": "^2.2"
