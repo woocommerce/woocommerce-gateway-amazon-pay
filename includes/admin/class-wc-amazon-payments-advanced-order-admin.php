@@ -180,6 +180,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		$charge_permission_status_label = $this->status_details_label( $charge_permission_cached_status );
 
+		$charge_permission_status_label = $charge_permission_status_label ? $charge_permission_status_label : __( 'Invalid', 'woocommerce-gateway-amazon-payments-advanced' );
 		/* translators: 1) Charge Permission ID 2) Status. */
 		echo wpautop( sprintf( __( 'Charge Permission %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_permission_id ), esc_html( $charge_permission_status_label ) ) );
 
@@ -214,7 +215,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order );
 
 			$charge_status_label = $this->status_details_label( $charge_cached_status );
-
+			$charge_status_label = $charge_status_label ? $charge_status_label : __( 'Invalid', 'woocommerce-gateway-amazon-payments-advanced' );
 			/* translators: 1) Charge ID 2) Status. */
 			echo wpautop( sprintf( __( 'Charge %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_id ), esc_html( $charge_status_label ) ) );
 
