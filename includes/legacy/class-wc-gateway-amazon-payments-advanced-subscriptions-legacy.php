@@ -384,13 +384,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		} catch ( Exception $e ) {
 			wc_apa()->log( "Error: Exception encountered in 'GetBillingAgreementDetails': {$e->getMessage()}" );
 
-			$return = new WP_Error();
-			$return->add(
+			$return = new WP_Error(
 				'billing_agreemment_details_failed',
 				is_object( $response ) && ! empty( $response->Error ) && is_object( $response->Error->Message ) && ! empty( $response->Error->Message ) ?
 				$response->Error->Message :
 				sprintf( __( 'Amazon API responded with an unexpected error when requesting for "GetBillingAgreementDetails" of billing agreement with ID %s', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_billing_agreement_id )
 			);
+			return $return;
 		}
 		return $response;
 	}
