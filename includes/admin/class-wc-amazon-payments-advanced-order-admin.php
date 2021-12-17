@@ -184,7 +184,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		/* translators: 1) Charge Permission ID 2) Status. */
 		echo wpautop( sprintf( __( 'Charge Permission %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_permission_id ), esc_html( $charge_permission_status_label ) ) );
 
-		$charge_permission_status = $charge_permission_cached_status->status;
+		$charge_permission_status = ! is_wp_error( $charge_permission_cached_status ) ? $charge_permission_cached_status->status : '';
 
 		switch ( $charge_permission_status ) {
 			case 'Chargeable':
