@@ -178,7 +178,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order );
 
-		$charge_permission_status_label = $this->status_details_label( $charge_permission_cached_status );
+		$charge_permission_status_label = ! is_wp_error( $charge_permission_cached_status ) ? $this->status_details_label( $charge_permission_cached_status ) : false;
 
 		$charge_permission_status_label = $charge_permission_status_label ? $charge_permission_status_label : __( 'Invalid', 'woocommerce-gateway-amazon-payments-advanced' );
 		/* translators: 1) Charge Permission ID 2) Status. */
