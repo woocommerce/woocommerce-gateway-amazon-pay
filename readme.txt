@@ -54,8 +54,18 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.0.4 - 2021-xx-xx =
-* Fix - Interference when subcsriptions' payment method changes to other payment method.
+= 2.1.0 - 2022-xx-xx =
+* Update - Disable option "Hide standard checkout button on cart page" when other payment gateway are activated.
+* Fix - Enable subscription amount change support.
+* Fix - Accept states without letters mark variations on shipping restriction.
+* Fix - Render cart button on update shipping method.
+* Add - Process orders created in V1 with V2 handlers.
+* Fix - Interference when subscriptions payment method changes to other payment method.
+* Fix - Force Decimals to 2 on amounts sent to API to prevent errors on api calls.
+* Fix - Save Amazon Reference Id on order _transaction_id order meta field on payment process.
+* Update - Hide the API V1 keys on setting when the V2 onboarding is done.
+* Fix - Disabling  "Hide standard checkout button on cart page" option hides the gateway on the new installations.
+* Update - Translation and comments fixes (thank you geist-ahnen, shoheitanaka).
 
 = 2.0.3 - 2021-06-15 =
 * Fix - Issues with state level handling of shipping zones.
