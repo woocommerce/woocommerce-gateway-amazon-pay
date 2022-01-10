@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 5.7
-Stable tag: 2.0.3
+Stable tag: 2.1.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -54,7 +54,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.1.0 - 2022-xx-xx =
+= 2.1.0 - 2022-01-10 =
 * Update - Disable option "Hide standard checkout button on cart page" when other payment gateway are activated.
 * Fix - Enable subscription amount change support.
 * Fix - Accept states without letters mark variations on shipping restriction.
