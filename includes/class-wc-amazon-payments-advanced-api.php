@@ -680,12 +680,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * @param  int $order_id Order ID.
 	 * @return array
 	 */
-	public static function get_merchant_metadata( $order_id ) {
+	public static function get_merchant_metadata( $order ) {
 		/* translators: Plugin version */
 		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
 
 		return array(
-			'merchantReferenceId' => $order_id,
+			'merchantReferenceId' => $order->get_order_number(),
 			'merchantStoreName'   => WC_Amazon_Payments_Advanced::get_site_name(),
 			'customInformation'   => $version_note,
 		);
