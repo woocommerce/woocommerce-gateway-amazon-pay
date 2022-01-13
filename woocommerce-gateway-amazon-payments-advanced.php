@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Amazon Pay
  * Plugin URI: https://woocommerce.com/products/pay-with-amazon/
  * Description: Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.
- * Version: 2.0.3
+ * Version: 2.1.0
  * Author: WooCommerce
  * Author URI: https://woocommerce.com
  * Text Domain: woocommerce-gateway-amazon-payments-advanced
@@ -12,14 +12,14 @@
  * WC tested up to: 5.3
  * WC requires at least: 2.6
  *
- * Copyright: © 2021 WooCommerce
+ * Copyright: © 2022 WooCommerce
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  *
  * @package WC_Gateway_Amazon_Pay
  */
 
-define( 'WC_AMAZON_PAY_VERSION', '2.0.3' ); // WRCS: DEFINED_VERSION.
+define( 'WC_AMAZON_PAY_VERSION', '2.1.0' ); // WRCS: DEFINED_VERSION.
 define( 'WC_AMAZON_PAY_VERSION_CV1', '1.13.1' );
 
 /**
@@ -224,6 +224,8 @@ class WC_Amazon_Payments_Advanced {
 
 		}
 
+		add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ) );
+
 		include_once $this->includes_path . 'legacy/class-wc-gateway-amazon-payments-advanced-legacy.php';
 		if ( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
 			include_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced.php';
@@ -232,8 +234,7 @@ class WC_Amazon_Payments_Advanced {
 		} else {
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Legacy();
 		}
-
-		add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ) );
+		$this->gateway->gateway_settings_init();
 	}
 
 	/**
@@ -269,6 +270,73 @@ class WC_Amazon_Payments_Advanced {
 		// Get site setting for blog name.
 		$site_description = get_bloginfo( 'description' );
 		return self::sanitize_string( $site_description );
+	}
+
+	/**
+	 * Helper method to get order Version.
+	 *
+	 * @param int     $order_id Order ID.
+	 * @param boolean $force   Wether to force version to be v2 or not.
+	 *
+	 * @return string
+	 */
+	public static function get_order_version( $order_id, $force = true ) {
+		if ( $force && WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
+			return 'v2';
+		}
+		$order   = wc_get_order( $order_id );
+		$version = version_compare( $order->get_meta( 'amazon_payment_advanced_version' ), '2.0.0' ) >= 0 ? 'v2' : 'v1';
+		return $version;
+	}
+
+	/**
+	 * Helper method to get order Version.
+	 *
+	 * @param int $order_id Order ID.
+	 *
+	 * @return string
+	 */
+	public static function get_order_charge_permission( $order_id ) {
+		$order                = wc_get_order( $order_id );
+		$charge_permission_id = $order->get_meta( 'amazon_charge_permission_id' );
+		if ( empty( $charge_permission_id ) ) {
+			// For the subscriptions created on versions previous V2 we update the meta.
+			$charge_permission_id = $order->get_meta( 'amazon_billing_agreement_id' );
+			if ( empty( $charge_permission_id ) ) {
+				// For the orders created on versions previous V2 we update the meta.
+				$charge_permission_id = $order->get_meta( 'amazon_reference_id' );
+			}
+			$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
+			$order->save();
+		}
+		return $charge_permission_id;
+	}
+
+	/**
+	 * Helper method to get order Version.
+	 *
+	 * @param int $order_id Order ID.
+	 *
+	 * @return string
+	 */
+	public static function get_order_charge_id( $order_id ) {
+		$order     = wc_get_order( $order_id );
+		$charge_id = $order->get_meta( 'amazon_charge_id' );
+		if ( empty( $charge_id ) ) {
+			// For the orders created on versions previous V2 we get the equivalent meta.
+			$charge_id = $order->get_meta( 'amazon_capture_id' );
+			if ( empty( $charge_id ) ) {
+				// For the orders created on versions previous V2 with pending capture
+				// we adapt the existing meta.
+				$authorization_id = $order->get_meta( 'amazon_authorization_id' );
+				$charge_id        = str_replace( '-A', '-C', $authorization_id );
+			}
+			// For the orders created on versions previous V2 we update the meta.
+			$order->update_meta_data( 'amazon_charge_id', $charge_id );
+			$order->save();
+		}
+
+		return $charge_id;
 	}
 
 	/**
