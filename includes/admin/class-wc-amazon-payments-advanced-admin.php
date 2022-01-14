@@ -240,6 +240,28 @@ class WC_Amazon_Payments_Advanced_Admin {
 				'is_dismissable' => false,
 			);
 		}
+		$site_name = WC_Amazon_Payments_Advanced::get_site_name();
+		if ( 50 < strlen( $site_name ) ) {
+			$notices[] = array(
+				'dismiss_action' => 'amazon_pay_site_name_too_long_dismiss_notice',
+				'class'          => 'amazon_pay_site_name_too_long',
+				'text'           => sprintf(
+					/* translators: 1) The Site Name from Settings > General > Site Title. 2) URL to Settings > General > Site Title. */
+					__(
+						'Amazon Pay Gateway is <strong>not</strong> able to pass to Amazon your site\'s name as the 
+						<a target="_blank" rel="nofollow noopener" href="https://developer.amazon.com/docs/amazon-pay-checkout/buyer-communication.html">Merchant store name</a>.<br/>
+						This is happening because your current site name exceeds the 50 characters allowed by Amazon Pay API v2.<br/>
+						Your current site name is <strong>%1$s</strong> and can be changed from <a href="%2$s">Settings > General > Site Title</a>
+						The default you have set in your Amazon Merchant Account will be used instead.<br/>
+						This message\'s purpose is to notify you. Amazon Pay Gateway will continue to be functional without requiring an action from you.',
+						'woocommerce-gateway-amazon-payments-advanced'
+					),
+					$site_name,
+					esc_url( admin_url( '/options-general.php' ) )
+				),
+				'is_dismissable' => true,
+			);
+		}
 
 		return $notices;
 	}
@@ -274,9 +296,12 @@ class WC_Amazon_Payments_Advanced_Admin {
 							'title'       => array(),
 							'class'       => array(),
 							'data-toggle' => array(),
+							'target'      => array( '_self', '_blank' ),
+							'rel'         => array( 'nofollow', 'noopener' ),
 						),
 						'strong' => array(),
 						'em'     => array(),
+						'br'     => array(),
 					)
 				);
 				?>
