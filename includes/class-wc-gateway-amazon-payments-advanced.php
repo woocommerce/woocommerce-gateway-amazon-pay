@@ -1174,9 +1174,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			 * }
 			 */
 
+			$order_total = number_format( $order->get_total(), 2 );
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
-			$demicals    = 'JPY' === $currency ? 0 : 2;
-			$order_total = number_format( $order->get_total(), $demicals );
 
 			wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
 
@@ -1265,9 +1264,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order = wc_get_order( $order_id );
 
+		$order_total = number_format( $order->get_total(), 2 );
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
-		$demicals    = 'JPY' === $currency ? 0 : 2;
-		$order_total = number_format( $order->get_total(), $demicals );
 
 		wc_apa()->log( "Completing checkout session data for #{$order_id}." );
 
@@ -2129,7 +2127,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		$currency = wc_apa_get_order_prop( $order, 'order_currency' );
-		$demicals = 'JPY' === $currency ? 0 : 2;
 
 		$charge = WC_Amazon_Payments_Advanced_API::create_charge(
 			$id,
@@ -2138,7 +2135,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'captureNow'                    => $capture_now,
 				'canHandlePendingAuthorization' => $can_do_async,
 				'chargeAmount'                  => array(
-					'amount'       => number_format( $order->get_total(), $demicals ),
+					'amount'       => number_format( $order->get_total(), 2 ),
 					'currencyCode' => $currency,
 				),
 			)

@@ -295,13 +295,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			);
 
 			if ( 1 === $subscriptions_in_cart ) {
-				$currency_code = get_woocommerce_currency();
-				$demicals      = 'JPY' === $currency_code ? 0 : 2;
-
 				$first_recurring                        = reset( WC()->cart->recurring_carts );
 				$payload['recurringMetadata']['amount'] = array(
-					'amount'       => number_format( $first_recurring->get_total( 'edit' ), $demicals ),
-					'currencyCode' => $currency_code,
+					'amount'       => number_format( $first_recurring->get_total( 'edit' ), 2 ),
+					'currencyCode' => get_woocommerce_currency(),
 				);
 			}
 		} elseif ( $cart_contains_renewal || $change_payment_for_subscription ) {
@@ -323,14 +320,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 			$payload['chargePermissionType'] = 'Recurring';
 
-			$currency_code = wc_apa_get_order_prop( $subscription, 'order_currency' );
-			$demicals      = 'JPY' === $currency_code ? 0 : 2;
-
 			$payload['recurringMetadata'] = array(
 				'frequency' => $this->parse_interval_to_apa_frequency( $subscription->get_billing_period( 'edit' ), $subscription->get_billing_interval( 'edit' ) ),
 				'amount'    => array(
-					'amount'       => number_format( $subscription->get_total(), $demicals ),
-					'currencyCode' => $currency_code,
+					'amount'       => number_format( $subscription->get_total(), 2 ),
+					'currencyCode' => wc_apa_get_order_prop( $subscription, 'order_currency' ),
 				),
 			);
 		}
@@ -353,10 +347,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
 			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
 
-			$currency_code = ! empty( $payload['paymentDetails']['currencyCode'] ) ? $payload['paymentDetails']['currencyCode'] : wc_apa_get_order_prop( $order, 'order_currency' );
-			$demicals      = 'JPY' === $currency_code ? 0 : 2;
-
-			$payload['paymentDetails']['chargeAmount'] = number_format( $checkout_session->recurringMetadata->amount, $demicals ); // phpcs:ignore WordPress.NamingConventions
+			$payload['paymentDetails']['chargeAmount'] = number_format( $checkout_session->recurringMetadata->amount, 2 ); // phpcs:ignore WordPress.NamingConventions
 
 			return $payload;
 		}
@@ -387,11 +378,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$recurring_total = wc_format_decimal( $recurring_total, '' );
 
 		if ( 1 === $subscriptions_in_cart ) {
-			$currency_code = wc_apa_get_order_prop( $order, 'order_currency' );
-			$demicals      = 'JPY' === $currency_code ? 0 : 2;
 			$payload['recurringMetadata']['amount'] = array(
-				'amount'       => number_format( $recurring_total, $demicals ),
-				'currencyCode' => $currency_code,
+				'amount'       => number_format( $recurring_total, 2 ),
+				'currencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
 			);
 		}
 
@@ -399,10 +388,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
 			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
 
-			$currency_code = ! empty( $payload['paymentDetails']['currencyCode'] ) ? $payload['paymentDetails']['currencyCode'] : wc_apa_get_order_prop( $order, 'order_currency' );
-			$demicals      = 'JPY' === $currency_code ? 0 : 2;
-
-			$payload['paymentDetails']['chargeAmount']['amount'] = number_format( $recurring_total, $demicals );
+			$payload['paymentDetails']['chargeAmount']['amount'] = number_format( $recurring_total, 2 );
 		}
 
 		return $payload;
@@ -439,10 +425,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$recurring_total = wc_format_decimal( $recurring_total, '' );
 
-		$currency_code = ! empty( $payload['paymentDetails']['currencyCode'] ) ? $payload['paymentDetails']['currencyCode'] : get_woocommerce_currency();
-		$demicals      = 'JPY' === $currency_code ? 0 : 2;
-
-		$payload['chargeAmount']['amount'] = number_format( $recurring_total, $demicals );
+		$payload['chargeAmount']['amount'] = number_format( $recurring_total, 2 );
 
 		return $payload;
 	}
@@ -553,7 +536,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		$currency = wc_apa_get_order_prop( $order, 'order_currency' );
-		$demicals = 'JPY' === $currency ? 0 : 2;
 
 		$response = WC_Amazon_Payments_Advanced_API::create_charge(
 			$charge_permission_id,
@@ -562,7 +544,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				'captureNow'                    => $capture_now,
 				'canHandlePendingAuthorization' => $can_do_async,
 				'chargeAmount'                  => array(
-					'amount'       => number_format( $amount_to_charge, $demicals ),
+					'amount'       => number_format( $amount_to_charge, 2 ),
 					'currencyCode' => $currency,
 				),
 			)
