@@ -250,7 +250,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		return array(
 			'unit'  => $apa_period,
-			'value' => $apa_interval,
+			/**
+			 * Amazon accepts the recurringMetadata.frequency.value as string.
+			 *
+			 * Casting $apa_interval to string ensures consistency.
+			 *
+			 * @see https://developer.amazon.com/docs/amazon-pay-api-v2/checkout-session.html#type-frequency
+			 */
+			'value' => (string) $apa_interval,
 		);
 	}
 
