@@ -2,8 +2,8 @@
 Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
-Tested up to: 5.5
-Stable tag: 1.12.2
+Tested up to: 5.7
+Stable tag: 2.1.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -11,27 +11,25 @@ Install the Amazon Pay plugin for your WooCommerce store and take advantage of a
 
 == Description ==
 
-Amazon Pay makes it simple for hundreds of millions of Amazon customers around the globe to shop on your website or app using their existing Amazon accounts. Customers can conveniently checkout without leaving your site or creating a new account.
+**What is Amazon Pay?** An end-to-end payment solution that gives hundreds of millions of active Amazon customers[1] a familiar, fast, and secure way to complete their purchase through your online store. Shoppers can use the address and payment information already stored in their Amazon account to check out – avoiding account creation or the need to re-enter their billing and shipping information. The performance is continually optimized by technology, learnings, and best practices from Amazon.
 
-Take your business to the next level leveraging two decades of Amazon eCommerce innovation. Amazon Pay can help you acquire and retain new customers, increase conversions and reduce cart abandonment.
+As earth’s most customer-centric company, we are continuously innovating on behalf of our customers. With 91% of Amazon Pay customers saying they would use Amazon Pay again and hundreds of millions of active Amazon customers already enabled for Amazon Pay, it can make it easier for you to deliver an improved customer experience online[2].
 
-= Information and Requirements =
+= Key Features =
 
-* Amazon Pay is currently only available in the USA, UK, Germany, France, Italy, Ireland, Spain, Luxembourg, Austria, Belgium, Cyprus, Netherlands, Sweden, Portugal, Hungary, Denmark, Japan
-* Supports recurring payments
-* Supports Strong Customer Authentication (SCA), required for transactions within the European Economic Area (EEA)
-* SSL Certificate is required
+- **PSD2 compliant**: Built-in support for Strong Customer Authentication (SCA) as required under the Second Payment Services Directive (PSD2) in the European Economic Area (EEA).
+- **Multi-currency**: Maintain the local currency experience across the shopping journey and help customers avoid currency conversion fees from their credit card issuer or bank.
+- **Recurring payment support for [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/)** (separate purchase): available for USA, UK, Germany, France, Italy, Ireland, Spain, Luxembourg, Austria, Belgium, Cyprus, Netherlands, Sweden, Portugal, Hungary, Denmark and Japan.
+- **Automatic Decline Handling**: Reduce lost sales with a consistent experience for customers to gracefully recover from a declined payment.
+- **Payment Protection Policy**: Protection against fraud-related chargebacks[3].
+- **Amazon Pay A-to-z Guarantee**: Increase customer confidence to complete purchase in your online store with extra assurance on the timeliness of delivery and order quality[4].
 
-= Amazon Pay Plugin for WooCommerce =
+= Definitions =
 
-The Amazon Pay plugin for WooCommerce is free and easy to install. All interactions take place within our secure widgets so customers never leave your site. Your customers simply log in using their Amazon account, select a shipping address and payment method and then confirm their order.
-
-* Customers stay on your site during the entire checkout process
-* Easy onboarding and setup
-* Amazon proven fraud protection and detection technology
-* Mobile-optimized widgets for tablets and smartphones
-* Multi-currency functionality
-* Recurring payment support for WooCommerce Subscriptions (separate purchase) – available for United Kingdom, Germany, France, Italy, Spain, Luxembourg, Netherlands, Sweden, Portugal, Hungary, Denmark.
+- [1] Represents active Amazon customer accounts, 2020.
+- [2] Consumer Net Promoter Score (NPS) Surveys: Conducted by Amazon Pay in 2019 among US, UK, DE, FR, IT, and ES consumers who had used Amazon Pay in the 12 months preceding to the survey launch dates.
+- [3] Available for qualified physical goods purchases only.
+- [4] For eligible transactions detailed on the [Amazon Pay Customer Agreement](https://pay.amazon.com/help/201212430).
 
 == Installation ==
 
@@ -54,12 +52,52 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
-== Screenshots ==
-
-1. The Amazon Pay button on the cart page.
-2. Picking billing and shipping addresses on the checkout page.
-
 == Changelog ==
+
+= 2.1.0 - 2022-01-10 =
+* Update - Disable option "Hide standard checkout button on cart page" when other payment gateway are activated.
+* Fix - Enable subscription amount change support.
+* Fix - Accept states without letters mark variations on shipping restriction.
+* Fix - Render cart button on update shipping method.
+* Add - Process orders created in V1 with V2 handlers.
+* Fix - Interference when subscriptions payment method changes to other payment method.
+* Fix - Force Decimals to 2 on amounts sent to API to prevent errors on api calls.
+* Fix - Save Amazon Reference Id on order _transaction_id order meta field on payment process.
+* Update - Hide the API V1 keys on setting when the V2 onboarding is done.
+* Fix - Disabling  "Hide standard checkout button on cart page" option hides the gateway on the new installations.
+* Update - Translation and comments fixes (thank you geist-ahnen, shoheitanaka).
+
+= 2.0.3 - 2021-06-15 =
+* Fix - Issues with state level handling of shipping zones.
+* Fix - Issue that attempted to initialize the plugin in the REST API, throwing a fatal error.
+* Fix - Issue with subscriptions and checkout session validation, which forced customers to login again.
+* Add - Logging when users are asked to log in again, to debug other potential issues with this validation.
+
+= 2.0.2 - 2021-05-26 =
+* Fix - Issue that caused secret key from pre v2 to be lost after migrating to v2.
+* Add - Allow recovery of v1 secret key if lost during migration to v2.
+
+= 2.0.1 - 2021-05-14 =
+* Update - WP tested up to 5.7.
+* Update - WC tested up to 5.3.
+* Fix - Properly compose url for order action buttons.
+
+= 2.0.0 - 2021-05-11 =
+* Upgrade to use the latest Amazon Pay frontend technology and backend API. Functionalities in parity with the previous version.
+
+= 1.13.1 - 2021-02-25 =
+* Fix - Avoid hiding default shipping fields at checkout.
+
+= 1.13.0 - 2021-02-18 =
+* Update - WP tested up to 5.6.
+* Update - WC tested up to 5.0.
+* Fix - Fatal checkout error when changing subscription's payment method if user is logged out of Amazon account.
+* Fix - Checkout error when address book state does not match WooCommerce state data.
+* Fix - Multi-currency compatibility is not detected when Price Based on Country and WMPL is active.
+* Fix - PHP error when the currencies_supported option is not set.
+* Fix - Add InheritShippingAddress to AuthorizeOnBillingAgreement. InheritShippingAddress = True when orders are shipping physical products.
+* Fix - Missing order ID in session.
+* Fix - Normalize and refactor URL handling when checkout page url is not set.
 
 = 1.12.2 - 2020-05-05 =
 * Fix - Fatal checkout error when submitting orders that do not need shipping.

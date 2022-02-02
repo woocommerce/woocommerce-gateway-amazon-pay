@@ -8,1955 +8,958 @@
 /**
  * Amazon Pay API class
  */
-class WC_Amazon_Payments_Advanced_API {
+class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Abstract {
 
 	/**
-	 * Login App setup - Client ID Retrieval Instruction URLs
+	 * Helper to store the current refund being handled
 	 *
 	 * @var array
 	 */
-	protected static $client_id_instructions = array(
-		'us' => 'https://payments.amazon.com/documentation/express/201728550',
-		'gb' => 'https://amazonpayments.s3.amazonaws.com/documents/Get_Your_Login_with_Amazon_Client_ID_EU_ENG.pdf?ld=APUSLPADefault',
-		'eu' => 'https://amazonpayments.s3.amazonaws.com/documents/Get_Your_Login_with_Amazon_Client_ID_EU_ENG.pdf?ld=APUSLPADefault',
-	);
+	protected static $amazonpay_sdk_config;
 
 	/**
-	 * API Endpoints.
+	 * Helper to store the current refund being handled
 	 *
-	 * @var array
+	 * @var \Amazon\Pay\API\Client
 	 */
-	protected static $endpoints = array(
-		'sandbox' => array(
-			'us' => 'https://mws.amazonservices.com/OffAmazonPayments_Sandbox/2013-01-01/',
-			'gb' => 'https://mws-eu.amazonservices.com/OffAmazonPayments_Sandbox/2013-01-01/',
-			'eu' => 'https://mws-eu.amazonservices.com/OffAmazonPayments_Sandbox/2013-01-01/',
-			'jp' => 'https://mws.amazonservices.jp/OffAmazonPayments_Sandbox/2013-01-01/',
-		),
-		'production' => array(
-			'us' => 'https://mws.amazonservices.com/OffAmazonPayments/2013-01-01/',
-			'gb' => 'https://mws-eu.amazonservices.com/OffAmazonPayments/2013-01-01/',
-			'eu' => 'https://mws-eu.amazonservices.com/OffAmazonPayments/2013-01-01/',
-			'jp' => 'https://mws.amazonservices.jp/OffAmazonPayments/2013-01-01/',
-		),
-	);
+	protected static $amazonpay_client;
 
 	/**
-	 * Widgets URLs.
+	 * Set up API V2 SDK.
 	 *
-	 * @var array
+	 * @since 2.0.0
+	 * @param  bool $fresh Force refresh, or get from cache.
+	 *
+	 * @return array Returns SDK configuration
 	 */
-	protected static $widgets_urls = array(
-		'sandbox' => array(
-			'us' => 'https://static-na.payments-amazon.com/OffAmazonPayments/us/sandbox/js/Widgets.js',
-			'gb' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/gbp/sandbox/lpa/js/Widgets.js',
-			'eu' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/eur/sandbox/lpa/js/Widgets.js',
-			'jp' => 'https://origin-na.ssl-images-amazon.com/images/G/09/EP/offAmazonPayments/sandbox/prod/lpa/js/Widgets.js',
-		),
-		'production' => array(
-			'us' => 'https://static-na.payments-amazon.com/OffAmazonPayments/us/js/Widgets.js',
-			'gb' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/gbp/lpa/js/Widgets.js',
-			'eu' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/eur/lpa/js/Widgets.js',
-			'jp' => 'https://origin-na.ssl-images-amazon.com/images/G/09/EP/offAmazonPayments/live/prod/lpa/js/Widgets.js',
-		),
-	);
-
-	/**
-	 * Language ISO code map to its domain.
-	 *
-	 * @var array
-	 */
-	public static $lang_domains_mapping = array(
-		'en-GB'   => 'co.uk',
-		'de-DE'   => 'de',
-		'fr-FR'   => 'fr',
-		'it-IT'   => 'it',
-		'es-ES'   => 'es',
-		'en-US'   => 'com',
-		'ja-JP'   => 'co.jp',
-	);
-
-	/**
-	 * Non-app widgets URLs.
-	 *
-	 * @since 1.6.3
-	 *
-	 * @var array
-	 */
-	protected static $non_app_widgets_urls = array(
-		'sandbox' => array(
-			'us' => 'https://static-na.payments-amazon.com/OffAmazonPayments/us/sandbox/js/Widgets.js',
-			'gb' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/gbp/sandbox/js/Widgets.js',
-			'eu' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/eur/sandbox/js/Widgets.js',
-			'jp' => 'https://static-fe.payments-amazon.com/OffAmazonPayments/jp/sandbox/js/Widgets.js',
-		),
-		'production' => array(
-			'us' => 'https://static-na.payments-amazon.com/OffAmazonPayments/us/js/Widgets.js',
-			'gb' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/gbp/js/Widgets.js',
-			'eu' => 'https://static-eu.payments-amazon.com/OffAmazonPayments/eur/js/Widgets.js',
-			'jp' => 'https://static-fe.payments-amazon.com/OffAmazonPayments/jp/js/Widgets.js',
-		),
-	);
-
-	/**
-	 * List of supported currencies.
-	 * https://pay.amazon.com/uk/help/5BDCWHCUC27485L
-	 *
-	 * @var array
-	 */
-	protected static $supported_currencies = array(
-		'AUD',
-		'GBP',
-		'DKK',
-		'EUR',
-		'HKD',
-		'JPY',
-		'NZD',
-		'NOK',
-		'ZAR',
-		'SEK',
-		'CHF',
-		'USD',
-	);
-
-	/**
-	 * Simple Path registration urls.
-	 *
-	 * @var array
-	 */
-	public static $registration_urls = array(
-		'us' => 'https://payments.amazon.com/register',
-		'gb' => 'https://payments-eu.amazon.com/register',
-		'eu' => 'https://payments-eu.amazon.com/register',
-		'jp' => 'https://pay.amazon.com/jp/signup', // Simple Path not available in jp yet, just a normal url.
-	);
-
-	/**
-	 * Simple Path public keys urls.
-	 *
-	 * @var array
-	 */
-	public static $get_public_keys_urls = array(
-		'us' => 'https://payments.amazon.com/register/getpublickey',
-		'gb' => 'https://payments-eu.amazon.com/register/getpublickey',
-		'eu' => 'https://payments-eu.amazon.com/register/getpublickey',
-		'jp' => '', // Not available in jp yet.
-	);
-
-	/**
-	 * Simple Path spIds.
-	 *
-	 * @var array
-	 */
-	public static $spIds = array (
-		'us' => 'A1BVJDFFHQ7US4',
-		'gb' => 'A3AO8502KEOZS3',
-		'eu' => 'A3V6YX13IG1QFQ',
-		'jp' => 'A2EBW2CGZKMGE4',
-	);
-
-	/**
-	 * Get settings
-	 *
-	 * @return array
-	 */
-	public static function get_settings() {
-		$settings = (array) get_option( 'woocommerce_amazon_payments_advanced_settings', array() );
-		$default  = array(
-			'enabled'                         => 'yes',
-			'title'                           => __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ),
-			'seller_id'                       => '',
-			'mws_access_key'                  => '',
-			'secret_key'                      => '',
-			'payment_region'                  => self::get_payment_region_from_country( WC()->countries->get_base_country() ),
-			'enable_login_app'                => ( self::is_new_installation() ) ? 'yes' : 'no',
-			'app_client_id'                   => '',
-			'app_client_secret'               => '',
-			'sandbox'                         => 'yes',
-			'payment_capture'                 => 'no',
-			'authorization_mode'              => 'async',
-			'redirect_authentication'         => 'popup',
-			'cart_button_display_mode'        => 'button',
-			'button_type'                     => 'LwA',
-			'button_size'                     => 'small',
-			'button_color'                    => 'Gold',
-			'button_language'                 => '',
-			'hide_standard_checkout_button'   => 'no',
-			'debug'                           => 'no',
-			'hide_button_mode'                => 'no',
-			'amazon_keys_setup_and_validated' => '0',
-		);
-
-		return apply_filters( 'woocommerce_amazon_pa_settings', array_merge( $default, $settings ) );
-	}
-
-	/**
-	 * Get reference ID.
-	 *
-	 * @return string
-	 */
-	public static function get_reference_id() {
-		$reference_id = ! empty( $_REQUEST['amazon_reference_id'] ) ? $_REQUEST['amazon_reference_id'] : '';
-
-		if ( isset( $_POST['post_data'] ) ) {
-			parse_str( $_POST['post_data'], $post_data );
-
-			if ( isset( $post_data['amazon_reference_id'] ) ) {
-				$reference_id = $post_data['amazon_reference_id'];
-			}
-		}
-
-		return self::check_session( 'amazon_reference_id', $reference_id );
-	}
-
-	/**
-	 * Get Access token.
-	 *
-	 * @return string
-	 */
-	public static function get_access_token() {
-		$access_token = ! empty( $_REQUEST['access_token'] ) ? $_REQUEST['access_token'] : ( isset( $_COOKIE['amazon_Login_accessToken'] ) && ! empty( $_COOKIE['amazon_Login_accessToken'] ) ? $_COOKIE['amazon_Login_accessToken'] : '' );
-
-		return self::check_session( 'access_token', $access_token );
-	}
-
-	/**
-	 * Check WC session for reference ID or access token.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param string $key   Key from query string in URL.
-	 * @param string $value Value from query string in URL.
-	 *
-	 * @return string
-	 */
-	public static function check_session( $key, $value ) {
-		if ( ! in_array( $key, array( 'amazon_reference_id', 'access_token' ) ) ) {
-			return $value;
-		}
-
-		// Since others might call the get_reference_id or get_access_token
-		// too early, WC instance may not exists.
-		if ( ! function_exists( 'WC' ) ) {
-			return $value;
-		}
-		if ( ! is_a( WC()->session, 'WC_Session' ) ) {
-			return $value;
-		}
-
-		if ( false === strstr( $key, 'amazon_' ) ) {
-			$key = 'amazon_' . $key;
-		}
-
-		// Set and unset reference ID or access token to/from WC session.
-		if ( ! empty( $value ) ) {
-			// Set access token or reference ID in session after redirected
-			// from Amazon Pay window.
-			if ( ! empty( $_GET['amazon_payments_advanced'] ) ) {
-				WC()->session->{ $key } = $value;
-			}
-		} else {
-			// Don't get anything in URL, check session.
-			if ( ! empty( WC()->session->{ $key } ) ) {
-				$value = WC()->session->{ $key };
-			}
-		}
-
-		return $value;
-	}
-
-	/**
-	 * Get payment region based on a given country.
-	 *
-	 * @since 1.6.3
-	 *
-	 * @param string $country Country code.
-	 * @param string $default Default country code. Default to 'us' or 'eu' if
-	 *                        passed country is in EU union.
-	 *
-	 * @return string Payment region
-	 */
-	public static function get_payment_region_from_country( $country, $default = 'us' ) {
-		switch ( $country ) {
-			case 'GB':
-			case 'US':
-			case 'JP':
-				$region = strtolower( $country );
-				break;
-			default:
-				$region = $default;
-				if ( in_array( $country, WC()->countries->get_european_union_countries() ) ) {
-					$region = 'eu';
-				}
-		}
-
-		if ( ! array_key_exists( $region, self::get_payment_regions() ) ) {
-			$region = 'us';
-		}
-
-		return $region;
-	}
-
-	/**
-	 * Get payment regions.
-	 *
-	 * @since 1.6.3
-	 *
-	 * @return array Payment regions
-	 */
-	public static function get_payment_regions() {
-		return array(
-			'eu' => __( 'Euro Region', 'woocommerce-gateway-amazon-payments-advanced' ),
-			'gb' => __( 'United Kingdom', 'woocommerce-gateway-amazon-payments-advanced' ),
-			'us' => __( 'United States', 'woocommerce-gateway-amazon-payments-advanced' ),
-			'jp' => __( 'Japan', 'woocommerce-gateway-amazon-payments-advanced' ),
-		);
-	}
-
-	/**
-	 * Checks whether current payment region supports shop currency.
-	 *
-	 * @since 1.8.0
-	 * @version 1.8.0
-	 *
-	 * @return bool Returns true if shop currency is supported by current payment region.
-	 */
-	public static function is_region_supports_shop_currency() {
-		$region   = self::get_region();
-		// Avoid interferences of external multi-currency plugins
-		$currency = get_option( 'woocommerce_currency' );
-
-		switch ( $region ) {
-			case 'eu':
-				return 'EUR' === $currency;
-			case 'gb':
-				return 'GBP' === $currency;
-			case 'us':
-				return 'USD' === $currency;
-			case 'jp':
-				return 'JPY' === $currency;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Get location.
-	 *
-	 * @deprecated
-	 */
-	public static function get_location() {
-		_deprecated_function( __METHOD__, '1.6.3', 'WC_Amazon_Payments_Advanced_API::get_region' );
-		return self::get_region();
-	}
-
-	/**
-	 * Get payment region from setting.
-	 *
-	 * @return string
-	 */
-	public static function get_region() {
-		$settings = self::get_settings();
-		$region   = ! empty( $settings['payment_region'] ) ? $settings['payment_region'] : self::get_payment_region_from_country( WC()->countries->get_base_country() );
-
-		return $region;
-	}
-
-	/**
-	 * If merchant is eu payment region (eu & uk).
-	 *
-	 * @return bool
-	 */
-	public static function is_sca_region() {
-		return apply_filters(
-			'woocommerce_amazon_payments_is_sca_region',
-			( 'eu' === self::get_region() || 'gb' === self::get_region() )
-		);
-	}
-
-	/**
-	 * Get the label of payment region from setting.
-	 *
-	 * @since 1.8.0
-	 * @version 1.8.0
-	 *
-	 * @return string Payment region label.
-	 */
-	public static function get_region_label() {
-		$regions = self::get_payment_regions();
-		return $regions[ self::get_region() ];
-	}
-
-	/**
-	 * Get Login with Amazon App setup URL.
-	 *
-	 * @return string
-	 */
-	public static function get_client_id_instructions_url() {
-		$region = self::get_region();
-
-		return array_key_exists( $region, self::$client_id_instructions ) ? self::$client_id_instructions[ $region ] : '';
-	}
-
-	/**
-	 * Get if amazon keys have been set and validated.
-	 *
-	 * @return bool
-	 */
-	public static function get_amazon_keys_set() {
-		$settings = self::get_settings();
-		return ( isset( $settings['amazon_keys_setup_and_validated'] ) ) && ( 1 === $settings['amazon_keys_setup_and_validated'] );
-	}
-
-	/**
-	 * Get widgets URL.
-	 *
-	 * @return string
-	 */
-	public static function get_widgets_url() {
-		$settings   = self::get_settings();
-		$region     = $settings['payment_region'];
-		$is_sandbox = 'yes' === $settings['sandbox'];
-
-		// If payment_region is not set in settings, use base country.
-		if ( ! $region ) {
-			$region = self::get_payment_region_from_country( WC()->countries->get_base_country() );
-		}
-
-		if ( 'yes' === $settings['enable_login_app'] ) {
-			return $is_sandbox ? self::$widgets_urls['sandbox'][ $region ] : self::$widgets_urls['production'][ $region ];
-		}
-
-		$non_app_url = $is_sandbox ? self::$non_app_widgets_urls['sandbox'][ $region ] : self::$non_app_widgets_urls['production'][ $region ];
-
-		return $non_app_url . '?sellerId=' . $settings['seller_id'];
-	}
-
-	/**
-	 * Get API endpoint.
-	 *
-	 * @param bool $is_sandbox Whether using sandbox or not.
-	 *
-	 * @return string
-	 */
-	public static function get_endpoint( $is_sandbox = false ) {
-		$region = self::get_region();
-
-		return $is_sandbox ? self::$endpoints['sandbox'][ $region ] : self::$endpoints['production'][ $region ];
-	}
-
-	/**
-	 * Get list of supported currencies.
-	 *
-	 * @param bool $filter Filters current woocommerce currency.
-	 *
-	 * @return array
-	 */
-	public static function get_supported_currencies( $filter = false ) {
-		return array_combine( self::$supported_currencies, self::$supported_currencies );
-	}
-
-	/**
-	 * Returns selected currencies on settings together with native woocommerce currency.
-	 *
-	 * @return array
-	 */
-	public static function get_selected_currencies() {
-		$settings = self::get_settings();
-		return isset( $settings['currencies_supported'] ) ? $settings['currencies_supported'] : array();
-	}
-
-	/**
-	 * Returns the current value for the authorization mode setting.
-	 *
-	 * @return array
-	 */
-	public static function get_authorization_mode() {
-		$settings = self::get_settings();
-		return $settings['authorization_mode'];
-	}
-
-	/**
-	 * Check if it is a new merchant (new install).
-	 *
-	 * @return bool
-	 */
-	public static function is_new_installation() {
-		$version = get_option( WC_Amazon_Payments_Advanced_Install::APA_NEW_INSTALL_OPTION );
-		return (bool) $version;
-	}
-
-	/**
-	 * Safe load XML.
-	 *
-	 * @param  string $source  XML input.
-	 * @param  int    $options Options.
-	 *
-	 * @return SimpleXMLElement|bool
-	 */
-	public static function safe_load_xml( $source, $options = 0 ) {
-		$old = null;
-
-		if ( '<' !== substr( $source, 0, 1 ) ) {
-			return false;
-		}
-
-		if ( function_exists( 'libxml_disable_entity_loader' ) ) {
-			$old = libxml_disable_entity_loader( true );
-		}
-
-		$dom    = new DOMDocument();
-		$return = $dom->loadXML( $source, $options );
-
-		if ( ! is_null( $old ) ) {
-			libxml_disable_entity_loader( $old );
-		}
-
-		if ( ! $return ) {
-			return false;
-		}
-
-		if ( isset( $dom->doctype ) ) {
-			return false;
-		}
-
-		return simplexml_import_dom( $dom );
-	}
-
-	/**
-	 * Make an api request.
-	 *
-	 * @param  args $args Arguments.
-	 *
-	 * @return WP_Error|SimpleXMLElement Response.
-	 */
-	public static function request( $args ) {
-		$settings = self::get_settings();
-		$defaults = array(
-			'AWSAccessKeyId' => $settings['mws_access_key'],
-			'SellerId'       => $settings['seller_id'],
-		);
-
-		$args     = apply_filters( 'woocommerce_amazon_pa_api_request_args', wp_parse_args( $args, $defaults ) );
-		$endpoint = self::get_endpoint( 'yes' === $settings['sandbox'] );
-
-		$url = self::get_signed_amazon_url( $endpoint . '?' . http_build_query( $args, '', '&' ), $settings['secret_key'] );
-		wc_apa()->log( __METHOD__, sprintf( 'GET: %s', wc_apa()->sanitize_remote_request_log( $url ) ) );
-
-		$response = wp_remote_get( $url, array(
-			'timeout' => 12,
-		) );
-
-		if ( ! is_wp_error( $response ) ) {
-			$response        = self::safe_load_xml( $response['body'], LIBXML_NOCDATA );
-			$logged_response = wc_apa()->sanitize_remote_response_log( $response );
-
-			wc_apa()->log( __METHOD__, sprintf( 'Response: %s', $logged_response ) );
-		} else {
-			wc_apa()->log( __METHOD__, sprintf( 'Error: %s', $response->get_error_message() ) );
-		}
-
-		return $response;
-	}
-
-	/**
-	 * Sign a url for amazon.
-	 *
-	 * @param string $url        URL.
-	 * @param string $secret_key Secret key.
-	 *
-	 * @return string
-	 */
-	public static function get_signed_amazon_url( $url, $secret_key ) {
-		$urlparts = parse_url( $url );
-
-		// Build $params with each name/value pair.
-		foreach ( explode( '&', $urlparts['query'] ) as $part ) {
-			if ( strpos( $part, '=' ) ) {
-				list( $name, $value ) = explode( '=', $part, 2 );
-			} else {
-				$name  = $part;
-				$value = '';
-			}
-			$params[ $name ] = $value;
-		}
-
-		// Include a timestamp if none was provided.
-		if ( empty( $params['Timestamp'] ) ) {
-			$params['Timestamp'] = gmdate( 'Y-m-d\TH:i:s\Z' );
-		}
-
-		$params['SignatureVersion'] = '2';
-		$params['SignatureMethod']  = 'HmacSHA256';
-
-		// Sort the array by key.
-		ksort( $params );
-
-		// Build the canonical query string.
-		$canonical = '';
-
-		// Don't encode here - http_build_query already did it.
-		foreach ( $params as $key => $val ) {
-			$canonical  .= $key . '=' . rawurlencode( utf8_decode( urldecode( $val ) ) ) . '&';
-		}
-
-		// Remove the trailing ampersand.
-		$canonical = preg_replace( '/&$/', '', $canonical );
-
-		// Some common replacements and ones that Amazon specifically mentions.
-		$canonical = str_replace( array( ' ', '+', ',', ';' ), array( '%20', '%20', urlencode( ',' ), urlencode( ':' ) ), $canonical );
-
-		// Build the sign.
-		$string_to_sign = "GET\n{$urlparts['host']}\n{$urlparts['path']}\n$canonical";
-
-		// Calculate our actual signature and base64 encode it.
-		$signature = base64_encode( hash_hmac( 'sha256', $string_to_sign, $secret_key, true ) );
-
-		// Finally re-build the URL with the proper string and include the Signature.
-		$url = "{$urlparts['scheme']}://{$urlparts['host']}{$urlparts['path']}?$canonical&Signature=" . rawurlencode( $signature );
-
-		return $url;
-	}
-
-	/**
-	 * VAT registered sellers - Obtaining the Billing Address.
-	 *
-	 * @see http://docs.developer.amazonservices.com/en_UK/apa_guide/APAGuide_GetAuthorizationStatus.html
-	 *
-	 * @param int   $order_id Order ID.
-	 * @param array $result   Result from API response.
-	 *
-	 * @deprecated
-	 */
-	public static function maybe_update_billing_details( $order_id, $result ) {
-		_deprecated_function( 'WC_Amazon_Payments_Advanced_API::maybe_update_billing_details', '1.6.0', 'WC_Amazon_Payments_Advanced_API::update_order_billing_address' );
-
-		// @codingStandardsIgnoreStart
-		if ( ! empty( $result->AuthorizationBillingAddress ) ) {
-			$address = (array) $result->AuthorizationBillingAddress;
-
-			self::update_order_billing_address( $order_id, $address );
-		}
-		// @codingStandardsIgnoreEnd
-	}
-
-	/**
-	 * Get auth state from amazon API.
-	 *
-	 * @param string $order_id Order ID.
-	 * @param string $id       Reference ID.
-	 *
-	 * @return string|bool Returns false if failed
-	 */
-	public static function get_reference_state( $order_id, $id ) {
-		if ( $state = get_post_meta( $order_id, 'amazon_reference_state', true ) ) {
-			return $state;
-		}
-
-		$response = self::request( array(
-			'Action'                 => 'GetOrderReferenceDetails',
-			'AmazonOrderReferenceId' => $id,
-		) );
-
-		// @codingStandardsIgnoreStart
-		if ( is_wp_error( $response ) || isset( $response->Error->Message ) ) {
-			return false;
-		}
-		$state = (string) $response->GetOrderReferenceDetailsResult->OrderReferenceDetails->OrderReferenceStatus->State;
-		// @codingStandardsIgnoreEnd
-
-		update_post_meta( $order_id, 'amazon_reference_state', $state );
-
-		return $state;
-	}
-
-	/**
-	 * Get auth state from amazon API.
-	 *
-	 * @param string $order_id Order ID.
-	 * @param string $id       Reference ID.
-	 *
-	 * @return string|bool Returns false if failed.
-	 */
-	public static function get_authorization_state( $order_id, $id ) {
-		if ( $state = get_post_meta( $order_id, 'amazon_authorization_state', true ) ) {
-			return $state;
-		}
-
-		$response = self::request( array(
-			'Action'                => 'GetAuthorizationDetails',
-			'AmazonAuthorizationId' => $id,
-		) );
-
-		// @codingStandardsIgnoreStart
-		if ( is_wp_error( $response ) || isset( $response->Error->Message ) ) {
-			return false;
-		}
-		$state = (string) $response->GetAuthorizationDetailsResult->AuthorizationDetails->AuthorizationStatus->State;
-		// @codingStandardsIgnoreEnd
-
-		update_post_meta( $order_id, 'amazon_authorization_state', $state );
-
-		self::update_order_billing_address( $order_id, self::get_billing_address_from_response( $response ) );
-
-		return $state;
-	}
-
-	/**
-	 * Get capture state from amazon API.
-	 *
-	 * @param string $order_id Order ID.
-	 * @param string $id       Reference ID.
-	 *
-	 * @return string|bool Returns false if failed.
-	 */
-	public static function get_capture_state( $order_id, $id ) {
-		if ( $state = get_post_meta( $order_id, 'amazon_capture_state', true ) ) {
-			return $state;
-		}
-
-		$response = self::request( array(
-			'Action'          => 'GetCaptureDetails',
-			'AmazonCaptureId' => $id,
-		) );
-
-		// @codingStandardsIgnoreStart
-		if ( is_wp_error( $response ) || isset( $response->Error->Message ) ) {
-			return false;
-		}
-		$state = (string) $response->GetCaptureDetailsResult->CaptureDetails->CaptureStatus->State;
-		// @codingStandardsIgnoreEnd
-
-		update_post_meta( $order_id, 'amazon_capture_state', $state );
-
-		return $state;
-	}
-
-	/**
-	 * Get order language from order metadata.
-	 *
-	 * @param string $order_id Order ID.
-	 *
-	 * @return string
-	 */
-	public static function get_order_language( $order_id ) {
-		return get_post_meta( $order_id, 'amazon_order_language', true );
-	}
-
-	/**
-	 * Authorize payment against an order reference using 'Authorize' method.
-	 *
-	 * @see https://payments.amazon.com/documentation/apireference/201752010
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param int|WC_Order $order Order.
-	 * @param array        $args  Arguments.
-	 *
-	 * @return bool|WP_Error|SimpleXMLElement Response.
-	 */
-	public static function authorize( $order, $args = array() ) {
-		$order = wc_get_order( $order );
-		if ( ! $order ) {
-			return new WP_Error( 'invalid_order', __( 'Invalid order.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		if ( 'amazon_payments_advanced' !== wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			return new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		$args     = wp_parse_args(
-			$args,
-			array(
-				'amazon_reference_id' => get_post_meta( $order_id, 'amazon_reference_id', true ),
-				'capture_now'         => false,
-			)
-		);
-
-		if ( ! $args['amazon_reference_id'] ) {
-			return new WP_Error( 'order_missing_reference_id', __( 'Order missing Amazon order reference ID.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$response = self::request( self::get_authorize_request_args( $order, $args ) );
-
-		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		if ( isset( $response->Error->Message ) ) {
-			$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
-			return new WP_Error( $code, (string) $response->Error->Message );
-		}
-
-		if ( isset( $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->State ) ) {
-			$code = isset( $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->ReasonCode )
-				? (string) $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->ReasonCode
-				: '';
-
-			switch ( $code ) {
-				case 'InvalidPaymentMethod':
-					return new WP_Error( $code, __( 'The selected payment method was declined. Please try different payment method.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-				case 'AmazonRejected':
-				case 'ProcessingFailure':
-				case 'TransactionTimedOut':
-					// If the transaction timed out and async authorization is enabled then just return here, leaving
-					// the transaction pending. We'll let the calling code trigger an async authorization.
-					$authorization_mode = self::get_authorization_mode();
-					if ( 'TransactionTimedOut' === $code && 'async' === $authorization_mode ) {
-						return new WP_Error( $code );
-					}
-
-					// Now we know that we definitely want to cancel the order reference, let's do that and return an
-					// appropriate error message.
-					$result = self::cancel_order_reference( $order, $code );
-
-					// Invalid order or missing order reference which unlikely
-					// to happen, but log in case happens.
-					$failed_before_api_request = (
-						is_wp_error( $result )
-						&&
-						in_array( $result->get_error_code(), array( 'invalid_order', 'order_missing_amazon_reference_id' ) )
-					);
-					if ( $failed_before_api_request ) {
-						wc_apa()->log( __METHOD__, sprintf( 'Failed to cancel order reference: %s', $result->get_error_message() ) );
-					}
-
-					$redirect_url = add_query_arg(
-						array(
-							'amazon_payments_advanced' => 'true',
-							'amazon_logout'            => 'true',
-							'amazon_declined'          => 'true',
-						),
-						$order->get_cancel_order_url()
-					);
-
-					/* translators: placeholder is redirect URL */
-					return new WP_Error( $code, sprintf( __( 'There was a problem with the selected payment method. Transaction was declined and order will be cancelled. You will be redirected to cart page automatically, if not please click <a href="%s">here</a>.', 'woocommerce-gateway-amazon-payments-advanced' ), $redirect_url ) );
-			}
-		}
-		// phpcs:enable
-
-		return $response;
-	}
-
-	/**
-	 * Get args to perform Authorize request.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param WC_Order $order Order object.
-	 * @param array    $args  Base args.
-	 */
-	public static function get_authorize_request_args( WC_Order $order, $args ) {
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		return apply_filters( 'woocommerce_amazon_pa_authorize_request_args', array(
-			'Action'                              => 'Authorize',
-			'AmazonOrderReferenceId'              => $args['amazon_reference_id'],
-			'AuthorizationReferenceId'            => $order_id . '-' . current_time( 'timestamp', true ),
-			'AuthorizationAmount.Amount'          => $order->get_total(),
-			'AuthorizationAmount.CurrencyCode'    => wc_apa_get_order_prop( $order, 'order_currency' ),
-			'CaptureNow'                          => $args['capture_now'],
-			'TransactionTimeout'                  => ( isset( $args['transaction_timeout'] ) ) ? $args['transaction_timeout'] : 0,
-			'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
-			'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
-			// 'SellerAuthorizationNote'          => '{"SandboxSimulation": {"State":"Declined", "ReasonCode":"AmazonRejected"}}'
-		) );
-	}
-
-	/**
-	 * Authorize recurring payment against an order reference using
-	 * 'AuthorizeOnBillingAgreement' method.
-	 *
-	 * @see https://payments.amazon.com/documentation/apireference/201752010
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param int|WC_Order $order Order ID or order object.
-	 * @param array        $args  Whether to immediately capture or not.
-	 *
-	 * @return bool|WP_Error
-	 */
-	public static function authorize_recurring( $order, $args = array() ) {
-		$order    = wc_get_order( $order );
-		if ( ! $order ) {
-			return new WP_Error( 'invalid_order', __( 'Invalid order.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		if ( 'amazon_payments_advanced' !== wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			return new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		$args     = wp_parse_args(
-			$args,
-			array(
-				'amazon_reference_id' => get_post_meta( $order_id, 'amazon_billing_agreement_id', true ),
-				'capture_now'         => false,
-			)
-		);
-
-		if ( ! $args['amazon_billing_agreement_id'] ) {
-			return new WP_Error( 'order_missing_billing_agreement_id', __( 'Order missing Amazon billing agreement ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$response = self::request( self::get_authorize_recurring_request_args( $order, $args ) );
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->Error->Message ) ) {
-			$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
-			return new WP_Error( $code, (string) $response->Error->Message );
-		}
-		// @codingStandardsIgnoreEnd
-
-		return $response;
-	}
-
-	/**
-	 * Get args to perform AuthorizeBillingAgreement request.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param WC_Order $order Order object.
-	 * @param array    $args  Args.
-	 *
-	 * @return array Request args.
-	 */
-	public static function get_authorize_recurring_request_args( WC_Order $order, $args ) {
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		return array(
-			'Action'                              => 'AuthorizeOnBillingAgreement',
-			'AmazonBillingAgreementId'            => $args['amazon_billing_agreement_id'],
-			'AuthorizationReferenceId'            => $order_id . '-' . current_time( 'timestamp', true ),
-			'AuthorizationAmount.Amount'          => $order->get_total(),
-			'AuthorizationAmount.CurrencyCode'    => wc_apa_get_order_prop( $order, 'order_currency' ),
-			'CaptureNow'                          => $args['capture_now'],
-			'TransactionTimeout'                  => 0,
-			'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
-			'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
-		);
-	}
-
-	/**
-	 * Authorize payment against an order reference using 'Authorize' method.
-	 *
-	 * @see: https://payments.amazon.com/documentation/apireference/201752010
-	 *
-	 * @param int    $order_id            Order ID.
-	 * @param string $amazon_reference_id Amazon reference ID.
-	 * @param bool   $capture_now         Whether to immediately capture or not.
-	 *
-	 * @return bool See return value of self::handle_payment_authorization_response.
-	 */
-	public static function authorize_payment( $order_id, $amazon_reference_id, $capture_now = false ) {
-		$response = self::authorize( $order_id, array(
-			'amazon_reference_id' => $amazon_reference_id,
-			'capture_now'         => $capture_now,
-		) );
-
-		return self::handle_payment_authorization_response( $response, $order_id, $capture_now );
-	}
-
-	/**
-	 * Authorize payment against a billing agreement using 'AuthorizeOnBillingAgreement' method
-	 * See: https://payments.amazon.com/documentation/automatic/201752090#201757380
-	 *
-	 * @param int        $order_id                    Order ID.
-	 * @param string     $amazon_billing_agreement_id Reference ID.
-	 * @param bool|false $capture_now                 Whether to capture immediately.
-	 *
-	 * @return bool Returns true if succeed.
-	 */
-	public static function authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, $capture_now = false ) {
-		$response = self::authorize_recurring( $order_id, array(
-			'amazon_billing_agreement_id' => $amazon_billing_agreement_id,
-			'capture_now'                 => $capture_now,
-		) );
-
-		return self::handle_payment_authorization_response( $response, $order_id, $capture_now );
-	}
-
-	/**
-	 * Handle the result of an authorization request.
-	 *
-	 * @param object       $response    Return value from self::request().
-	 * @param int|WC_Order $order       Order object.
-	 * @param bool         $capture_now Whether to capture immediately or not.
-	 * @param string       $auth_method Deprecated. Which API authorization
-	 *                                  method was used (Authorize, or
-	 *                                  AuthorizeOnBillingAgreement).
-	 *
-	 * @return bool Whether or not payment was authorized.
-	 */
-	public static function handle_payment_authorization_response( $response, $order, $capture_now, $auth_method = null ) {
-		$order = wc_get_order( $order );
-
-		if ( null !== $auth_method ) {
-			_deprecated_function( 'WC_Amazon_Payments_Advanced_API::handle_payment_authorization_response', '1.6.0', 'Parameter auth_method is not used anymore' );
-		}
-
-		if ( is_wp_error( $response ) ) {
-			$order->add_order_note( sprintf( __( 'Error: Unable to authorize funds with Amazon. Reason: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
-
-			return false;
-		}
-
-		return self::update_order_from_authorize_response( $order, $response, $capture_now );
-	}
-
-	/**
-	 * Handle the result of an async ipn order reference request.
-	 * We need only to cover the change to Open status.
-	 *
-	 * https://m.media-amazon.com/images/G/03/AMZNPayments/IntegrationGuide/AmazonPay_-_Order_Confirm_And_Omnichronous_Authorization_Including-IPN-Handler._V516642695_.svg
-	 *
-	 * @param object       $ipn_payload    IPN payload.
-	 * @param int|WC_Order $order          Order object.
-	 *
-	 * @return string Authorization status.
-	 */
-	public static function handle_async_ipn_order_reference_payload( $ipn_payload, $order ) {
-		$order                 = is_int( $order ) ? wc_get_order( $order ) : $order;
-		$order_id              = wc_apa_get_order_prop( $order, 'id' );
-		$order_reference_state = (string) $ipn_payload->OrderReference->OrderReferenceStatus->State;
-
-		update_post_meta( $order_id, 'amazon_reference_state', $order_reference_state );
-
-		if ( 'open' === strtolower( $order_reference_state ) ) {
-			// New Async Auth
-			$order->add_order_note( __( 'Async Authorized attempt.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-			$amazon_reference_id = get_post_meta( $order_id, 'amazon_reference_id', true );
-			do_action( 'wc_amazon_async_authorize', $order, $amazon_reference_id );
-		}
-	}
-
-	/**
-	 * Handle the result of an async ipn authorization request.
-	 * https://m.media-amazon.com/images/G/03/AMZNPayments/IntegrationGuide/AmazonPay_-_Order_Confirm_And_Omnichronous_Authorization_Including-IPN-Handler._V516642695_.svg
-	 *
-	 * @param object       $ipn_payload    IPN payload.
-	 * @param int|WC_Order $order          Order object.
-	 *
-	 * @return string Authorization status.
-	 */
-	public static function handle_async_ipn_payment_authorization_payload( $ipn_payload, $order ) {
-		$order = is_int( $order ) ? wc_get_order( $order ) : $order;
-
-		$auth_id = self::get_auth_id_from_response( $ipn_payload );
-		if ( ! $auth_id ) {
-			return false;
-		}
-
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		update_post_meta( $order_id, 'amazon_authorization_id', $auth_id );
-
-		$authorization_status = self::get_auth_state_from_reponse( $ipn_payload );
-		switch ( $authorization_status ) {
-			case 'open':
-				// Updating amazon_authorization_state
-				update_post_meta( $order_id, 'amazon_authorization_state', 'Open' );
-				// Delete amazon_timed_out_transaction meta
-				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
-				$order->add_order_note( sprintf( __( 'Authorized (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
-				$order->add_order_note( __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-				break;
-			case 'closed':
-				update_post_meta( $order_id, 'amazon_capture_id', str_replace( '-A', '-C', $auth_id ) );
-				update_post_meta( $order_id, 'amazon_authorization_state', $authorization_status );
-				$order->add_order_note( sprintf( __( 'Captured (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), str_replace( '-A', '-C', $auth_id ) ) );
-				$order->payment_complete();
-				// Delete amazon_timed_out_transaction meta
-				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
-				// Close order reference.
-				self::close_order_reference( $order_id );
-				break;
-			case 'declined':
-				$state_reason_code = self::get_auth_state_reason_code_from_response( $ipn_payload );
-				if ( 'InvalidPaymentMethod' === $state_reason_code ) {
-					// Soft Decline
-					update_post_meta( $order_id, 'amazon_authorization_state', 'Suspended' );
-					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
-					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
-					$message = wc_get_template_html( 'emails/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-					wc_apa()->log( __METHOD__, 'EMAILL ' . $message );
-					self::send_email_notification( $subject, $message, $order->get_billing_email() );
-				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
-					// Hard decline
-					$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
-					// Hard Decline client's email.
-					$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
-					$message = wc_get_template_html( 'emails/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-					self::send_email_notification( $subject, $message, $order->get_billing_email() );
-				} elseif ( 'TransactionTimedOut' === $state_reason_code ) {
-					// On the second timedout we need to cancel on woo and amazon.
-					if ( ! $order->meta_exists( 'amazon_timed_out_times' ) ) {
-						$order->update_meta_data( 'amazon_timed_out_times', 1 );
-					} else {
-						$order->update_meta_data( 'amazon_timed_out_times', 2 );
-						// Hard Decline
-						$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
-						// Hard Decline client's email.
-						$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
-						$message = wc_get_template_html( 'emails/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-						self::send_email_notification( $subject, $message, $order->get_billing_email() );
-						// Delete amazon_timed_out_transaction meta
-						$order->delete_meta_data( $order_id, 'amazon_timed_out_transaction' );
-						// Cancel amazon order.
-						self::cancel_order_reference( $order_id );
-					}
-					$order->save();
-				}
-
-				break;
-		}
-		return $authorization_status;
-	}
-
-	/**
-	 * Handle the result of an sync authorization request.
-	 * 
-	 *
-	 * @param object       $result         IPN payload.
-	 * @param int|WC_Order $order          Order object.
-	 *
-	 * @return string Authorization status.
-	 */
-	public static function handle_synch_payment_authorization_payload( $response , $order, $auth_id = false ) {
-		$order = is_int( $order ) ? wc_get_order( $order ) : $order;
-
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		update_post_meta( $order_id, 'amazon_authorization_id', $auth_id );
-
-		$authorization_status = self::get_auth_state_from_reponse( $response );
-		wc_apa()->log(
-			__METHOD__,
-			sprintf( 'Found authorization status of %s on pending synchronous payment', $authorization_status )
-		);
-
-		switch ( $authorization_status ) {
-			case 'open':
-				// Updating amazon_authorization_state
-				update_post_meta( $order_id, 'amazon_authorization_state', 'Open' );
-				// Delete amazon_timed_out_transaction meta
-				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
-				$order->add_order_note( sprintf( __( 'Authorized (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
-				$order->add_order_note( __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-				break;
-			case 'closed':
-				update_post_meta( $order_id, 'amazon_capture_id', str_replace( '-A', '-C', $auth_id ) );
-				update_post_meta( $order_id, 'amazon_authorization_state', $authorization_status );
-				$order->add_order_note( sprintf( __( 'Captured (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), str_replace( '-A', '-C', $auth_id ) ) );
-				$order->payment_complete();
-				// Delete amazon_timed_out_transaction meta
-				delete_post_meta( $order_id, 'amazon_timed_out_transaction' );
-				// Close order reference.
-				self::close_order_reference( $order_id );
-				break;
-			case 'declined':
-				$state_reason_code = self::get_auth_state_reason_code_from_response( $response );
-				if ( 'InvalidPaymentMethod' === $state_reason_code ) {
-					// Soft Decline
-					update_post_meta( $order_id, 'amazon_authorization_state', 'Suspended' );
-					$order->add_order_note( sprintf( __( 'Amazon Order Suspended. Email sent to customer to change its payment method.', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
-					$subject = __( 'Please update your payment information', 'woocommerce-gateway-amazon-payments-advanced' );
-					$message = wc_get_template_html( 'emails/soft-decline.php', array( 'order_id' => $order_id ), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-					wc_apa()->log( __METHOD__, 'EMAILL ' . $message );
-					self::send_email_notification( $subject, $message, $order->get_billing_email() );
-				} elseif ( 'AmazonRejected' === $state_reason_code || 'ProcessingFailure' === $state_reason_code ) {
-					// Hard decline
-					$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
-					// Hard Decline client's email.
-					$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
-					$message = wc_get_template_html( 'emails/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-					self::send_email_notification( $subject, $message, $order->get_billing_email() );
-				} elseif ( 'TransactionTimedOut' === $state_reason_code ) {
-					if ( ! $order->meta_exists( 'amazon_timed_out_times' ) ) {
-						$order->update_meta_data( 'amazon_timed_out_times', 1 );
-						// Hard Decline
-						$order->update_status( 'cancelled', sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $state_reason_code ) );
-						// Hard Decline client's email.
-						$subject = __( 'Please contact us about your order', 'woocommerce-gateway-amazon-payments-advanced' );
-						$message = wc_get_template_html( 'emails/hard-decline.php', array(), '', plugin_dir_path( __DIR__ ) . '/templates/' );
-						self::send_email_notification( $subject, $message, $order->get_billing_email() );
-						// Delete amazon_timed_out_transaction meta
-						$order->delete_meta_data( $order_id, 'amazon_timed_out_transaction' );
-						// Cancel amazon order.
-						self::cancel_order_reference( $order_id );
-					}
-					$order->save();
-				}
-				break;
-			case 'pending':
-				$args = array(
-					'order_id'                => $order->get_id(),
-					'amazon_authorization_id' => $auth_id,
-				);
-				// Schedule action to check pending order next hour.
-				$next_scheduled_action = as_next_scheduled_action( 'wcga_process_pending_syncro_payments', $args );
-				if ( false === $next_scheduled_action || true === $next_scheduled_action ) {
-					as_schedule_single_action( strtotime( 'next hour' ) , 'wcga_process_pending_syncro_payments', $args );
-				}
-				break;
-		}
-		return $authorization_status;
-	}
-
-	/**
-	 * Get Authorization ID from reesponse.
-	 *
-	 * @since 1.6.9
-	 *
-	 * @param object $response Return value from self::request().
-	 *
-	 * @return string|bool String of Authorization ID. Otherwise false is returned.
-	 */
-	public static function get_auth_id_from_response( $response ) {
-		$auth_id = false;
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AmazonAuthorizationId ) ) {
-			$auth_id = (string) $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AmazonAuthorizationId;
-		} elseif ( isset( $response->AuthorizeResult->AuthorizationDetails->AmazonAuthorizationId ) ) {
-			$auth_id = (string) $response->AuthorizeResult->AuthorizationDetails->AmazonAuthorizationId;
-		} elseif ( isset( $response->AuthorizationDetails->AmazonAuthorizationId ) ) {
-			$auth_id = (string) $response->AuthorizationDetails->AmazonAuthorizationId;
-		}
-		// @codingStandardsIgnoreEnd
-
-		return $auth_id;
-	}
-
-	/**
-	 * Get Authorization state from reesponse.
-	 *
-	 * @since 1.6.9
-	 *
-	 * @param object $response Response from self::request().
-	 *
-	 * @return string|bool String of Authorization state.
-	 */
-	public static function get_auth_state_from_reponse( $response ) {
-		$state = 'pending';
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AuthorizationStatus->State ) ) {
-			$state = strtolower( (string) $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AuthorizationStatus->State );
-		} elseif ( isset( $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->State ) ) {
-			$state = strtolower( (string) $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->State );
-		} elseif ( isset( $response->AuthorizationDetails->AuthorizationStatus->State ) ) {
-			$state = strtolower( (string) $response->AuthorizationDetails->AuthorizationStatus->State );
-		} elseif ( isset( $response->GetAuthorizationDetailsResult->AuthorizationDetails->AuthorizationStatus->State ) ) {
-			$state = strtolower( (string) $response->GetAuthorizationDetailsResult->AuthorizationDetails->AuthorizationStatus->State );
-		}
-		// @codingStandardsIgnoreEnd
-
-		return $state;
-	}
-
-	/**
-	 * Get Authorization state reason code from reesponse.
-	 *
-	 * @see   https://payments.amazon.com/documentation/apireference/201752950
-	 * @since 1.6.9
-	 *
-	 * @param object $response Response from self::request().
-	 *
-	 * @return string|bool String of Authorization state.
-	 */
-	public static function get_auth_state_reason_code_from_response( $response ) {
-		$reason_code = 'Unknown';
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AuthorizationStatus->ReasonCode ) ) {
-			$reason_code = (string) $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AuthorizationStatus->ReasonCode;
-		} elseif ( isset( $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->ReasonCode ) ) {
-			$reason_code = (string) $response->AuthorizeResult->AuthorizationDetails->AuthorizationStatus->ReasonCode;
-		} elseif ( isset( $response->AuthorizationDetails->AuthorizationStatus->ReasonCode ) ) {
-			$reason_code = (string) $response->AuthorizationDetails->AuthorizationStatus->ReasonCode;
-		} elseif ( isset( $response->GetAuthorizationDetailsResult->AuthorizationDetails->AuthorizationStatus->ReasonCode ) ) {
-			$reason_code = (string) $response->GetAuthorizationDetailsResult->AuthorizationDetails->AuthorizationStatus->ReasonCode;
-		}
-		// @codingStandardsIgnoreEnd
-
-		return $reason_code;
-	}
-
-	/**
-	 * Get billing address from response.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param object $response Response from self::request().
-	 *
-	 * @return array Billing address.
-	 */
-	public static function get_billing_address_from_response( $response ) {
-		$details = array();
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AuthorizationBillingAddress ) ) {
-			$details = (array) $response->AuthorizeOnBillingAgreementResult->AuthorizationDetails->AuthorizationBillingAddress;
-		} elseif ( isset( $response->AuthorizeResult->AuthorizationDetails->AuthorizationBillingAddress ) ) {
-			$details = (array) $response->AuthorizeResult->AuthorizationDetails->AuthorizationBillingAddress;
-		}
-		// @codingStandardsIgnoreEnd
-
-		return $details;
-	}
-
-	/**
-	 * Get Amazon Order ID from response.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param object $response Response from self::request().
-	 *
-	 * @return string Amazon Order ID.
-	 */
-	public static function get_reference_id_from_response( $response ) {
-		$details = false;
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->AuthorizeOnBillingAgreementResult->AmazonOrderReferenceId ) ) {
-			$details = (string) $response->AuthorizeOnBillingAgreementResult->AmazonOrderReferenceId;
-		}
-		// @codingStandardsIgnoreEnd
-
-		return $details;
-	}
-
-	/**
-	 * Update order billing address.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param int   $order_id Order ID.
-	 * @param array $address  Billing address.
-	 *
-	 * @return bool
-	 */
-	public static function update_order_billing_address( $order_id, $address = array() ) {
-		// Format address and map to WC fields.
-		$address_lines = array();
-
-		if ( ! empty( $address['AddressLine1'] ) ) {
-			$address_lines[] = $address['AddressLine1'];
-		}
-		if ( ! empty( $address['AddressLine2'] ) ) {
-			$address_lines[] = $address['AddressLine2'];
-		}
-		if ( ! empty( $address['AddressLine3'] ) ) {
-			$address_lines[] = $address['AddressLine3'];
-		}
-
-		if ( 3 === sizeof( $address_lines ) ) {
-			update_post_meta( $order_id, '_billing_company', $address_lines[0] );
-			update_post_meta( $order_id, '_billing_address_1', $address_lines[1] );
-			update_post_meta( $order_id, '_billing_address_2', $address_lines[2] );
-		} elseif ( 2 === sizeof( $address_lines ) ) {
-			update_post_meta( $order_id, '_billing_address_1', $address_lines[0] );
-			update_post_meta( $order_id, '_billing_address_2', $address_lines[1] );
-		} elseif ( sizeof( $address_lines ) ) {
-			update_post_meta( $order_id, '_billing_address_1', $address_lines[0] );
-		}
-
-		if ( isset( $address['City'] ) ) {
-			update_post_meta( $order_id, '_billing_city', $address['City'] );
-		}
-
-		if ( isset( $address['PostalCode'] ) ) {
-			update_post_meta( $order_id, '_billing_postcode', $address['PostalCode'] );
-		}
-
-		if ( isset( $address['StateOrRegion'] ) ) {
-			update_post_meta( $order_id, '_billing_state', $address['StateOrRegion'] );
-		}
-
-		if ( isset( $address['CountryCode'] ) ) {
-			update_post_meta( $order_id, '_billing_country', $address['CountryCode'] );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Update order from authorization response.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param WC_Order $order       Order object.
-	 * @param Object   $response    Response from self::request.
-	 * @param bool     $capture_now Whether to capture immediately.
-	 *
-	 * @return bool Returns true if succeed.
-	 */
-	public static function update_order_from_authorize_response( $order, $response, $capture_now = false ) {
-		$auth_id = self::get_auth_id_from_response( $response );
-		if ( ! $auth_id ) {
-			return false;
-		}
-		$amazon_reference_id = self::get_reference_id_from_response( $response );
-
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		update_post_meta( $order_id, 'amazon_authorization_id', $auth_id );
-
-		// This is true only on AuthorizeOnBillingAgreement, for the recurring payments.
-		if ( $amazon_reference_id ) {
-			update_post_meta( $order_id, 'amazon_reference_id', $amazon_reference_id );
-		}
-		self::update_order_billing_address( $order_id, self::get_billing_address_from_response( $response ) );
-
-		$state = self::get_auth_state_from_reponse( $response );
-		if ( 'declined' === $state ) {
-			$order->add_order_note( sprintf( __( 'Order Declined with reason code: %s', 'woocommerce-gateway-amazon-payments-advanced' ), self::get_auth_state_reason_code_from_response( $response ) ) );
-			// Payment was not authorized.
-			return false;
-		}
-
-		if ( $capture_now ) {
-			update_post_meta( $order_id, 'amazon_capture_id', str_replace( '-A', '-C', $auth_id ) );
-
-			$order->add_order_note( sprintf( __( 'Captured (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), str_replace( '-A', '-C', $auth_id ) ) );
-		} else {
-			$order->add_order_note( sprintf( __( 'Authorized (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $auth_id ) );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Cancels a previously confirmed order reference.
-	 *
-	 * @since 1.7.0
-	 *
-	 * @param WC_Order $order  WC Order object.
-	 * @param string   $reason Reason for the cancellation.
-	 *
-	 * @return bool|WP_Error Return true when succeed. Otherwise WP_Error is returned.
-	 */
-	public static function cancel_order_reference( $order, $reason = '' ) {
-		$order    = wc_get_order( $order );
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		if ( ! $order ) {
-			return new WP_Error( 'invalid_order', __( 'Invalid order ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		if ( 'amazon_payments_advanced' !== wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			return new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$amazon_reference_id = get_post_meta( $order_id, 'amazon_reference_id', true );
-		if ( ! $amazon_reference_id ) {
-			return new WP_Error( 'order_missing_amazon_reference_id', __( 'Order missing Amazon reference ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$request_args = array(
-			'Action'                 => 'CancelOrderReference',
-			'AmazonOrderReferenceId' => $amazon_reference_id,
-		);
-
-		if ( $reason ) {
-			$request_args['CancelationReason'] = $reason;
-		}
-
-		$response = self::request( $request_args );
-
-		// @codingStandardsIgnoreStart
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		} elseif ( isset( $response->Error->Message ) ) {
-			$order->add_order_note( (string) $response->Error->Message );
-
-			$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
-			return new WP_Error( $code, (string) $response->Error->Message );
-		}
-		// @codingStandardsIgnoreEnd
-
-		return true;
-	}
-
-	/**
-	 * Close order reference.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param int|WC_Order $order Order ID or order object.
-	 *
-	 * @return bool|WP_Error Return true when succeed. Otherwise WP_Error is returned
-	 */
-	public static function close_order_reference( $order ) {
-		$order    = wc_get_order( $order );
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		if ( ! $order ) {
-			return new WP_Error( 'invalid_order', __( 'Invalid order ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		if ( 'amazon_payments_advanced' !== wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			return new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$amazon_reference_id = get_post_meta( $order_id, 'amazon_reference_id', true );
-		if ( ! $amazon_reference_id ) {
-			return new WP_Error( 'order_missing_amazon_reference_id', __( 'Order missing Amazon reference ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$amazon_billing_agreement_id = get_post_meta( $order_id, 'amazon_billing_agreement_id', true );
-		if ( $amazon_billing_agreement_id ) {
-			// If it has a billing agreement Amazon close it on auth, no need to close the order.
-			// https://developer.amazon.com/docs/amazon-pay-api/order-reference-states-and-reason-codes.html
-			$order->add_order_note( sprintf( __( 'Order reference %s closed ', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_reference_id ) );
-			return true;
-		}
-
-		$response = self::request( array(
-			'Action'                 => 'CloseOrderReference',
-			'AmazonOrderReferenceId' => $amazon_reference_id,
-		) );
-
-		// @codingStandardsIgnoreStart
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		} elseif ( isset( $response->Error->Message ) ) {
-			$order->add_order_note( (string) $response->Error->Message );
-
-			$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
-			return new WP_Error( $code, (string) $response->Error->Message );
-		} else {
-			$order->add_order_note( sprintf( __( 'Order reference %s closed ', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_reference_id ) );
-		}
-		// @codingStandardsIgnoreEnd
-
-		return true;
-	}
-
-	/**
-	 * Close authorization.
-	 *
-	 * @param int    $order_id                Order ID.
-	 * @param string $amazon_authorization_id Authorization ID.
-	 *
-	 * @return bool|WP_Error True if succeed. Otherwise WP_Error is returned
-	 */
-	public static function close_authorization( $order_id, $amazon_authorization_id ) {
-		$order = new WC_Order( $order_id );
-
-		if ( 'amazon_payments_advanced' == wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			$response = self::request( array(
-				'Action'                => 'CloseAuthorization',
-				'AmazonAuthorizationId' => $amazon_authorization_id,
-			) );
-
-			// @codingStandardsIgnoreStart
-			if ( is_wp_error( $response ) ) {
-				$ret = $response;
-			} elseif ( isset( $response->Error->Message ) ) {
-				$order->add_order_note( (string) $response->Error->Message );
-				$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
-				$ret = new WP_Error( $code, (string) $response->Error->Message );
-			} else {
-				delete_post_meta( $order_id, 'amazon_authorization_id' );
-
-				$order->add_order_note( sprintf( __( 'Authorization closed (Auth ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_authorization_id ) );
-				$ret = true;
-			}
-			// @codingStandardsIgnoreEnd
-		} else {
-			$ret = new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		return $ret;
-	}
-
-	/**
-	 * Capture payment.
-	 *
-	 * @see https://payments.amazon.com/documentation/apireference/201752040
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param int|WC_Order $order Order.
-	 * @param array        $args  Whether to immediately capture or not.
-	 *
-	 * @return bool|WP_Error
-	 */
-	public static function capture( $order, $args = array() ) {
-		$order    = wc_get_order( $order );
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-		if ( ! $order ) {
-			return new WP_Error( 'invalid_order', __( 'Invalid order ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		if ( 'amazon_payments_advanced' !== wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			return new WP_Error( 'invalid_order', __( 'Order is not paid via Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$args = wp_parse_args(
-			$args,
-			array(
-				'amazon_authorization_id' => get_post_meta( $order_id, 'amazon_authorization_id', true ),
-				'capture_now'             => false,
-			)
-		);
-
-		if ( ! $args['amazon_authorization_id'] ) {
-			return new WP_Error( 'order_missing_authorization_id', __( 'Order missing Amazon authorization ID', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$response = self::request( self::get_capture_request_args( $order, $args ) );
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->Error->Message ) ) {
-			$code = isset( $response->Error->Code ) ? (string) $response->Error->Code : 'amazon_error_response';
-			return new WP_Error( $code, (string) $response->Error->Message );
-		}
-		// @codingStandardsIgnoreEnd
-
-		return $response;
-	}
-
-	/**
-	 * Get args to perform Capture request.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param WC_Order $order Order object.
-	 * @param array    $args  Base args.
-	 *
-	 * @return array
-	 */
-	public static function get_capture_request_args( WC_Order $order, $args ) {
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		return array(
-			'Action'                     => 'Capture',
-			'AmazonAuthorizationId'      => $args['amazon_authorization_id'],
-			'CaptureReferenceId'         => $order_id . '-' . current_time( 'timestamp', true ),
-			'CaptureAmount.Amount'       => $order->get_total(),
-			'CaptureAmount.CurrencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
-		);
-	}
-
-	/**
-	 * Capture payment
-	 *
-	 * @param int    $order_id                Order ID.
-	 * @param string $amazon_authorization_id Optional Amazon authorization ID.
-	 *                                        If not provided, value from order
-	 *                                        meta will be used.
-	 */
-	public static function capture_payment( $order_id, $amazon_authorization_id = null ) {
-		$response = self::capture( $order_id, array(
-			'amazon_authorization_id' => $amazon_authorization_id,
-		) );
-
-		return self::handle_payment_capture_response( $response, $order_id );
-	}
-
-	/**
-	 * Handle the result of a capture request.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param object       $response Response from self::request().
-	 * @param int|WC_Order $order    Order ID or object.
-	 *
-	 * @return bool whether or not payment was captured.
-	 */
-	public static function handle_payment_capture_response( $response, $order ) {
-		$order = wc_get_order( $order );
-
-		if ( is_wp_error( $response ) ) {
-			$order->add_order_note( sprintf( __( 'Error: Unable to capture funds with Amazon Pay. Reason: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
-
-			return false;
-		}
-
-		return self::update_order_from_capture_response( $order, $response );
-	}
-
-	/**
-	 * Update order from capture response.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param WC_Order $order    Order object.
-	 * @param Object   $response Response from self::request.
-	 *
-	 * @return bool Returns true if succeed.
-	 */
-	public static function update_order_from_capture_response( $order, $response ) {
-		// @codingStandardsIgnoreStart
-		$capture_id = (string) $response->CaptureResult->CaptureDetails->AmazonCaptureId;
-		$order_id   = wc_apa_get_order_prop( $order, 'id' );
-		if ( ! $capture_id ) {
-			return false;
-		}
-		// @codingStandardsIgnoreEnd
-
-		$order->add_order_note( sprintf( __( 'Capture Attempted (Capture ID: %s)', 'woocommerce-gateway-amazon-payments-advanced' ), $capture_id ) );
-
-		update_post_meta( $order_id, 'amazon_capture_id', $capture_id );
-
-		$order->payment_complete();
-
-		return true;
-	}
-
-	/**
-	 * Refund a payment
-	 *
-	 * @param int    $order_id   Order ID.
-	 * @param string $capture_id Refund ID.
-	 * @param float  $amount     Amount to refund.
-	 * @param stirng $note       Refund note.
-	 *
-	 * @return bool Returns true if succeed.
-	 */
-	public static function refund_payment( $order_id, $capture_id, $amount, $note ) {
-		$order = new WC_Order( $order_id );
-		$ret   = false;
-
-		if ( 'amazon_payments_advanced' === wc_apa_get_order_prop( $order, 'payment_method' ) ) {
-			if ( 'US' == WC()->countries->get_base_country() && $amount > $order->get_total() ) {
-				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), __( 'Refund amount is greater than order total.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
-
-				return false;
-			} elseif ( $amount > min( ( $order->get_total() * 1.15 ), ( $order->get_total() + 75 ) ) ) {
-				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), __( 'Refund amount is greater than the max refund amount.', 'woocommerce-gateway-amazon-payments-advanced' ) ) );
-
-				return false;
+	protected static function get_amazonpay_sdk_config( $fresh = false ) {
+		if ( $fresh || empty( self::$amazonpay_sdk_config ) ) {
+			$settings = self::get_settings();
+			$region   = $settings['payment_region']; // TODO: Maybe normalize v1 and v2 different region management.
+			if ( 'gb' === $region ) {
+				$region = 'eu';
 			}
 
-			$response = self::request( array(
-				'Action'                    => 'Refund',
-				'AmazonCaptureId'           => $capture_id,
-				'RefundReferenceId'         => $order_id . '-' . current_time( 'timestamp', true ),
-				'RefundAmount.Amount'       => $amount,
-				'RefundAmount.CurrencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
-				'SellerRefundNote'          => $note,
-			) );
-
-			// @codingStandardsIgnoreStart
-			if ( is_wp_error( $response ) ) {
-				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
-			} elseif ( isset( $response->Error->Message ) ) {
-				$order->add_order_note( sprintf( __( 'Unable to refund funds via Amazon Pay: %s', 'woocommerce-gateway-amazon-payments-advanced' ), (string) $response->Error->Message ) );
-			} else {
-				$refund_id = (string) $response->RefundResult->RefundDetails->AmazonRefundId;
-
-				/* Translators: 1: refund amount, 2: refund note */
-				$order->add_order_note( sprintf( __( 'Refunded %1$s (%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), wc_price( $amount ), $note ) );
-
-				add_post_meta( $order_id, 'amazon_refund_id', $refund_id );
-
-				$ret = true;
-			}
-			// @codingStandardsIgnoreEnd
-		}
-
-		return $ret;
-	}
-
-	/**
-	 * Get order ID from reference ID.
-	 *
-	 * @param string $reference_id Reference ID.
-	 *
-	 * @return int Order ID.
-	 */
-	public static function get_order_id_from_reference_id( $reference_id ) {
-		global $wpdb;
-
-		$order_id = $wpdb->get_var( $wpdb->prepare( "
-			SELECT post_id
-			FROM $wpdb->postmeta
-			WHERE meta_key = 'amazon_reference_id'
-			AND meta_value = %s
-		", $reference_id ) );
-
-		if ( ! is_wp_error( $order_id ) ) {
-			return $order_id;
-		}
-
-		return 0;
-	}
-
-	/**
-	 * Get reference state.
-	 *
-	 * @param int    $order_id Order ID.
-	 * @param string $state    State to retrieve.
-	 *
-	 * @return string Reference state.
-	 */
-	public static function get_order_ref_state( $order_id, $state = 'amazon_reference_state' ) {
-		$ret_state = '';
-
-		switch ( $state ) {
-			case 'amazon_reference_state':
-				$ref_id = get_post_meta( $order_id, 'amazon_reference_id', true );
-				if ( $ref_id ) {
-					$ret_state = self::get_reference_state( $order_id, $ref_id );
-				}
-				break;
-
-			case 'amazon_authorization_state':
-				$ref_id = get_post_meta( $order_id, 'amazon_authorization_id', true );
-				if ( $ref_id ) {
-					$ret_state = self::get_authorization_state( $order_id, $ref_id );
-				}
-				break;
-
-			case 'amazon_capture_state':
-				$ref_id = get_post_meta( $order_id, 'amazon_capture_id', true );
-				if ( $ref_id ) {
-					$ret_state = self::get_capture_state( $order_id, $ref_id );
-				}
-				break;
-		}
-
-		return $ret_state;
-	}
-
-	/**
-	 * Remove address fields that have a string value of "undefined".
-	 *
-	 * @param array $address Address object from Amazon Pay API.
-	 */
-	private static function remove_undefined_strings( $address ) {
-		if ( ! $address instanceof SimpleXMLElement ) {
-			return;
-		}
-		$nodes_to_remove = array();
-		foreach ( $address->children() as $child ) {
-			if ( 'undefined' === (string) $child ) {
-				array_push( $nodes_to_remove, $child );
-			}
-		}
-		foreach ( $nodes_to_remove as $node ) {
-			unset( $node[0] );
-		}
-	}
-
-	/**
-	 * Format an Amazon Pay Name for WooCommerce.
-	 *
-	 * @param string $name Amazon Pay full name field.
-	 */
-	public static function format_name( $name ) {
-		// $name could be empty for non-Login app clients. Set both first and last name as '' in those cases.
-		if ( empty( $name ) ) {
-			return array(
-				'first_name' => '',
-				'last_name'  => '',
+			self::$amazonpay_sdk_config = array(
+				'public_key_id' => $settings['public_key_id'],
+				'private_key'   => get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false ),
+				'sandbox'       => 'yes' === $settings['sandbox'] ? true : false,
+				'region'        => $region,
 			);
 		}
-		// Use fallback value for the last name to avoid field required errors.
-		$last_name_fallback = '.';
-		$names              = explode( ' ', $name );
+		return self::$amazonpay_sdk_config;
+	}
+
+	/**
+	 * Validate API keys when settings are updated.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return bool Returns true if API keys are valid
+	 *
+	 * @throws Exception On Errors.
+	 */
+	public static function validate_api_keys() {
+
+		$settings = self::get_settings();
+
+		$ret            = false;
+		$valid_settings = self::validate_api_settings();
+		if ( is_wp_error( $valid_settings ) ) {
+			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
+			WC_Admin_Settings::add_error( $valid_settings->get_error_message() );
+			return $ret;
+		}
+
+		try {
+			$client  = self::get_client();
+			$payload = self::create_checkout_session_params();
+
+			$headers = array( 'x-amz-pay-Idempotency-Key' => uniqid() );
+			$result  = $client->createCheckoutSession( $payload, $headers );
+			if ( ! isset( $result['status'] ) || 201 !== $result['status'] ) {
+				throw new Exception( __( 'Error: API is not responding.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			}
+			$ret = true;
+			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 1 );
+
+			do_action( 'wc_amazon_keys_setup_and_validated', '2' );
+
+		} catch ( Exception $e ) {
+			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
+			WC_Admin_Settings::add_error( $e->getMessage() );
+		}
+		return $ret;
+	}
+
+	/**
+	 * Add Amazon reference information in order item response.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return WP_Error|bool Error
+	 */
+	protected static function validate_api_settings() {
+		$settings = self::get_settings();
+
+		if ( empty( $settings['merchant_id'] ) ) {
+			return new WP_Error( 'missing_merchant_id', __( 'Error: You must enter a Merchant ID.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		if ( empty( $settings['public_key_id'] ) ) {
+			return new WP_Error( 'missing_public_key_id', __( 'Error: You must enter a Public Key Id.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+		if ( empty( $settings['store_id'] ) ) {
+			return new WP_Error( 'missing_store_id', __( 'Error: You must enter a Store Id.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		$private_key = get_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, false );
+		if ( empty( $private_key ) ) {
+			return new WP_Error( 'missing_private_key', __( 'Error: You must add the private key file.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get Amazon Pay SDK Client
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return Amazon\Pay\API\Client Instance
+	 */
+	protected static function get_client() {
+		if ( isset( self::$amazonpay_client ) ) {
+			return self::$amazonpay_client;
+		}
+		include_once wc_apa()->path . '/vendor/autoload.php';
+
+		self::$amazonpay_client = new Amazon\Pay\API\Client( self::get_amazonpay_sdk_config( true ) );
+
+		return self::$amazonpay_client;
+	}
+
+	/**
+	 * Location type detection.
+	 *
+	 * @param  object $location Location to check.
+	 * @return boolean
+	 */
+	private static function location_is_continent( $location ) {
+		return 'continent' === $location->type;
+	}
+
+	/**
+	 * Location type detection.
+	 *
+	 * @param  object $location Location to check.
+	 * @return boolean
+	 */
+	private static function location_is_country( $location ) {
+		return 'country' === $location->type;
+	}
+
+	/**
+	 * Location type detection.
+	 *
+	 * @param  object $location Location to check.
+	 * @return boolean
+	 */
+	private static function location_is_state( $location ) {
+		return 'state' === $location->type;
+	}
+
+	/**
+	 * Location type detection.
+	 *
+	 * @param  object $location Location to check.
+	 * @return boolean
+	 */
+	private static function location_is_postcode( $location ) {
+		return 'postcode' === $location->type;
+	}
+
+	/**
+	 * Remove string from string letters.
+	 *
+	 * @param  string $string String to clean.
+	 * @return string
+	 */
+	private static function remove_signs( $string ) {
+		$marked_letters = array(
+			'Š' => 'S',
+			'š' => 's',
+			'Ž' => 'Z',
+			'ž' => 'z',
+			'À' => 'A',
+			'Á' => 'A',
+			'Â' => 'A',
+			'Ã' => 'A',
+			'Ä' => 'A',
+			'Å' => 'A',
+			'Æ' => 'A',
+			'Ç' => 'C',
+			'È' => 'E',
+			'É' => 'E',
+			'Ê' => 'E',
+			'Ë' => 'E',
+			'Ì' => 'I',
+			'Í' => 'I',
+			'Î' => 'I',
+			'Ï' => 'I',
+			'Ñ' => 'N',
+			'Ò' => 'O',
+			'Ó' => 'O',
+			'Ô' => 'O',
+			'Õ' => 'O',
+			'Ö' => 'O',
+			'Ø' => 'O',
+			'Ù' => 'U',
+			'Ú' => 'U',
+			'Û' => 'U',
+			'Ü' => 'U',
+			'Ý' => 'Y',
+			'Þ' => 'B',
+			'ß' => 'Ss',
+			'à' => 'a',
+			'á' => 'a',
+			'â' => 'a',
+			'ã' => 'a',
+			'ä' => 'a',
+			'å' => 'a',
+			'æ' => 'a',
+			'ç' => 'c',
+			'è' => 'e',
+			'é' => 'e',
+			'ê' => 'e',
+			'ë' => 'e',
+			'ì' => 'i',
+			'í' => 'i',
+			'î' => 'i',
+			'ï' => 'i',
+			'ð' => 'o',
+			'ñ' => 'n',
+			'ò' => 'o',
+			'ó' => 'o',
+			'ô' => 'o',
+			'õ' => 'o',
+			'ö' => 'o',
+			'ø' => 'o',
+			'ù' => 'u',
+			'ú' => 'u',
+			'û' => 'u',
+			'ý' => 'y',
+			'þ' => 'b',
+			'ÿ' => 'y',
+		);
+		return strtr( $string, apply_filters( 'woocommerce_amazon_pa_signs_to_remove', $marked_letters ) );
+	}
+
+	/**
+	 * Return shipping restrictions for checkout sessions
+	 *
+	 * @return bool|array
+	 */
+	protected static function get_shipping_restrictions() {
+		$data_store         = WC_Data_Store::load( 'shipping-zone' );
+		$raw_zones          = $data_store->get_zones();
+		$zones              = array();
+		$shipping_countries = WC()->countries->get_shipping_countries();
+
+		$all_continents = WC()->countries->get_continents();
+		$all_countries  = WC()->countries->get_countries();
+		$all_states     = WC()->countries->get_states();
+
+		$row_zone = new WC_Shipping_Zone( 0 );
+		$methods  = $row_zone->get_shipping_methods( true, 'json' );
+		if ( ! empty( $methods ) ) {
+			// Rest of the World has shipping methods, so we can assume we can ship to all shipping countries
+			// Skip the whole thing.
+			if ( count( $shipping_countries ) !== count( $all_countries ) ) {
+				foreach ( $shipping_countries as $country => $name ) {
+					$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
+				}
+				return $zones;
+			} else {
+				return false; // No restrictions.
+			}
+		}
+
+		foreach ( $raw_zones as $raw_zone ) {
+			$zone    = new WC_Shipping_Zone( $raw_zone );
+			$methods = $zone->get_shipping_methods( true, 'json' );
+			if ( empty( $methods ) ) {
+				continue; // If no shipping methods, we assume no support on this region.
+			}
+
+			$locations  = $zone->get_zone_locations( 'json' );
+			$continents = array_filter( $locations, array( __CLASS__, 'location_is_continent' ) );
+			$countries  = array_filter( $locations, array( __CLASS__, 'location_is_country' ) );
+			$states     = array_filter( $locations, array( __CLASS__, 'location_is_state' ) );
+			$postcodes  = array_filter( $locations, array( __CLASS__, 'location_is_postcode' ) ); // HARD TODO: Postcode wildcards can't be implemented afaik.
+
+			foreach ( $continents as $location ) {
+				foreach ( $all_continents[ $location->code ]['countries'] as $country ) {
+					if ( ! isset( $zones[ $country ] ) ) {
+						$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
+					}
+				}
+			}
+
+			foreach ( $countries as $location ) {
+				$country = $location->code;
+				// We're forcing it to be an empty, since it will override if the full country is allowed anywhere.
+				$zones[ $country ] = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
+			}
+
+			foreach ( $states as $location ) {
+				$location_codes = explode( ':', $location->code );
+				$country        = strtoupper( $location_codes[0] );
+				$state          = $location_codes[1];
+				if ( ! isset( $zones[ $country ] ) ) {
+					$zones[ $country ]                  = new stdClass(); // If we use an empty array it'll be treated as an array in JSON.
+					$zones[ $country ]->statesOrRegions = array();
+				} else {
+					if ( ! isset( $zones[ $country ]->statesOrRegions ) ) {
+						// Do not override anything if the country is allowed fully.
+						continue;
+					}
+				}
+
+				$zones[ $country ]->statesOrRegions[] = $state;
+				if ( 'US' !== $country ) {
+
+					$zones[ $country ]->statesOrRegions[] = $all_states[ $country ][ $state ];
+					$variation_state                      = self::remove_signs( $all_states[ $country ][ $state ] );
+					if ( $variation_state !== $all_states[ $country ][ $state ] ) {
+						$zones[ $country ]->statesOrRegions[] = $variation_state;
+					}
+				}
+			}
+		}
+
+		$zones = array_intersect_key( $zones, $shipping_countries );
+
+		return $zones;
+	}
+
+	/**
+	 * Create checkout session parameters for button
+	 *
+	 * @param  string $redirect_url Redirect URL on success.
+	 * @return string JSON encoded object
+	 */
+	protected static function create_checkout_session_params( $redirect_url = null ) {
+
+		$settings = self::get_settings();
+		if ( is_null( $redirect_url ) ) {
+			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
+				$parts        = wp_parse_url( home_url() );
+				$current_uri  = "{$parts['scheme']}://{$parts['host']}" . add_query_arg( null, null );
+				$redirect_url = $current_uri;
+			} else {
+				$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
+			}
+		}
+		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
+		$payload      = array(
+			'storeId'            => $settings['store_id'],
+			'platformId'         => 'A1BVJDFFHQ7US4',
+			'webCheckoutDetails' => array(
+				'checkoutReviewReturnUrl' => add_query_arg( 'amazon_login', '1', $redirect_url ),
+				'checkoutResultReturnUrl' => add_query_arg( 'amazon_return', '1', $redirect_url ),
+			),
+		);
+
+		$restrictions = self::get_shipping_restrictions();
+		if ( $restrictions ) {
+			$payload['deliverySpecifications'] = array(
+				'addressRestrictions' => array(
+					'type'         => 'Allowed',
+					'restrictions' => $restrictions,
+				),
+			);
+		}
+
+		$payload = apply_filters( 'woocommerce_amazon_pa_create_checkout_session_params', $payload, $redirect_url );
+
+		$payload = wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+
+		return $payload;
+
+	}
+
+	/**
+	 * Get create checkout session config to send to the
+	 *
+	 * @param  string $redirect_url Redirect URL on success.
+	 * @return array
+	 */
+	public static function get_create_checkout_session_config( $redirect_url = null ) {
+		$settings = self::get_settings();
+		$client   = self::get_client();
+		$payload  = self::create_checkout_session_params( $redirect_url );
+
+		$signature = $client->generateButtonSignature( $payload );
 		return array(
-			'first_name' => array_shift( $names ),
-			'last_name'  => empty( $names ) ? $last_name_fallback : implode( ' ', $names ),
+			'publicKeyId' => $settings['public_key_id'],
+			'payloadJSON' => $payload,
+			'signature'   => $signature,
 		);
 	}
 
 	/**
-	 * Format an Amazon Pay Address DataType for WooCommerce.
+	 * Get Checkout Session Data.
 	 *
-	 * @see https://payments.amazon.com/documentation/apireference/201752430
-	 *
-	 * @param array $address Address object from Amazon Pay API.
-	 *
-	 * @return array Address formatted for WooCommerce.
+	 * @param  string $checkout_session_id Checkout Session Id.
+	 * @return object Checkout Session from the API
 	 */
-	public static function format_address( $address ) {
-		// Some address fields could have a string value of "undefined", causing issues when formatting it.
-		self::remove_undefined_strings( $address );
+	public static function get_checkout_session_data( $checkout_session_id ) {
+		$client = self::get_client();
+		$result = $client->getCheckoutSession( $checkout_session_id );
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $result['status'], __( 'Error while getting checkout session.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
+		$checkout_session = json_decode( $result['response'] );
 
-		// Get first and last names.
-		// @codingStandardsIgnoreStart
-		$address_name = ! empty( $address->Name ) ? (string) $address->Name : '';
-		// @codingStandardsIgnoreEnd
-		$formatted = self::format_name( $address_name );
-
-		// Special handling for German speaking countries.
-		//
-		// @see https://github.com/woothemes/woocommerce-gateway-amazon-payments-advanced/issues/25
-		// @codingStandardsIgnoreStart
-		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'AT', 'DE' ) ) ) {
-
-			if ( ! empty( $address->AddressLine3 ) ) {
-
-				$formatted['company']   = trim( (string) $address->AddressLine1 . ' ' . (string) $address->AddressLine2 );
-				$formatted['address_1'] = (string) $address->AddressLine3;
-
-			} elseif ( ! empty( $address->AddressLine2 ) ) {
-
-				$formatted['company']   = (string) $address->AddressLine1;
-				$formatted['address_1'] = (string) $address->AddressLine2;
-
-			} else {
-
-				$formatted['address_1'] = (string) $address->AddressLine1;
-
-			}
-
-		} else {
-
-			// Format address and map to WC fields
-			$address_lines = array();
-
-			if ( ! empty( $address->AddressLine1 ) ) {
-				$address_lines[] = (string) $address->AddressLine1;
-			}
-			if ( ! empty( $address->AddressLine2 ) ) {
-				$address_lines[] = (string) $address->AddressLine2;
-			}
-			if ( ! empty( $address->AddressLine3 ) ) {
-				$address_lines[] = (string) $address->AddressLine3;
-			}
-
-			if ( 3 === sizeof( $address_lines ) ) {
-
-				$formatted['company']   = $address_lines[0];
-				$formatted['address_1'] = $address_lines[1];
-				$formatted['address_2'] = $address_lines[2];
-
-			} elseif ( 2 === sizeof( $address_lines ) ) {
-
-				$formatted['address_1'] = $address_lines[0];
-				$formatted['address_2'] = $address_lines[1];
-
-			} elseif ( sizeof( $address_lines ) ) {
-				$formatted['address_1'] = $address_lines[0];
-			}
-
+		if ( ! empty( $checkout_session->billingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+			self::normalize_address( $checkout_session->billingAddress ); // phpcs:ignore WordPress.NamingConventions
 		}
 
-		$formatted['phone'] = isset( $address->Phone ) ? (string) $address->Phone : null;
-		$formatted['city'] = isset( $address->City ) ? (string) $address->City : null;
-		$formatted['postcode'] = isset( $address->PostalCode ) ? (string) $address->PostalCode : null;
-		$formatted['state'] = isset( $address->StateOrRegion ) ? (string) $address->StateOrRegion : null;
-		$formatted['country'] = isset( $address->CountryCode ) ? (string) $address->CountryCode : null;
-		// @codingStandardsIgnoreEnd
+		if ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+			self::normalize_address( $checkout_session->shippingAddress ); // phpcs:ignore WordPress.NamingConventions
+		}
 
-		return array_filter( $formatted );
-
+		return $checkout_session;
 	}
 
 	/**
-	 * Send an email notification to the recipient in the woocommerce mail template.
+	 * Normalize Address Data from the API
 	 *
-	 * @param string $subject
-	 * @param string $message
-	 * @param string $recipient
+	 * @param  object $address Object that will be adjusted.
 	 */
-	public static function send_email_notification( $subject, $message, $recipient ) {
-		$mailer  = WC()->mailer();
-		$message = $mailer->wrap_message( $subject, $message );
-		$mailer->send( $recipient, strip_tags( $subject ), $message );
+	protected static function normalize_address( $address ) {
+		foreach ( (array) $address as $prop => $val ) {
+			switch ( strtolower( $prop ) ) {
+				case 'phonenumber':
+					$ucprop = 'Phone';
+					break;
+				default:
+					$ucprop = ucfirst( $prop );
+					break;
+			}
+			unset( $address->$prop );
+			$address->$ucprop = $val;
+		}
+	}
+
+	/**
+	 * Update Checkout Session Data
+	 *
+	 * @param  string $checkout_session_id Checkout Session Id.
+	 * @param  array  $data Data to send to the API.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function update_checkout_session_data( $checkout_session_id, $data = array() ) {
+		$client = self::get_client();
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log(
+			sprintf( 'Checkout Session ID %s', $checkout_session_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->updateCheckoutSession( $checkout_session_id, $data, $headers );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			wc_apa()->log( sprintf( 'ERROR. Checkout Session ID %s.', $checkout_session_id ), $result );
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		wc_apa()->log( sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), self::sanitize_remote_response_log( $response ) );
+
+		return $response;
+	}
+
+	/**
+	 * Complete Checkout session
+	 *
+	 * @param  string $checkout_session_id Checkout Session Id.
+	 * @param  array  $data Data to send to the API.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function complete_checkout_session( $checkout_session_id, $data = array() ) {
+		$client = self::get_client();
+		wc_apa()->log( sprintf( 'Checkout Session ID %s', $checkout_session_id ), $data );
+		$result = $client->completeCheckoutSession( $checkout_session_id, $data );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 202 ), true ) ) {
+			wc_apa()->log( sprintf( 'ERROR. Checkout Session ID %s.', $checkout_session_id ), $result );
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		wc_apa()->log( sprintf( 'SUCCESS. Checkout Session ID %s.', $checkout_session_id ), self::sanitize_remote_response_log( $response ) );
+
+		return $response;
+	}
+
+	/**
+	 * Get Languages available per region
+	 *
+	 * @return array
+	 */
+	public static function get_languages_per_region() {
+		return array(
+			'eu' => array(
+				'en-GB',
+				'de-DE',
+				'fr-FR',
+				'it-IT',
+				'es-ES',
+			),
+			'gb' => array(
+				'en-GB',
+				'de-DE',
+				'fr-FR',
+				'it-IT',
+				'es-ES',
+			),
+			'us' => array(
+				'en-US',
+			),
+			'jp' => array(
+				'ja-JP',
+			),
+		);
+	}
+
+	/**
+	 * Get Charge Permission object
+	 *
+	 * @param  string $charge_permission_id Charge Permission ID.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function get_charge_permission( $charge_permission_id ) {
+		$client = self::get_client();
+		$result = $client->getChargePermission( $charge_permission_id );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Get Charge object
+	 *
+	 * @param  string $charge_id Charge ID.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function get_charge( $charge_id ) {
+		$client = self::get_client();
+		$result = $client->getCharge( $charge_id );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Get Refund object
+	 *
+	 * @param  string $refund_id Refund ID.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function get_refund( $refund_id ) {
+		$client = self::get_client();
+		$result = $client->getRefund( $refund_id );
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Generate UUID to use as idempotency
+	 *
+	 * @return string
+	 */
+	private static function generate_uuid() {
+		return sprintf(
+			'%04x%04x%04x%04x%04x%04x%04x%04x',
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0x0fff ) | 0x4000,
+			wp_rand( 0, 0x3fff ) | 0x8000,
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff ),
+			wp_rand( 0, 0xffff )
+		);
+	}
+
+	/**
+	 * Capture a Charge
+	 *
+	 * @param  string $charge_id Charge ID.
+	 * @param  array  $data Data to send to the API.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function capture_charge( $charge_id, $data = array() ) {
+		$client = self::get_client();
+		if ( empty( $data ) ) {
+			$data = array();
+		}
+		// TODO: Validate entered data.
+		if ( empty( $data['captureAmount'] ) ) {
+			$charge                = self::get_charge( $charge_id );
+			$data['captureAmount'] = (array) $charge->chargeAmount; // phpcs:ignore WordPress.NamingConventions
+			// TODO: Test with lower amount of captured than charge (multiple charges per capture).
+		}
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log(
+			sprintf( 'Charge ID %s.', $charge_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->captureCharge(
+			$charge_id,
+			$data,
+			array_merge(
+				$headers,
+				array(
+					'x-amz-pay-idempotency-key' => self::generate_uuid(),
+				)
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			wc_apa()->log( sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), self::sanitize_remote_response_log( $response ) );
+
+		return $response;
+	}
+
+	/**
+	 * Refund a Charge
+	 *
+	 * @param  string $charge_id Charge ID.
+	 * @param  float  $amount Amount to refund.
+	 * @param  array  $data Data to send to the API.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function refund_charge( $charge_id, $amount = null, $data = array() ) {
+		$client = self::get_client();
+		if ( empty( $data ) ) {
+			$data = array();
+		}
+		$data['chargeId'] = $charge_id;
+		// TODO: Validate entered data.
+		if ( empty( $data['refundAmount'] ) ) {
+			$charge                          = self::get_charge( $charge_id );
+			$data['refundAmount']            = (array) $charge->captureAmount; // phpcs:ignore WordPress.NamingConventions
+			$data['refundAmount']['amount'] -= (float) $charge->refundedAmount->amount; // phpcs:ignore WordPress.NamingConventions
+		}
+		if ( ! is_null( $amount ) ) {
+			$data['refundAmount']['amount'] = $amount;
+		}
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log(
+			sprintf( 'Charge ID %s.', $charge_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->createRefund(
+			$data,
+			array_merge(
+				$headers,
+				array(
+					'x-amz-pay-idempotency-key' => self::generate_uuid(),
+				)
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			wc_apa()->log( sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), self::sanitize_remote_response_log( $response ) );
+
+		return $response;
+	}
+
+	/**
+	 * Cancel a charge
+	 *
+	 * @param  string $charge_id Charge ID.
+	 * @param  string $reason Reason for the cancellation of the charge.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function cancel_charge( $charge_id, $reason = 'Order Cancelled' ) {
+		$client = self::get_client();
+		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ) );
+
+		$result = $client->cancelCharge(
+			$charge_id,
+			array(
+				'cancellationReason' => $reason, // TODO: Make dynamic.
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			wc_apa()->log( sprintf( 'ERROR. Charge ID %s.', $charge_id ), $result );
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		wc_apa()->log( sprintf( 'SUCCESS. Charge ID %s.', $charge_id ), self::sanitize_remote_response_log( $response ) );
+
+		return $response;
+	}
+
+	/**
+	 * Get Merchant Metadata object
+	 *
+	 * @param  int $order_id Order ID.
+	 * @return array
+	 */
+	public static function get_merchant_metadata( $order_id ) {
+		/* translators: Plugin version */
+		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
+
+		return array(
+			'merchantReferenceId' => $order_id,
+			'merchantStoreName'   => WC_Amazon_Payments_Advanced::get_site_name(),
+			'customInformation'   => $version_note,
+		);
+	}
+
+	/**
+	 * Function to handle simulation strings
+	 *
+	 * @param  string $type Function being called.
+	 * @return array
+	 */
+	protected static function get_extra_headers( $type ) {
+		$settings = self::get_settings();
+		$headers  = array();
+
+		if ( 'yes' !== $settings['sandbox'] ) {
+			return $headers;
+		}
+
+		$simluation_codes_stack = get_option( 'amazon_pay_simulation_stack', array() );
+
+		if ( empty( $simluation_codes_stack ) || ! is_array( $simluation_codes_stack ) ) {
+			$simluation_codes_stack = array(
+				/**
+				 * Define here things in the following form
+				 *
+				 * > array( 'create_charge', 'HardDeclined' ),
+				 *
+				 * where:
+				 *  * create_charge is the name of the call to add the header to (function name on this class)
+				 *  * HardDeclined is the simulation code to use in that function
+				 */
+			);
+		}
+
+		foreach ( $simluation_codes_stack as $i => $simulation ) {
+			list( $function, $code ) = $simulation;
+			if ( strtolower( $function ) === strtolower( $type ) ) {
+				$headers['x-amz-pay-simulation-code'] = $code;
+				unset( $simluation_codes_stack[ $i ] );
+			}
+		}
+
+		if ( empty( $simluation_codes_stack ) ) {
+			delete_option( 'amazon_pay_simulation_stack' );
+		} else {
+			$simluation_codes_stack = array_values( $simluation_codes_stack );
+			update_option( 'amazon_pay_simulation_stack', $simluation_codes_stack, false );
+		}
+
+		return $headers;
+	}
+
+	/**
+	 * Create a charge
+	 *
+	 * @param  string $charge_permission_id Charge Permission ID.
+	 * @param  array  $data Data to send to the API.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function create_charge( $charge_permission_id, $data ) {
+		$client = self::get_client();
+		if ( empty( $data ) ) {
+			$data = array();
+		}
+		$data['chargePermissionId'] = $charge_permission_id;
+		// TODO: Validate entered data.
+		if ( empty( $data['chargeAmount'] ) ) {
+			$charge_permission    = self::get_charge_permission( $charge_permission_id );
+			$data['chargeAmount'] = (array) $charge_permission->limits->amountBalance; // phpcs:ignore WordPress.NamingConventions
+		}
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log(
+			sprintf( 'Charge Permission ID %s.', $charge_permission_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->createCharge(
+			$data,
+			array_merge(
+				$headers,
+				array(
+					'x-amz-pay-idempotency-key' => self::generate_uuid(),
+				)
+			)
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			wc_apa()->log( sprintf( 'ERROR. Charge Permission ID %s.', $charge_permission_id ), $result );
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		wc_apa()->log( sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), self::sanitize_remote_response_log( $response ) );
+
+		return $response;
+	}
+
+	/**
+	 * Close Charge Permission
+	 *
+	 * @param  string $charge_permission_id Charge Permission ID.
+	 * @param  string $reason Reason for cancelling the recurring charge permission.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	public static function close_charge_permission( $charge_permission_id, $reason = 'Subscription Cancelled' ) {
+		$client = self::get_client();
+
+		$headers = self::get_extra_headers( __FUNCTION__ );
+
+		wc_apa()->log( sprintf( 'Charge Permission ID %s.', $charge_permission_id ), array( 'headers' => $headers ) );
+
+		$result = $client->closeChargePermission(
+			$charge_permission_id,
+			array(
+				'closureReason' => $reason, // TODO: Make dynamic.
+			),
+			$headers
+		);
+
+		$response = json_decode( $result['response'] );
+
+		if ( ! isset( $result['status'] ) || ! in_array( $result['status'], array( 200, 201 ), true ) ) {
+			wc_apa()->log( sprintf( 'ERROR. Charge Permission ID %s.', $charge_permission_id ), $result );
+			return new WP_Error( $response->reasonCode, $response->message ); // phpcs:ignore WordPress.NamingConventions
+		}
+
+		wc_apa()->log( sprintf( 'SUCCESS. Charge Permission ID %s.', $charge_permission_id ), self::sanitize_remote_response_log( $response ) );
+
+		return $response;
+	}
+
+	/**
+	 * Sanitize the object before sending it to the logs
+	 *
+	 * @param  object|array $obj Object to send to the logs.
+	 * @param  bool         $recursing If we're recursing or not.
+	 * @return array
+	 */
+	private static function sanitize_remote_response_log( $obj, $recursing = false ) {
+		if ( ! $recursing ) { // Only force array on the first call.
+			$obj = json_decode( wp_json_encode( $obj ), true );
+		}
+		foreach ( $obj as $key => $val ) {
+			switch ( $key ) {
+				case 'billingAddress':
+				case 'shippingAddress':
+				case 'paymentPreferences':
+				case 'buyer':
+					if ( ! is_null( $val ) ) {
+						$val = '*** REMOVED FROM LOGS ***';
+					}
+					break;
+				default:
+					if ( is_array( $val ) ) {
+						$val = self::sanitize_remote_response_log( $val, true );
+					}
+					break;
+			}
+			$obj[ $key ] = $val;
+		}
+		return $obj;
+	}
+
+	/**
+	 * Get URLs from where to get the secret key in seller central, per region.
+	 *
+	 * @return array
+	 */
+	public static function get_secret_key_page_urls() {
+		return array(
+			'us' => 'https://sellercentral.amazon.com/gp/pyop/seller/mwsaccess',
+			'eu' => 'https://sellercentral-europe.amazon.com/gp/pyop/seller/mwsaccess',
+			'gb' => 'https://sellercentral-europe.amazon.com/gp/pyop/seller/mwsaccess',
+			'jp' => 'https://sellercentral-japan.amazon.com/gp/pyop/seller/mwsaccess',
+		);
+	}
+
+	/**
+	 * Get URL from where to get the secret key in seller central, for the current region.
+	 *
+	 * @return string|bool
+	 */
+	public static function get_secret_key_page_url() {
+		$region = self::get_settings( 'payment_region' );
+		$urls   = self::get_secret_key_page_urls();
+		return isset( $urls[ $region ] ) ? $urls[ $region ] : false;
 	}
 
 }

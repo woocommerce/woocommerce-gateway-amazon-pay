@@ -10,17 +10,82 @@
  *
  * Extending main gateway class and only loaded if Subscriptions is available.
  */
-class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazon_Payments_Advanced {
+class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
 
-		parent::__construct();
+		add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( $this, 'add_enable_subscriptions_field' ) );
 
-		$this->supports = array_merge(
-			$this->supports,
+		if ( 'yes' !== WC_Amazon_Payments_Advanced_API::get_settings( 'subscriptions_enabled' ) ) {
+			return;
+		}
+
+		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 12 );
+
+		add_filter( 'woocommerce_amazon_pa_supports', array( $this, 'add_subscription_support' ) );
+
+		// WC Subscription Hook.
+		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
+	}
+
+	/**
+	 * Initialize Handlers For subscriptions
+	 */
+	public function init_handlers() {
+		$id      = wc_apa()->get_gateway()->id;
+		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
+
+		add_action( 'woocommerce_scheduled_subscription_payment_' . $id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
+		add_action( 'woocommerce_subscription_cancelled_' . $id, array( $this, 'cancelled_subscription' ) );
+		add_filter( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', array( $this, 'subs_not_on_hold' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_no_charge_order_on_hold', array( $this, 'subs_not_on_hold' ), 10, 2 );
+		add_action( 'woocommerce_amazon_pa_refresh_cached_charge_permission_status', array( $this, 'propagate_status_update_to_related' ), 10, 3 );
+		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
+		add_action( 'woocommerce_amazon_pa_before_processed_order', array( $this, 'maybe_change_payment_method' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_processed_order_redirect', array( $this, 'maybe_redirect_to_subscription' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( $this, 'add_subscription_post_type' ) );
+		add_filter( 'woocommerce_amazon_pa_order_admin_actions', array( $this, 'remove_charge_permission_actions_on_recurring' ), 10, 2 );
+		add_filter( 'woocommerce_amazon_pa_invalid_session_property', array( $this, 'ignore_amounts_in_session_validation' ), 10, 2 );
+
+		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before).
+			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
+			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
+			add_filter( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array( $this, 'recurring_complete_checkout_session_update' ), 10, 3 );
+			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
+			add_filter( 'wcs_renewal_order_meta', array( $this, 'copy_meta_from_sub' ), 10, 3 );
+			add_filter( 'woocommerce_subscriptions_update_payment_via_pay_shortcode', array( $this, 'maybe_not_update_payment_method' ), 10, 2 );
+		}
+
+		do_action( 'woocommerce_amazon_pa_subscriptions_init', $version );
+	}
+
+	/**
+	 * Set redirect URL if the result redirect URL is empty
+	 *
+	 * @param mixed           $result Result object to filter.
+	 * @param WC_Subscription $subscription Subscription object.
+	 *
+	 * @return mixed
+	 */
+	public function filter_payment_method_changed_result( $result, $subscription ) {
+		if ( empty( $result['redirect'] ) && ! empty( $subscription ) && method_exists( $subscription, 'get_view_order_url' ) ) {
+			$result['redirect'] = $subscription->get_view_order_url();
+		}
+		return $result;
+	}
+
+	/**
+	 * Add subscription support to the gateway
+	 *
+	 * @param  array $supports List of supported features.
+	 * @return array
+	 */
+	public function add_subscription_support( $supports ) {
+		$supports = array_merge(
+			$supports,
 			array(
 				'subscriptions',
 				'subscription_date_changes',
@@ -29,710 +94,726 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions extends WC_Gateway_Amazo
 				'subscription_cancellation',
 				'multiple_subscriptions',
 				'subscription_payment_method_change_customer',
+				'subscription_amount_changes',
+				// TODO: Implement upgrades/downgrades.
 			)
 		);
 
-		add_action( 'woocommerce_scheduled_subscription_payment_' . $this->id, array( $this, 'scheduled_subscription_payment' ), 10, 2 );
-
-		add_action( 'woocommerce_subscription_cancelled_' . $this->id, array( $this, 'cancelled_subscription' ) );
-
-		add_action( 'woocommerce_subscription_failing_payment_method_updated_' . $this->id, array( $this, 'update_failing_payment_method' ), 10, 2 );
+		return $supports;
 	}
 
 	/**
-	 * Enforce: "Amazon imposes a $500 per calendar month limit on the amount of
-	 * funds you can charge a buyer.".
+	 * Insert an item in an array before or after another item.
 	 *
-	 * @since 1.0.0
-	 * @version 1.7.3
-	 *
-	 * @see https://payments.amazon.com/documentation/automatic/201752090#201757640
-	 *
-	 * @return bool
+	 * @param  array $array Source array.
+	 * @param  mixed $element Element to insert.
+	 * @param  mixed $key Key to insert around.
+	 * @param  int   $operation Operation to perform.
+	 * @return array Returns a new array
 	 */
-	public function is_available() {
-		$is_available = parent::is_available();
+	public static function array_insert( $array, $element, $key, $operation = 1 ) {
+		$keys = array_keys( $array );
+		$pos  = array_search( $key, $keys, true );
 
-		// No subscription product in cart.
-		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() ) {
-			return $is_available;
+		switch ( $operation ) {
+			case 0:
+				$read_until = $pos;
+				$read_from  = $pos + 1;
+				break;
+			case -1:
+				$read_until = $pos;
+				$read_from  = $pos;
+				break;
+			default:
+				$read_until = $pos + $operation;
+				$read_from  = $pos + $operation;
+				break;
 		}
 
-		return $is_available;
+		$first = array_slice( $array, 0, $read_until, true );
+		$last  = array_slice( $array, $read_from, null, true );
+		return $first + $element + $last;
+	}
+
+	/**
+	 * Add subscription field to the gateway settings
+	 *
+	 * @param  array $fields Admin fields.
+	 * @return array
+	 */
+	public function add_enable_subscriptions_field( $fields ) {
+		$fields = self::array_insert(
+			$fields,
+			array(
+				'subscriptions_enabled' => array(
+					'title'       => __( 'Subscriptions support', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'label'       => __( 'Enable Subscriptions for carts that contain Subscription items (requires WooCommerce Subscriptions to be installed)', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'type'        => 'select',
+					'description' => __( 'This will enable support for Subscriptions and make transactions more securely', 'woocommerce-gateway-amazon-payments-advanced' ),
+					'default'     => 'yes',
+					'options'     => array(
+						'yes' => __( 'Yes', 'woocommerce-gateway-amazon-payments-advanced' ),
+						'no'  => __( 'No', 'woocommerce-gateway-amazon-payments-advanced' ),
+					),
+				),
+			),
+			'advanced_configuration',
+			-1
+		);
+
+		return $fields;
 	}
 
 	/**
 	 * Check if order contains subscriptions.
 	 *
-	 * @param  int $order_id Order ID.
+	 * @param  WC_Order|int $order Order / Order ID.
 	 * @return bool Returns true of order contains subscription.
 	 */
-	protected function order_contains_subscription( $order_id ) {
-		return function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order_id ) || wcs_order_contains_renewal( $order_id ) );
+	public static function order_contains_subscription( $order ) {
+		return function_exists( 'wcs_order_contains_subscription' ) && ( wcs_order_contains_subscription( $order ) || wcs_order_contains_renewal( $order ) );
 	}
 
 	/**
-	 * Process payment
+	 * Get recurring frequency from the cart
 	 *
-	 * @param int $order_id Order ID.
+	 * @return array Standard data object to be used in API calls.
 	 */
-	public function process_payment( $order_id ) {
+	private function get_recurring_frequency() {
+		$apa_period    = null;
+		$apa_interval  = null;
+		$apa_timeframe = PHP_INT_MAX;
 
-		if ( ! $this->order_contains_subscription( $order_id ) && ! wcs_is_subscription( $order_id ) ) {
-			return parent::process_payment( $order_id );
+		foreach ( WC()->cart->recurring_carts as $key => $recurring_cart ) {
+			$contents = $recurring_cart->get_cart_contents();
+			$first    = reset( $contents );
+			if ( ! isset( $first['data'] ) || ! is_a( $first['data'], 'WC_Product' ) ) {
+				// Weird, but ok.
+				continue;
+			}
+			$product = $first['data'];
+
+			$interval = WC_Subscriptions_Product::get_interval( $product );
+			$period   = WC_Subscriptions_Product::get_period( $product );
+
+			$this_timeframe = PHP_INT_MAX;
+
+			switch ( strtolower( $period ) ) {
+				case 'year':
+					$this_timeframe = YEAR_IN_SECONDS * $interval;
+					break;
+				case 'month':
+					$this_timeframe = MONTH_IN_SECONDS * $interval;
+					break;
+				case 'week':
+					$this_timeframe = WEEK_IN_SECONDS * $interval;
+					break;
+				case 'day':
+					$this_timeframe = DAY_IN_SECONDS * $interval;
+					break;
+			}
+
+			if ( $this_timeframe < $apa_timeframe ) {
+				$apa_timeframe = $this_timeframe;
+				$apa_period    = $period;
+				$apa_interval  = $interval;
+			}
 		}
 
-		$amazon_reference_id              = isset( $_POST['amazon_reference_id'] ) ? wc_clean( $_POST['amazon_reference_id'] ) : '';
-		$amazon_billing_agreement_id      = isset( $_POST['amazon_billing_agreement_id'] ) ? wc_clean( $_POST['amazon_billing_agreement_id'] ) : '';
-		$amazon_billing_agreement_details = WC()->session->get( 'amazon_billing_agreement_details' ) ? wc_clean( WC()->session->get( 'amazon_billing_agreement_details' ) ) : false;
+		return $this->parse_interval_to_apa_frequency( $apa_period, $apa_interval );
+	}
 
-		if ( ! $amazon_billing_agreement_id && 'yes' === get_option( 'woocommerce_subscriptions_turn_off_automatic_payments' ) ) {
-			return parent::process_payment( $order_id );
+	/**
+	 * Parse WC interval into Amazon Pay frequency object.
+	 *
+	 * @param  string     $apa_period WC Period.
+	 * @param  int|string $apa_interval WC Interval.
+	 * @return array
+	 */
+	public function parse_interval_to_apa_frequency( $apa_period = null, $apa_interval = null ) {
+		switch ( strtolower( $apa_period ) ) {
+			case 'year':
+			case 'month':
+			case 'week':
+			case 'day':
+				$apa_period = ucfirst( strtolower( $apa_period ) );
+				break;
+			default:
+				$apa_period   = 'Variable';
+				$apa_interval = '0';
+				break;
 		}
 
-		try {
+		if ( is_null( $apa_interval ) ) {
+			$apa_interval = '1';
+		}
 
-			if ( ! $amazon_billing_agreement_id ) {
-				throw new Exception( __( 'An Amazon Pay payment method was not chosen.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		return array(
+			'unit'  => $apa_period,
+			'value' => $apa_interval,
+		);
+	}
+
+	/**
+	 * Filter the payload to add recurring data to the checkout session creation object.
+	 *
+	 * @param  array $payload Payload to create checkout session (JS button).
+	 * @return array
+	 */
+	public function recurring_checkout_session( $payload ) {
+		if ( ! class_exists( 'WC_Subscriptions_Cart' ) ) {
+			return $payload;
+		}
+
+		if ( 'yes' === get_option( 'woocommerce_subscriptions_turn_off_automatic_payments' ) ) {
+			return $payload;
+		}
+
+		$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription();
+		$cart_contains_renewal           = wcs_cart_contains_renewal();
+		$change_payment_for_subscription = isset( $_GET['change_payment_method'] ) && wcs_is_subscription( absint( $_GET['change_payment_method'] ) );
+
+		if ( ! $cart_contains_renewal && ! $cart_contains_subscription && ! $change_payment_for_subscription ) {
+			return $payload;
+		}
+
+		if ( ! is_wc_endpoint_url( 'order-pay' ) && $cart_contains_subscription ) {
+			WC()->cart->calculate_totals();
+
+			$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
+
+			if ( 0 === $subscriptions_in_cart ) {
+				// Weird, but ok.
+				return $payload;
 			}
 
-			$order       = wc_get_order( $order_id );
-			$order_total = $order->get_total();
-			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
+			$payload['chargePermissionType'] = 'Recurring';
 
-			update_post_meta( $order_id, 'amazon_reference_id', $amazon_reference_id );
+			$payload['recurringMetadata'] = array(
+				'frequency' => $this->get_recurring_frequency(),
+				'amount'    => null,
+			);
 
-			wc_apa()->log( __METHOD__, "Info: Beginning processing of payment for (subscription) order {$order_id} for the amount of {$order_total} {$currency}." );
-			update_post_meta( $order_id, 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION );
-			update_post_meta( $order_id, 'woocommerce_version', WC()->version );
-
-			// Check if we are under SCA.
-			$is_sca = WC_Amazon_Payments_Advanced_API::is_sca_region();
-
-			if ( 'skip' !== $amazon_billing_agreement_details ) {
-				// Set the Billing Agreement Details.
-				$this->set_billing_agreement_details( $order, $amazon_billing_agreement_id );
-			}
-			// Confirm the Billing Agreement.
-			$this->confirm_billing_agreement( $order_id, $amazon_billing_agreement_id, $is_sca );
-
-			// Get the Billing Agreement Details, with FULL address (now that we've confirmed).
-			$result = $this->get_billing_agreement_details( $order_id, $amazon_billing_agreement_id );
-
-			// Store the subscription destination.
-			$this->store_subscription_destination( $order_id, $result );
-
-			// Store Billing Agreement ID on the order and it's subscriptions.
-			$result = update_post_meta( $order_id, 'amazon_billing_agreement_id', $amazon_billing_agreement_id );
-
-			if ( $result ) {
-				wc_apa()->log( __METHOD__, "Info: Successfully stored billing agreement in meta for order {$order_id}." );
-			} else {
-				wc_apa()->log( __METHOD__, "Error: Failed to store billing agreement in meta for order {$order_id}." );
-			}
-
-			$subscriptions = wcs_get_subscriptions_for_order( $order_id );
-			foreach ( $subscriptions as $subscription ) {
-				$subscription_id = wc_apa_get_order_prop( $subscription, 'id' );
-				$result          = update_post_meta( $subscription_id, 'amazon_billing_agreement_id', $amazon_billing_agreement_id );
-
-				if ( $result ) {
-					wc_apa()->log( __METHOD__, "Info: Successfully stored billing agreement in meta for subscription {$subscription_id} (parent order {$order_id})." );
-				} else {
-					wc_apa()->log( __METHOD__, "Error: Failed to store billing agreement in meta for subscription {$subscription_id} (parent order {$order_id})." );
-				}
-			}
-
-			// Stop execution if this is being processed by SCA.
-			if ( $is_sca ) {
-				return array(
-					'result'   => 'success',
-					'redirect' => '',
+			if ( 1 === $subscriptions_in_cart ) {
+				$first_recurring                        = reset( WC()->cart->recurring_carts );
+				$payload['recurringMetadata']['amount'] = array(
+					'amount'       => number_format( $first_recurring->get_total( 'edit' ), 2 ),
+					'currencyCode' => get_woocommerce_currency(),
 				);
 			}
+		} elseif ( $cart_contains_renewal || $change_payment_for_subscription ) {
+			if ( $cart_contains_renewal ) {
+				if ( ! isset( $cart_contains_renewal['subscription_renewal'] ) || ! isset( $cart_contains_renewal['subscription_renewal']['subscription_id'] ) ) {
+					return $payload;
+				}
 
-			// Authorize/Capture initial payment, if initial payment required.
-			if ( $order_total > 0 ) {
-				return $this->authorize_payment( $order, $amazon_billing_agreement_id );
+				$subscription = wcs_get_subscription( $cart_contains_renewal['subscription_renewal']['subscription_id'] );
+			} elseif ( $change_payment_for_subscription ) {
+				if ( ! isset( $_GET['change_payment_method'] ) ) {
+					return $payload;
+				}
+
+				$subscription = wcs_get_subscription( absint( $_GET['change_payment_method'] ) );
+			} else {
+				return $payload;
 			}
 
-			// No payment needed now, free trial or coupon used - mark order as complete.
-			$order->payment_complete();
+			$payload['chargePermissionType'] = 'Recurring';
 
-			wc_apa()->log( __METHOD__, "Info: Zero-total initial payment for (subscription) order {$order_id}. Payment marked as complete." );
-
-			// Remove items from cart.
-			WC()->cart->empty_cart();
-
-			// Return thank you page redirect.
-			return array(
-				'result'   => 'success',
-				'redirect' => $this->get_return_url( $order ),
+			$payload['recurringMetadata'] = array(
+				'frequency' => $this->parse_interval_to_apa_frequency( $subscription->get_billing_period( 'edit' ), $subscription->get_billing_interval( 'edit' ) ),
+				'amount'    => array(
+					'amount'       => number_format( $subscription->get_total(), 2 ),
+					'currencyCode' => wc_apa_get_order_prop( $subscription, 'order_currency' ),
+				),
 			);
-		} catch ( Exception $e ) {
+		}
 
-			wc_apa()->log( __METHOD__, "Error: Exception encountered: {$e->getMessage()}" );
-			wc_add_notice( sprintf( __( 'Error: %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ), 'error' );
+		return $payload;
+	}
+
+	/**
+	 * Filter the payload to add recurring data to the checkout session update object.
+	 *
+	 * @param  array    $payload Payload to send to the API before proceding to checkout.
+	 * @param  string   $checkout_session_id Checkout Session Id.
+	 * @param  WC_Order $order Order object.
+	 * @return array
+	 */
+	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order ) {
+		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) && $order->get_id() === absint( $_POST['woocommerce_change_payment'] ) ) {
+			$checkout_session = wc_apa()->get_gateway()->get_checkout_session();
+
+			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
+			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
+
+			$payload['paymentDetails']['chargeAmount'] = number_format( $checkout_session->recurringMetadata->amount, 2 ); // phpcs:ignore WordPress.NamingConventions
+
+			return $payload;
+		}
+
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+			return $payload;
+		}
+
+		WC()->cart->calculate_totals();
+
+		$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
+
+		if ( 0 === $subscriptions_in_cart ) {
+			// Weird, but ok.
+			return $payload;
+		}
+
+		$payload['recurringMetadata'] = array(
+			'frequency' => $this->get_recurring_frequency(),
+			'amount'    => null,
+		);
+
+		$recurring_total = 0;
+		foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
+			$recurring_total += $recurring_cart->get_total( 'edit' );
+		}
+
+		$recurring_total = wc_format_decimal( $recurring_total, '' );
+
+		if ( 1 === $subscriptions_in_cart ) {
+			$payload['recurringMetadata']['amount'] = array(
+				'amount'       => number_format( $recurring_total, 2 ),
+				'currencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
+			);
+		}
+
+		if ( 0 >= (float) WC()->cart->get_total( 'edit' ) ) {
+			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
+			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
+
+			$payload['paymentDetails']['chargeAmount']['amount'] = number_format( $recurring_total, 2 );
+		}
+
+		return $payload;
+	}
+
+	/**
+	 * Filter payload to complete recurring checkout session
+	 *
+	 * @param  array $payload Payload for the complete checkout session API call.
+	 * @return array
+	 */
+	public function recurring_complete_checkout_session_update( $payload ) {
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+			return $payload;
+		}
+		WC()->cart->calculate_totals();
+
+		$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
+
+		if ( 0 === $subscriptions_in_cart ) {
+			// Weird, but ok.
+			return $payload;
+		}
+
+		$amount = (float) $payload['chargeAmount']['amount'];
+		if ( 0 < $amount ) {
+			return $payload;
+		}
+
+		$recurring_total = 0;
+		foreach ( WC()->cart->recurring_carts as $recurring_cart ) {
+			$recurring_total += $recurring_cart->get_total( 'edit' );
+		}
+
+		$recurring_total = wc_format_decimal( $recurring_total, '' );
+
+		$payload['chargeAmount']['amount'] = number_format( $recurring_total, 2 );
+
+		return $payload;
+	}
+
+	/**
+	 * Copy meta from order to the relevant subscriptions
+	 *
+	 * @param  WC_Order $order Order object.
+	 * @param  object   $response Response from the API.
+	 */
+	public function copy_meta_to_sub( $order, $response ) {
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
+		if ( 'v2' !== strtolower( $version ) ) {
 			return;
 		}
-	}
 
-	/**
-	 * Use 'SetBillingAgreementDetails' action to update details of the billing
-	 * agreement.
-	 *
-	 * @see https://payments.amazon.com/documentation/apireference/201751700
-	 *
-	 * @throws Exception Exception from API response error.
-	 *
-	 * @param WC_Order $order                       Order object.
-	 * @param string   $amazon_billing_agreement_id Billing agreement ID.
-	 *
-	 * @return WP_Error|array WP_Error or parsed response array.
-	 */
-	public function set_billing_agreement_details( $order, $amazon_billing_agreement_id ) {
+		if ( ! self::order_contains_subscription( $order ) ) {
+			return;
+		}
 
-		$site_name     = WC_Amazon_Payments_Advanced::get_site_name();
-		$subscriptions = wcs_get_subscriptions_for_order( $order );
+		$meta_keys_to_copy = array(
+			'amazon_payment_advanced_version',
+			'woocommerce_version',
+		);
 
-		if ( version_compare( WC_VERSION, '3.0', '>=' ) ) {
-			$subscription_ids = array();
-			foreach ( $subscriptions as $subscription ) {
-				$subscription_ids[ $subscription->get_id() ] = $subscription->get_id();
+		$subscriptions = wcs_get_subscriptions_for_order( $order, array( 'order_type' => array( 'parent', 'renewal' ) ) );
+		foreach ( $subscriptions as $subscription ) {
+			$perm_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $subscription, true );
+			if ( isset( $perm_status->status ) && 'Closed' !== $perm_status->status ) {
+				$this->cancelled_subscription( $subscription );
 			}
-		} else {
-			$subscription_ids = wp_list_pluck( $subscriptions, 'id' );
+			wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription, $response->chargePermissionId ); // phpcs:ignore WordPress.NamingConventions
+			foreach ( $meta_keys_to_copy as $key ) {
+				$value = $order->get_meta( $key );
+				if ( empty( $value ) ) {
+					continue;
+				}
+
+				$subscription->update_meta_data( $key, $value );
+			}
+			$subscription->save();
 		}
-		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ),  WC_AMAZON_PAY_VERSION, WC()->version );
-
-		$request_args = array(
-			'Action'                                                                               => 'SetBillingAgreementDetails',
-			'AmazonBillingAgreementId'                                                             => $amazon_billing_agreement_id,
-			'BillingAgreementAttributes.SellerNote'                                                => sprintf( __( 'Order %1$s from %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order->get_order_number(), urlencode( $site_name ) ),
-			'BillingAgreementAttributes.SellerBillingAgreementAttributes.SellerBillingAgreementId' => sprintf( __( 'Subscription(s): %s.', 'woocommerce-gateway-amazon-payments-advanced' ), implode( ', ', $subscription_ids ) ),
-			'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName'                => $site_name,
-			'BillingAgreementAttributes.PlatformId'                                                => 'A1BVJDFFHQ7US4',
-			'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation'        => $version_note,
-		);
-
-		// Update order reference with amounts.
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
-
-		wc_apa()->log( __METHOD__, "Info: SetBillingAgreementDetails for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
-
-		return $response;
-
 	}
 
 	/**
-	 * Use 'ConfirmBillingAgreement' action to confirm the billing agreement.
+	 * Filter data to be copied from the subscription to the renewal
 	 *
-	 * @see https://payments.amazon.com/documentation/apireference/201751710
-	 *
-	 * @throws Exception Error from API error response.
-	 *
-	 * @param int    $order_id                    Order ID.
-	 * @param string $amazon_billing_agreement_id Billing agreement ID.
-	 * @param bool   $is_sca If needs SCA, ConfirmOrderReference needs extra parameters.
-	 *
-	 * @return WP_Error|array WP_Error or parsed response array
+	 * @param  array           $meta Array of meta to copy from the subscription.
+	 * @param  WC_Order        $order Order object.
+	 * @param  WC_Subscription $subscription Susbcription Object.
+	 * @return array
 	 */
-	public function confirm_billing_agreement( $order_id, $amazon_billing_agreement_id, $is_sca = false ) {
-		$confirm_args = array(
-			'Action'                   => 'ConfirmBillingAgreement',
-			'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
+	public function copy_meta_from_sub( $meta, $order, $subscription ) {
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $subscription->get_id() );
+		if ( 'v2' !== strtolower( $version ) ) {
+			return $meta;
+		}
+
+		$meta_keys_to_copy = array(
+			'amazon_charge_permission_id',
+			'amazon_charge_permission_status',
+			'amazon_payment_advanced_version',
+			'woocommerce_version',
 		);
 
-		if ( $is_sca ) {
-			// The buyer is redirected to this URL if the MFA is successful.
-			$confirm_args['SuccessUrl'] = wc_get_checkout_url();
-			// The buyer is redirected to this URL if the MFA is unsuccessful.
-			$confirm_args['FailureUrl'] = wc_get_checkout_url();
+		foreach ( $meta_keys_to_copy as $key ) {
+			$value = $subscription->get_meta( $key );
+			if ( empty( $value ) ) {
+				continue;
+			}
+
+			$meta[] = array(
+				'meta_key'   => $key, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value' => $value, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			);
 		}
-
-		$response = WC_Amazon_Payments_Advanced_API::request( $confirm_args );
-
-		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
-
-		wc_apa()->log( __METHOD__, "Info: ConfirmBillingAgreement for Billing Agreement ID: {$amazon_billing_agreement_id}." );
-
-		return $response;
-
-	}
-
-	/**
-	 * Use 'ValidateBillingAgreement' action to validate the billing agreement.
-	 *
-	 * @see https://payments.amazon.com/documentation/automatic/201752090#201757360
-	 *
-	 * @throws Exception Error from API response.
-	 *
-	 * @param string $amazon_billing_agreement_id Billing agreement ID.
-	 *
-	 * @return WP_Error|array WP_Error or parsed response array
-	 */
-	public function validate_billing_agreement( $amazon_billing_agreement_id ) {
-		$response = WC_Amazon_Payments_Advanced_API::request( array(
-			'Action'                   => 'ValidateBillingAgreement',
-			'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
-		) );
-
-		if ( is_wp_error( $response ) ) {
-			throw new Exception( $response->get_error_message() );
-		}
-
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->Error->Message ) ) {
-			throw new Exception( (string) $response->Error->Message );
-		}
-
-		if ( isset( $response->ValidateBillingAgreementResult->FailureReasonCode ) ) {
-			throw new Exception( (string) $response->ValidateBillingAgreementResult->FailureReasonCode );
-		}
-		// @codingStandardsIgnoreEnd
-
-		return $response;
-	}
-
-	/**
-	 * Authorize (and potentially capture) payment for an order w/subscriptions.
-	 *
-	 * @param int|WC_Order $order                       Order ID or order object.
-	 * @param string       $amazon_billing_agreement_id Billing agreement ID.
-	 *
-	 * @return array Array value for process_payment method.
-	 */
-	public function authorize_payment( $order, $amazon_billing_agreement_id ) {
-		$order_id = wc_apa_get_order_prop( $order, 'id' );
-
-		switch ( $this->payment_capture ) {
-
-			case 'manual' :
-
-				// Mark as on-hold.
-				$order->update_status( 'on-hold', __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-
-				// Reduce stock levels.
-				if ( version_compare( WC_VERSION, '3.0', '<' ) ) {
-					$order->reduce_order_stock();
-				} else {
-					wc_reduce_stock_levels( $order->get_id() );
-				}
-
-				wc_apa()->log( __METHOD__, "Info: 'manual' payment_capture processed for (subscription) order {$order_id}." );
-
-				break;
-
-			case 'authorize' :
-
-				// Authorize only.
-				$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, false );
-
-				if ( $result ) {
-
-					// Mark as on-hold.
-					$order->update_status( 'on-hold', __( 'Amazon order opened. Use the "Amazon Pay" box to authorize and/or capture payment. Authorized payments must be captured within 7 days.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-
-					// Reduce stock levels.
-					if ( version_compare( WC_VERSION, '3.0', '<' ) ) {
-						$order->reduce_order_stock();
-					} else {
-						wc_reduce_stock_levels( $order->get_id() );
-					}
-
-					wc_apa()->log( __METHOD__, "Info: 'authorize' payment_capture processed for (subscription) order {$order_id}." );
-
-				} else {
-
-					$order->update_status( 'failed', __( 'Could not authorize Amazon payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-
-					wc_apa()->log( __METHOD__, "Error: 'authorize' payment_capture failed for (subscription) order {$order_id}." );
-
-				}
-
-				break;
-
-			default :
-
-				// Capture.
-				$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
-
-				if ( $result ) {
-
-					// Payment complete.
-					$order->payment_complete();
-
-					wc_apa()->log( __METHOD__, "Info: authorize and capture processed for (subscription) order {$order_id}." );
-
-				} else {
-
-					$order->update_status( 'failed', __( 'Could not authorize Amazon payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-
-					wc_apa()->log( __METHOD__, "Error: authorize and capture failed for (subscription) order {$order_id}." );
-
-				}
-
-				break;
-
-		}
-
-		WC()->cart->empty_cart();
-
-		// Return thank you page redirect.
-		return array(
-			'result'   => 'success',
-			'redirect' => $this->get_return_url( $order ),
-		);
+		return $meta;
 	}
 
 	/**
 	 * Process a scheduled subscription payment.
 	 *
 	 * @param float    $amount_to_charge The amount to charge.
-	 * @param WC_Order $order            The WC_Order object of the order which
+	 * @param WC_Order $order Order object.
 	 *                                   the subscription was purchased in.
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $order ) {
-		$order_id                    = wc_apa_get_order_prop( $order, 'id' );
-		$amazon_billing_agreement_id = get_post_meta( $order_id, 'amazon_billing_agreement_id', true );
-		$currency                    = wc_apa_get_order_prop( $order, 'currency' );
-
-		// Cloned meta in renewal order might be prefixed with `_`.
-		if ( ! $amazon_billing_agreement_id ) {
-			$amazon_billing_agreement_id = get_post_meta( $order_id, '_amazon_billing_agreement_id', true );
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
+		if ( 'v2' !== strtolower( $version ) ) {
+			return;
 		}
 
-		try {
-			if ( ! $amazon_billing_agreement_id ) {
-				/* translators: placeholder is order ID. */
-				throw new Exception( sprintf( __( 'An Amazon Billing Agreement ID was not found in order #%s.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id ) );
-			}
+		$order_id = $order->get_id();
 
-			wc_apa()->log( __METHOD__, "Info: Begin recurring payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
+		$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order->get_id() );
 
-			/**
-			 * 'AuthorizeOnBillingAgreement' has a maximum request quota of 10
-			 * and a restore rate of one request every second.
-			 *
-			 * In sandbox mode, quota = 2 and restore = one every two seconds.
-			 *
-			 * @see https://payments.amazon.com/documentation/apireference/201751630#201751940
-			 */
-			$settings = WC_Amazon_Payments_Advanced_API::get_settings();
-
-			sleep( ( 'yes' === $settings['sandbox'] ) ? 2 : 1 );
-
-			// Authorize/Capture recurring payment.
-			$result = WC_Amazon_Payments_Advanced_API::authorize_recurring_payment( $order_id, $amazon_billing_agreement_id, true );
-
-			if ( $result ) {
-				// Payment complete.
-				$order->payment_complete();
-
-				wc_apa()->log( __METHOD__, "Info: Successful recurring payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
-			} else {
-				$order->update_status( 'failed', __( 'Could not authorize Amazon Pay payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-
-				wc_apa()->log( __METHOD__, "Error: Could not authorize Amazon Pay payment for (subscription) order {$order_id} for the amount of {$order->get_total()} {$currency}." );
-			}
-		} catch ( Exception $e ) {
-			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );
-
-			wc_apa()->log( __METHOD__, "Error: Exception encountered: {$e->getMessage()}" );
+		$capture_now = true;
+		switch ( WC_Amazon_Payments_Advanced_API::get_settings( 'payment_capture' ) ) {
+			case 'authorize':
+			case 'manual': // Force manual to be authorize as well.
+				$capture_now = false;
+				break;
 		}
-	}
 
-	/**
-	 * Use 'GetBillingAgreementDetails' action to retrieve details of the billing agreement.
-	 *
-	 * @see https://payments.amazon.com/documentation/apireference/201751710#201751690
-	 *
-	 * @throws Exception Exception.
-	 *
-	 * @param int    $order_id                    Order ID.
-	 * @param string $amazon_billing_agreement_id Billing agreement ID.
-	 *
-	 * @return WP_Error|array WP_Error or parsed response array.
-	 */
-	public function get_billing_agreement_details( $order_id, $amazon_billing_agreement_id ) {
-		$response = WC_Amazon_Payments_Advanced_API::request( array(
-			'Action'                   => 'GetBillingAgreementDetails',
-			'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
-		) );
-
-		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
-
-		wc_apa()->log( __METHOD__, "Info: GetBillingAgreementDetails for Billing Agreement ID: {$amazon_billing_agreement_id}." );
-		return $response;
-	}
-
-	/**
-	 * Store the billing and shipping addresses for this order in meta for both
-	 * the order and the subscriptions it contains.
-	 *
-	 * @param int    $order_id Order ID.
-	 * @param object $response SetBillingAgreementDetails response object.
-	 */
-	public function store_subscription_destination( $order_id, $response ) {
-
-		// @codingStandardsIgnoreStart
-		if ( ! is_wp_error( $response ) && isset( $response->GetBillingAgreementDetailsResult->BillingAgreementDetails->Destination->PhysicalDestination ) ) {
-
-			$billing_agreement_details = $response->GetBillingAgreementDetailsResult->BillingAgreementDetails;
-			// @codingStandardsIgnoreEnd
-
-			$this->store_order_address_details( $order_id, $billing_agreement_details );
-
-			$subscriptions = wcs_get_subscriptions_for_order( $order_id );
-
-			foreach ( $subscriptions as $subscription ) {
-				$subscription_id = wc_apa_get_order_prop( $subscription, 'id' );
-				$this->store_order_address_details( $subscription_id, $billing_agreement_details );
-			}
+		$can_do_async = false;
+		if ( ! $capture_now && 'async' === WC_Amazon_Payments_Advanced_API::get_settings( 'authorization_mode' ) ) {
+			$can_do_async = true;
 		}
-	}
 
-	/**
-	 * Use 'CloseBillingAgreement' to disallow future authorizations after
-	 * cancelling a subscription.
-	 *
-	 * @param WC_Order $order Order object.
-	 */
-	public function cancelled_subscription( $order ) {
-		$order_id                    = wc_apa_get_order_prop( $order, 'id' );
-		$amazon_billing_agreement_id = get_post_meta( $order_id, 'amazon_billing_agreement_id', true );
+		$currency = wc_apa_get_order_prop( $order, 'order_currency' );
 
-		if ( $amazon_billing_agreement_id ) {
-			try {
-				/**
-				 * 'CloseBillingAgreement' has a maximum request quota of 10 and
-				 * a restore rate of one request every second.
-				 *
-				 * In sandbox mode, quota = 2 and restore = one every two seconds.
-				 *
-				 * @see https://payments.amazon.com/documentation/apireference/201751710#201751950
-				 */
-				$settings = WC_Amazon_Payments_Advanced_API::get_settings();
-
-				sleep( ( 'yes' === $settings['sandbox'] ) ? 2 : 1 );
-
-				$response = WC_Amazon_Payments_Advanced_API::request( array(
-					'Action'                   => 'CloseBillingAgreement',
-					'AmazonBillingAgreementId' => $amazon_billing_agreement_id,
-				) );
-
-				$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
-
-				wc_apa()->log( __METHOD__, "Info: CloseBillingAgreement for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
-			} catch ( Exception $e ) {
-				wc_apa()->log( __METHOD__, "Error: Exception encountered: {$e->getMessage()}" );
-
-				/* translators: placeholder is error message from Amazon Pay API */
-				$order->add_order_note( sprintf( __( "Exception encountered in 'CloseBillingAgreement': %s", 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );
-			}
-		} else {
-			wc_apa()->log( __METHOD__, "Error: No Amazon Pay billing agreement found for order {$order_id}." );
-		}
-	}
-
-	/**
-	 * Convenience method to process generic Amazon API response errors.
-	 *
-	 * @throws Exception Error from API response.
-	 *
-	 * @param string $context                     Context.
-	 * @param object $response                    API response from self::request().
-	 * @param int    $order_id                    Order ID.
-	 * @param string $amazon_billing_agreement_id Billing agreement ID.
-	 */
-	protected function handle_generic_api_response_errors( $context, $response, $order_id, $amazon_billing_agreement_id ) {
+		$response = WC_Amazon_Payments_Advanced_API::create_charge(
+			$charge_permission_id,
+			array(
+				'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
+				'captureNow'                    => $capture_now,
+				'canHandlePendingAuthorization' => $can_do_async,
+				'chargeAmount'                  => array(
+					'amount'       => number_format( $amount_to_charge, 2 ),
+					'currencyCode' => $currency,
+				),
+			)
+		);
 
 		if ( is_wp_error( $response ) ) {
-
-			$error_message = $response->get_error_message();
-
-			wc_apa()->log( $context, "Error: WP_Error '{$error_message}' for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
-
-			throw new Exception( $error_message );
-
+			wc_apa()->log( "Error processing payment for renewal order #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
+			/* translators: 1) Reason. */
+			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $response->get_error_message() ) );
+			wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+			$order->update_status( 'failed' );
+			wc_maybe_increase_stock_levels( $order->get_id() );
+			return;
 		}
 
-		// @codingStandardsIgnoreStart
-		if ( isset( $response->Error->Message ) ) {
-			$error_message = (string) $response->Error->Message;
-			wc_apa()->log( $context, "Error: API Error '{$error_message}' for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
-
-			throw new Exception( $error_message );
-		}
-		// @codingStandardsIgnoreEnd
+		wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
+		wc_apa()->get_gateway()->log_charge_status_change( $order, $response );
 	}
 
 	/**
-	 * Copy over the billing reference id and billing/shipping address info from
-	 * a successful manual payment for a failed renewal.
+	 * Cancelled subscription hook
 	 *
-	 * @param WC_Subscription $subscription  The subscription for which the
-	 *                                       failing payment method relates.
-	 * @param WC_Order        $renewal_order The order which recorded the successful
-	 *                                       payment (to make up for the failed
-	 *                                       automatic payment).
+	 * @param WC_Subscription $subscription Subscription object.
 	 */
-	public function update_failing_payment_method( $subscription, $renewal_order ) {
-		$meta_keys_to_copy = array(
-			'amazon_billing_agreement_id',
-			'_billing_first_name',
-			'_billing_last_name',
-			'_billing_email',
-			'_billing_phone',
-			'_shipping_first_name',
-			'_shipping_last_name',
-			'_shipping_company',
-			'_shipping_address_1',
-			'_shipping_address_2',
-			'_shipping_city',
-			'_shipping_postcode',
-			'_shipping_state',
-			'_shipping_country',
-		);
+	public function cancelled_subscription( $subscription ) {
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $subscription->get_id() );
+		if ( 'v2' !== strtolower( $version ) ) {
+			return;
+		}
 
-		$renewal_order_id = wc_apa_get_order_prop( $renewal_order, 'id' );
+		// Prevent double running. WCS Bug.
+		// TODO: Report bug. PR that introduced this in WCS https://github.com/woocommerce/woocommerce-subscriptions/pull/2777 .
+		if ( isset( $subscription->handled_cancel ) ) {
+			return;
+		}
 
-		foreach ( $meta_keys_to_copy as $meta_key ) {
-			$meta_value = get_post_meta( $renewal_order_id, $meta_key, true );
+		$subscription->handled_cancel = true;
 
-			if ( $meta_value ) {
-				$subscription_id = wc_apa_get_order_prop( $subscription, 'id' );
-				update_post_meta( $subscription_id, $meta_key, $meta_value );
+		$order_id = $subscription->get_id();
+
+		$charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $order_id );
+
+		if ( empty( $charge_permission_id ) ) {
+			unset( $subscription->handled_cancel );
+			return;
+		}
+
+		$response = WC_Amazon_Payments_Advanced_API::close_charge_permission( $charge_permission_id, 'Subscription Cancelled' );
+
+		if ( is_wp_error( $response ) ) {
+			wc_apa()->log( "Error processing cancellation for subscription #{$order_id}. Charge Permission ID: {$charge_permission_id}", $response );
+			unset( $subscription->handled_cancel );
+			return;
+		}
+
+		wc_apa()->get_gateway()->log_charge_permission_status_change( $subscription );
+
+		unset( $subscription->handled_cancel );
+	}
+
+	/**
+	 * Wether the subscription should move to on-hold
+	 *
+	 * @param  bool     $fail Wether to fail or not.
+	 * @param  WC_Order $order Order object.
+	 * @return bool
+	 */
+	public function subs_not_on_hold( $fail, $order ) {
+		if ( is_a( $order, 'WC_Subscription' ) ) {
+			return false;
+		}
+		return $fail;
+	}
+
+	/**
+	 * Propagate status change from one order or subscription, to related orders.
+	 *
+	 * @param  WC_Order|WC_Subscription $_order Order object.
+	 * @param  string                   $charge_permission_id Charge Permission ID.
+	 * @param  object                   $charge_permission_status Charge Permission Status.
+	 */
+	public function propagate_status_update_to_related( $_order, $charge_permission_id, $charge_permission_status ) {
+		$order = $_order;
+
+		if ( wcs_is_subscription( $order ) ) {
+			$related = $order->get_related_orders( 'all', array( 'parent' ) );
+			$order   = reset( $related );
+		}
+
+		$log_note = sprintf( 'Propagating status change on Order ID #%d.', $order->get_id() );
+		if ( $order->get_id() !== $_order->get_id() ) {
+			$log_note .= ' ' . sprintf( 'Source Order ID #%d.', $_order->get_id() );
+		}
+
+		wc_apa()->log( $log_note );
+
+		if ( $order->get_id() !== $_order->get_id() ) {
+			$this->handle_order_propagation( $order, $charge_permission_id, $charge_permission_status );
+		}
+
+		$subs = wcs_get_subscriptions_for_order( $order );
+
+		foreach ( $subs as $subscription ) {
+			if ( $_order->get_id() !== $subscription->get_id() ) {
+				$this->handle_order_propagation( $subscription, $charge_permission_id, $charge_permission_status );
+			}
+
+			$related_orders = $subscription->get_related_orders( 'all', array( 'renewal' ) );
+			foreach ( $related_orders as $rel_order ) {
+				if ( $_order->get_id() !== $rel_order->get_id() ) {
+					$this->handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status );
+				}
 			}
 		}
 	}
 
 	/**
-	 * Retrieve full details from the order using 'GetBillingAgreementDetails' (if it contains a subscription).
+	 * Do a specific order status propagation action
 	 *
-	 * @param string $amazon_reference_id Reference ID.
-	 *
-	 * @return bool|object Boolean false on failure, object of OrderReferenceDetails on success.
+	 * @param  WC_Order $rel_order Order Object.
+	 * @param  string   $charge_permission_id Charge Permission ID.
+	 * @param  object   $charge_permission_status Charge Permission Status.
 	 */
-	public function get_amazon_order_details( $amazon_reference_id ) {
-		$not_subscription = (
-			! WC_Subscriptions_Cart::cart_contains_subscription()
-			||
-			'yes' === get_option( 'woocommerce_subscriptions_turn_off_automatic_payments' )
-		);
-
-		if ( $not_subscription ) {
-			return parent::get_amazon_order_details( $amazon_reference_id );
+	protected function handle_order_propagation( $rel_order, $charge_permission_id, $charge_permission_status ) {
+		$rel_type = 'order';
+		if ( is_a( $rel_order, 'WC_Subscription' ) ) {
+			$rel_type = 'subscription';
 		}
-
-		$request_args = array(
-			'Action'                   => 'GetBillingAgreementDetails',
-			'AmazonBillingAgreementId' => $amazon_reference_id,
-		);
-
-		/**
-		 * Full address information is available to the 'GetOrderReferenceDetails' call when we're in
-		 * "login app" mode and we pass the AddressConsentToken to the API.
-		 *
-		 * @see the "Getting the Shipping Address" section here: https://payments.amazon.com/documentation/lpwa/201749990
-		 */
-		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
-		if ( 'yes' === $settings['enable_login_app'] ) {
-			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API::get_access_token();
+		$current_charge_permission_id = WC_Amazon_Payments_Advanced::get_order_charge_permission( $rel_order->get_id() );
+		if ( $current_charge_permission_id !== $charge_permission_id ) {
+			return;
 		}
+		$old_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $rel_order, true )->status;
+		$new_status = $charge_permission_status->status; // phpcs:ignore WordPress.NamingConventions
+		$need_note  = $new_status !== $old_status;
+		wc_apa()->log( sprintf( 'Propagating status to %2$s ID #%1$d.', $rel_order->get_id(), $rel_type ) );
+		$rel_order->update_meta_data( 'amazon_charge_permission_status', wp_json_encode( $charge_permission_status ) );
+		$rel_order->save();
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
-
-		// @codingStandardsIgnoreStart
-		if ( ! is_wp_error( $response ) && isset( $response->GetBillingAgreementDetailsResult->BillingAgreementDetails ) ) {
-			return $response->GetBillingAgreementDetailsResult->BillingAgreementDetails;
+		if ( $need_note ) {
+			wc_apa()->log( sprintf( 'Adding status change note for %2$s #%1$d', $rel_order->get_id(), $rel_type ) );
+			wc_apa()->get_gateway()->add_status_change_note( $rel_order, $charge_permission_id, $new_status );
 		}
-		// @codingStandardsIgnoreEnd
-
-		return false;
 	}
 
 	/**
-	 * If redirected to success url, proceed with payment and redirect to thank you page.
+	 * Maybe change session key to store checkout session on order pay screen.
 	 *
-	 * @param WC_Order $order
-	 * @param string $amazon_reference_id
+	 * @param  string $session_key Session Key Used.
+	 * @return string
 	 */
-	protected function handle_sca_success( $order, $amazon_reference_id ) {
-		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
-			return parent::handle_sca_success( $order, $amazon_reference_id );
+	public function maybe_change_session_key( $session_key ) {
+		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) ) {
+			$order_id = absint( $_POST['woocommerce_change_payment'] );
+			return 'amazon_checkout_session_id_order_pay_' . $order_id;
 		}
-		$redirect = $this->get_return_url( $order );
+		return $session_key;
+	}
 
-		try {
-			// It will process payment and empty the cart.
-			// Authorize/Capture initial payment, if initial payment required.
-			$order_total = $order->get_total();
-			if ( $order_total > 0 ) {
-				$this->authorize_payment( $order, $amazon_reference_id );
+	/**
+	 * Maybe not update payment method if it's already the same.
+	 *
+	 * @param  bool   $update Wether to Update.
+	 * @param  string $method New method.
+	 * @return bool   False if the gateway shouldn't update. True, otherwise.
+	 */
+	public function maybe_not_update_payment_method( $update, $method ) {
+		$id = wc_apa()->get_gateway()->id;
+		if ( $method === $id ) {
+			return false;
+		}
+		return $update;
+	}
+
+	/**
+	 * Change payment method after processing order.
+	 *
+	 * @param  WC_Order $order Order object.
+	 * @param  object   $response Charge Completion response from the Amazon API.
+	 */
+	public function maybe_change_payment_method( $order, $response ) {
+		if ( ! isset( $_GET['change_payment_method'] ) ) {
+			return;
+		}
+
+		if ( ! is_a( $order, 'WC_Subscription' ) ) {
+			return;
+		}
+
+		WC_Subscriptions_Change_Payment_Gateway::update_payment_method( $order, wc_apa()->get_gateway()->id );
+	}
+
+	/**
+	 * Filter the redirect URL
+	 *
+	 * @param  string   $redirect Redirect URL.
+	 * @param  WC_Order $order Order object.
+	 * @return string
+	 */
+	public function maybe_redirect_to_subscription( $redirect, $order ) {
+		if ( ! isset( $_GET['change_payment_method'] ) ) {
+			return $redirect;
+		}
+
+		if ( ! is_a( $order, 'WC_Subscription' ) ) {
+			return $redirect;
+		}
+
+		return $order->get_view_order_url();
+	}
+
+	/**
+	 * Add subscription post type to the admin meta box to be rendered.
+	 *
+	 * @param  array $post_types Post Types to render the meta box on.
+	 * @return array
+	 */
+	public function add_subscription_post_type( $post_types ) {
+		$post_types[] = 'shop_subscription';
+		return $post_types;
+	}
+
+	/**
+	 * Clean up some charge permission meta box actions on recurring.
+	 *
+	 * @param  array    $actions Ations on the meta box.
+	 * @param  WC_Order $order Order object.
+	 * @return array
+	 */
+	public function remove_charge_permission_actions_on_recurring( $actions, $order ) {
+		$charge_permission_cached_status = wc_apa()->get_gateway()->get_cached_charge_permission_status( $order );
+		if ( ! isset( $charge_permission_cached_status->type ) || 'Recurring' !== $charge_permission_cached_status->type ) {
+			return $actions;
+		}
+		if ( 'shop_order' === $order->get_type() ) {
+			if ( ! $order->has_status( array( 'pending', 'on-hold', 'failed' ) ) ) {
+				unset( $actions['authorize'] );
+				unset( $actions['authorize_capture'] );
 			} else {
-				// No payment needed now, free trial or coupon used - mark order as complete.
-				$order->payment_complete();
+				$charge_cached_status = wc_apa()->get_gateway()->get_cached_charge_status( $order, true );
+				if ( ! is_null( $charge_cached_status->status ) && 'Canceled' !== $charge_cached_status->status ) {
+					unset( $actions['authorize'] );
+					unset( $actions['authorize_capture'] );
+				}
 			}
-		} catch ( Exception $e ) {
-			// Async (optimal) mode on settings.
-			if ( 'async' === $this->authorization_mode && isset( $e->transaction_timed_out ) ) {
-				$this->process_async_auth( $order, $amazon_reference_id );
-			} else {
-				wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(), 'error' );
-				$redirect = wc_get_checkout_url();
-			}
+		} elseif ( 'shop_subscription' === $order->get_type() ) {
+			unset( $actions['authorize'] );
+			unset( $actions['authorize_capture'] );
 		}
-		WC()->session->set( 'amazon_billing_agreement_details' ,'false' );
-		wp_redirect( $redirect );
-		exit;
+		return $actions;
 	}
 
 	/**
-	 * If redirected to failure url, add a notice with right information for the user.
+	 * Ignore recurring properties
 	 *
-	 * @param WC_Order $order
-	 * @param string $amazon_reference_id
-	 * @param string $authorization_status
+	 * @param  bool   $valid Wether the data is invalid or not.
+	 * @param  object $data Order object.
+	 * @return bool
 	 */
-	protected function handle_sca_failure( $order, $amazon_reference_id, $authorization_status ) {
-		if ( ! $this->order_contains_subscription( $order->get_id() ) && ! wcs_is_subscription( $order->get_id() ) ) {
-			return parent::handle_sca_failure( $order, $amazon_reference_id, $authorization_status );
-		}
-		$redirect = wc_get_checkout_url();
-
-		// Failure will mock AmazonRejected behaviour.
-		if ( 'Failure' === $authorization_status ) {
-			// Cancel order.
-			$order->update_status( 'cancelled', __( 'Could not authorize Amazon payment. Failure on MFA (Multi-Factor Authentication) challenge.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-			// Cancel order on amazon.
-			WC_Amazon_Payments_Advanced_API::cancel_order_reference( $order, 'MFA Failure' );
-
-			// Redirect to cart and amazon logout.
-			$redirect = add_query_arg(
-				array(
-					'amazon_payments_advanced' => 'true',
-					'amazon_logout'            => 'true',
-				),
-				wc_get_cart_url()
-			);
-
-			// Adds notice and logging.
-			wc_add_notice( __( 'There was a problem authorizing your transaction using Amazon Pay. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-			wc_apa()->log( __METHOD__, 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Failure", reference ' . $amazon_reference_id );
-			WC()->session->set( 'amazon_billing_agreement_details' ,'false' );
+	public function ignore_amounts_in_session_validation( $valid, $data ) {
+		if ( $valid ) {
+			return $valid;
 		}
 
-		if ( 'Abandoned' === $authorization_status ) {
-			wc_add_notice( __( 'Authentication for the transaction was not completed, please try again selecting another payment instrument from your Amazon wallet.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-			wc_apa()->log( __METHOD__, 'MFA (Multi-Factor Authentication) Challenge Fail, Status "Abandoned", reference ' . $amazon_reference_id );
-			WC()->session->set( 'amazon_billing_agreement_details' ,'skip' );
+		switch ( $data->prop ) {
+			case 'recurringMetadata.amount.amount':
+				return true; // returning true turns ignores the invalid value, and considers it valid.
 		}
 
-		wp_redirect( $redirect );
-		exit;
+		return $valid;
 	}
 }

@@ -11,6 +11,8 @@
 class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 	/**
+	 * Instance for the compatible plugin handler
+	 *
 	 * @var WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
 	 */
 	public static $compatible_instance;
@@ -20,8 +22,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 */
 	const COMPATIBLE_PLUGINS = array(
 		'global_WOOCS'                         => 'WOOCS – Currency Switcher for WooCommerce',
-		'global_woocommerce_wpml'              => 'WPML WooCommerce Multilingual',
 		'class_WC_Product_Price_Based_Country' => 'Price Based on Country for WooCommerce',
+		'global_woocommerce_wpml'              => 'WPML WooCommerce Multilingual',
 		'class_WC_Currency_Converter'          => 'Currency Converter Widget',
 	);
 
@@ -39,36 +41,48 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 * @param string|null $region Region to inject.
 	 */
 	public static function init( $region = null ) {
+		if ( self::$compatible_instance ) {
+			return; // already initialized.
+		}
+
+		// Load multicurrency fields if compatibility. (Only on settings admin).
+		if ( is_admin() ) {
+			$compatible_region = isset( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) ? self::compatible_region( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) : self::compatible_region();
+			if ( $compatible_region ) {
+				add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( __CLASS__, 'add_currency_fields' ) );
+			}
+		}
+
+		$region = ! is_null( $region ) ? $region : WC_Amazon_Payments_Advanced_API::get_region();
+
 		if ( ! self::compatible_region( $region ) ) {
 			return;
 		}
 
-		if ( ! self::$compatible_instance ) {
-			$compatible_plugin = self::compatible_plugin();
-			if ( $compatible_plugin ) {
-				require_once 'class-wc-amazon-payments-advanced-multi-currency-abstract.php';
+		$compatible_plugin = self::compatible_plugin();
+		if ( $compatible_plugin ) {
+			require_once 'class-wc-amazon-payments-advanced-multi-currency-abstract.php';
 
-				switch ( $compatible_plugin ) {
-					case 'global_WOOCS':
-						require_once 'class-wc-amazon-payments-advanced-multi-currency-woocs.php';
-						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_Woocs();
-						break;
-					case 'class_WC_Product_Price_Based_Country':
-						require_once 'class-wc-amazon-payments-advanced-multi-currency-ppbc.php';
-						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Product_Price_Based_Country();
-						break;
-					case 'global_woocommerce_wpml':
-						$wpml_settings = get_option( '_wcml_settings' );
-						if ( ( WCML_MULTI_CURRENCIES_DISABLED !== $wpml_settings['enable_multi_currency'] ) ) {
-							require_once 'class-wc-amazon-payments-advanced-multi-currency-wpml.php';
-							self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_WPML();
-						}
-						break;
-					case 'class_WC_Currency_Converter':
-						require_once 'class-wc-amazon-payments-advanced-multi-currency-wccw.php';
-						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_Converted_Widget();
-						break;
-				}
+			switch ( $compatible_plugin ) {
+				case 'global_WOOCS':
+					require_once 'class-wc-amazon-payments-advanced-multi-currency-woocs.php';
+					self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_Woocs();
+					break;
+				case 'class_WC_Product_Price_Based_Country':
+					require_once 'class-wc-amazon-payments-advanced-multi-currency-ppbc.php';
+					self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_PPBC();
+					break;
+				case 'global_woocommerce_wpml':
+					$wpml_settings = get_option( '_wcml_settings' );
+					if ( ( WCML_MULTI_CURRENCIES_DISABLED !== $wpml_settings['enable_multi_currency'] ) ) {
+						require_once 'class-wc-amazon-payments-advanced-multi-currency-wpml.php';
+						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_WPML();
+					}
+					break;
+				case 'class_WC_Currency_Converter':
+					require_once 'class-wc-amazon-payments-advanced-multi-currency-wccw.php';
+					self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_WCCW();
+					break;
 			}
 		}
 	}
@@ -76,25 +90,25 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	/**
 	 * Checks if region is compatible.
 	 *
-	 * @param string|null $region
+	 * @param string|null $region Region to check for compatibility.
 	 *
 	 * @return bool
 	 */
 	public static function compatible_region( $region = null ) {
-		$region = ( $region ) ? $region : WC_Amazon_Payments_Advanced_API::get_region();
-		return is_int( array_search( $region, self::COMPATIBLE_REGIONS ) );
+		$region = ! is_null( $region ) ? $region : WC_Amazon_Payments_Advanced_API::get_region();
+		return is_int( array_search( $region, self::COMPATIBLE_REGIONS, true ) );
 	}
 
 	/**
 	 * Singleton to get if there is a compatible instance running. Region can be injected.
-	 * 
-	 * @param bool $region
+	 *
+	 * @param bool $region Region to check for compatibility.
 	 *
 	 * @return WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
 	 */
-	public static function get_compatible_instance( $region = false ) {
+	public static function get_compatible_instance( $region = null ) {
 		if ( ! self::$compatible_instance ) {
-			new self( $region );
+			self::init();
 		}
 		return self::$compatible_instance;
 	}
@@ -110,6 +124,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	}
 
 	/**
+	 * Reload wallet widget wrapper around the instance
+	 *
 	 * @return bool
 	 */
 	public static function reload_wallet_widget() {
@@ -151,8 +167,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 			$match = false;
 			if ( 0 === strpos( $definition_name, 'global' ) ) {
 				$global_name = str_replace( 'global_', '', $definition_name );
-				global ${$global_name};
-				if ( ${$global_name} ) {
+
+				if ( isset( $GLOBALS[ $global_name ] ) && $GLOBALS[ $global_name ] ) {
 					$match = true;
 				}
 			} elseif ( 0 === strpos( $definition_name, 'class' ) ) {
@@ -168,13 +184,57 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 		return false;
 	}
 
+	/**
+	 * Are we on the settings page?
+	 *
+	 * @return bool
+	 */
 	public function is_amazon_settings_page() {
 		if ( is_admin() &&
-			 ( isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) &&
-			 ( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) ) {
+			( isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) &&
+			( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) ) {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Adds multicurrency settings to form fields.
+	 *
+	 * @param  array $form_fields Admin fields.
+	 * @return array
+	 */
+	public static function add_currency_fields( $form_fields ) {
+		if ( ! self::$compatible_instance ) {
+			return $form_fields;
+		}
+
+		$compatible_plugin = self::compatible_plugin( true );
+
+		$form_fields['multicurrency_options'] = array(
+			'title'       => __( 'Multi-Currency', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'type'        => 'title',
+			/* translators: Compatible plugin */
+			'description' => sprintf( __( 'Multi-currency compatibility detected with <strong>%s</strong>', 'woocommerce-gateway-amazon-payments-advanced' ), $compatible_plugin ),
+		);
+
+		/**
+		 * Only show currency list for plugins that will use the list. Frontend plugins will be exempt.
+		 */
+		if ( ! self::$compatible_instance->is_front_end_compatible() ) {
+			$form_fields['currencies_supported'] = array(
+				'title'             => __( 'Select currencies to display Amazon in your shop', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'              => 'multiselect',
+				'options'           => WC_Amazon_Payments_Advanced_API::get_supported_currencies( true ),
+				'css'               => 'height: auto;',
+				'custom_attributes' => array(
+					'size' => 10,
+					'name' => 'currencies_supported',
+				),
+			);
+		}
+
+		return $form_fields;
 	}
 
 }

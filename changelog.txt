@@ -1,5 +1,50 @@
 *** Amazon Pay Changelog ***
 
+= 2.1.0 - 2022-01-10 =
+* Update - Disable option "Hide standard checkout button on cart page" when other payment gateway are activated.
+* Fix - Enable subscription amount change support.
+* Fix - Accept states without letters mark variations on shipping restriction.
+* Fix - Render cart button on update shipping method.
+* Add - Process orders created in V1 with V2 handlers.
+* Fix - Interference when subscriptions payment method changes to other payment method.
+* Fix - Force Decimals to 2 on amounts sent to API to prevent errors on api calls.
+* Fix - Save Amazon Reference Id on order _transaction_id order meta field on payment process.
+* Update - Hide the API V1 keys on setting when the V2 onboarding is done.
+* Fix - Disabling  "Hide standard checkout button on cart page" option hides the gateway on the new installations.
+* Update - Translation and comments fixes (thank you geist-ahnen, shoheitanaka).
+
+= 2.0.3 - 2021-06-15 =
+* Fix - Issues with state level handling of shipping zones.
+* Fix - Issue that attempted to initialize the plugin in the REST API, throwing a fatal error.
+* Fix - Issue with subscriptions and checkout session validation, which forced customers to login again.
+* Add - Logging when users are asked to log in again, to debug other potential issues with this validation.
+
+= 2.0.2 - 2021-05-26 =
+* Fix - Issue that caused secret key from pre v2 to be lost after migrating to v2.
+* Add - Allow recovery of v1 secret key if lost during migration to v2.
+
+= 2.0.1 - 2021-05-14 =
+* Update - WP tested up to 5.7.
+* Update - WC tested up to 5.3.
+* Fix - Properly compose url for order action buttons.
+
+= 2.0.0 - 2021-05-11 =
+* Upgrade to use the latest Amazon Pay frontend technology and backend API. Functionalities in parity with the previous version.
+
+= 1.13.1 - 2021-02-25 =
+* Fix - Avoid hiding default shipping fields at checkout.
+
+= 1.13.0 - 2021-02-18 =
+* Update - WP tested up to 5.6.
+* Update - WC tested up to 5.0.
+* Fix - Fatal checkout error when changing subscription's payment method if user is logged out of Amazon account.
+* Fix - Checkout error when address book state does not match WooCommerce state data.
+* Fix - Multi-currency compatibility is not detected when Price Based on Country and WMPL is active.
+* Fix - PHP error when the currencies_supported option is not set.
+* Fix - Add InheritShippingAddress to AuthorizeOnBillingAgreement. InheritShippingAddress = True when orders are shipping physical products.
+* Fix - Missing order ID in session.
+* Fix - Normalize and refactor URL handling when checkout page url is not set.
+
 = 1.12.2 - 2020-05-05 =
 * Fix - Fatal checkout error when submitting orders that do not need shipping.
 

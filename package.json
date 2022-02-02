@@ -1,7 +1,7 @@
 {
-  "name": "woocommerce-gateway-amazon-payments-advanced",
+  "name": "woocommerce-gateway-amazon-pay",
   "description": "Amazon Pay Gateway for WooCommerce",
-  "version": "1.12.2",
+  "version": "2.1.0",
   "title": "WooCommerce Gateway Amazon Pay",
   "repository": {
     "type": "git",
@@ -13,8 +13,8 @@
   "license": "GPL-2.0",
   "assets": {
     "js": {
-      "min": "assets/js/*.min.js",
-      "js": "assets/js/*.js"
+      "min": "assets/js/**/*.min.js assets/js/*.min.js",
+      "js": "assets/js/**/*.js assets/js/*.js"
     },
     "styles": {
       "css": "assets/css/*.css",
@@ -29,9 +29,10 @@
     "test:grep": "cross-env NODE_CONFIG_DIR='./tests/e2e/config' BABEL_ENV=commonjs mocha \"tests/e2e\" --compilers js:babel-register --grep ",
     "test:single": "cross-env NODE_CONFIG_DIR='./tests/e2e/config' BABEL_ENV=commonjs mocha --compilers js:babel-register",
     "update-deps": "npm install -g rimraf && rimraf node_modules && rimraf npm-shrinkwrap.json && npm install && npm shrinkwrap --dev",
-    "build": "npm run uglify && npm run makepot && npm run sass",
-    "postbuild": "npm run -s && npm run archive",
+    "build:assets": "npm run uglify && npm run makepot && npm run sass",
+    "build:deps": "rm -rf vendor && composer install --no-dev --optimize-autoloader",
     "archive": "composer archive --file=$npm_package_name --format=zip",
+    "build": "npm run build:assets && npm run build:deps && npm run archive",
     "postarchive": "rm -rf $npm_package_name && unzip $npm_package_name.zip -d $npm_package_name && rm $npm_package_name.zip && zip -r $npm_package_name.zip $npm_package_name && rm -rf $npm_package_name",
     "preuglify": "rm -f $npm_package_assets_js_min",
     "uglify": "for f in $npm_package_assets_js_js; do file=${f%.js}; node_modules/.bin/uglifyjs $f -c -m > $file.min.js; done",
@@ -39,8 +40,7 @@
     "sass": "node_modules/.bin/node-sass $npm_package_assets_styles_cssfolder --output $npm_package_assets_styles_cssfolder --output-style compressed",
     "watchsass": "node_modules/.bin/node-sass $npm_package_assets_styles_sass --output $npm_package_assets_styles_css --output-style compressed --watch",
     "postsass": "for f in $npm_package_assets_styles_css; do file=${f%.css}; node_modules/.bin/cleancss -o $file.css $f; done",
-    "makepot": "wpi18n makepot --domain-path languages --pot-file woocommerce-gateway-amazon-payments-advanced.pot --type plugin --main-file woocommerce-gateway-amazon-payments-advanced.php --exclude node_modules,tests,docs",
-    "woorelease": "npm run build"
+    "makepot": "wpi18n makepot --domain-path languages --pot-file woocommerce-gateway-amazon-payments-advanced.pot --type plugin --main-file woocommerce-gateway-amazon-payments-advanced.php --exclude node_modules,tests,docs,docker"
   },
   "devDependencies": {
     "babel": "^6.5.2",

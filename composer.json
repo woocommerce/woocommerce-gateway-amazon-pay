@@ -6,16 +6,28 @@
     "license": "GPL-2.0+",
     "archive": {
         "exclude": [
-            "!/assets"
+            "!/assets",
+            "!/languages",
+            "!/vendor",
+            "phpcs.xml",
+            "phpstan.neon",
+            ".idea"
         ]
     },
     "config": {
         "platform": {
-            "php": "7.0"
+            "php": "7.3"
         }
     },
     "require-dev": {
         "phpunit/phpunit": "5.7.27",
-        "woocommerce/woocommerce-sniffs": "0.0.8"
+        "woocommerce/woocommerce-sniffs": "0.1.0",
+        "php-stubs/woocommerce-stubs": "^5.1",
+        "szepeviktor/phpstan-wordpress": "^0.7.5",
+        "phpstan/extension-installer": "^1.1",
+        "yoast/phpunit-polyfills": "^1.0"
+    },
+    "require": {
+        "amzn/amazon-pay-api-sdk-php": "^2.2"
     }
 }

@@ -1,18 +1,41 @@
 <?php
+/**
+ * PHPUnit bootstrap file
+ * @package WC_Gateway_Amazon_Pay
+ */
 
+/**
+ * WC_Amazon_Payments_Advanced_Test
+ */
 class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
+	/**
+	 * Test wc_apa
+	 *
+	 */
 	public function test_wc_apa() {
 		$this->assertTrue( is_a( wc_apa(), 'WC_Amazon_Payments_Advanced' ) );
 	}
 
+	/**
+	 * Test API Class is loaded
+	 *
+	 */
 	public function test_api_class_is_loaded() {
 		$this->assertTrue( class_exists( 'WC_Amazon_Payments_Advanced_API' ) );
 	}
 
+	/**
+	 * Test Compat Class is loaded
+	 *
+	 */
 	public function test_compat_class_is_loaded() {
 		$this->assertTrue( class_exists( 'WC_Amazon_Payments_Advanced_Compat' ) );
 	}
 
+	/**
+	 * Test hooks are registered
+	 *
+	 */
 	public function test_callbacks_hooks_are_registered() {
 		$this->assertEquals( has_action( 'init', array( wc_apa(), 'init' ) ), 10 );
 		$this->assertEquals( has_action( 'wp_loaded', array( wc_apa(), 'init_handlers' ) ), 11 );
@@ -23,6 +46,10 @@ class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		$this->assertEquals( has_filter( 'woocommerce_rest_prepare_shop_order', array( wc_apa(), 'rest_api_add_amazon_ref_info' ) ), 10 );
 	}
 
+	/**
+	 * Test gateway is registered
+	 *
+	 */
 	public function test_gateway_is_registered() {
 		$this->assertContains(
 			'amazon_payments_advanced',
@@ -30,12 +57,20 @@ class WC_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Test log methods
+	 *
+	 */
 	public function test_has_log_methods() {
 		$this->assertTrue( is_callable( array( wc_apa(), 'log' ) ) );
 		$this->assertTrue( is_callable( array( wc_apa(), 'sanitize_remote_request_log' ) ) );
 		$this->assertTrue( is_callable( array( wc_apa(), 'sanitize_remote_response_log' ) ) );
 	}
 
+	/**
+	 * Test amazon logout URL
+	 *
+	 */
 	public function test_get_amazon_logout_url() {
 		$this->assertTrue( false !== strpos( wc_apa()->get_amazon_logout_url(), 'amazon_payments_advanced=true&amazon_logout=true' ) );
 	}

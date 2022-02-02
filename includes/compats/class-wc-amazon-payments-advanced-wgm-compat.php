@@ -120,10 +120,8 @@ class WC_Amazon_Payments_Advanced_WGM_Compat {
 	 * @since 1.6.0
 	 */
 	public function remove_ui_hooks() {
-		$apa = wc_apa();
-
-		remove_action( 'woocommerce_checkout_before_customer_details', array( $apa, 'payment_widget' ), 20 );
-		remove_action( 'woocommerce_checkout_before_customer_details', array( $apa, 'address_widget' ), 10 );
+		remove_action( 'woocommerce_checkout_before_customer_details', array( wc_apa(), 'payment_widget' ), 20 );
+		remove_action( 'woocommerce_checkout_before_customer_details', array( wc_apa(), 'address_widget' ), 10 );
 	}
 
 	/**
@@ -205,11 +203,11 @@ class WC_Amazon_Payments_Advanced_WGM_Compat {
 		 */
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
-		if ( 'yes' == $settings['enable_login_app'] ) {
+		if ( 'yes' === $settings['enable_login_app'] ) {
 			$request_args['AddressConsentToken'] = $this->get_amazon_access_token();
 		}
 
-		$response = WC_Amazon_Payments_Advanced_API::request( $request_args );
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 		// @codingStandardsIgnoreStart
 		if ( ! is_wp_error( $response ) && isset( $response->GetOrderReferenceDetailsResult->OrderReferenceDetails ) ) {
 			return $response->GetOrderReferenceDetailsResult->OrderReferenceDetails;
