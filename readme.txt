@@ -54,6 +54,10 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.1.1 - 2022-xx-xx =
+* Fix - Honoring WooCommerce's setting for decimals when formatting numbers.
+* Fix - Formatting numbers won't separate thousands by ','.
+
 = 2.1.0 - 2022-01-10 =
 * Update - Disable option "Hide standard checkout button on cart page" when other payment gateway are activated.
 * Fix - Enable subscription amount change support.
