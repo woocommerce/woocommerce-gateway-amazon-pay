@@ -273,6 +273,22 @@ class WC_Amazon_Payments_Advanced {
 	}
 
 	/**
+	 * Helper method to format a number before sending over to Amazon.
+	 *
+	 * @param string|float|int $num           Amount to format.
+	 * @param null|int         $decimals      The amount of decimals the formatted number should have.
+	 * @param string           $decimals_sep  The separator of the decimals.
+	 * @param string           $thousands_sep The separator of thousands.
+	 * @return string
+	 */
+	public static function format_amount( $num, $decimals = null, $decimals_sep = '.', $thousands_sep = '' ) {
+		/* Amazon won't accept any decimals more than 2. */
+		$decimals = $decimals > 2 ? null : $decimals;
+		$decimals = $decimals ? $decimals : min( wc_get_price_decimals(), 2 );
+		return number_format( $num, $decimals, $decimals_sep, $thousands_sep );
+	}
+
+	/**
 	 * Helper method to get order Version.
 	 *
 	 * @param int     $order_id Order ID.
