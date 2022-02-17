@@ -134,6 +134,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
 		add_filter( 'woocommerce_checkout_posted_data', array( $this, 'use_checkout_session_data' ) );
 		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
+		
+		// Pay Order
+		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'classic_integration_button' ) );
+
 		if ( $this->doing_ajax() ) {
 			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 		}
@@ -168,6 +172,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
 
+		$amz_create_checkout_classic_config = false;
+
+		if ( is_wc_endpoint_url( 'order-pay' ) ) {
+			$order_id = absint( get_query_var( 'order-pay' ) );
+			$order    = wc_get_order( $order_id );
+			if ( 'pending' === $order->get_status() ) {
+				$amz_create_checkout_classic_config = $order->get_meta( 'amazon_classic_checkout_config' );
+				$amz_create_checkout_classic_config = $amz_create_checkout_classic_config ? $amz_create_checkout_classic_config : false;
+			}
+		}
+
 		$params = array(
 			'ajax_url'                       => admin_url( 'admin-ajax.php' ),
 			'create_checkout_session_config' => $checkout_session_config,
@@ -181,6 +196,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'checkout_session_id'            => $this->get_checkout_session_id(),
 			'button_language'                => $this->settings['button_language'],
 			'ledger_currency'                => $this->get_ledger_currency(),
+			'amzCreateCheckoutConfig'        => $amz_create_checkout_classic_config,
 		);
 
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
@@ -602,12 +618,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
+		$parts        = wp_parse_url( home_url() );
+		$redirect_url = "{$parts['scheme']}://{$parts['host']}" . remove_query_arg( array( 'amazon_payments_advanced' ) );
+
+		if ( ! empty( $_GET['amazon_return_classic'] ) && ! empty( $_GET['amazonCheckoutSessionId'] ) ) {
+			$redirect_url = remove_query_arg( array( 'amazon_return_classic', 'amazonCheckoutSessionId' ), $redirect_url );
+			$this->handle_return( true, $_GET['amazonCheckoutSessionId'] );
+			// If we didn't redirect and quit yet, lets force redirect to checkout.
+			wp_safe_redirect( $redirect_url );
+			exit;
+		}
+
 		if ( is_null( WC()->session ) ) {
 			return;
 		}
-
-		$parts        = wp_parse_url( home_url() );
-		$redirect_url = "{$parts['scheme']}://{$parts['host']}" . remove_query_arg( array( 'amazon_payments_advanced' ) );
 
 		if ( isset( $_GET['amazon_logout'] ) ) {
 			$redirect_url = remove_query_arg( array( 'amazon_logout' ), $redirect_url );
@@ -671,12 +695,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param  mixed $force Wether to force read from amazon, or use the cached data if available.
 	 * @return object the Checkout Session Object from Amazon API
 	 */
-	public function get_checkout_session( $force = false ) {
+	public function get_checkout_session( $force = false, $checkout_session_id = null ) {
 		if ( ! $force && ! is_null( $this->checkout_session ) ) {
 			return $this->checkout_session;
 		}
 
-		$this->checkout_session = WC_Amazon_Payments_Advanced_API::get_checkout_session_data( $this->get_checkout_session_id() );
+		$this->checkout_session = WC_Amazon_Payments_Advanced_API::get_checkout_session_data( $checkout_session_id ? $checkout_session_id : $this->get_checkout_session_id() );
 		return $this->checkout_session;
 	}
 
@@ -1158,7 +1182,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				throw new Exception( __( 'Invalid order.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 
-			if ( empty( $payments ) ) {
+			$doing_classic_payment = empty( $checkout_session_id );
+
+			if ( empty( $payments ) && ! $doing_classic_payment ) {
 				throw new Exception( __( 'An Amazon Pay payment method was not chosen.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
 
@@ -1177,7 +1203,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$order_total = WC_Amazon_Payments_Advanced::format_amount( $order->get_total() );
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
-			wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
+			if ( $doing_classic_payment ) {
+				$payload = WC_Amazon_Payments_Advanced_API::create_checkout_session_classic_params( $order->get_checkout_payment_url() );
+				wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID not available yet." );
+			} else {
+				wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID: {$checkout_session_id}." );
+			}
 
 			$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION ); // ASK: ask if WC 2.6 support is still needed (it's a 2017 release).
 			$order->update_meta_data( 'woocommerce_version', WC()->version );
@@ -1197,38 +1228,53 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$can_do_async = true;
 			}
 
-			$payload = array(
-				'paymentDetails'   => array(
-					'paymentIntent'                 => $payment_intent,
-					'canHandlePendingAuthorization' => $can_do_async,
-					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
-					'chargeAmount'                  => array(
-						'amount'       => $order_total,
-						'currencyCode' => $currency,
-					),
+			$payload['paymentDetails'] = array(
+				'paymentIntent'                 => $payment_intent,
+				'canHandlePendingAuthorization' => $can_do_async,
+				// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
+				'chargeAmount'                  => array(
+					'amount'       => $order_total,
+					'currencyCode' => $currency,
 				),
-				'merchantMetadata' => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
 			);
+			$payload['merchantMetadata'] = WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id );
 
-			$payload = apply_filters( 'woocommerce_amazon_pa_update_checkout_session_payload', $payload, $checkout_session_id, $order );
+			$payload = apply_filters( 'woocommerce_amazon_pa_update_checkout_session_payload', $payload, $checkout_session_id, $order, $doing_classic_payment );
+			
+			if ( ! $doing_classic_payment ) {
+				wc_apa()->log( "Updating checkout session data for #{$order_id}." );
+				
+				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
+					$checkout_session_id,
+					$payload
+				);
 
-			wc_apa()->log( "Updating checkout session data for #{$order_id}." );
+				if ( is_wp_error( $response ) ) {
+					wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}", $response );
+					wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+					return array();
+				}
 
-			$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
-				$checkout_session_id,
-				$payload
-			);
-
-			if ( is_wp_error( $response ) ) {
-				wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}", $response );
-				wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-				return array();
-			}
-
-			if ( ! empty( $response->constraints ) ) {
-				wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $response->constraints );
-				wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
-				return array();
+				if ( ! empty( $response->constraints ) ) {
+					wc_apa()->log( "Error processing payment for order {$order_id}. Checkout Session ID: {$checkout_session_id}.", $response->constraints );
+					wc_add_notice( __( 'There was an error while processing your payment. Your payment method was not charged. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+					return array();
+				}
+				$redirect = $response->webCheckoutDetails->amazonPayRedirectUrl; // phpcs:ignore WordPress.NamingConventions
+			} else {
+				$create_checkout_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_classic_session_config( $payload );
+				// $config = WC_Amazon_Payments_Advanced_API::create_checkout_config( $create_checkout_config );
+				// $response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
+				// 	$config->checkoutSessionId,
+				// 	$payload
+				// );
+				// var_dump( $response );
+				// die();
+				$order->update_status( 'pending', __( 'Awaiting payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+				$order->update_meta_data( 'amazon_classic_checkout_config', wp_json_encode( $create_checkout_config ) );
+				
+				$redirect = $order->get_checkout_payment_url( true );
+				// $redirect = add_query_arg( 'create-checkout-config', rawurlencode( wp_json_encode( $create_checkout_config ) ), $order->get_checkout_payment_url( true ) );
 			}
 
 			$order->save();
@@ -1236,7 +1282,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			// Return thank you page redirect.
 			return array(
 				'result'   => 'success',
-				'redirect' => $response->webCheckoutDetails->amazonPayRedirectUrl, // phpcs:ignore WordPress.NamingConventions
+				'redirect' => $redirect,
 			);
 
 		} catch ( Exception $e ) {
@@ -1248,8 +1294,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Handle the return from amazon after a confirmed checkout.
 	 */
-	public function handle_return() {
-		$checkout_session_id = $this->get_checkout_session_id();
+	public function handle_return( bool $is_classic = false, string $checkout_session_id = '' ) {
+
+		if ( ! $is_classic ) {
+			$checkout_session_id = $this->get_checkout_session_id();
+		}
 
 		$order_id = isset( WC()->session->order_awaiting_payment ) ? absint( WC()->session->order_awaiting_payment ) : 0;
 		if ( is_wc_endpoint_url( 'order-pay' ) ) {
@@ -1289,7 +1338,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( is_wp_error( $response ) ) {
 			$error_code = $response->get_error_code();
 			if ( 'CheckoutSessionCanceled' === $error_code ) {
-				$checkout_session = $this->get_checkout_session( true );
+				$checkout_session = $this->get_checkout_session( true, $checkout_session_id );
 
 				switch ( $checkout_session->statusDetails->reasonCode ) { // phpcs:ignore WordPress.NamingConventions
 					case 'Declined':
@@ -1326,6 +1375,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		do_action( 'woocommerce_amazon_pa_before_processed_order', $order, $response );
 
+		if ( $is_classic ) {
+			$order->update_meta_data( 'amazon_classic_checkout_config', '' );
+		}
 		$charge_permission_id = $response->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
 

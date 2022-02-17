@@ -3,13 +3,19 @@
 	$( function() {
 		var button_count = 0;
 		var button_id = '#pay_with_amazon';
-		function renderButton() {
+		var classic_button_id = '#classic_pay_with_amazon';
+		if ( $( classic_button_id ).length > 0 && amazon_payments_advanced.amzCreateCheckoutConfig ) {
+			var amzCreateCheckoutConfig = JSON.parse( amazon_payments_advanced.amzCreateCheckoutConfig );
+			renderButton( classic_button_id, 'classic' );
+		}
+		function renderButton( btnId, buttonSettingsFlag ) {
+			btnId = btnId || button_id;
 			attemptRefreshData();
-			if ( 0 === $( button_id ).length ) {
+			if ( 0 === $( btnId ).length ) {
 				return;
 			}
 			button_count++;
-			$( button_id ).each( function() {
+			$( btnId ).each( function() {
 				var thisButton = $( this );
 				if ( ! thisButton.is( ':visible' ) ) {
 					return;
@@ -22,19 +28,7 @@
 				var thisIdRaw = thisId;
 				thisId = '#' + thisId;
 				var separator_id = '.wc-apa-button-separator';
-				var button_settings = {
-					// set checkout environment
-					merchantId: amazon_payments_advanced.merchant_id,
-					ledgerCurrency: amazon_payments_advanced.ledger_currency,
-					sandbox: amazon_payments_advanced.sandbox === '1' ? true : false,
-					// customize the buyer experience
-					productType: amazon_payments_advanced.action,
-					placement: amazon_payments_advanced.placement,
-					buttonColor: amazon_payments_advanced.button_color,
-					checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
-					// configure Create Checkout Session request
-					createCheckoutSessionConfig: amazon_payments_advanced.create_checkout_session_config
-				};
+				var button_settings = getButtonSettings( buttonSettingsFlag );
 
 				var thisConfigHash = amazon_payments_advanced.create_checkout_session_hash;
 				var oldConfigHash = thisButton.data( 'amazonRenderedSettings' );
@@ -87,7 +81,29 @@
 		}
 
 		function isAmazonCheckout() {
-			return ( 'amazon_payments_advanced' === $( 'input[name=payment_method]:checked' ).val() );
+			return $( '#amazon-logout' ).length > 0 && ( 'amazon_payments_advanced' === $( 'input[name=payment_method]:checked' ).val() );
+		}
+
+		function getButtonSettings( buttonSettingsFlag ) {
+			var obj = {
+				// set checkout environment
+				merchantId: amazon_payments_advanced.merchant_id,
+				ledgerCurrency: amazon_payments_advanced.ledger_currency,
+				sandbox: amazon_payments_advanced.sandbox === '1' ? true : false,
+				// customize the buyer experience
+				productType: amazon_payments_advanced.action,
+				placement: amazon_payments_advanced.placement,
+				buttonColor: amazon_payments_advanced.button_color,
+				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
+				// configure Create Checkout Session request
+				createCheckoutSessionConfig: amazon_payments_advanced.create_checkout_session_config
+			};
+			if ( 'classic' === buttonSettingsFlag ) {
+				obj.productType = 'undefined' !== amzCreateCheckoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
+				amzCreateCheckoutConfig.payloadJSON = JSON.stringify( amzCreateCheckoutConfig.payloadJSON );
+				obj.createCheckoutSessionConfig = amzCreateCheckoutConfig;
+			}
+			return obj;
 		}
 
 		function toggleDetailsVisibility( detailsListName ) {

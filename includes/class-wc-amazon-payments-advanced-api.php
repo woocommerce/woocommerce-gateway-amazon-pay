@@ -389,6 +389,46 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	}
 
+	public static function create_checkout_session_classic_params( $redirect_url = null ) {
+
+		$settings = self::get_settings();
+		if ( is_null( $redirect_url ) ) {
+			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
+				$parts        = wp_parse_url( home_url() );
+				$current_uri  = "{$parts['scheme']}://{$parts['host']}" . add_query_arg( null, null );
+				$redirect_url = $current_uri;
+			} else {
+				$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
+			}
+		}
+		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
+		$payload      = array(
+			'storeId'            => $settings['store_id'],
+			'platformId'         => 'A1BVJDFFHQ7US4',
+			'webCheckoutDetails' => array(
+				'checkoutMode'            => 'ProcessOrder',
+				'checkoutResultReturnUrl' => add_query_arg( 'amazon_return_classic', '1', $redirect_url ),
+				// 'checkoutReviewReturnUrl' => add_query_arg( 'amazon_return_classic', '1', $redirect_url ),
+				// 'checkoutCancelUrl'       => '',
+			),
+		);
+
+		$restrictions = self::get_shipping_restrictions();
+		if ( $restrictions ) {
+			$payload['deliverySpecifications'] = array(
+				'addressRestrictions' => array(
+					'type'         => 'Allowed',
+					'restrictions' => $restrictions,
+				),
+			);
+		}
+
+		$payload = apply_filters( 'woocommerce_amazon_pa_create_checkout_session_classic_params', $payload, $redirect_url );
+
+		return $payload;
+
+	}
+
 	/**
 	 * Get create checkout session config to send to the
 	 *
@@ -406,6 +446,27 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			'payloadJSON' => $payload,
 			'signature'   => $signature,
 		);
+	}
+
+	public static function get_create_checkout_classic_session_config( $payload, $redirect_url = null ) {
+		$settings = self::get_settings();
+		$client   = self::get_client();
+		$signature = $client->generateButtonSignature( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
+		return array(
+			'publicKeyId' => $settings['public_key_id'],
+			'payloadJSON' => $payload,
+			'signature'   => $signature,
+		);
+	}
+
+	public static function create_checkout_config( $config ) {
+		$client = self::get_client();
+		$headers = array(
+			'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			// 'x-amz-pay-date'            => gmdate( 'Ymd' ) . 'T' . gmdate( 'His' ) . 'Z',
+			// 'authorization'             => $config['signature'],
+		);
+		return json_decode( $client->createCheckoutSession( $config['payloadJSON'], $headers )['response'] );
 	}
 
 	/**

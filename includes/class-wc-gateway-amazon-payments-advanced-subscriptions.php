@@ -52,7 +52,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before).
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
-			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
+			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 4 );
 			add_filter( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array( $this, 'recurring_complete_checkout_session_update' ), 10, 3 );
 			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
 			add_filter( 'wcs_renewal_order_meta', array( $this, 'copy_meta_from_sub' ), 10, 3 );
@@ -340,7 +340,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param  WC_Order $order Order object.
 	 * @return array
 	 */
-	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order ) {
+	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order, $doing_classic_payment ) {
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) && $order->get_id() === absint( $_POST['woocommerce_change_payment'] ) ) {
 			$checkout_session = wc_apa()->get_gateway()->get_checkout_session();
 
@@ -350,6 +350,19 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$payload['paymentDetails']['chargeAmount'] = WC_Amazon_Payments_Advanced::format_amount( $checkout_session->recurringMetadata->amount ); // phpcs:ignore WordPress.NamingConventions
 
 			return $payload;
+		}
+		if ( $doing_classic_payment ) {
+			if ( 'PayAndShip' === wc_apa()->get_gateway()->get_current_cart_action() ) {
+				$payload['addressDetails' ] = array(
+					'name'          => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+					'addressLine1'  => $order->get_billing_address_1(),
+					'city'          => $order->get_billing_city(),
+					'stateOrRegion' => $order->get_billing_state(),
+					'postalCode'    => $order->get_billing_postcode(),
+					'countryCode'   => $order->get_billing_country( 'edit' ),
+					'phoneNumber'   => $order->get_billing_phone(),
+				);
+			}
 		}
 
 		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {

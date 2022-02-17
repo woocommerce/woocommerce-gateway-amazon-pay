@@ -473,6 +473,14 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'type'        => 'checkbox',
 				'default'     => 'no',
 			),
+			'enable_classic_gateway'        => array(
+				'title'       => __( 'Classic Gateway', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable Amazon Pay as a classic Gateway Option', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will enable Amazon Pay to also appear along other Gateway Options.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'yes',
+			),
 		);
 
 		if ( $this->has_other_gateways_enabled() ) {
@@ -857,6 +865,27 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		}
 	}
 
+	public function classic_integration_button( $echo = true, $elem = 'div' ) {
+		if ( empty( $this->settings['enable_classic_gateway'] ) || 'yes' === $this->settings['enable_classic_gateway'] ) {
+			$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
+			$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
+			$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
+
+			if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+				return;
+			}
+
+			$button_placeholder = '<' . $elem . ' id="classic_pay_with_amazon"></' . $elem . '>';
+
+			if ( false === $echo ) {
+				return $button_placeholder;
+			} else {
+				echo $button_placeholder;
+				return true;
+			}
+		}
+	}
+
 	/**
 	 * Remove amazon gateway.
 	 *
@@ -865,8 +894,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @return array
 	 */
 	public function remove_amazon_gateway( $gateways ) {
-		if ( isset( $gateways[ $this->id ] ) ) {
-			unset( $gateways[ $this->id ] );
+		if ( ! empty( $this->settings['enable_classic_gateway'] ) && 'no' === $this->settings['enable_classic_gateway'] ) {
+			if ( isset( $gateways[ $this->id ] ) ) {
+				unset( $gateways[ $this->id ] );
+			}
 		}
 
 		return $gateways;
