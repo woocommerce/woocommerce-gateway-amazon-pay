@@ -351,7 +351,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 			return $payload;
 		}
-		if ( $doing_classic_payment ) {
+
+		if ( ! $doing_classic_payment ) {
+			if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+				return $payload;
+			}
+		} else {
 			if ( 'PayAndShip' === wc_apa()->get_gateway()->get_current_cart_action() ) {
 				$payload['addressDetails' ] = array(
 					'name'          => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
@@ -363,10 +368,23 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 					'phoneNumber'   => $order->get_billing_phone(),
 				);
 			}
-		}
-
-		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
-			return $payload;
+			$cart_contains_renewal = wcs_cart_contains_renewal();
+			if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ! $cart_contains_renewal && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+				return $payload;
+			}
+			$payload['chargePermissionType'] = 'Recurring';
+			if ( $cart_contains_renewal ) {
+				if ( isset( $cart_contains_renewal['subscription_renewal'] ) && isset( $cart_contains_renewal['subscription_renewal']['subscription_id'] ) ) {
+					$subscription = wcs_get_subscription( $cart_contains_renewal['subscription_renewal']['subscription_id'] );
+					$payload['recurringMetadata'] = array(
+						'frequency' => $this->parse_interval_to_apa_frequency( $subscription->get_billing_period( 'edit' ), $subscription->get_billing_interval( 'edit' ) ),
+						'amount'    => array(
+							'amount'       => WC_Amazon_Payments_Advanced::format_amount( $subscription->get_total() ),
+							'currencyCode' => wc_apa_get_order_prop( $subscription, 'order_currency' ),
+						),
+					);
+				}
+			}
 		}
 
 		WC()->cart->calculate_totals();
@@ -374,7 +392,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
 
 		if ( 0 === $subscriptions_in_cart ) {
-			// Weird, but ok.
 			return $payload;
 		}
 

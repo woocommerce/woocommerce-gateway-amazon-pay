@@ -238,6 +238,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		$this->title                   = $settings['title'];
+		$this->description             = $settings['description'];
 		$this->payment_region          = $settings['payment_region'];
 		$this->merchant_id             = $settings['merchant_id'];
 		$this->store_id                = $settings['store_id'];
@@ -309,6 +310,20 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'type'        => 'checkbox',
 				'description' => '',
 				'default'     => 'yes',
+			),
+			'title'                         => array(
+				'title'       => __( 'Title', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'text',
+				'description' => __( 'This controls the title which the user sees during checkout.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'default'     => __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+			),
+			'description'                   => array(
+				'title'       => __( 'Description', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'textarea',
+				'description' => __( 'Payment method description that the customer will see on your checkout.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'default'     => __( 'Complete your payment using Amazon Pay!', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
 			),
 			'account_details'               => array(
 				'title'       => __( 'Amazon Pay Merchant account details', 'woocommerce-gateway-amazon-payments-advanced' ),
