@@ -150,7 +150,7 @@
 		}
 
 		function isAmazonClassic() {
-			return ! $( '#amazon-logout' ).length && ( 'amazon_payments_advanced' === $( 'input[name=payment_method]:checked' ).val() );
+			return ! $( '.wc-apa-widget-change' ).length && ( 'amazon_payments_advanced' === $( 'input[name=payment_method]:checked' ).val() );
 		}
 
 		function getButtonSettings( buttonSettingsFlag ) {

@@ -140,9 +140,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_after_checkout_form', array( $this, 'classic_integration_button' ) );
 
 		// Pay Order
-		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'classic_integration_button' ) );
 		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'classic_integration_button' ) );
-
+		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'checkout_button' ) );
 		if ( $this->doing_ajax() ) {
 			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 		}
