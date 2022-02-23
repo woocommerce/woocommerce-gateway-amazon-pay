@@ -389,6 +389,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 	}
 
+	/**
+	 * Create classic checkout session parameters for button.
+	 *
+	 * @param string $redirect_url Redirect URL on success.
+	 * @return array
+	 */
 	public static function create_checkout_session_classic_params( $redirect_url = null ) {
 
 		$settings = self::get_settings();
@@ -448,6 +454,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		);
 	}
 
+	/**
+	 * Get classic create checkout session config to send to Amazon.
+	 *
+	 * @param array  $payload      The payload that will be used to create a checkout session.
+	 * @param string $redirect_url Redirect URL on success.
+	 * @return array
+	 */
 	public static function get_create_checkout_classic_session_config( $payload, $redirect_url = null ) {
 		$settings = self::get_settings();
 		$client   = self::get_client();
@@ -457,16 +470,6 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			'payloadJSON' => $payload,
 			'signature'   => $signature,
 		);
-	}
-
-	public static function create_checkout_config( $config ) {
-		$client = self::get_client();
-		$headers = array(
-			'x-amz-pay-idempotency-key' => self::generate_uuid(),
-			// 'x-amz-pay-date'            => gmdate( 'Ymd' ) . 'T' . gmdate( 'His' ) . 'Z',
-			// 'authorization'             => $config['signature'],
-		);
-		return json_decode( $client->createCheckoutSession( $config['payloadJSON'], $headers )['response'] );
 	}
 
 	/**
