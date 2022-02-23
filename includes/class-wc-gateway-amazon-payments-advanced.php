@@ -141,7 +141,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Pay Order
 		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'classic_integration_button' ) );
-		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'checkout_button' ) );
+		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'maybe_checkout_button' ) );
 		if ( $this->doing_ajax() ) {
 			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 		}
@@ -696,6 +696,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return $this->checkout_session;
 	}
 
+	public function maybe_checkout_button( $echo = true, $elem = 'div' ) {
+		if ( ! $this->is_logged_in() ) {
+			$this->display_amazon_pay_button_separator_html();
+			$this->checkout_button( $echo, $elem );
+		}
+	}
+
 	/**
 	 * Check wether the user is logged in to amazon or not.
 	 *
@@ -1194,6 +1201,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			$order_total = WC_Amazon_Payments_Advanced::format_amount( $order->get_total() );
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
+			$payload     = array();
 
 			if ( $doing_classic_payment ) {
 				$payload = WC_Amazon_Payments_Advanced_API::create_checkout_session_classic_params( $order->get_checkout_payment_url() );

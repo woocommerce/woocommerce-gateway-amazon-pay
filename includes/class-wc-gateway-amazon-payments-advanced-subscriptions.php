@@ -52,6 +52,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before).
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
+			add_filter( 'woocommerce_amazon_pa_create_checkout_session_classic_params', array( $this, 'recurring_checkout_session' ) );
 			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 4 );
 			add_filter( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array( $this, 'recurring_complete_checkout_session_update' ), 10, 3 );
 			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
@@ -352,39 +353,30 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			return $payload;
 		}
 
-		if ( ! $doing_classic_payment ) {
-			if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
-				return $payload;
-			}
-		} else {
+		if ( $doing_classic_payment ) {
 			if ( 'PayAndShip' === wc_apa()->get_gateway()->get_current_cart_action() ) {
-				$payload['addressDetails' ] = array(
-					'name'          => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-					'addressLine1'  => $order->get_billing_address_1(),
-					'city'          => $order->get_billing_city(),
-					'stateOrRegion' => $order->get_billing_state(),
-					'postalCode'    => $order->get_billing_postcode(),
-					'countryCode'   => $order->get_billing_country( 'edit' ),
+				$payload['addressDetails'] = array(
+					'name'          => $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
+					'addressLine1'  => $order->get_shipping_address_1(),
+					'city'          => $order->get_shipping_city(),
+					'stateOrRegion' => $order->get_shipping_state(),
+					'postalCode'    => $order->get_shipping_postcode(),
+					'countryCode'   => $order->get_shipping_country( 'edit' ),
 					'phoneNumber'   => $order->get_billing_phone(),
 				);
+				$payload['addressDetails'] = array_map( function( $v ) {
+					if ( function_exists( 'mb_check_encoding' ) ) {
+						if ( ! mb_check_encoding( $v, 'UTF-8' ) ) {
+							$v = rawurlencode( $v );
+						}
+					}
+					return $v;
+				}, $payload['addressDetails'] );
 			}
-			$cart_contains_renewal = wcs_cart_contains_renewal();
-			if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ! $cart_contains_renewal && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
-				return $payload;
-			}
-			$payload['chargePermissionType'] = 'Recurring';
-			if ( $cart_contains_renewal ) {
-				if ( isset( $cart_contains_renewal['subscription_renewal'] ) && isset( $cart_contains_renewal['subscription_renewal']['subscription_id'] ) ) {
-					$subscription = wcs_get_subscription( $cart_contains_renewal['subscription_renewal']['subscription_id'] );
-					$payload['recurringMetadata'] = array(
-						'frequency' => $this->parse_interval_to_apa_frequency( $subscription->get_billing_period( 'edit' ), $subscription->get_billing_interval( 'edit' ) ),
-						'amount'    => array(
-							'amount'       => WC_Amazon_Payments_Advanced::format_amount( $subscription->get_total() ),
-							'currencyCode' => wc_apa_get_order_prop( $subscription, 'order_currency' ),
-						),
-					);
-				}
-			}
+		}
+
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+			return $payload;
 		}
 
 		WC()->cart->calculate_totals();
