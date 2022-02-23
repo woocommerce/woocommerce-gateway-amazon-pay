@@ -123,6 +123,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		add_action( 'woocommerce_before_checkout_form', array( $this, 'checkout_message' ), 5 );
 		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
+		add_action( 'before_woocommerce_pay', array( $this, 'remove_amazon_gateway_order_pay' ), 5 );
 
 		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_fragments' ) );
 
@@ -141,7 +142,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Pay Order
 		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'classic_integration_button' ) );
-		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'maybe_checkout_button' ) );
 		if ( $this->doing_ajax() ) {
 			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 		}
@@ -491,9 +491,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( ! $this->is_logged_in() ) {
-			if ( ! is_wc_endpoint_url( 'order-pay' ) ) {
-				add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
-			}
+			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
 			return;
 		}
 
@@ -516,10 +514,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Checkout Message
 	 */
 	public function checkout_message() {
-		if ( is_wc_endpoint_url( 'order-pay' ) ) {
-			return;
-		}
-
 		$class = array( 'wc-amazon-checkout-message' );
 		if ( $this->is_available() ) {
 			$class[] = 'wc-amazon-payments-advanced-populated';
@@ -694,13 +688,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$this->checkout_session = WC_Amazon_Payments_Advanced_API::get_checkout_session_data( $checkout_session_id ? $checkout_session_id : $this->get_checkout_session_id() );
 		return $this->checkout_session;
-	}
-
-	public function maybe_checkout_button( $echo = true, $elem = 'div' ) {
-		if ( ! $this->is_logged_in() ) {
-			$this->display_amazon_pay_button_separator_html();
-			$this->checkout_button( $echo, $elem );
-		}
 	}
 
 	/**
@@ -2389,6 +2376,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 		if ( ! empty( $charge_permission_id ) ) {
 			$order->set_transaction_id( $charge_permission_id );
+		}
+	}
+
+	public function remove_amazon_gateway_order_pay() {
+		if ( ! empty( $this->settings['enable_classic_gateway'] ) && 'no' === $this->settings['enable_classic_gateway'] && ! $this->is_logged_in() ) {
+			add_filter( 'woocommerce_available_payment_gateways', function( $gateways ) {
+				if ( isset( $gateways[ $this->id ] ) ) {
+					unset( $gateways[ $this->id ] );
+				}
+				return $gateways;
+			} );
 		}
 	}
 
