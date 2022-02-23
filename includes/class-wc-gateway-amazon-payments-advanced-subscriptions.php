@@ -356,22 +356,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		if ( $doing_classic_payment ) {
 			if ( 'PayAndShip' === wc_apa()->get_gateway()->get_current_cart_action() ) {
 				$payload['addressDetails'] = array(
-					'name'          => $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
-					'addressLine1'  => $order->get_shipping_address_1(),
-					'city'          => $order->get_shipping_city(),
-					'stateOrRegion' => $order->get_shipping_state(),
-					'postalCode'    => $order->get_shipping_postcode(),
+					'name'          => utf8_encode( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ),
+					'addressLine1'  => utf8_encode( $order->get_shipping_address_1() ),
+					'city'          => utf8_encode( $order->get_shipping_city() ),
+					'stateOrRegion' => utf8_encode( $order->get_shipping_state() ),
+					'postalCode'    => utf8_encode( $order->get_shipping_postcode() ),
 					'countryCode'   => $order->get_shipping_country( 'edit' ),
-					'phoneNumber'   => $order->get_billing_phone(),
+					'phoneNumber'   => utf8_encode( $order->get_billing_phone() ),
 				);
-				$payload['addressDetails'] = array_map( function( $v ) {
-					if ( function_exists( 'mb_check_encoding' ) ) {
-						if ( ! mb_check_encoding( $v, 'UTF-8' ) ) {
-							$v = rawurlencode( $v );
-						}
-					}
-					return $v;
-				}, $payload['addressDetails'] );
 			}
 		}
 
