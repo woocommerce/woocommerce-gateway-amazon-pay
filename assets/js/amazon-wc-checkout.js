@@ -14,6 +14,12 @@
 			}
 			return true;
 		} );
+		$( document.body ).on( 'added_to_cart removed_from_cart', function( fragments, cartHash, clickedBtn ) {
+			renderButton( '#pay_with_amazon_cart' );
+		} );
+		if ( $( '#pay_with_amazon_cart' ).length > 0 ) {
+			renderButton( '#pay_with_amazon_cart' );
+		}
 		$( 'form#order_review' ).on( 'submit', function( e ) {
 			if ( isAmazonClassic() ) {
 				e.preventDefault();

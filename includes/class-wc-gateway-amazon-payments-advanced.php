@@ -125,6 +125,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
 		add_action( 'before_woocommerce_pay', array( $this, 'remove_amazon_gateway_order_pay' ), 5 );
 
+		// Mini cart.
+		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'maybe_separator_and_checkout_button' ), 30 );
+		add_filter( 'woocommerce_amazon_pa_enqueue_scripts', array( $this, 'load_scripts_globally_if_button_enabled_on_cart' ) );
+
 		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_fragments' ) );
 
 		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) ) {
@@ -507,6 +511,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// Let's hijack that field for the Amazon-based checkout.
 		if ( apply_filters( 'woocommerce_pa_hijack_checkout_fields', true ) ) {
 			$this->hijack_checkout_fields( $checkout );
+		}
+	}
+
+	/**
+	 * Prints the Amazon Pay button on the mini cart.
+	 * 
+	 * When the setting is on and there are products in cart.
+	 * 
+	 * @hooked on 'woocommerce_widget_shopping_cart_buttons'
+	 *
+	 * @return void
+	 */
+	public function maybe_separator_and_checkout_button() {
+		if ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] && WC()->cart->get_cart_contents_count() > 0 ) {
+			$this->display_amazon_pay_button_separator_html();
+			$this->checkout_button( true, 'div', 'pay_with_amazon_cart' );
 		}
 	}
 
@@ -2499,5 +2519,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			wp_send_json( $response );
 		}
+	}
+
+	/**
+	 * Loads scripts globally when the setting to display Amazon Pay button on mini cart is enabled.
+	 *
+	 * @param bool $load_scripts
+	 * @return bool
+	 */
+	public function load_scripts_globally_if_button_enabled_on_cart( $load_scripts ) {
+		return $load_scripts ? $load_scripts : ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] );
 	}
 }

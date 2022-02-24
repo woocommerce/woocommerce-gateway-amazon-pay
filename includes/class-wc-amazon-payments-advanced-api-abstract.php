@@ -138,6 +138,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'hide_button_mode'                => 'no',
 			'amazon_keys_setup_and_validated' => '0',
 			'subscriptions_enabled'           => 'yes',
+			'mini_cart_button'                => 'no',
 		);
 
 		$settings = apply_filters( 'woocommerce_amazon_pa_settings', array_merge( $default, $settings ) );
