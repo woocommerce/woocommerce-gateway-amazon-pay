@@ -2380,13 +2380,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	public function remove_amazon_gateway_order_pay() {
-		if ( ! empty( $this->settings['enable_classic_gateway'] ) && 'no' === $this->settings['enable_classic_gateway'] && ! $this->is_logged_in() ) {
-			add_filter( 'woocommerce_available_payment_gateways', function( $gateways ) {
-				if ( isset( $gateways[ $this->id ] ) ) {
-					unset( $gateways[ $this->id ] );
-				}
-				return $gateways;
-			} );
+		if ( ! $this->is_logged_in() ) {
+			add_filter( 'woocommerce_available_payment_gateways', 'remove_amazon_gateway' );
 		}
 	}
 
