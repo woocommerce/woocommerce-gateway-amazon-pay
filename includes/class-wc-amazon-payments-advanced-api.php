@@ -92,6 +92,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		return $ret;
 	}
 
+	public static function trigger_alexa_notifications( $payload ) {
+		return self::get_client()->deliveryTrackers( $payload );
+	}
+
 	/**
 	 * Add Amazon reference information in order item response.
 	 *
