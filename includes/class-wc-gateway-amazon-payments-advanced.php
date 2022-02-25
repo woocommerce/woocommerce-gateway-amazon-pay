@@ -1356,9 +1356,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		do_action( 'woocommerce_amazon_pa_before_processed_order', $order, $response );
 
-		if ( $is_classic ) {
-			$order->update_meta_data( 'amazon_classic_checkout_config', '' );
-		}
 		$charge_permission_id = $response->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		$order->update_meta_data( 'amazon_charge_permission_id', $charge_permission_id );
 
