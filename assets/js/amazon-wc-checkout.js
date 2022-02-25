@@ -5,6 +5,7 @@
 		var button_id = '#pay_with_amazon';
 		var classic_button_id = '#classic_pay_with_amazon';
 		var amzCreateCheckoutConfig = null;
+		var haveStoppedOnce = false;
 		$( 'form.checkout' ).on( 'checkout_place_order_success', function( e, result ) {
 			if ( 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
 				amzCreateCheckoutConfig = result.amzCreateCheckoutParams;
@@ -19,6 +20,10 @@
 		} );
 		if ( $( '#pay_with_amazon_cart' ).length > 0 ) {
 			renderButton( '#pay_with_amazon_cart' );
+		}
+		if ( $( '#pay_with_amazon_product' ).length > 0 ) {
+			$( '#pay_with_amazon_product' ).on( 'click', change_woo_cart );
+			renderButton( '#pay_with_amazon_product', 'product' );
 		}
 		$( 'form#order_review' ).on( 'submit', function( e ) {
 			if ( isAmazonClassic() ) {
@@ -89,7 +94,7 @@
 			$( btnId ).each( function() {
 				var thisButton = $( this );
 				var thisId = thisButton.attr( 'id' );
-				if ( ! thisButton.is( ':visible' ) && classic_button_id !== '#' + thisId ) {
+				if ( ! thisButton.is( ':visible' ) && classic_button_id !== '#' + thisId && 'pay_with_amazon_product_real' !== thisId ) {
 					return;
 				}
 				if ( typeof thisId === 'undefined' ) {
@@ -177,6 +182,9 @@
 				obj.productType = 'undefined' !== typeof amzCreateCheckoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
 				amzCreateCheckoutConfig.payloadJSON = JSON.stringify( amzCreateCheckoutConfig.payloadJSON );
 				obj.createCheckoutSessionConfig = amzCreateCheckoutConfig;
+			}
+			if ( 'product' === buttonSettingsFlag ) {
+				obj.productType = amazon_payments_advanced.product_action;
 			}
 			return obj;
 		}
@@ -277,5 +285,39 @@
 
 		$( 'body' ).on( 'updated_checkout', initAmazonPaymentFields );
 		$( 'body' ).on( 'payment_method_selected', initAmazonPaymentFields );
+
+		function change_woo_cart( e ) {
+			if ( haveStoppedOnce ) {
+				return;
+			}
+			if ( ! $( '.single_add_to_cart_button' ).hasClass( 'disabled' ) ) {
+				var pid = $( 'button[type="submit"][name="add-to-cart"]' ).attr( 'value' );
+				var qnt = $( 'input[type="number"][name="quantity"]' ).val();
+				var vid = $( 'input[type="hidden"][name="variation_id"]' ).length > 0 ? $( 'input[type="hidden"][name="variation_id"]' ).val() : false;
+				var qrs = '&pid=' + pid + '&qnt=' + qnt + ( vid ? '&vid=' + vid : '' );
+				$.ajax(
+					{
+						url: amazon_payments_advanced.ajax_url,
+						type: 'get',
+						data: 'action=' + amazon_payments_advanced.change_cart_action +'&_change_carts_nonce=' + amazon_payments_advanced.change_cart_ajax_nonce + qrs,
+						async: false,
+						success: function( result ) {
+							if ( result.data.create_checkout_session_config && result.data.create_checkout_session_hash ) {
+								amazon_payments_advanced.create_checkout_session_config = result.create_checkout_session_config;
+								amazon_payments_advanced.create_checkout_session_hash = result.create_checkout_session_hash;
+								renderButton( '#pay_with_amazon_product_real', 'product' );
+								$( '#pay_with_amazon_product_real' ).trigger( 'click' );
+								$.ajax({ url: 'https://google.com/', type: 'get', async: false } );
+								e.stopImmediatePropagation();
+								haveStoppedOnce = true;
+							}
+						},
+						error:	function( jqXHR, textStatus, errorThrown ) {
+							console.error( errorThrown );
+						}
+					}
+				);
+			}
+		}
 	} );
 } )( jQuery );

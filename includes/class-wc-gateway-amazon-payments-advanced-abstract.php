@@ -504,6 +504,14 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'type'        => 'checkbox',
 				'default'     => 'no',
 			),
+			'product_button'                => array(
+				'title'       => __( 'Amazon Pay on product pages', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable Amazon Pay on product pages', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will enable the Amazon Pay button on the product pages next to the Add to Cart button.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'no',
+			),
 		);
 
 		if ( $this->has_other_gateways_enabled() ) {

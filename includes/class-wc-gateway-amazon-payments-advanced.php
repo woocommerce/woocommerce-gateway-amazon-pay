@@ -42,6 +42,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
 		add_action( 'woocommerce_create_refund', array( $this, 'current_refund_set' ) );
 		add_action( 'wp', array( __CLASS__, 'ajax_pay_action' ), 10 );
+		add_action( 'wp_ajax_change_wc_carts', array( $this, 'ajax_change_wc_carts') );
+		add_action( 'wp_ajax_no_priv_change_wc_carts', array( $this, 'ajax_change_wc_carts') );
 	}
 
 	/**
@@ -127,7 +129,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Mini cart.
 		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'maybe_separator_and_checkout_button' ), 30 );
-		add_filter( 'woocommerce_amazon_pa_enqueue_scripts', array( $this, 'load_scripts_globally_if_button_enabled_on_cart' ) );
+		add_filter( 'woocommerce_amazon_pa_enqueue_scripts', array( $this, 'load_scripts_globally_if_button_enabled_on_cart' ), 20 );
+
+		// Single Product.
+		add_action( 'woocommerce_single_product_summary', array( $this, 'maybe_separator_and_checkout_button_single_product' ), 35 );
+		add_filter( 'woocommerce_amazon_pa_enqueue_scripts', array( $this, 'load_scripts_on_product_pages' ), 10 );
+
+		// Thank you.
+		add_action( 'woocommerce_before_thankyou', array( $this, 'remember_forgotten_cart' ) );
 
 		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_fragments' ) );
 
@@ -195,10 +204,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'ledger_currency'                => $this->get_ledger_currency(),
 		);
 
+		if ( ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'] ) {
+			$params['change_cart_ajax_nonce'] = wp_create_nonce( 'change_wc_carts' );
+			$params['change_cart_action']     = 'change_wc_carts';
+			$params['product_action']         = $this->get_current_product_action();
+		}
+
 		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
 
 		$enqueue_scripts = is_cart() || is_checkout() || is_checkout_pay_page();
 
+		/**
+		 * @hooked load_scripts_on_product_pages                   - 10
+		 * @hooked load_scripts_globally_if_button_enabled_on_cart - 20
+		 *
+		 * Careful with the order being hooked here. Should be from most specific to most generic.
+		 */
 		if ( ! apply_filters( 'woocommerce_amazon_pa_enqueue_scripts', $enqueue_scripts ) ) {
 			return;
 		}
@@ -232,6 +253,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		if ( is_checkout() || is_checkout_pay_page() ) {
 			return 'Checkout';
+		}
+
+		if ( is_product() ) {
+			return 'Product';
+		}
+
+		if ( is_front_page() ) {
+			return 'Home';
 		}
 
 		return 'Other';
@@ -527,6 +556,21 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] && WC()->cart->get_cart_contents_count() > 0 ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_cart' );
+		}
+	}
+
+	/**
+	 * Prints the Amazon Pay button on the product page when the setting is on.
+	 * 
+	 * @hooked on 'woocommerce_single_product_summary' on 35 priority
+	 *
+	 * @return void
+	 */
+	public function maybe_separator_and_checkout_button_single_product() {
+		if ( ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'] ) {
+			$this->display_amazon_pay_button_separator_html();
+			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
+			$this->checkout_button( true, 'div', 'pay_with_amazon_product_real' );
 		}
 	}
 
@@ -1639,6 +1683,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return apply_filters( 'woocommerce_amazon_pa_current_cart_action', $needs_shipping ? 'PayAndShip' : 'PayOnly' );
 	}
 
+	public function get_current_product_action() {
+		if ( is_product() ) {
+			$product = wc_get_product( get_the_ID() );
+			return $product->is_virtual() ? 'PayOnly' : 'PayAndShip';
+		}
+		return 'PayOnly';
+	}
+
 	/**
 	 * Render the amazon button when the session is not valid anymore.
 	 *
@@ -2529,5 +2581,78 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function load_scripts_globally_if_button_enabled_on_cart( $load_scripts ) {
 		return $load_scripts ? $load_scripts : ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] );
+	}
+
+	/**
+	 * Loads scripts on product pages when the setting to display Amazon Pay button on products is enabled.
+	 *
+	 * @param bool $load_scripts
+	 * @return bool
+	 */
+	public function load_scripts_on_product_pages( $load_scripts ) {
+		return $load_scripts ? $load_scripts : is_product();
+	}
+
+	public function remember_forgotten_cart() {
+		$forgotten_cart = WC()->session->get( 'amazon_pay_forgotten_cart' );
+		if ( $forgotten_cart ) {
+			foreach ( $forgotten_cart as $forgotten_item ) {
+				if ( $forgotten_item['product_variation_id'] ) {
+					$variation = new WC_Product_Variation( $forgotten_item['product_variation_id'] );
+					$attrs     = $variation->get_variation_attributes();
+				} else {
+					$attrs = array();
+				}
+				WC()->cart->add_to_cart( $forgotten_item['product_id'], $forgotten_item['quantity'], $forgotten_item['product_variation_id'], $attrs );
+			}
+			WC()->session->set( 'amazon_pay_forgotten_cart', null );
+		}
+	}
+
+	public function ajax_change_wc_carts() {
+		check_ajax_referer( 'change_wc_carts', '_change_carts_nonce' );
+		if ( ! empty( $_GET['pid'] ) && ! empty( $_GET['qnt'] ) ) {
+			$selected_product = absint( $_GET['pid'] );
+			$quantity         = absint( $_GET['qnt'] );
+			$variation_id     = ! empty( $_GET['vid'] ) ? absint( $_GET['vid'] ) : 0;
+			if ( $variation_id ) {
+				$variation = new WC_Product_Variation( $variation_id );
+				$attrs     = $variation->get_variation_attributes();
+			} else {
+				$attrs = array();
+			}
+			if ( WC()->cart->get_cart_contents_count() > 0 ) {
+				$products = WC()->cart->get_cart_contents();
+				$saved    = array();
+				foreach ( $products as $values ) {
+					$product_quantity = $values['quantity'];
+
+					// Handling product variations.
+					if ( $values['variation_id'] ) {
+						$product_variation_id = $values['variation_id'];
+					}else{
+						$product_variation_id = 0;
+					}
+
+					$saved[] = array(
+						'quantity'             => $product_quantity,
+						'product_id'           => $values['product_id'],
+						'product_variation_id' => $product_variation_id,
+					);
+				}
+				WC()->session->set( 'amazon_pay_forgotten_cart', $saved );
+				WC()->session->save_data();
+				WC()->cart->empty_cart();
+			}
+			WC()->cart->add_to_cart( $selected_product, $quantity, $variation_id, $attrs );
+			$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+
+			$data = array(
+				'create_checkout_session_config' => $checkout_session_config,
+				'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
+			);
+			wp_send_json_success( $data, 200 );
+		}
+		wp_send_json_error();
 	}
 }
