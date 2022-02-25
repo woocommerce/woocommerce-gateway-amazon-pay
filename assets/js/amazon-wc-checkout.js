@@ -27,6 +27,7 @@
 				amazonProductBtn.onClick( function() {
 					if ( ! $( '.single_add_to_cart_button' ).hasClass( 'disabled' ) ) {
 						var pid = $( 'button[type="submit"][name="add-to-cart"]' ).attr( 'value' );
+						pid = pid || $( 'input[type="hidden"][name="product_id"]' ).val();
 						var qnt = $( 'input[type="number"][name="quantity"]' ).val();
 						var vid = $( 'input[type="hidden"][name="variation_id"]' ).length > 0 ? $( 'input[type="hidden"][name="variation_id"]' ).val() : false;
 						var qrs = '&pid=' + pid + '&qnt=' + qnt + ( vid ? '&vid=' + vid : '' );
