@@ -570,7 +570,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'] ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
-			$this->checkout_button( true, 'div', 'pay_with_amazon_product_real' );
 		}
 	}
 
@@ -2649,7 +2648,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			$data = array(
 				'create_checkout_session_config' => $checkout_session_config,
-				'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
 			);
 			wp_send_json_success( $data, 200 );
 		}
