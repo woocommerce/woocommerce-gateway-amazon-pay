@@ -42,8 +42,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
 		add_action( 'woocommerce_create_refund', array( $this, 'current_refund_set' ) );
 		add_action( 'wp', array( __CLASS__, 'ajax_pay_action' ), 10 );
-		add_action( 'wp_ajax_change_wc_carts', array( $this, 'ajax_change_wc_carts') );
-		add_action( 'wp_ajax_no_priv_change_wc_carts', array( $this, 'ajax_change_wc_carts') );
+		add_action( 'wp_ajax_apa_change_wc_carts', array( $this, 'ajax_apa_change_wc_carts') );
+		add_action( 'wp_ajax_no_priv_apa_change_wc_carts', array( $this, 'ajax_apa_change_wc_carts') );
 	}
 
 	/**
@@ -205,8 +205,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		);
 
 		if ( ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'] ) {
-			$params['change_cart_ajax_nonce'] = wp_create_nonce( 'change_wc_carts' );
-			$params['change_cart_action']     = 'change_wc_carts';
+			$params['change_cart_ajax_nonce'] = wp_create_nonce( 'apa_change_wc_carts' );
+			$params['change_cart_action']     = 'apa_change_wc_carts';
 			$params['product_action']         = $this->get_current_product_action();
 		}
 
@@ -1682,6 +1682,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return apply_filters( 'woocommerce_amazon_pa_current_cart_action', $needs_shipping ? 'PayAndShip' : 'PayOnly' );
 	}
 
+	/**
+	 * Product Type used on the Amazon Pay button. Depends to whether the product needs shipping or not. 
+	 *
+	 * @return string Either PayAndShip or PayOnly.
+	 */
 	public function get_current_product_action() {
 		if ( is_product() ) {
 			$product = wc_get_product( get_the_ID() );
@@ -2592,6 +2597,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return $load_scripts ? $load_scripts : is_product();
 	}
 
+	/**
+	 * Restores a cart stored in session.
+	 *
+	 * @return void
+	 */
 	public function remember_forgotten_cart() {
 		$forgotten_cart = WC()->session->get( 'amazon_pay_forgotten_cart' );
 		if ( $forgotten_cart ) {
@@ -2608,8 +2618,16 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 	}
 
-	public function ajax_change_wc_carts() {
-		check_ajax_referer( 'change_wc_carts', '_change_carts_nonce' );
+	/**
+	 * Stores current cart in session and creates a new one.
+	 * Notifies JS of the current checkout session config params.
+	 *
+	 * Ajax endpoint hooked in the 'apa_change_wc_cart' action.
+	 *
+	 * @return void
+	 */
+	public function ajax_apa_change_wc_carts() {
+		check_ajax_referer( 'apa_change_wc_carts', '_change_carts_nonce' );
 		if ( ! empty( $_GET['pid'] ) && ! empty( $_GET['qnt'] ) ) {
 			$selected_product = absint( $_GET['pid'] );
 			$quantity         = absint( $_GET['qnt'] );
