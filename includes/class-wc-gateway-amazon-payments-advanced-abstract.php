@@ -875,7 +875,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		if ( false === $echo ) {
 			return $button_placeholder;
 		} else {
-			echo $button_placeholder;
+			echo $button_placeholder; // phpcs:ignore WordPress.Security.EscapeOutput
 			return true;
 		}
 	}
@@ -904,7 +904,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			if ( false === $echo ) {
 				return $button_placeholder;
 			} else {
-				echo $button_placeholder;
+				echo $button_placeholder; // phpcs:ignore WordPress.Security.EscapeOutput
 				return true;
 			}
 		}
@@ -918,10 +918,8 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @return array
 	 */
 	public function remove_amazon_gateway( $gateways ) {
-		if ( ! empty( $this->settings['enable_classic_gateway'] ) && 'no' === $this->settings['enable_classic_gateway'] ) {
-			if ( isset( $gateways[ $this->id ] ) ) {
-				unset( $gateways[ $this->id ] );
-			}
+		if ( ! empty( $this->settings['enable_classic_gateway'] ) && 'no' === $this->settings['enable_classic_gateway'] && isset( $gateways[ $this->id ] ) ) {
+			unset( $gateways[ $this->id ] );
 		}
 
 		return $gateways;

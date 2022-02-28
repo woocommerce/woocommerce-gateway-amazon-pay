@@ -605,11 +605,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		$parts        = wp_parse_url( home_url() );
-		$redirect_url = "{$parts['scheme']}://{$parts['host']}" . remove_query_arg( array( 'amazon_payments_advanced' ) );
+		$path         = ! empty( $parts['path'] ) ? $parts['path'] : '';
+		$redirect_url = "{$parts['scheme']}://{$parts['host']}{$path}" . remove_query_arg( array( 'amazon_payments_advanced' ) );
 
 		if ( ! empty( $_GET['amazon_return_classic'] ) && ! empty( $_GET['amazonCheckoutSessionId'] ) ) {
 			$redirect_url = remove_query_arg( array( 'amazon_return_classic', 'amazonCheckoutSessionId' ), $redirect_url );
-			$this->handle_return( true, $_GET['amazonCheckoutSessionId'] );
+			$this->handle_return( $_GET['amazonCheckoutSessionId'] );
 			// If we didn't redirect and quit yet, lets force redirect to checkout.
 			wp_safe_redirect( $redirect_url );
 			exit;
@@ -1227,10 +1228,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$payload['merchantMetadata'] = WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id );
 
 			$payload = apply_filters( 'woocommerce_amazon_pa_update_checkout_session_payload', $payload, $checkout_session_id, $order, $doing_classic_payment );
-			
+
 			if ( ! $doing_classic_payment ) {
 				wc_apa()->log( "Updating checkout session data for #{$order_id}." );
-				
+
 				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
 					$checkout_session_id,
 					$payload
@@ -1275,11 +1276,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Handle the return from amazon after a confirmed checkout.
 	 */
-	public function handle_return( bool $is_classic = false, string $checkout_session_id = '' ) {
+	public function handle_return( string $checkout_session_id = '' ) {
 
-		if ( ! $is_classic ) {
-			$checkout_session_id = $this->get_checkout_session_id();
-		}
+		/* If checkout_session_id has been supplied, the classic payment method is being used. */
+		$checkout_session_id = $checkout_session_id ? $checkout_session_id : $this->get_checkout_session_id();
 
 		$order_id = isset( WC()->session->order_awaiting_payment ) ? absint( WC()->session->order_awaiting_payment ) : 0;
 		if ( is_wc_endpoint_url( 'order-pay' ) ) {
@@ -2378,7 +2378,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	public function remove_amazon_gateway_order_pay() {
 		if ( ! $this->is_logged_in() ) {
-			add_filter( 'woocommerce_available_payment_gateways', 'remove_amazon_gateway' );
+			add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_amazon_gateway' ) );
 		}
 	}
 

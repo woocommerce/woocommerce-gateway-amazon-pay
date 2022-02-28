@@ -59,7 +59,7 @@
 						},
 						error:	function( jqXHR, textStatus, errorThrown ) {
 							unblock( $( 'form#order_review' ) );
-							console.error( error );
+							console.error( errorThrown );
 						}
 					}
 				);

@@ -1,5 +1,4 @@
-#pay_with_amazon,
-#classic_pay_with_amazon {
+#pay_with_amazon {
 	margin: 0px auto;
 	max-width: 100%;
 	line-height: 1em;
@@ -7,8 +6,7 @@
 	border: 0;
 	text-align: right;
 }
-#pay_with_amazon img,
-#classic_pay_with_amazon img {
+#pay_with_amazon img {
 	width: auto !important;
 	vertical-align: middle;
 	cursor: pointer;
@@ -24,8 +22,7 @@
 	min-height: 300px;
 	margin: 0 auto !important;
 }
-.woocommerce-info #pay_with_amazon,
-.woocommerce-info #classic_pay_with_amazon {
+.woocommerce-info #pay_with_amazon {
 	float: right;
 }
 #amazon_customer_details.wc-amazon-payments-advanced-populated
@@ -49,8 +46,7 @@
 	margin-right: 10px;
 	margin-bottom: 10px;
 }
-#payment .payment_methods li #pay_with_amazon img,
-#payment .payment_methods li #classic_pay_with_amazon img {
+#payment .payment_methods li #pay_with_amazon img {
 	max-height: 100%;
 }
 form.checkout .hidden {
@@ -90,8 +86,7 @@ span.wc-apa-amazon-logo {
 }
 
 .woocommerce-order-pay {
-	.wc_apa_login_again_text + #pay_with_amazon,
-	.wc_apa_login_again_text + #classic_pay_with_amazon {
+	.wc_apa_login_again_text + #pay_with_amazon {
 		margin-top: 1em;
 	}
 	#order_review {

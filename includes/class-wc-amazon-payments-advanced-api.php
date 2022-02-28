@@ -355,8 +355,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( is_null( $redirect_url ) ) {
 			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
 				$parts        = wp_parse_url( home_url() );
-				$current_uri  = "{$parts['scheme']}://{$parts['host']}" . add_query_arg( null, null );
-				$redirect_url = $current_uri;
+				$path         = ! empty( $parts['path'] ) ? $parts['path'] : '';
+				$redirect_url = "{$parts['scheme']}://{$parts['host']}{$path}" . add_query_arg( null, null );
 			} else {
 				$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
 			}
@@ -401,8 +401,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( is_null( $redirect_url ) ) {
 			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
 				$parts        = wp_parse_url( home_url() );
-				$current_uri  = "{$parts['scheme']}://{$parts['host']}" . add_query_arg( null, null );
-				$redirect_url = $current_uri;
+				$path         = ! empty( $parts['path'] ) ? $parts['path'] : '';
+				$redirect_url = "{$parts['scheme']}://{$parts['host']}{$path}" . add_query_arg( null, null );
 			} else {
 				$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
 			}
@@ -414,8 +414,6 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			'webCheckoutDetails' => array(
 				'checkoutMode'            => 'ProcessOrder',
 				'checkoutResultReturnUrl' => add_query_arg( 'amazon_return_classic', '1', $redirect_url ),
-				// 'checkoutReviewReturnUrl' => add_query_arg( 'amazon_return_classic', '1', $redirect_url ),
-				// 'checkoutCancelUrl'       => '',
 			),
 		);
 
@@ -462,8 +460,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * @return array
 	 */
 	public static function get_create_checkout_classic_session_config( $payload, $redirect_url = null ) {
-		$settings = self::get_settings();
-		$client   = self::get_client();
+		$settings  = self::get_settings();
+		$client    = self::get_client();
 		$signature = $client->generateButtonSignature( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
 		return array(
 			'publicKeyId' => $settings['public_key_id'],
