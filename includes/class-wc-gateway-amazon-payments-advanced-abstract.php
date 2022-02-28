@@ -473,6 +473,14 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'type'        => 'checkbox',
 				'default'     => 'no',
 			),
+			'alexa_notifications_support'   => array(
+				'title'       => __( 'Support Alexa Delivery Notifications', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable support for Alexa Delivery Notifications', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will enable support for Alexa Delivery notifications.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'no',
+			),
 		);
 
 		if ( $this->has_other_gateways_enabled() ) {
