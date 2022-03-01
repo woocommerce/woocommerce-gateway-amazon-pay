@@ -1257,6 +1257,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( empty( $order_id ) ) {
+			$checkout_session = $this->get_checkout_session( true );
+			$order_id         = ! empty( $checkout_session->merchantMetadata->merchantReferenceId ) ? $checkout_session->merchantMetadata->merchantReferenceId : $order_id; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			/**
+			 * Merchants that use a filter to manipulate the merchantReferenceId provided to Amazon,
+			 * should migrate to apa_merchant_metadata_reference_id and implement the apa_merchant_metadata_reference_id_reverse
+			 * filter as well to provide the actual order's id when needed by the plugin.
+			 */
+			$order_id = apply_filters( 'apa_merchant_metadata_reference_id_reverse', $order_id );
+		}
+
+		if ( empty( $order_id ) ) {
 			wc_apa()->log( "Error: Order could not be found. Checkout Session ID: {$checkout_session_id}." );
 			wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 			return;

@@ -766,7 +766,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
 
 		return array(
-			'merchantReferenceId' => $order_id,
+			'merchantReferenceId' => apply_filters( 'apa_merchant_metadata_reference_id', $order_id ),
 			'merchantStoreName'   => WC_Amazon_Payments_Advanced::get_site_name(),
 			'customInformation'   => $version_note,
 		);
