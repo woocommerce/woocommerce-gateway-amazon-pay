@@ -5,14 +5,10 @@
 		var button_id = '#pay_with_amazon';
 		var classic_button_id = '#classic_pay_with_amazon';
 		var amzCreateCheckoutConfig = null;
-		var amazonClassicBtn = null;
 		$( 'form.checkout' ).on( 'checkout_place_order_success', function( e, result ) {
 			if ( 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
 				amzCreateCheckoutConfig = result.amzCreateCheckoutParams;
-				renderButton( classic_button_id, 'classic' );
-				if ( null !== amazonClassicBtn ) {
-					amazonClassicBtn.initCheckout( { createCheckoutSessionConfig: amzCreateCheckoutConfig } );
-				}
+				renderAndInitAmazonCheckout( classic_button_id, 'classic', amzCreateCheckoutConfig );
 				return true;
 			}
 			return true;
@@ -35,10 +31,7 @@
 							try {
 								if ( 'success' === result.result && 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
 									amzCreateCheckoutConfig = result.amzCreateCheckoutParams;
-									renderButton( classic_button_id, 'classic' );
-									if ( null !== amazonClassicBtn ) {
-										amazonClassicBtn.initCheckout( { createCheckoutSessionConfig: amzCreateCheckoutConfig } );
-									}
+									renderAndInitAmazonCheckout( classic_button_id, 'classic', amzCreateCheckoutConfig );
 								} else {
 									throw 'Result failure';
 								}
@@ -78,6 +71,13 @@
 			$elem.removeClass( 'processing' ).unblock();
 		}
 
+		function renderAndInitAmazonCheckout( btnId, flag, checkoutConfig ) {
+			var amazonClassicBtn = renderButton( btnId, flag );
+			if ( null !== amazonClassicBtn ) {
+				amazonClassicBtn.initCheckout( { createCheckoutSessionConfig: checkoutConfig } );
+			}
+		}
+
 		function renderButton( btnId, buttonSettingsFlag ) {
 			btnId = btnId || button_id;
 			attemptRefreshData();
@@ -85,6 +85,7 @@
 				return;
 			}
 			button_count++;
+			var amazonPayBtn = null;
 			$( btnId ).each( function() {
 				var thisButton = $( this );
 				var thisId = thisButton.attr( 'id' );
@@ -115,13 +116,10 @@
 				}
 				thisButton.data( 'amazonRenderedSettings', thisConfigHash );
 
-				if ( 'classic' === buttonSettingsFlag ) {
-					amazonClassicBtn = amazon.Pay.renderButton( thisId, button_settings );
-				} else {
-					amazon.Pay.renderButton( thisId, button_settings );
-				}
+				amazonPayBtn = amazon.Pay.renderButton( thisId, button_settings );
 				thisButton.siblings( separator_id ).show();
 			} );
+			return amazonPayBtn;
 		}
 		renderButton();
 		$( document.body ).on( 'updated_wc_div', renderButton );
