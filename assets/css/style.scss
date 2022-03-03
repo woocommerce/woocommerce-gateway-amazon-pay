@@ -85,7 +85,6 @@ span.wc-apa-amazon-logo {
 	margin-bottom: 1.618em;
 }
 
-
 .woocommerce-order-pay {
 	.wc_apa_login_again_text + #pay_with_amazon {
 		margin-top: 1em;
@@ -93,7 +92,9 @@ span.wc-apa-amazon-logo {
 	#order_review {
 		#payment {
 			.payment_box.payment_method_amazon_payments_advanced {
-				#payment_method_widget, #shipping_address_widget, #billing_address_widget {
+				#payment_method_widget,
+				#shipping_address_widget,
+				#billing_address_widget {
 					margin-bottom: 0;
 					& + #payment_method_widget,
 					& + #shipping_address_widget,
@@ -109,8 +110,11 @@ span.wc-apa-amazon-logo {
 	}
 }
 
-.wc-apa-button-separator { 
+.wc-apa-button-separator {
 	margin: 1.5em 0;
 	text-align: center;
+	display: none;
+}
+#classic_pay_with_amazon {
 	display: none;
 }
