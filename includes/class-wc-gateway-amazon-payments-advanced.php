@@ -125,6 +125,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
 		add_action( 'before_woocommerce_pay', array( $this, 'remove_amazon_gateway_order_pay' ), 5 );
 
+		// Ajax fresh params
+		add_action( 'wp_ajax_amazon_get_fresh_params', array( $this, 'ajax_amazon_get_fresh_params' ) );
+		add_action( 'wp_ajax_nopriv_amazon_get_fresh_params', array( $this, 'ajax_amazon_get_fresh_params' ) );
+
 		// Mini cart.
 		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'maybe_separator_and_checkout_button' ), 30 );
 		add_filter( 'woocommerce_amazon_pa_enqueue_scripts', array( $this, 'load_scripts_globally_if_button_enabled_on_cart' ) );
@@ -178,9 +182,28 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		wp_register_script( 'amazon_payments_advanced_checkout', $this->get_region_script(), array(), wc_apa()->version, true );
 		wp_register_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-wc-checkout' . $js_suffix, array(), wc_apa()->version, true );
 
-		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+		$params = $this->get_js_params();
 
-		$params = array(
+		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
+
+		$enqueue_scripts = is_cart() || is_checkout() || is_checkout_pay_page();
+
+		if ( ! apply_filters( 'woocommerce_amazon_pa_enqueue_scripts', $enqueue_scripts ) ) {
+			return;
+		}
+
+		$this->enqueue_scripts();
+
+	}
+
+	/**
+	 * Returns the params used by JS.
+	 *
+	 * @return array
+	 */
+	protected function get_js_params() {
+		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+		return array(
 			'ajax_url'                       => admin_url( 'admin-ajax.php' ),
 			'create_checkout_session_config' => $checkout_session_config,
 			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
@@ -193,18 +216,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'checkout_session_id'            => $this->get_checkout_session_id(),
 			'button_language'                => $this->settings['button_language'],
 			'ledger_currency'                => $this->get_ledger_currency(),
+			'fresh_params'                   => array(
+				'nonce'  => wp_create_nonce( 'amazon_get_fresh_params' ),
+				'action' => 'amazon_get_fresh_params',
+			),
 		);
-
-		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
-
-		$enqueue_scripts = is_cart() || is_checkout() || is_checkout_pay_page();
-
-		if ( ! apply_filters( 'woocommerce_amazon_pa_enqueue_scripts', $enqueue_scripts ) ) {
-			return;
-		}
-
-		$this->enqueue_scripts();
-
 	}
 
 	/**
@@ -2473,7 +2489,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 								$result['order_id'] = $order_id;
 
 								$result = apply_filters( 'woocommerce_payment_successful_result', $result, $order_id );
-					
+
 								wp_send_json( $result );
 							}
 						}
@@ -2526,5 +2542,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function load_scripts_globally_if_button_enabled_on_cart( $load_scripts ) {
 		return $load_scripts ? $load_scripts : ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] );
+	}
+
+	/**
+	 * Retrieves a fresh set of params for JS.
+	 *
+	 * @return void
+	 */
+	public function ajax_amazon_get_fresh_params() {
+		if ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] && check_ajax_referer( 'amazon_get_fresh_params', '_fresh_params_nonce', false ) ) {
+			$params = $this->get_js_params();
+			wp_send_json_success( $params, 200 );
+		}
+		wp_send_json_error();
 	}
 }

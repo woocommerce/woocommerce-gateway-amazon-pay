@@ -5,6 +5,8 @@
 		var button_id = '#pay_with_amazon';
 		var classic_button_id = '#classic_pay_with_amazon';
 		var amzCreateCheckoutConfig = null;
+
+		/* Handles 'classic' payment method on checkout. */
 		$( 'form.checkout' ).on( 'checkout_place_order_success', function( e, result ) {
 			if ( 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
 				amzCreateCheckoutConfig = result.amzCreateCheckoutParams;
@@ -13,12 +15,8 @@
 			}
 			return true;
 		} );
-		$( document.body ).on( 'added_to_cart removed_from_cart', function( fragments, cartHash, clickedBtn ) {
-			renderButton( '#pay_with_amazon_cart' );
-		} );
-		if ( $( '#pay_with_amazon_cart' ).length > 0 ) {
-			renderButton( '#pay_with_amazon_cart' );
-		}
+
+		/* Handles 'classic' payment method on order-pay. */
 		$( 'form#order_review' ).on( 'submit', function( e ) {
 			if ( isAmazonClassic() ) {
 				e.preventDefault();
@@ -70,6 +68,18 @@
 			}
 			return true;
 		} );
+
+		/* Handles Amazon Pay Button on Cart after a cart update. */
+		$( document.body ).on( 'wc_fragments_loaded', function( fragments, cartHash, clickedBtn ) {
+			var amzCartBtn = renderButton( '#pay_with_amazon_cart', 'cart' );
+			addCartBtnClickEvent( amzCartBtn );
+		} );
+
+		/* Handles Amazon Pay Button on Cart during load. */
+		if ( $( '#pay_with_amazon_cart' ).length > 0 ) {
+			var amzCartBtn = renderButton( '#pay_with_amazon_cart', 'cart' );
+			addCartBtnClickEvent( amzCartBtn );
+		}
 
 		function submit_error( $elem, error_message ) {
 			$( '.woocommerce-NoticeGroup-checkout, .woocommerce-error, .woocommerce-message' ).remove();
@@ -173,7 +183,6 @@
 				ledgerCurrency: amazon_payments_advanced.ledger_currency,
 				sandbox: amazon_payments_advanced.sandbox === '1' ? true : false,
 				// customize the buyer experience
-				productType: amazon_payments_advanced.action,
 				placement: amazon_payments_advanced.placement,
 				buttonColor: amazon_payments_advanced.button_color,
 				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined
@@ -181,10 +190,33 @@
 			if ( 'classic' === buttonSettingsFlag && null !== amzCreateCheckoutConfig ) {
 				obj.productType = 'undefined' !== typeof amzCreateCheckoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
 				amzCreateCheckoutConfig.payloadJSON = JSON.stringify( amzCreateCheckoutConfig.payloadJSON );
-			} else {
-				obj.createCheckoutSessionConfig = amazon_payments_advanced.create_checkout_session_config
+			} else if ( 'cart' !== buttonSettingsFlag ) {
+				obj.createCheckoutSessionConfig = amazon_payments_advanced.create_checkout_session_config;
+				obj.productType = amazon_payments_advanced.action;
 			}
 			return obj;
+		}
+
+		function addCartBtnClickEvent( cartBtn ) {
+			cartBtn.onClick( function() {
+				$.ajax(
+					{
+						url: amazon_payments_advanced.ajax_url,
+						data: 'action=' + amazon_payments_advanced.fresh_params.action + '&_fresh_params_nonce=' + amazon_payments_advanced.fresh_params.nonce,
+						success: function( result ) {
+							if ( result.success && result.data ) {
+								cartBtn.initCheckout( {
+									createCheckoutSessionConfig: result.data.create_checkout_session_config,
+									productType: result.data.action
+								} );
+							}
+						},
+						error:	function( jqXHR, textStatus, errorThrown ) {
+							console.error( errorThrown );
+						}
+					}
+				);
+			} );
 		}
 
 		function toggleDetailsVisibility( detailsListName ) {
