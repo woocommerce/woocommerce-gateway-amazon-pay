@@ -1256,6 +1256,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$order_id = absint( get_query_var( 'order-pay' ) );
 		}
 
+		/* Fallback in case WC()->session->order_awaiting_payment was unset by 3rd party. */
 		if ( empty( $order_id ) ) {
 			$checkout_session = $this->get_checkout_session( true );
 			$order_id         = ! empty( $checkout_session->merchantMetadata->merchantReferenceId ) ? $checkout_session->merchantMetadata->merchantReferenceId : $order_id; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
