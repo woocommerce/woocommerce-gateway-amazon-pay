@@ -5,6 +5,8 @@
 		var button_id = '#pay_with_amazon';
 		var classic_button_id = '#classic_pay_with_amazon';
 		var amzCreateCheckoutConfig = null;
+
+		/* Handles 'classic' payment method on checkout. */
 		$( 'form.checkout' ).on( 'checkout_place_order_success', function( e, result ) {
 			if ( 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
 				amzCreateCheckoutConfig = result.amzCreateCheckoutParams;
@@ -13,6 +15,8 @@
 			}
 			return true;
 		} );
+
+		/* Handles 'classic' payment method on order-pay. */
 		$( 'form#order_review' ).on( 'submit', function( e ) {
 			if ( isAmazonClassic() ) {
 				e.preventDefault();
@@ -65,6 +69,16 @@
 			return true;
 		} );
 
+		/* Handles Amazon Pay Button on Cart after a cart update. */
+		$( document.body ).on( 'wc_fragments_loaded', function( event ) {
+			renderButton( '#pay_with_amazon_cart', 'cart' );
+		} );
+
+		/* Handles Amazon Pay Button on Cart during load. */
+		if ( $( '#pay_with_amazon_cart' ).length > 0 ) {
+			renderButton( '#pay_with_amazon_cart', 'cart' );
+		}
+
 		function submit_error( $elem, error_message ) {
 			$( '.woocommerce-NoticeGroup-checkout, .woocommerce-error, .woocommerce-message' ).remove();
 			$elem.prepend( '<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">' + error_message + '</div>' ); // eslint-disable-line max-len
@@ -80,7 +94,7 @@
 
 		function renderButton( btnId, buttonSettingsFlag ) {
 			btnId = btnId || button_id;
-			attemptRefreshData();
+			attemptRefreshData( buttonSettingsFlag );
 			if ( 0 === $( btnId ).length ) {
 				return;
 			}
@@ -127,8 +141,8 @@
 		$( document.body ).on( 'payment_method_selected', renderButton );
 		$( document.body ).on( 'updated_shipping_method', renderButton );
 
-		function attemptRefreshData() {
-			var dataCont = $( '#wc-apa-update-vals' );
+		function attemptRefreshData( flag ) {
+			var dataCont = 'cart' === flag ? $( '#wc-apa-update-vals-cart' ) : $( '#wc-apa-update-vals' );
 			if ( ! dataCont.length ) {
 				return;
 			}
@@ -167,16 +181,16 @@
 				ledgerCurrency: amazon_payments_advanced.ledger_currency,
 				sandbox: amazon_payments_advanced.sandbox === '1' ? true : false,
 				// customize the buyer experience
-				productType: amazon_payments_advanced.action,
 				placement: amazon_payments_advanced.placement,
 				buttonColor: amazon_payments_advanced.button_color,
-				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined
+				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
+				productType: amazon_payments_advanced.action
 			};
 			if ( 'classic' === buttonSettingsFlag && null !== amzCreateCheckoutConfig ) {
 				obj.productType = 'undefined' !== typeof amzCreateCheckoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
 				amzCreateCheckoutConfig.payloadJSON = JSON.stringify( amzCreateCheckoutConfig.payloadJSON );
 			} else {
-				obj.createCheckoutSessionConfig = amazon_payments_advanced.create_checkout_session_config
+				obj.createCheckoutSessionConfig = amazon_payments_advanced.create_checkout_session_config;
 			}
 			return obj;
 		}

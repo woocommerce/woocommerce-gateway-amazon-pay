@@ -125,6 +125,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'before_woocommerce_pay', array( $this, 'checkout_message' ), 5 );
 		add_action( 'before_woocommerce_pay', array( $this, 'remove_amazon_gateway_order_pay' ), 5 );
 
+		// Mini cart.
+		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'maybe_separator_and_checkout_button' ), 30 );
+		add_filter( 'woocommerce_amazon_pa_enqueue_scripts', array( $this, 'load_scripts_globally_if_button_enabled_on_cart' ) );
+
 		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'update_amazon_fragments' ) );
 
 		if ( ! apply_filters( 'woocommerce_amazon_payments_init', true ) ) {
@@ -174,9 +178,28 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		wp_register_script( 'amazon_payments_advanced_checkout', $this->get_region_script(), array(), wc_apa()->version, true );
 		wp_register_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-wc-checkout' . $js_suffix, array(), wc_apa()->version, true );
 
-		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+		$params = $this->get_js_params();
 
-		$params = array(
+		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
+
+		$enqueue_scripts = is_cart() || is_checkout() || is_checkout_pay_page();
+
+		if ( ! apply_filters( 'woocommerce_amazon_pa_enqueue_scripts', $enqueue_scripts ) ) {
+			return;
+		}
+
+		$this->enqueue_scripts();
+
+	}
+
+	/**
+	 * Returns the params used by JS.
+	 *
+	 * @return array
+	 */
+	protected function get_js_params() {
+		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
+		return array(
 			'ajax_url'                       => admin_url( 'admin-ajax.php' ),
 			'create_checkout_session_config' => $checkout_session_config,
 			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
@@ -190,17 +213,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'button_language'                => $this->settings['button_language'],
 			'ledger_currency'                => $this->get_ledger_currency(),
 		);
-
-		wp_localize_script( 'amazon_payments_advanced', 'amazon_payments_advanced', $params );
-
-		$enqueue_scripts = is_cart() || is_checkout() || is_checkout_pay_page();
-
-		if ( ! apply_filters( 'woocommerce_amazon_pa_enqueue_scripts', $enqueue_scripts ) ) {
-			return;
-		}
-
-		$this->enqueue_scripts();
-
 	}
 
 	/**
@@ -507,6 +519,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		// Let's hijack that field for the Amazon-based checkout.
 		if ( apply_filters( 'woocommerce_pa_hijack_checkout_fields', true ) ) {
 			$this->hijack_checkout_fields( $checkout );
+		}
+	}
+
+	/**
+	 * Prints the Amazon Pay button on the mini cart.
+	 * 
+	 * When the setting is on and there are products in cart.
+	 * 
+	 * @hooked on 'woocommerce_widget_shopping_cart_buttons'
+	 *
+	 * @return void
+	 */
+	public function maybe_separator_and_checkout_button() {
+		if ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] && WC()->cart->get_cart_contents_count() > 0 ) {
+			$this->display_amazon_pay_button_separator_html();
+			$this->checkout_button( true, 'div', 'pay_with_amazon_cart' );
+			$this->update_js( 'wc-apa-update-vals-cart' );
 		}
 	}
 
@@ -1587,7 +1616,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Render tag that will be read in the browser to update data in the JS environment.
 	 */
-	public function update_js() {
+	public function update_js( $id = 'wc-apa-update-vals' ) {
 		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
 
 		$data = array(
@@ -1596,7 +1625,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
 		);
 		?>
-		<script type="text/template" id="wc-apa-update-vals" data-value="<?php echo esc_attr( wp_json_encode( $data ) ); ?>"></script>
+		<script type="text/template" id="<?php echo esc_attr( $id ); ?>" data-value="<?php echo esc_attr( wp_json_encode( $data ) ); ?>"></script>
 		<?php
 	}
 
@@ -2453,7 +2482,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 								$result['order_id'] = $order_id;
 
 								$result = apply_filters( 'woocommerce_payment_successful_result', $result, $order_id );
-					
+
 								wp_send_json( $result );
 							}
 						}
@@ -2497,4 +2526,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			wp_send_json( $response );
 		}
 	}
+
+	/**
+	 * Loads scripts globally when the setting to display Amazon Pay button on mini cart is enabled.
+	 *
+	 * @param bool $load_scripts
+	 * @return bool
+	 */
+	public function load_scripts_globally_if_button_enabled_on_cart( $load_scripts ) {
+		return $load_scripts ? $load_scripts : ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] );
+	}
+
 }
