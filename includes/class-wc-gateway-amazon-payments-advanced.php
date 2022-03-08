@@ -25,6 +25,21 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	protected $current_refund;
 
 	/**
+	 * WooCommerce's session keys that get deleted during empty_cart().
+	 *
+	 * @var array
+	 */
+	protected static $session_keys = array(
+		'cart',
+		'cart_totals',
+		'applied_coupons',
+		'coupon_discount_totals',
+		'coupon_discount_tax_totals',
+		'removed_cart_contents',
+		'order_awaiting_payment',
+	);
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -2614,18 +2629,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function remember_forgotten_cart() {
-		$forgotten_cart = WC()->session->get( 'amazon_pay_forgotten_cart' );
-		if ( $forgotten_cart ) {
-			foreach ( $forgotten_cart as $forgotten_item ) {
-				if ( $forgotten_item['product_variation_id'] ) {
-					$variation = new WC_Product_Variation( $forgotten_item['product_variation_id'] );
-					$attrs     = $variation->get_variation_attributes();
-				} else {
-					$attrs = array();
-				}
-				WC()->cart->add_to_cart( $forgotten_item['product_id'], $forgotten_item['quantity'], $forgotten_item['product_variation_id'], $attrs );
+		if ( WC()->session->get( 'amazon_pay_cart' ) ) {
+			foreach ( self::$session_keys as $session_key ) {
+				WC()->session->set( $session_key, WC()->session->get( 'amazon_pay_' . $session_key ) );
+				WC()->session->set( 'amazon_pay_' . $session_key, null );
 			}
-			WC()->session->set( 'amazon_pay_forgotten_cart', null );
+			WC()->cart->get_cart_from_session();
 		}
 	}
 
@@ -2639,10 +2648,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function ajax_apa_change_wc_carts() {
 		check_ajax_referer( 'apa_change_wc_carts', '_change_carts_nonce' );
-		if ( ! empty( $_GET['pid'] ) && ! empty( $_GET['qnt'] ) ) {
-			$selected_product = absint( $_GET['pid'] );
-			$quantity         = absint( $_GET['qnt'] );
-			$variation_id     = ! empty( $_GET['vid'] ) ? absint( $_GET['vid'] ) : 0;
+		if ( ! empty( $_GET['product_id'] ) && ! empty( $_GET['quantity'] ) ) {
+			$selected_product = absint( $_GET['product_id'] );
+			$quantity         = absint( $_GET['quantity'] );
+			$variation_id     = ! empty( $_GET['variation_id'] ) ? absint( $_GET['variation_id'] ) : 0;
 			if ( $variation_id ) {
 				$variation = new WC_Product_Variation( $variation_id );
 				$attrs     = $variation->get_variation_attributes();
@@ -2650,25 +2659,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$attrs = array();
 			}
 			if ( WC()->cart->get_cart_contents_count() > 0 ) {
-				$products = WC()->cart->get_cart_contents();
-				$saved    = array();
-				foreach ( $products as $values ) {
-					$product_quantity = $values['quantity'];
-
-					// Handling product variations.
-					if ( $values['variation_id'] ) {
-						$product_variation_id = $values['variation_id'];
-					} else {
-						$product_variation_id = 0;
+				WC()->session->set( 'amazon_pay_cart', WC()->cart->get_cart_for_session() );
+				foreach ( self::$session_keys as $session_key ) {
+					if ( 'cart' === $session_key ) {
+						continue;
 					}
-
-					$saved[] = array(
-						'quantity'             => $product_quantity,
-						'product_id'           => $values['product_id'],
-						'product_variation_id' => $product_variation_id,
-					);
+					WC()->session->set( 'amazon_pay_' . $session_key, WC()->session->get( $session_key ) );
 				}
-				WC()->session->set( 'amazon_pay_forgotten_cart', $saved );
 				WC()->session->save_data();
 				WC()->cart->empty_cart();
 			}

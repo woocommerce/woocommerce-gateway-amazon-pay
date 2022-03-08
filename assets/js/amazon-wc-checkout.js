@@ -59,7 +59,7 @@
 								}
 							}
 						},
-						error:	function( jqXHR, textStatus, errorThrown ) {
+						error: function( jqXHR, textStatus, errorThrown ) {
 							unblock( $( 'form#order_review' ) );
 							console.error( errorThrown );
 						}
@@ -82,44 +82,59 @@
 		/* Handles Amazon Pay Button on Product Pages. */
 		if ( $( '#pay_with_amazon_product' ).length > 0 ) {
 			var amazonProductBtn = renderButton( '#pay_with_amazon_product', 'product' );
+			var amzPrdBtnCont = $( '#pay_with_amazon_product' );
 			if ( null !== amazonProductBtn ) {
 				amazonProductBtn.onClick( function() {
-					if ( $( '.single_add_to_cart_button' ).hasClass( 'disabled' ) ) {
-						$( '.single_add_to_cart_button' ).trigger( 'click' );
+					var singleAddToCart = $( '.single_add_to_cart_button' );
+					if ( singleAddToCart.hasClass( 'disabled' ) ) {
+						singleAddToCart.trigger( 'click' );
 						return;
 					}
-					var elemToBlock = $( '#pay_with_amazon_product' ).closest( 'div.summary' ).length > 0 ? $( '#pay_with_amazon_product' ).closest( 'div.summary' ) : false;
+					var elemToBlock = amzPrdBtnCont.closest( 'div.summary' ).length > 0 ? amzPrdBtnCont.closest( 'div.summary' ) : false;
 					if ( elemToBlock ) {
 						block( elemToBlock );
 					}
-					var pid = $( 'button[type="submit"][name="add-to-cart"]' ).attr( 'value' );
-					pid = pid || $( 'input[type="hidden"][name="product_id"]' ).val();
-					var qnt = $( 'input[type="number"][name="quantity"]' ).val();
-					var vid = $( 'input[type="hidden"][name="variation_id"]' ).length > 0 ? $( 'input[type="hidden"][name="variation_id"]' ).val() : false;
-					var qrs = '&pid=' + pid + '&qnt=' + qnt + ( vid ? '&vid=' + vid : '' );
+
+					var pid = singleAddToCart.val() || 0;
+
+					var data = {
+						action: amazon_payments_advanced.change_cart_action,
+						_change_carts_nonce: amazon_payments_advanced.change_cart_ajax_nonce,
+					};
+
+					$.each( singleAddToCart.closest( 'form.cart' ).serializeArray(), function( index, object ) {
+						if ( 'add-to-cart' === object.name ) {
+							data.product_id = object.value;
+						} else {
+							data[ object.name ] = object.value;
+						}
+					} );
+
+					data.quantity = data.quantity || 1;
+					data.variation_id = data.variation_id || 0;
+					data.product_id = data.product_id || pid;
+
 					$.ajax(
 						{
 							url: amazon_payments_advanced.ajax_url,
 							type: 'get',
-							data: 'action=' + amazon_payments_advanced.change_cart_action + '&_change_carts_nonce=' + amazon_payments_advanced.change_cart_ajax_nonce + qrs,
+							data: $.param( data ),
 							success: function( result ) {
-								if ( elemToBlock ) {
-									unblock( elemToBlock );
-								}
 								if ( result.data.create_checkout_session_config ) {
 									amazonProductBtn.initCheckout( {
 										createCheckoutSessionConfig: result.data.create_checkout_session_config
 									} );
 								}
 							},
-							error:	function( jqXHR, textStatus, errorThrown ) {
-								if ( elemToBlock ) {
-									unblock( elemToBlock );
-								}
+							error: function( jqXHR, textStatus, errorThrown ) {
 								console.error( errorThrown );
 							}
 						}
-					);
+					).always( function() {
+						if ( elemToBlock ) {
+							unblock( elemToBlock );
+						}
+					} );
 				} );
 			}
 		}
@@ -296,7 +311,7 @@
 						$this.data( 'sending', false );
 						// TODO: Maybe display some feedback
 					},
-					error:	function( jqXHR, textStatus, errorThrown ) {
+					error: function( jqXHR, textStatus, errorThrown ) {
 						unblock( $thisArea );
 						$this.data( 'sending', false );
 						// TODO: Maybe display some feedback about what went wrong?
