@@ -84,31 +84,42 @@
 			var amazonProductBtn = renderButton( '#pay_with_amazon_product', 'product' );
 			if ( null !== amazonProductBtn ) {
 				amazonProductBtn.onClick( function() {
-					if ( ! $( '.single_add_to_cart_button' ).hasClass( 'disabled' ) ) {
-						var pid = $( 'button[type="submit"][name="add-to-cart"]' ).attr( 'value' );
-						pid = pid || $( 'input[type="hidden"][name="product_id"]' ).val();
-						var qnt = $( 'input[type="number"][name="quantity"]' ).val();
-						var vid = $( 'input[type="hidden"][name="variation_id"]' ).length > 0 ? $( 'input[type="hidden"][name="variation_id"]' ).val() : false;
-						var qrs = '&pid=' + pid + '&qnt=' + qnt + ( vid ? '&vid=' + vid : '' );
-						$.ajax(
-							{
-								url: amazon_payments_advanced.ajax_url,
-								type: 'get',
-								data: 'action=' + amazon_payments_advanced.change_cart_action + '&_change_carts_nonce=' + amazon_payments_advanced.change_cart_ajax_nonce + qrs,
-								async: false,
-								success: function( result ) {
-									if ( result.data.create_checkout_session_config ) {
-										amazonProductBtn.initCheckout( {
-											createCheckoutSessionConfig: result.data.create_checkout_session_config
-										} );
-									}
-								},
-								error:	function( jqXHR, textStatus, errorThrown ) {
-									console.error( errorThrown );
-								}
-							}
-						);
+					if ( $( '.single_add_to_cart_button' ).hasClass( 'disabled' ) ) {
+						$( '.single_add_to_cart_button' ).trigger( 'click' );
+						return;
 					}
+					var elemToBlock = $( '#pay_with_amazon_product' ).closest( 'div.summary' ).length > 0 ? $( '#pay_with_amazon_product' ).closest( 'div.summary' ) : false;
+					if ( elemToBlock ) {
+						block( elemToBlock );
+					}
+					var pid = $( 'button[type="submit"][name="add-to-cart"]' ).attr( 'value' );
+					pid = pid || $( 'input[type="hidden"][name="product_id"]' ).val();
+					var qnt = $( 'input[type="number"][name="quantity"]' ).val();
+					var vid = $( 'input[type="hidden"][name="variation_id"]' ).length > 0 ? $( 'input[type="hidden"][name="variation_id"]' ).val() : false;
+					var qrs = '&pid=' + pid + '&qnt=' + qnt + ( vid ? '&vid=' + vid : '' );
+					$.ajax(
+						{
+							url: amazon_payments_advanced.ajax_url,
+							type: 'get',
+							data: 'action=' + amazon_payments_advanced.change_cart_action + '&_change_carts_nonce=' + amazon_payments_advanced.change_cart_ajax_nonce + qrs,
+							success: function( result ) {
+								if ( elemToBlock ) {
+									unblock( elemToBlock );
+								}
+								if ( result.data.create_checkout_session_config ) {
+									amazonProductBtn.initCheckout( {
+										createCheckoutSessionConfig: result.data.create_checkout_session_config
+									} );
+								}
+							},
+							error:	function( jqXHR, textStatus, errorThrown ) {
+								if ( elemToBlock ) {
+									unblock( elemToBlock );
+								}
+								console.error( errorThrown );
+							}
+						}
+					);
 				} );
 			}
 		}
