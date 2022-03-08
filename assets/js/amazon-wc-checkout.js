@@ -5,6 +5,8 @@
 		var button_id = '#pay_with_amazon';
 		var classic_button_id = '#classic_pay_with_amazon';
 		var amzCreateCheckoutConfig = null;
+
+		/* Handles 'classic' payment method on checkout. */
 		$( 'form.checkout' ).on( 'checkout_place_order_success', function( e, result ) {
 			if ( 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
 				amzCreateCheckoutConfig = result.amzCreateCheckoutParams;
@@ -13,44 +15,8 @@
 			}
 			return true;
 		} );
-		$( document.body ).on( 'added_to_cart removed_from_cart', function( fragments, cartHash, clickedBtn ) {
-			renderButton( '#pay_with_amazon_cart' );
-		} );
-		if ( $( '#pay_with_amazon_cart' ).length > 0 ) {
-			renderButton( '#pay_with_amazon_cart' );
-		}
-		if ( $( '#pay_with_amazon_product' ).length > 0 ) {
-			var amazonProductBtn = renderButton( '#pay_with_amazon_product', 'product' );
-			if ( null !== amazonProductBtn ) {
-				amazonProductBtn.onClick( function() {
-					if ( ! $( '.single_add_to_cart_button' ).hasClass( 'disabled' ) ) {
-						var pid = $( 'button[type="submit"][name="add-to-cart"]' ).attr( 'value' );
-						pid = pid || $( 'input[type="hidden"][name="product_id"]' ).val();
-						var qnt = $( 'input[type="number"][name="quantity"]' ).val();
-						var vid = $( 'input[type="hidden"][name="variation_id"]' ).length > 0 ? $( 'input[type="hidden"][name="variation_id"]' ).val() : false;
-						var qrs = '&pid=' + pid + '&qnt=' + qnt + ( vid ? '&vid=' + vid : '' );
-						$.ajax(
-							{
-								url: amazon_payments_advanced.ajax_url,
-								type: 'get',
-								data: 'action=' + amazon_payments_advanced.change_cart_action + '&_change_carts_nonce=' + amazon_payments_advanced.change_cart_ajax_nonce + qrs,
-								async: false,
-								success: function( result ) {
-									if ( result.data.create_checkout_session_config ) {
-										amazonProductBtn.initCheckout( {
-											createCheckoutSessionConfig: result.data.create_checkout_session_config
-										} );
-									}
-								},
-								error:	function( jqXHR, textStatus, errorThrown ) {
-									console.error( errorThrown );
-								}
-							}
-						);
-					}
-				} );
-			}
-		}
+
+		/* Handles 'classic' payment method on order-pay. */
 		$( 'form#order_review' ).on( 'submit', function( e ) {
 			if ( isAmazonClassic() ) {
 				e.preventDefault();
@@ -103,6 +69,50 @@
 			return true;
 		} );
 
+		/* Handles Amazon Pay Button on Cart after a cart update. */
+		$( document.body ).on( 'wc_fragments_loaded', function( event ) {
+			renderButton( '#pay_with_amazon_cart', 'cart' );
+		} );
+
+		/* Handles Amazon Pay Button on Cart during load. */
+		if ( $( '#pay_with_amazon_cart' ).length > 0 ) {
+			renderButton( '#pay_with_amazon_cart', 'cart' );
+		}
+
+		/* Handles Amazon Pay Button on Product Pages. */
+		if ( $( '#pay_with_amazon_product' ).length > 0 ) {
+			var amazonProductBtn = renderButton( '#pay_with_amazon_product', 'product' );
+			if ( null !== amazonProductBtn ) {
+				amazonProductBtn.onClick( function() {
+					if ( ! $( '.single_add_to_cart_button' ).hasClass( 'disabled' ) ) {
+						var pid = $( 'button[type="submit"][name="add-to-cart"]' ).attr( 'value' );
+						pid = pid || $( 'input[type="hidden"][name="product_id"]' ).val();
+						var qnt = $( 'input[type="number"][name="quantity"]' ).val();
+						var vid = $( 'input[type="hidden"][name="variation_id"]' ).length > 0 ? $( 'input[type="hidden"][name="variation_id"]' ).val() : false;
+						var qrs = '&pid=' + pid + '&qnt=' + qnt + ( vid ? '&vid=' + vid : '' );
+						$.ajax(
+							{
+								url: amazon_payments_advanced.ajax_url,
+								type: 'get',
+								data: 'action=' + amazon_payments_advanced.change_cart_action + '&_change_carts_nonce=' + amazon_payments_advanced.change_cart_ajax_nonce + qrs,
+								async: false,
+								success: function( result ) {
+									if ( result.data.create_checkout_session_config ) {
+										amazonProductBtn.initCheckout( {
+											createCheckoutSessionConfig: result.data.create_checkout_session_config
+										} );
+									}
+								},
+								error:	function( jqXHR, textStatus, errorThrown ) {
+									console.error( errorThrown );
+								}
+							}
+						);
+					}
+				} );
+			}
+		}
+
 		function submit_error( $elem, error_message ) {
 			$( '.woocommerce-NoticeGroup-checkout, .woocommerce-error, .woocommerce-message' ).remove();
 			$elem.prepend( '<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">' + error_message + '</div>' ); // eslint-disable-line max-len
@@ -118,7 +128,7 @@
 
 		function renderButton( btnId, buttonSettingsFlag ) {
 			btnId = btnId || button_id;
-			attemptRefreshData();
+			attemptRefreshData( buttonSettingsFlag );
 			if ( 0 === $( btnId ).length ) {
 				return;
 			}
@@ -165,8 +175,8 @@
 		$( document.body ).on( 'payment_method_selected', renderButton );
 		$( document.body ).on( 'updated_shipping_method', renderButton );
 
-		function attemptRefreshData() {
-			var dataCont = $( '#wc-apa-update-vals' );
+		function attemptRefreshData( flag ) {
+			var dataCont = 'cart' === flag ? $( '#wc-apa-update-vals-cart' ) : $( '#wc-apa-update-vals' );
 			if ( ! dataCont.length ) {
 				return;
 			}
@@ -205,10 +215,10 @@
 				ledgerCurrency: amazon_payments_advanced.ledger_currency,
 				sandbox: amazon_payments_advanced.sandbox === '1' ? true : false,
 				// customize the buyer experience
-				productType: amazon_payments_advanced.action,
 				placement: amazon_payments_advanced.placement,
 				buttonColor: amazon_payments_advanced.button_color,
-				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined
+				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
+				productType: amazon_payments_advanced.action
 			};
 			if ( 'product' === buttonSettingsFlag ) {
 				obj.productType = amazon_payments_advanced.product_action;
