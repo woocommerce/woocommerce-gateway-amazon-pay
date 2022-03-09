@@ -59,7 +59,7 @@
 								}
 							}
 						},
-						error:	function( jqXHR, textStatus, errorThrown ) {
+						error: function( jqXHR, textStatus, errorThrown ) {
 							unblock( $( 'form#order_review' ) );
 							console.error( errorThrown );
 						}
@@ -77,6 +77,71 @@
 		/* Handles Amazon Pay Button on Cart during load. */
 		if ( $( '#pay_with_amazon_cart' ).length > 0 ) {
 			renderButton( '#pay_with_amazon_cart', 'cart' );
+		}
+
+		/* Handles Amazon Pay Button on Product Pages. */
+
+		var amzPrdBtnCont = $( '#pay_with_amazon_product' );
+
+		if ( amzPrdBtnCont.length > 0 ) {
+
+			var amazonProductBtn = renderButton( '#pay_with_amazon_product', 'product' );
+
+			if ( null !== amazonProductBtn ) {
+
+				amazonProductBtn.onClick( function() {
+					var singleAddToCart = $( '.single_add_to_cart_button' );
+					if ( singleAddToCart.hasClass( 'disabled' ) ) {
+						singleAddToCart.trigger( 'click' );
+						return;
+					}
+					var elemToBlock = amzPrdBtnCont.closest( 'div.summary' ).length > 0 ? amzPrdBtnCont.closest( 'div.summary' ) : false;
+					if ( elemToBlock ) {
+						block( elemToBlock );
+					}
+
+					var pid = singleAddToCart.val() || 0;
+
+					var data = {
+						action: amazon_payments_advanced.change_cart_action,
+						_change_carts_nonce: amazon_payments_advanced.change_cart_ajax_nonce,
+					};
+
+					$.each( singleAddToCart.closest( 'form.cart' ).serializeArray(), function( index, object ) {
+						if ( 'add-to-cart' === object.name ) {
+							data.product_id = object.value;
+						} else {
+							data[ object.name ] = object.value;
+						}
+					} );
+
+					data.quantity = data.quantity || 1;
+					data.variation_id = data.variation_id || 0;
+					data.product_id = data.product_id || pid;
+
+					$.ajax(
+						{
+							url: amazon_payments_advanced.ajax_url,
+							type: 'get',
+							data: $.param( data ),
+							success: function( result ) {
+								if ( result.data.create_checkout_session_config ) {
+									amazonProductBtn.initCheckout( {
+										createCheckoutSessionConfig: result.data.create_checkout_session_config
+									} );
+								}
+							},
+							error: function( jqXHR, textStatus, errorThrown ) {
+								console.error( errorThrown );
+							}
+						}
+					).always( function() {
+						if ( elemToBlock ) {
+							unblock( elemToBlock );
+						}
+					} );
+				} );
+			}
 		}
 
 		function submit_error( $elem, error_message ) {
@@ -186,7 +251,9 @@
 				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
 				productType: amazon_payments_advanced.action
 			};
-			if ( 'classic' === buttonSettingsFlag && null !== amzCreateCheckoutConfig ) {
+			if ( 'product' === buttonSettingsFlag ) {
+				obj.productType = amazon_payments_advanced.product_action;
+			} else if ( 'classic' === buttonSettingsFlag && null !== amzCreateCheckoutConfig ) {
 				obj.productType = 'undefined' !== typeof amzCreateCheckoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
 				amzCreateCheckoutConfig.payloadJSON = JSON.stringify( amzCreateCheckoutConfig.payloadJSON );
 			} else {
@@ -249,7 +316,7 @@
 						$this.data( 'sending', false );
 						// TODO: Maybe display some feedback
 					},
-					error:	function( jqXHR, textStatus, errorThrown ) {
+					error: function( jqXHR, textStatus, errorThrown ) {
 						unblock( $thisArea );
 						$this.data( 'sending', false );
 						// TODO: Maybe display some feedback about what went wrong?
