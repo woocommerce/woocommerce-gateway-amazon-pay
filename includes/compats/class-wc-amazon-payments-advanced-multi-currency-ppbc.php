@@ -46,7 +46,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 	 *
 	 * @return string
 	 */
-	public function get_selected_currency() {
+	public static function get_active_currency() {
 		// This is for sandbox mode, changing countries manually.
 		if ( isset( $_REQUEST['wcpbc-manual-country'] ) ) {
 			$manual_country = wc_clean( wp_unslash( $_REQUEST['wcpbc-manual-country'] ) );
@@ -66,8 +66,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 	 */
 	public function ajax_get_currency() {
 		check_ajax_referer( 'multi_currency_nonce', 'nonce' );
-		if ( $this->is_currency_compatible( $this->get_selected_currency() ) ) {
-			$currency = $this->get_selected_currency();
+		if ( $this->is_currency_compatible( self::get_active_currency() ) ) {
+			$currency = self::get_active_currency();
 		} else {
 			$currency = wcpbc_get_base_currency();
 		}

@@ -12,20 +12,11 @@
  */
 class WC_Amazon_Payments_Advanced_Multi_Currency_Woocs extends WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
-	/**
-	 * Holds WOOCS instance.
-	 *
-	 * @var WOOCS
-	 */
-	protected $woocs;
 
 	/**
 	 * Specify hooks where compatibility action takes place.
 	 */
 	public function __construct() {
-		global $WOOCS; // phpcs:ignore WordPress.NamingConventions
-		$this->woocs = $WOOCS; // phpcs:ignore WordPress.NamingConventions
-
 		$version = is_a( wc_apa()->get_gateway(), 'WC_Gateway_Amazon_Payments_Advanced_Legacy' ) ? 'v1' : 'v2';
 		if ( 'v1' === $version ) {
 			// Option woocs_restrike_on_checkout_page === 1 will hide switcher on checkout.
@@ -42,8 +33,9 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_Woocs extends WC_Amazon_Payment
 	 *
 	 * @return string
 	 */
-	public function get_selected_currency() {
-		return $this->woocs->current_currency;
+	public static function get_active_currency() {
+		global $WOOCS; // phpcs:ignore WordPress.NamingConventions
+		return is_object( $WOOCS ) && ! empty( $WOOCS->current_currency ) ? $WOOCS->current_currency : get_woocommerce_currency(); // phpcs:ignore WordPress.NamingConventions
 	}
 
 	/**

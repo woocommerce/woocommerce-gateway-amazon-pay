@@ -39,7 +39,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_WPML extends WC_Amazon_Payments
 	 *
 	 * @return string
 	 */
-	public function get_selected_currency() {
+	public static function get_active_currency() {
 		if ( ! WC()->session ) {
 			return get_woocommerce_currency();
 		}
