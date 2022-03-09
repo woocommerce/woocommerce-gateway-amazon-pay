@@ -114,6 +114,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$default  = array(
 			'enabled'                         => 'yes',
 			'title'                           => __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'description'                     => __( 'Complete your payment using Amazon Pay!', 'woocommerce-gateway-amazon-payments-advanced' ),
 			'merchant_id'                     => '',
 			'store_id'                        => '',
 			'public_key_id'                   => '',
@@ -137,6 +138,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'hide_button_mode'                => 'no',
 			'amazon_keys_setup_and_validated' => '0',
 			'subscriptions_enabled'           => 'yes',
+			'mini_cart_button'                => 'no',
+			'product_button'                  => 'no',
 			'alexa_notifications_support'     => 'no',
 		);
 
