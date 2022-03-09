@@ -80,10 +80,15 @@
 		}
 
 		/* Handles Amazon Pay Button on Product Pages. */
-		if ( $( '#pay_with_amazon_product' ).length > 0 ) {
+
+		var amzPrdBtnCont = $( '#pay_with_amazon_product' );
+
+		if ( amzPrdBtnCont.length > 0 ) {
+
 			var amazonProductBtn = renderButton( '#pay_with_amazon_product', 'product' );
-			var amzPrdBtnCont = $( '#pay_with_amazon_product' );
+
 			if ( null !== amazonProductBtn ) {
+
 				amazonProductBtn.onClick( function() {
 					var singleAddToCart = $( '.single_add_to_cart_button' );
 					if ( singleAddToCart.hasClass( 'disabled' ) ) {
