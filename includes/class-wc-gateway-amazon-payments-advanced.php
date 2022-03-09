@@ -2634,6 +2634,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				WC()->session->set( $session_key, WC()->session->get( 'amazon_pay_' . $session_key ) );
 				WC()->session->set( 'amazon_pay_' . $session_key, null );
 			}
+			WC()->session->save_data();
 			WC()->cart->get_cart_from_session();
 		}
 	}
