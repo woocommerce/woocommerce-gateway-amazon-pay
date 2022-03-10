@@ -235,6 +235,12 @@ class WC_Amazon_Payments_Advanced {
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Legacy();
 		}
 		$this->gateway->gateway_settings_init();
+
+		/* Enable Alexa Notifications support based on Gateway's option. */
+		if ( ! empty( $this->settings['alexa_notifications_support'] ) && 'yes' === $this->settings['alexa_notifications_support'] ) {
+			include_once $this->includes_path . 'class-wc-amazon-payments-advanced-alexa-notifications.php';
+			new WC_Amazon_Payments_Advanced_Alexa_Notifications();
+		}
 	}
 
 	/**
