@@ -65,26 +65,48 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Amazon Pay is available if the following conditions are met (on top of
 	 * WC_Payment_Gateway::is_available).
 	 *
-	 * 1) Gateway enabled
-	 * 2) Correctly setup
-	 * 2) In checkout pay page.
+	 * 1) Merchant id exists.
+	 * 2) Region supports selected currency.
+	 * 2) In checkout pay page OR in product page with the product button placement enabled OR the mini-cart button placement enabled.
 	 *
 	 * @return bool
 	 */
 	public function is_available() {
-		$is_available = parent::is_available() && ! empty( $this->settings['merchant_id'] );
+		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $this->get_availability() );
+	}
 
-		if ( ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) {
-			$is_available = false;
+	/**
+	 * Returns Amazon Pay availability.
+	 *
+	 * @return bool
+	 */
+	protected function get_availability() {
+
+		if ( ! parent::is_available() && ! empty( $this->settings['merchant_id'] ) ) {
+			return false;
 		}
 
 		if ( ! function_exists( 'is_checkout_pay_page' ) || ! function_exists( 'is_product' ) ) {
-			$is_available = false;
-		} elseif ( ! is_checkout_pay_page() && ( ! is_product() || ! $this->is_product_button_enabled() ) && ! $this->is_mini_cart_button_enabled() ) {
-			$is_available = false;
+			return false;
 		}
 
-		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $is_available );
+		if ( ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) {
+			return false;
+		}
+
+		if ( is_checkout_pay_page() ) {
+			return true;
+		}
+
+		if ( is_product() && $this->is_product_button_enabled() ) {
+			return true;
+		}
+
+		if ( $this->is_mini_cart_button_enabled() ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
