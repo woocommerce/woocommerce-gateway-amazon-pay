@@ -78,8 +78,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$is_available = false;
 		}
 
-		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
-			$is_available = true;
+		if (
+			( function_exists( 'is_checkout_pay_page' ) && ! is_checkout_pay_page() ) &&
+			( function_exists( 'is_product' ) && ! is_product() && ! $this->is_product_button_enabled() ) &&
+			( ! $this->is_mini_cart_button_enabled() )
+			) {
+			$is_available = false;
 		}
 
 		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $is_available );
@@ -581,7 +585,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button() {
-		if ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] && WC()->cart->get_cart_contents_count() > 0 ) {
+		if ( $this->is_available() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_cart' );
 			$this->update_js( 'wc-apa-update-vals-cart' );
@@ -596,7 +600,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
-		if ( ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'] ) {
+		if ( $this->is_available() && $this->is_product_button_enabled() ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
 		}
@@ -2227,7 +2231,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		?>
 		<style type="text/css">
-			.wc-apa-button-separator, .wc-amazon-payments-advanced-info, #pay_with_amazon {
+			.wc-apa-button-separator, .wc-amazon-payments-advanced-info, #pay_with_amazon, #pay_with_amazon_cart, #pay_with_amazon_product {
 				display: none;
 			}
 		</style>
