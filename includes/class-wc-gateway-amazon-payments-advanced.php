@@ -78,11 +78,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$is_available = false;
 		}
 
-		if (
-			( function_exists( 'is_checkout_pay_page' ) && ! is_checkout_pay_page() ) &&
-			( function_exists( 'is_product' ) && ! is_product() && ! $this->is_product_button_enabled() ) &&
-			( ! $this->is_mini_cart_button_enabled() )
-			) {
+		if ( ! function_exists( 'is_checkout_pay_page' ) || ! function_exists( 'is_product' ) ) {
+			$is_available = false;
+		} elseif ( ! is_checkout_pay_page() && ( ! is_product() || ! $this->is_product_button_enabled() ) && ! $this->is_mini_cart_button_enabled() ) {
 			$is_available = false;
 		}
 
