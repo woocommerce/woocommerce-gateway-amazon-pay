@@ -94,15 +94,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return false;
 		}
 
+		if ( $this->is_mini_cart_button_enabled() ) {
+			return true;
+		}
+
 		if ( is_checkout_pay_page() ) {
 			return true;
 		}
 
 		if ( is_product() && $this->is_product_button_enabled() ) {
-			return true;
-		}
-
-		if ( $this->is_mini_cart_button_enabled() ) {
 			return true;
 		}
 
