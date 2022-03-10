@@ -22,8 +22,7 @@ class WC_Amazon_Payments_Advanced_Alexa_Notifications {
 		add_action(
 			'apa_enable_alexa_notifications',
 			array( $this, 'enable_alexa_notifications_for_carrier' ),
-			/* Allow third party plugins to alter the priority of this action. */
-			apply_filters( 'apa_enable_alexa_notifications_for_carrier_priority', 10 ),
+			10,
 			3
 		);
 	}
@@ -47,58 +46,59 @@ class WC_Amazon_Payments_Advanced_Alexa_Notifications {
 	 * @return void
 	 */
 	public function enable_alexa_notifications_for_carrier( $tracking_number, $carrier, $order_id ) {
-		if ( ! empty( $tracking_number ) && ! empty( $order_id ) && ! empty( $carrier ) ) {
-			$order = wc_get_order( $order_id );
+		if ( empty( $tracking_number ) || empty( $order_id ) || empty( $carrier ) ) {
+			return;
+		}
+		$order = wc_get_order( $order_id );
 
-			/* If we cant retrieve the order or if the order doesn't needs shipping we bail. */
-			if ( is_a( $order, 'WC_Order' ) && count( $order->get_items( 'shipping' ) ) > 0 ) {
+		/* If we cant retrieve the order or if the order doesn't needs shipping we bail. */
+		if ( ! is_a( $order, 'WC_Order' ) || count( $order->get_items( 'shipping' ) ) <= 0 ) {
+			return;
+		}
 
-				/* Allow third party plugins to provide a charge permission id. */
-				$charge_permission_id = apply_filters( 'apa_alexa_notification_charge_permission_id', $order->get_meta( 'amazon_charge_permission_id' ), $order, $carrier );
+		/* Allow third party plugins to provide a charge permission id. */
+		$charge_permission_id = apply_filters( 'apa_alexa_notification_charge_permission_id', $order->get_meta( 'amazon_charge_permission_id' ), $order, $carrier );
 
-				/* If the order wan't completed through Amazon Pay or if there is no charge permission id we bail. */
-				if ( 'amazon_payments_advanced' === $order->get_payment_method() && $charge_permission_id ) {
+		/* If the order wan't completed through Amazon Pay or if there is no charge permission id we bail. */
+		if ( 'amazon_payments_advanced' !== $order->get_payment_method() || ! $charge_permission_id ) {
+			return;
+		}
 
-					/* Allow third party plugins to alter the payload used for activating Alexa Delivery Notifications. */
-					$payload = apply_filters(
-						'apa_alexa_notification_payload',
-						array(
-							'chargePermissionId' => $charge_permission_id,
-							'deliveryDetails'    => array(
-								'trackingNumber' => $tracking_number,
-								'carrierCode'    => $carrier,
-							),
-						),
-						$order,
-						$carrier
-					);
+		/* Allow third party plugins to alter the payload used for activating Alexa Delivery Notifications. */
+		$payload = apply_filters(
+			'apa_alexa_notification_payload',
+			array(
+				'chargePermissionId' => $charge_permission_id,
+				'deliveryDetails'    => array(
+					'trackingNumber' => $tracking_number,
+					'carrierCode'    => $carrier,
+				),
+			),
+			$order,
+			$carrier
+		);
 
-					try {
+		try {
 
-						/* Bail early if class WC_Amazon_Payments_Advanced_API is not available for some reason. */
-						if ( ! class_exists( 'WC_Amazon_Payments_Advanced_API' ) ) {
-							throw new Exception( 'Class WC_Amazon_Payments_Advanced_API does not exists!', 1001 );
-						}
-
-						$result = WC_Amazon_Payments_Advanced_API::trigger_alexa_notifications( $payload );
-
-						if ( ! empty( $result['status'] ) && 200 === $result['status'] ) {
-							/* Log the successful result. */
-							wc_apa()->log( 'Successfully enabled Alexa Delivery Notifications for order #' . $order_id . ' with charge permission id ' . $charge_permission_id . ' and got the below response', $result['response'] );
-							do_action( 'apa_alexa_notification_success', $result, $order, $payload );
-						} else {
-							/* Log the error provided by Amazon. */
-							wc_apa()->log( 'Failed to enable Alexa Delivery Notifications for order #' . $order_id . ' with charge permission id ' . $charge_permission_id . ' with status: ' . $result['status'] . ' and got the below response', $result['response'] );
-							do_action( 'apa_alexa_notification_failure', $result, $order, $payload );
-						}
-						do_action( 'apa_alexa_notification_result', $result, $order, $payload );
-					} catch ( Exception $e ) {
-						/* Log any Exceptions. */
-						wc_apa()->log( 'Exception occurred while trying to enable Alexa Delivery Notifications for order #' . $order_id . ' with charge permission id ' . $charge_permission_id . ' with code: ' . $e->getCode() . ' and message: ' . $e->getMessage() );
-						do_action( 'apa_alexa_notification_exception', $e, $order, $payload );
-					}
-				}
+			/* Bail early if class WC_Amazon_Payments_Advanced_API is not available for some reason. */
+			if ( ! class_exists( 'WC_Amazon_Payments_Advanced_API' ) ) {
+				throw new Exception( 'Class WC_Amazon_Payments_Advanced_API does not exists!', 1001 );
 			}
+
+			$result = WC_Amazon_Payments_Advanced_API::trigger_alexa_notifications( $payload );
+
+			if ( ! empty( $result['status'] ) && 200 === $result['status'] ) {
+				/* Log the successful result. */
+				wc_apa()->log( 'Successfully enabled Alexa Delivery Notifications for order #' . $order_id . ' with charge permission id ' . $charge_permission_id . ' and got the below response', $result['response'] );
+			} else {
+				/* Log the error provided by Amazon. */
+				wc_apa()->log( 'Failed to enable Alexa Delivery Notifications for order #' . $order_id . ' with charge permission id ' . $charge_permission_id . ' with status: ' . $result['status'] . ' and got the below response', $result['response'] );
+			}
+			do_action( 'apa_alexa_notification_result', $result, $order, $payload );
+		} catch ( Exception $e ) {
+			/* Log any Exceptions. */
+			wc_apa()->log( 'Exception occurred while trying to enable Alexa Delivery Notifications for order #' . $order_id . ' with charge permission id ' . $charge_permission_id . ' with code: ' . $e->getCode() . ' and message: ' . $e->getMessage() );
+			do_action( 'apa_alexa_notification_exception', $e, $order, $payload );
 		}
 	}
 }
