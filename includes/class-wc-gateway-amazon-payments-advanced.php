@@ -65,24 +65,48 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Amazon Pay is available if the following conditions are met (on top of
 	 * WC_Payment_Gateway::is_available).
 	 *
-	 * 1) Gateway enabled
-	 * 2) Correctly setup
-	 * 2) In checkout pay page.
+	 * 1) Merchant id exists.
+	 * 2) Region supports selected currency.
+	 * 2) In checkout pay page OR in product page with the product button placement enabled OR the mini-cart button placement enabled.
 	 *
 	 * @return bool
 	 */
 	public function is_available() {
-		$is_available = parent::is_available() && ! empty( $this->settings['merchant_id'] );
+		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $this->get_availability() );
+	}
+
+	/**
+	 * Returns Amazon Pay availability.
+	 *
+	 * @return bool
+	 */
+	protected function get_availability() {
+
+		if ( ! parent::is_available() && ! empty( $this->settings['merchant_id'] ) ) {
+			return false;
+		}
+
+		if ( ! function_exists( 'is_checkout_pay_page' ) || ! function_exists( 'is_product' ) ) {
+			return false;
+		}
 
 		if ( ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) {
-			$is_available = false;
+			return false;
 		}
 
-		if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
-			$is_available = true;
+		if ( $this->is_mini_cart_button_enabled() ) {
+			return true;
 		}
 
-		return apply_filters( 'woocommerce_amazon_pa_is_gateway_available', $is_available );
+		if ( is_checkout_pay_page() ) {
+			return true;
+		}
+
+		if ( is_product() && $this->is_product_button_enabled() ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -581,7 +605,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button() {
-		if ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] && WC()->cart->get_cart_contents_count() > 0 ) {
+		if ( $this->is_available() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_cart' );
 			$this->update_js( 'wc-apa-update-vals-cart' );
@@ -596,7 +620,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
-		if ( ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'] ) {
+		if ( $this->is_available() && $this->is_product_button_enabled() ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
 		}
@@ -2227,7 +2251,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		?>
 		<style type="text/css">
-			.wc-apa-button-separator, .wc-amazon-payments-advanced-info, #pay_with_amazon {
+			.wc-apa-button-separator, .wc-amazon-payments-advanced-info, #pay_with_amazon, #pay_with_amazon_cart, #pay_with_amazon_product {
 				display: none;
 			}
 		</style>

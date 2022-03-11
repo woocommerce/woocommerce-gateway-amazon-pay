@@ -483,7 +483,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			'hide_button_mode'              => array(
 				'title'       => __( 'Hide Button Mode', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable hide button mode', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'description' => __( 'This will hides Amazon buttons on cart and checkout pages so the gateway looks not available to the customers. The buttons are hidden via CSS. Only enable this when troubleshooting your integration.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will hides Amazon buttons on the mini-cart and on cart, checkout and product pages so the gateway looks not available to the customers. It will not hide the classic integration, if it\'s enabled. The buttons are hidden via CSS. Only enable this when troubleshooting your integration.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 				'type'        => 'checkbox',
 				'default'     => 'no',
@@ -914,7 +914,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @return bool|string|void
 	 */
 	public function classic_integration_button( $echo = true, $elem = 'div' ) {
-		if ( empty( $this->settings['enable_classic_gateway'] ) || 'yes' === $this->settings['enable_classic_gateway'] ) {
+		if ( $this->is_available() && $this->is_classic_enabled() ) {
 			$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
 			$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
 			$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
@@ -1045,5 +1045,32 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Returns if the classic integration is enabled.
+	 *
+	 * @return boolean
+	 */
+	protected function is_classic_enabled() {
+		return empty( $this->settings['enable_classic_gateway'] ) || 'yes' === $this->settings['enable_classic_gateway'];
+	}
+
+	/**
+	 * Returns if the mini-cart button placement is enabled.
+	 *
+	 * @return boolean
+	 */
+	protected function is_mini_cart_button_enabled() {
+		return ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'];
+	}
+
+	/**
+	 * Returns if the product button placement is enabled.
+	 *
+	 * @return boolean
+	 */
+	protected function is_product_button_enabled() {
+		return ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'];
 	}
 }
