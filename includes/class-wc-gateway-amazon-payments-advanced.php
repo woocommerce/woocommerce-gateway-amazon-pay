@@ -1262,10 +1262,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$order_id         = ! empty( $checkout_session->merchantMetadata->merchantReferenceId ) ? $checkout_session->merchantMetadata->merchantReferenceId : $order_id; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			/**
 			 * Merchants that use a filter to manipulate the merchantReferenceId provided to Amazon,
-			 * should migrate to apa_merchant_metadata_reference_id and implement the apa_merchant_metadata_reference_id_reverse
+			 * should migrate to woocommerce_amazon_pa_merchant_metadata_reference_id and implement the woocommerce_amazon_pa_merchant_metadata_reference_id_reverse
 			 * filter as well to provide the actual order's id when needed by the plugin.
 			 */
-			$order_id = apply_filters( 'apa_merchant_metadata_reference_id_reverse', $order_id );
+			$order_id = apply_filters( 'woocommerce_amazon_pa_merchant_metadata_reference_id_reverse', $order_id );
 		}
 
 		if ( empty( $order_id ) ) {
