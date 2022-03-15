@@ -1882,6 +1882,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$charge_permission_id = $charge_permission->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 		}
 
+		if ( is_wp_error( $charge_permission ) ) {
+			return $charge_permission;
+		}
+
 		$charge_permission_status       = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
 		$charge_permission_status->type = $charge_permission->chargePermissionType; // phpcs:ignore WordPress.NamingConventions
 
