@@ -765,11 +765,28 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		/* translators: Plugin version */
 		$version_note = sprintf( __( 'Created by WC_Gateway_Amazon_Pay/%1$s (Platform=WooCommerce/%2$s)', 'woocommerce-gateway-amazon-payments-advanced' ), WC_AMAZON_PAY_VERSION, WC()->version );
 
-		return array(
+		$merchant_metadata = array(
 			'merchantReferenceId' => apply_filters( 'woocommerce_amazon_pa_merchant_metadata_reference_id', $order_id ),
-			'merchantStoreName'   => WC_Amazon_Payments_Advanced::get_site_name(),
 			'customInformation'   => $version_note,
 		);
+
+		/**
+		 * Amazon Pay API v2 supports a merchantStoreName property of a 50 chars max length.
+		 * @see https://developer.amazon.com/docs/amazon-pay-api-v2/charge.html#type-merchantmetadata
+		 *
+		 * We could completely avoid providing this property, since it is used to overwrite what the merchant
+		 * has already configured it in his Amazon merchant account.
+		 * @see https://developer.amazon.com/docs/amazon-pay-checkout/buyer-communication.html
+		 *
+		 * For backwards compatibility though, we set the property for stores with an equal or
+		 * shorter than 50 chars site name.
+		 */
+		$site_name = WC_Amazon_Payments_Advanced::get_site_name();
+		if ( 50 >= strlen( $site_name ) ) {
+			$merchant_metadata['merchantStoreName'] = $site_name;
+		}
+
+		return $merchant_metadata;
 	}
 
 	/**

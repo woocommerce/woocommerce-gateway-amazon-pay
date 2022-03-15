@@ -1344,7 +1344,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$this->maybe_set_transaction_id( $order, $charge_permission_id, $response->chargeId );
 
 		$order->save();
-		$this->log_charge_permission_status_change( $order );
 		$charge_id   = $response->chargeId; // phpcs:ignore WordPress.NamingConventions
 		$order_total = (float) $order->get_total( 'edit' );
 		if ( 0 >= $order_total ) {
@@ -1359,6 +1358,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				wc_maybe_reduce_stock_levels( $order->get_id() );
 			}
 		}
+		$this->log_charge_permission_status_change( $order );
 		$order->save();
 
 		do_action( 'woocommerce_amazon_pa_processed_order', $order, $response );
@@ -1534,7 +1534,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			case 'Closed':
 				$order_has_charge = is_null( $this->get_cached_charge_status( $order, true )->status );
 				if ( apply_filters( 'woocommerce_amazon_pa_charge_permission_status_should_fail_order', $order_has_charge, $order ) ) {
-					$order->update_status( 'failed' );
+					$order->update_status( 'failed', __( 'Amazon charge status was closed, moving order to failed.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 					wc_maybe_increase_stock_levels( $order->get_id() );
 				}
 				break;
@@ -1892,6 +1892,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$charge_permission = WC_Amazon_Payments_Advanced_API::get_charge_permission( $charge_permission_id );
 		} else {
 			$charge_permission_id = $charge_permission->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
+		}
+
+		if ( is_wp_error( $charge_permission ) ) {
+			return $charge_permission;
 		}
 
 		$charge_permission_status       = $this->format_status_details( $charge_permission->statusDetails ); // phpcs:ignore WordPress.NamingConventions
