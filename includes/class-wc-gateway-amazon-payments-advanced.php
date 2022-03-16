@@ -86,27 +86,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return false;
 		}
 
-		if ( ! function_exists( 'is_checkout_pay_page' ) || ! function_exists( 'is_product' ) ) {
-			return false;
-		}
-
 		if ( ! WC_Amazon_Payments_Advanced_API::is_region_supports_shop_currency() ) {
 			return false;
 		}
 
-		if ( $this->is_mini_cart_button_enabled() ) {
-			return true;
-		}
-
-		if ( is_checkout_pay_page() ) {
-			return true;
-		}
-
-		if ( is_product() && $this->is_product_button_enabled() ) {
-			return true;
-		}
-
-		return false;
+		return true;
 	}
 
 	/**
