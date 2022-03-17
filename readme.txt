@@ -60,7 +60,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 * Fix - Order changes status to 'Failed' during payment processing.
 * Fix - Error opening subscriptions details due to internal errors.
 * Fix - Multiple pay buttons showing on shipping method change (thank you gyopiazza).
-* Fix - Additional way of identifying order id on amazon return.
+* Fix - Additional way of identifying order id on return.
 
 = 2.1.1 - 2022-02-03 =
 * Fix - Honoring WooCommerce's setting for decimals when formatting numbers.
