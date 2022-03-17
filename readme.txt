@@ -54,6 +54,14 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.1.2 - 2022-xx-xx =
+* Fix - Payment fails when site name is longer than 50 characters.
+* Fix - Payment fails when recurring payment frequency is passed as an integer.
+* Fix - Order changes status to 'Failed' during payment processing.
+* Fix - Error opening subscriptions details due to internal errors.
+* Fix - Multiple pay buttons showing on shipping method change (thank you gyopiazza).
+* Fix - Additional way of identifying order id on return.
+
 = 2.1.1 - 2022-02-03 =
 * Fix - Honoring WooCommerce's setting for decimals when formatting numbers.
 * Fix - Formatting numbers won't separate thousands by ','.
