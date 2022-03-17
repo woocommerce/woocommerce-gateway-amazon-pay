@@ -1052,7 +1052,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 *
 	 * @return boolean
 	 */
-	protected function is_classic_enabled() {
+	public function is_classic_enabled() {
 		return empty( $this->settings['enable_classic_gateway'] ) || 'yes' === $this->settings['enable_classic_gateway'];
 	}
 

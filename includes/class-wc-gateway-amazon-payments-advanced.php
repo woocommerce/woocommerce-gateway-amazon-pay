@@ -174,6 +174,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'woocommerce_checkout_init', array( $this, 'checkout_init' ) );
 		add_filter( 'woocommerce_checkout_posted_data', array( $this, 'use_checkout_session_data' ) );
 		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
+		// add_action( 'wp_footer', array( $this, 'classic_integration_button' ) );
 		add_action( 'woocommerce_after_checkout_form', array( $this, 'classic_integration_button' ) );
 
 		// Pay Order
@@ -1364,7 +1365,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					'result'   => 'success',
 					'redirect' => $redirect,
 				),
-				( $doing_classic_payment ? array( 'amzCreateCheckoutParams' => $create_checkout_config ) : array() )
+				( $doing_classic_payment ? array( 'amzCreateCheckoutParams' => wp_json_encode( $create_checkout_config ) ) : array() )
 			);
 
 		} catch ( Exception $e ) {
