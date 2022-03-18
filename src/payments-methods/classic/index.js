@@ -17,13 +17,11 @@ const defaultLabel = __( 'Amazon Pay', 'woocommerce' );
 const label = decodeEntities( settings.title ) || defaultLabel;
 
 /**
- * @typedef {import('@woocommerce/type-defs/registered-payment-method-props').RegisteredPaymentMethodProps} RegisteredPaymentMethodProps
+ * Returns a React Component.
+ *
+ * @param {object} param0  RenderedComponent and props
+ * @returns {RenderedComponent}
  */
-
-/**
- * Content component
- */
-
 const AmazonComponent = ( { RenderedComponent, ...props } ) => {
 	const [ errorMessage, setErrorMessage ] = useState( '' );
 
@@ -33,13 +31,13 @@ const AmazonComponent = ( { RenderedComponent, ...props } ) => {
 		}
 	}, [ errorMessage ] );
 
-	return <RenderedComponent { ...props } />
-}
+	return <RenderedComponent { ...props } />;
+};
 
 /**
  * Label component
  *
- * @param {*} props Props from payment API.
+ * @param {object} props Props from payment API.
  */
 const Label = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
@@ -47,7 +45,7 @@ const Label = ( props ) => {
 };
 
 /**
- * Bank transfer (BACS) payment method config object.
+ * Amazon Pay "Classic" payment method config object.
  */
 export const amazonPayPaymentMethod = {
 	name: PAYMENT_METHOD_NAME,
@@ -56,15 +54,6 @@ export const amazonPayPaymentMethod = {
 	edit: <AmazonComponent RenderedComponent={ AmazonContent }/>,
 	canMakePayment: () => true,
 	ariaLabel: label,
-	// eventRegistration: ( { eventRegistration } ) => {
-	// 	const onCheckoutAfterProcessingWithSuccess = eventRegistration.onCheckoutAfterProcessingWithSuccess( ( redirectUrl, orderId, customerId, orderNotes, processingResponse ) => {
-	// 		console.log( redirectUrl, orderId, customerId, orderNotes, processingResponse );
-	// 	} );
-	// 	useEffect( () => {
-	// 		const unsubscribe = onCheckoutAfterProcessingWithSuccess( () => true );
-	// 		return unsubscribe;
-	// 	}, [ onCheckoutAfterProcessingWithSuccess ] );
-	// },
 	supports: {
 		features: settings?.supports ?? [],
 	},

@@ -1,23 +1,12 @@
-const getSiblings = ( elem, className ) => {
-	// Setup siblings array and get the first sibling
-	let siblings = [];
-	let sibling = elem.parentNode.firstChild;
+/* global amazon_payments_advanced, amazon */
 
-	// Loop through each sibling and push to the array
-	while ( sibling ) {
-		if (
-			sibling.nodeType === 1 &&
-			sibling !== elem &&
-			sibling.classList.contains( className )
-		) {
-			siblings.push( sibling );
-		}
-		sibling = sibling.nextSibling;
-	}
-
-	return siblings;
-};
-
+/**
+ * Returns the settings needed to be provided to the amazon.Pay.renderButton().
+ *
+ * @param {string} buttonSettingsFlag Specifies the context of the rendering.
+ * @param {string} checkoutConfig The checkoutConfig with which we will provide Amazon Pay.
+ * @returns {object} The settings to provide the Amazon Pay Button with.
+ */
 const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
 	const obj = {
 		// set checkout environment
@@ -39,6 +28,14 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
 	return obj;
 };
 
+/**
+ * Renders an Amazon Pay Button on elements identified by btnId.
+ *
+ * @param {string} btnId Selector on where the Amazon Pay button will be rendered on.
+ * @param {string} buttonSettingsFlag Specifies the context of the rendering.
+ * @param {string} checkoutConfig The checkoutConfig with which we will provide Amazon Pay.
+ * @returns {object} The Amazon Pay rendered button.
+ */
 const renderAmazonButton = ( btnId, buttonSettingsFlag, checkoutConfig ) => {
 	let amazonPayBtn = null;
 	const btns = document.querySelectorAll( btnId );
@@ -54,6 +51,13 @@ const renderAmazonButton = ( btnId, buttonSettingsFlag, checkoutConfig ) => {
 	return amazonPayBtn;
 };
 
+/**
+ * Renders and inits the Amazon checkout Process on elements identified by btnId.
+ *
+ * @param {string} btnId Selector on where the Amazon Pay button will be rendered on.
+ * @param {string} flag Specifies the context of the rendering.
+ * @param {string} checkoutConfig The checkoutConfig with which we will provide Amazon Pay on init.
+ */
 export const renderAndInitAmazonCheckout = ( btnId, flag, checkoutConfig ) => {
 	checkoutConfig = JSON.parse( checkoutConfig );
 	var amazonClassicBtn = renderAmazonButton( btnId, flag, checkoutConfig );

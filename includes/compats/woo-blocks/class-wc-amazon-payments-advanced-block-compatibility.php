@@ -1,13 +1,34 @@
 <?php
+/**
+ * Main class that registers compatibility with WooCommerce Blocks.
+ *
+ * @package WC_Gateway_Amazon_Pay\Compats\Woo-Blocks
+ */
 
 use \Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry;
 
+/**
+ * WooCommerce Blocks Compatibility Class.
+ */
 class WC_Amazon_Payments_Advanced_Block_Compatibility {
 
+	/**
+	 * Holds a map of compatibility classes pointing to the files where they are declared.
+	 *
+	 * @var array
+	 */
 	protected static $file_class_compats_map = array(
 		'WC_Amazon_Payments_Advanced_Block_Compat_Classic' => __DIR__ . '/class-wc-amazon-payments-advanced-block-compat-classic.php',
 	);
 
+	/**
+	 * Registers the compatible classes to the PaymentMethodRegistry.
+	 *
+	 * hooked on woocommerce_blocks_payment_method_type_registration
+	 *
+	 * @param PaymentMethodRegistry $registry
+	 * @return void
+	 */
 	public static function init( PaymentMethodRegistry $registry ) {
 		$compats = apply_filters( 'woocommerce_amazon_pa_block_compatibility_class_array', self::$file_class_compats_map );
 		if ( ! empty( $compats ) ) {
