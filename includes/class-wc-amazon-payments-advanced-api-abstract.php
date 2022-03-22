@@ -434,6 +434,10 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 				$formatted['company']   = (string) $address->AddressLine1;
 				$formatted['address_1'] = (string) $address->AddressLine2;
 
+			} elseif ( ! empty( $address->AddressLine2 ) && empty( $address->AddressLine1 ) ) {
+
+				$formatted['address_1'] = (string) $address->AddressLine2;
+
 			} elseif ( ! empty( $address->AddressLine1 ) ) {
 
 				$formatted['address_1'] = (string) $address->AddressLine1;
