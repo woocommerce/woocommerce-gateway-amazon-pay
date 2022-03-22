@@ -16,6 +16,8 @@ abstract class WC_Amazon_Payments_Advanced_Block_Compat_Abstract extends Abstrac
 
 	/**
 	 * Checks that classes extending this class have set the properties name and settings_name.
+	 *
+	 * @throws Exception When name or settings_name properties are not set.
 	 */
 	final public function __construct() {
 		if ( ! isset( $this->name ) || ! isset( $this->settings_name ) ) {

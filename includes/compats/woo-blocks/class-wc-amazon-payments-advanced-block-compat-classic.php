@@ -5,6 +5,9 @@
  * @package WC_Gateway_Amazon_Pay\Compats\Woo-Blocks
  */
 
+/**
+ * Adds support for Amazon Pay "Classic" in the checkout Block of WooCommerce Blocks.
+ */
 class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payments_Advanced_Block_Compat_Abstract {
 
 	/**

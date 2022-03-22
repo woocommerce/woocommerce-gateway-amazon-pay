@@ -12,7 +12,7 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
 		// set checkout environment
 		merchantId: amazon_payments_advanced.merchant_id,
 		ledgerCurrency: amazon_payments_advanced.ledger_currency,
-		sandbox: amazon_payments_advanced.sandbox === '1' ? true : false,
+		sandbox: amazon_payments_advanced.sandbox === '1',
 		// customize the buyer experience
 		placement: amazon_payments_advanced.placement,
 		buttonColor: amazon_payments_advanced.button_color,
@@ -40,8 +40,7 @@ const renderAmazonButton = ( btnId, buttonSettingsFlag, checkoutConfig ) => {
 	let amazonPayBtn = null;
 	const btns = document.querySelectorAll( btnId );
 	for ( const btn of btns ) {
-		const thisButton = btn;
-		const thisId = '#' + thisButton.getAttribute( 'id' );
+		const thisId = '#' + btn.getAttribute( 'id' );
 		const button_settings = getButtonSettings(
 			buttonSettingsFlag,
 			checkoutConfig
@@ -61,8 +60,8 @@ const renderAmazonButton = ( btnId, buttonSettingsFlag, checkoutConfig ) => {
 export const renderAndInitAmazonCheckout = ( btnId, flag, checkoutConfig ) => {
 	checkoutConfig = JSON.parse( checkoutConfig );
 	var amazonClassicBtn = renderAmazonButton( btnId, flag, checkoutConfig );
-	checkoutConfig.payloadJSON = JSON.stringify( checkoutConfig.payloadJSON );
 	if ( null !== amazonClassicBtn ) {
+		checkoutConfig.payloadJSON = JSON.stringify( checkoutConfig.payloadJSON );
 		amazonClassicBtn.initCheckout( {
 			createCheckoutSessionConfig: checkoutConfig,
 		} );

@@ -24,9 +24,9 @@ class WC_Amazon_Payments_Advanced_Block_Compatibility {
 	/**
 	 * Registers the compatible classes to the PaymentMethodRegistry.
 	 *
-	 * hooked on woocommerce_blocks_payment_method_type_registration
+	 * Hooked on woocommerce_blocks_payment_method_type_registration
 	 *
-	 * @param PaymentMethodRegistry $registry
+	 * @param PaymentMethodRegistry $registry WooCommerce Block's registry instance.
 	 * @return void
 	 */
 	public static function init( PaymentMethodRegistry $registry ) {
