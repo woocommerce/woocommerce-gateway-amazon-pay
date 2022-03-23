@@ -1364,7 +1364,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					'result'   => 'success',
 					'redirect' => $redirect,
 				),
-				( $doing_classic_payment ? array( 'amzCreateCheckoutParams' => $create_checkout_config ) : array() )
+				( $doing_classic_payment ? array( 'amzCreateCheckoutParams' => wp_json_encode( $create_checkout_config ) ) : array() )
 			);
 
 		} catch ( Exception $e ) {
@@ -1375,8 +1375,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Handle the return from amazon after a confirmed checkout.
+	 *
+	 * @param string $checkout_session_id The checkout session id if provided.
+	 * @return void
 	 */
-	public function handle_return( string $checkout_session_id = '' ) {
+	public function handle_return( $checkout_session_id = '' ) {
 
 		/* If checkout_session_id has been supplied, the classic payment method is being used. */
 		$checkout_session_id = $checkout_session_id ? $checkout_session_id : $this->get_checkout_session_id();

@@ -9,7 +9,7 @@
 		/* Handles 'classic' payment method on checkout. */
 		$( 'form.checkout' ).on( 'checkout_place_order_success', function( e, result ) {
 			if ( 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
-				amzCreateCheckoutConfig = result.amzCreateCheckoutParams;
+				amzCreateCheckoutConfig = JSON.parse( result.amzCreateCheckoutParams );
 				renderAndInitAmazonCheckout( classic_button_id, 'classic', amzCreateCheckoutConfig );
 				return true;
 			}
@@ -34,7 +34,7 @@
 							unblock( $( 'form#order_review' ) );
 							try {
 								if ( 'success' === result.result && 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
-									amzCreateCheckoutConfig = result.amzCreateCheckoutParams;
+									amzCreateCheckoutConfig = JSON.parse( result.amzCreateCheckoutParams );
 									renderAndInitAmazonCheckout( classic_button_id, 'classic', amzCreateCheckoutConfig );
 								} else {
 									throw 'Result failure';
