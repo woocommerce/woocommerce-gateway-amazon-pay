@@ -1375,8 +1375,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 	/**
 	 * Handle the return from amazon after a confirmed checkout.
+	 *
+	 * @param string $checkout_session_id The checkout session id if provided.
+	 * @return void
 	 */
-	public function handle_return( string $checkout_session_id = '' ) {
+	public function handle_return( $checkout_session_id = '' ) {
 
 		/* If checkout_session_id has been supplied, the classic payment method is being used. */
 		$checkout_session_id = $checkout_session_id ? $checkout_session_id : $this->get_checkout_session_id();

@@ -39,7 +39,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 * @param string $type Can be 'backend' or 'frontend'.
 	 * @return array Return an array of script handles that have been registered already.
 	 */
-	protected function scripts_name_per_type( string $type = '' ) { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewParamTypeDeclarations.stringFound
+	protected function scripts_name_per_type( $type = '' ) {
 		$script_data = include wc_apa()->path . '/build/index.asset.php';
 		wp_register_script( 'amazon_payments_advanced_classic_block_compat', wc_apa()->plugin_url . '/build/index.js', $script_data['dependencies'], $script_data['version'], true );
 		$scripts = array();

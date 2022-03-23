@@ -91,7 +91,7 @@ abstract class WC_Amazon_Payments_Advanced_Block_Compat_Abstract extends Abstrac
 	 * @param string $type Can be 'backend' or 'frontend'.
 	 * @return array Return an array of script handles that have been registered already.
 	 */
-	abstract protected function scripts_name_per_type( string $type = '' ); // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewParamTypeDeclarations.stringFound
+	abstract protected function scripts_name_per_type( $type = '' );
 
 	/**
 	 * Returns an array of supported features.
