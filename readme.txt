@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 5.7
-Stable tag: 2.1.1
+Stable tag: 2.1.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -53,6 +53,14 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.1.2 - 2022-03-17 =
+* Fix - Payment fails when site name is longer than 50 characters.
+* Fix - Payment fails when recurring payment frequency is passed as an integer.
+* Fix - Order changes status to 'Failed' during payment processing.
+* Fix - Error opening subscriptions details due to internal errors.
+* Fix - Multiple pay buttons showing on shipping method change (thank you gyopiazza).
+* Fix - Additional way of identifying order id on return.
 
 = 2.1.1 - 2022-02-03 =
 * Fix - Honoring WooCommerce's setting for decimals when formatting numbers.

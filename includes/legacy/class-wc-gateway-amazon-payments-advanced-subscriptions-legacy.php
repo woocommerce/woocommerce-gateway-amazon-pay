@@ -97,6 +97,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 			// Get the Billing Agreement Details, with FULL address (now that we've confirmed).
 			$result = $this->get_billing_agreement_details( $order_id, $amazon_billing_agreement_id );
+			if ( is_wp_error( $result ) ) {
+				$error_msg = $result->get_error_message( 'billing_agreemment_details_failed' ) ? $result->get_error_message( 'billing_agreemment_details_failed' ) : $result->get_error_message();
+				throw new Exception( $error_msg );
+			}
 
 			// Store the subscription destination.
 			$this->store_subscription_destination( $order_id, $result );
@@ -202,9 +206,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $request_args );
 		$order_id = wc_apa_get_order_prop( $order, 'id' );
 
-		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
+		try {
+			$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
-		wc_apa()->log( "Info: SetBillingAgreementDetails for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
+			wc_apa()->log( "Info: SetBillingAgreementDetails for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
+		} catch ( Exception $e ) {
+			wc_apa()->log( "Error: Exception encountered in 'SetBillingAgreementDetails': {$e->getMessage()}" );
+		}
 
 		return $response;
 
@@ -237,10 +245,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		}
 
 		$response = WC_Amazon_Payments_Advanced_API_Legacy::request( $confirm_args );
+		try {
+			$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
-		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
-
-		wc_apa()->log( "Info: ConfirmBillingAgreement for Billing Agreement ID: {$amazon_billing_agreement_id}." );
+			wc_apa()->log( "Info: ConfirmBillingAgreement for Billing Agreement ID: {$amazon_billing_agreement_id}." );
+		} catch ( Exception $e ) {
+			wc_apa()->log( "Error: Exception encountered in 'ConfirmBillingAgreement': {$e->getMessage()}" );
+		}
 
 		return $response;
 
@@ -366,9 +377,20 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			)
 		);
 
-		$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
+		try {
+			$this->handle_generic_api_response_errors( __METHOD__, $response, $order_id, $amazon_billing_agreement_id );
 
-		wc_apa()->log( "Info: GetBillingAgreementDetails for Billing Agreement ID: {$amazon_billing_agreement_id}." );
+			wc_apa()->log( "Info: GetBillingAgreementDetails for Billing Agreement ID: {$amazon_billing_agreement_id}." );
+		} catch ( Exception $e ) {
+			wc_apa()->log( "Error: Exception encountered in 'GetBillingAgreementDetails': {$e->getMessage()}" );
+
+			return new WP_Error(
+				'billing_agreemment_details_failed',
+				is_object( $response ) && ! empty( $response->Error ) && is_object( $response->Error->Message ) && ! empty( $response->Error->Message ) ?
+				$response->Error->Message :
+				sprintf( __( 'Amazon API responded with an unexpected error when requesting for "GetBillingAgreementDetails" of billing agreement with ID %s', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_billing_agreement_id )
+			);
+		}
 		return $response;
 	}
 
@@ -607,7 +629,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			/* translators: 1) Reason. */
 			$order->add_order_note( sprintf( __( 'Amazon Pay subscription renewal failed - %s', 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );
 
-			wc_apa()->log( "Error: Exception encountered: {$e->getMessage()}" );
+			wc_apa()->log( "Error: Exception encountered trying to renew subscription with Amazon Pay: {$e->getMessage()}" );
 		}
 	}
 
@@ -651,7 +673,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 				wc_apa()->log( "Info: CloseBillingAgreement for order {$order_id} with billing agreement: {$amazon_billing_agreement_id}." );
 			} catch ( Exception $e ) {
-				wc_apa()->log( "Error: Exception encountered: {$e->getMessage()}" );
+				wc_apa()->log( "Error: Exception encountered in 'CloseBillingAgreement': {$e->getMessage()}" );
 
 				/* translators: placeholder is error message from Amazon Pay API */
 				$order->add_order_note( sprintf( __( "Exception encountered in 'CloseBillingAgreement': %s", 'woocommerce-gateway-amazon-payments-advanced' ), $e->getMessage() ) );

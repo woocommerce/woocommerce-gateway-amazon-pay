@@ -264,7 +264,7 @@ jQuery( function( $ ) {
 			return;
 		}
 
-		if ( 0 !== $( '#pay_with_amazon' ).length ) {
+		if ( 0 !== $( '#pay_with_amazon' ).length && 0 === $( '.amazonpay-button-inner-image' ).length ) {
 			var popup = true;
 			if ( 'optimal' === amazon_payments_advanced_params.redirect_authentication && isSmallScreen() ) {
 				popup = false;
