@@ -13,7 +13,7 @@ import { getBlocksConfiguration } from '../../utils';
 import { AmazonContent } from './payment-methods';
 
 const settings = getBlocksConfiguration( 'amazon_payments_advanced_data' );
-const defaultLabel = __( 'Amazon Pay', 'woocommerce' );
+const defaultLabel = __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' );
 const label = decodeEntities( settings.title ) || defaultLabel;
 
 /**
@@ -50,6 +50,7 @@ const Label = ( props ) => {
 export const amazonPayPaymentMethod = {
 	name: PAYMENT_METHOD_NAME,
 	label: <Label />,
+	placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
 	content: <AmazonComponent RenderedComponent={ AmazonContent }/>,
 	edit: <AmazonComponent RenderedComponent={ AmazonContent }/>,
 	canMakePayment: () => true,
