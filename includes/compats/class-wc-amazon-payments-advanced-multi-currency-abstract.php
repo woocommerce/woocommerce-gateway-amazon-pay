@@ -61,14 +61,14 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	/**
 	 * Get selected currency function.
 	 *
-	 * @deprecated [%release-version%]
+	 * @deprecated 2.1.2
 	 *
-	 * @abstract Used to be abstract up to version [%before-release-version%]. Has been replaced by get_active_currency.
+	 * @abstract Used to be abstract up to version 2.1.1. Has been replaced by get_active_currency.
 	 *
 	 * @return string
 	 */
 	public function get_selected_currency() {
-		_deprecated_function( __METHOD__, '[%release-version%]', 'WC_Amazon_Payments_Advanced_Multi_Currency_Abstract::get_active_currency' );
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Amazon_Payments_Advanced_Multi_Currency_Abstract::get_active_currency' );
 		return static::get_active_currency();
 	}
 
@@ -77,7 +77,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 *
 	 * @abstract It will be made abstract in future release, in order to give time to merchants extending this class to adjust their code.
 	 *
-	 * @since [%release-version%]
+	 * @since 2.1.2
 	 *
 	 * @return string
 	 */
