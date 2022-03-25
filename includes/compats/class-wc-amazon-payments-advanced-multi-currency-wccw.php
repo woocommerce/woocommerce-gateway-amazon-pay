@@ -21,7 +21,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_WCCW extends WC_Amazon_Payments
 	 *
 	 * @return string
 	 */
-	public function get_selected_currency() {
+	public static function get_active_currency() {
 		return get_woocommerce_currency();
 	}
 
