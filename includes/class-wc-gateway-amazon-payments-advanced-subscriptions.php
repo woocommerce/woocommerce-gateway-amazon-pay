@@ -361,6 +361,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		if ( $doing_classic_payment && 'PayAndShip' === wc_apa()->get_gateway()->get_current_cart_action() ) {
+			$phone_number = $order->get_shipping_phone();
+			$phone_number = $phone_number ? $phone_number : $order->get_billing_phone();
+
 			$payload['addressDetails'] = array(
 				'name'          => utf8_encode( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ),
 				'addressLine1'  => utf8_encode( $order->get_shipping_address_1() ),
@@ -368,7 +371,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				'stateOrRegion' => utf8_encode( $order->get_shipping_state() ),
 				'postalCode'    => utf8_encode( $order->get_shipping_postcode() ),
 				'countryCode'   => $order->get_shipping_country( 'edit' ),
-				'phoneNumber'   => utf8_encode( $order->get_billing_phone() ),
+				'phoneNumber'   => utf8_encode( $phone_number ),
 			);
 		}
 

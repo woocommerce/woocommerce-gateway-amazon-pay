@@ -1292,6 +1292,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$payload     = array();
 
 			if ( $doing_classic_payment ) {
+				if ( empty( $order->get_shipping_phone() ) && empty( $order->get_billing_phone() ) ) {
+					throw new Exception( esc_html__( 'A phone number is required to complete your checkout through Amazon Pay.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+				}
+
 				$payload = WC_Amazon_Payments_Advanced_API::create_checkout_session_classic_params( $order->get_checkout_payment_url() );
 				wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Checkout Session ID not available yet." );
 			} else {
