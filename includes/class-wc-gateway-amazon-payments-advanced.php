@@ -607,7 +607,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
-		if ( $this->is_available() && $this->possible_sub_product_supported() && $this->is_product_button_enabled() ) {
+		if ( $this->is_available() && $this->possible_subscription_product_supported() && $this->is_product_button_enabled() ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
 		}
@@ -2740,7 +2740,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @return bool
 	 */
-	protected function possible_sub_product_supported() {
+	protected function possible_subscription_product_supported() {
 		if ( 'yes' === $this->settings['subscriptions_enabled'] || ! class_exists( 'WC_Subscriptions_Product' ) ) {
 			return true;
 		}
