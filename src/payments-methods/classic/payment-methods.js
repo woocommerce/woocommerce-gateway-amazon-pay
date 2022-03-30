@@ -1,6 +1,7 @@
 import { decodeEntities } from '@wordpress/html-entities';
 import { getBlocksConfiguration } from '../../utils';
 import { useEffect } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
 import React from 'react';
 
@@ -39,6 +40,29 @@ const AmazonPayBtn = ( props ) => {
 		props.emitResponse.responseTypes.ERROR,
 		props.emitResponse.responseTypes.SUCCESS,
 	] );
+
+	useEffect( () => {
+		const unsubscribe = props.eventRegistration.onPaymentProcessing(
+			async () => {
+				const shippingPhone = document.getElementById( 'shipping-phone' );
+				const billingPhone = document.getElementById( 'phone' );
+				if ( ! shippingPhone?.value && ! billingPhone?.value ) {
+					return {
+						type: 'error',
+						message: __( 'A phone number is required to complete your checkout through Amazon Pay.', 'woocommerce-gateway-amazon-payments-advanced' )
+					};
+				}
+				return true;
+			}
+		);
+		return () => unsubscribe();
+	}, [
+		props.eventRegistration.onPaymentProcessing,
+		props.emitResponse.noticeContexts.PAYMENTS,
+		props.emitResponse.responseTypes.ERROR,
+		props.emitResponse.responseTypes.SUCCESS,
+	] );
+
 	return <div id="classic_pay_with_amazon" />;
 };
 

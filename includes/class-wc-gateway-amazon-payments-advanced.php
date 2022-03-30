@@ -175,6 +175,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_filter( 'woocommerce_checkout_posted_data', array( $this, 'use_checkout_session_data' ) );
 		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
 		add_action( 'woocommerce_after_checkout_form', array( $this, 'classic_integration_button' ) );
+		add_action( 'woocommerce_after_checkout_validation', array( $this, 'classic_validation' ), 10, 2 );
 
 		// Pay Order
 		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'classic_integration_button' ) );
@@ -1239,6 +1240,26 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return $ret;
+	}
+
+	/**
+	 * Checks that a phone has been provided when using Amazon Pay "Classic"
+	 *
+	 * @param array $data
+	 * @param WP_Error $errors
+	 * @return void
+	 */
+	public function classic_validation( $data, $errors ) {
+		/* If any of those is true equivalent. This isn't Amazon "Classic", so we bail. */
+		if ( empty( $data['payment_method'] ) || 'amazon_payments_advanced' !== $data['payment_method'] || $this->get_checkout_session_id() ) {
+			return;
+		}
+
+		if ( ! empty( $data['billing_phone'] ) || ! empty( $data['shipping_phone'] ) ) {
+			return;
+		}
+
+		$errors->add( 'amazon-pay-classic', __( 'A phone number is required to complete your checkout through Amazon Pay.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 	}
 
 	/**
