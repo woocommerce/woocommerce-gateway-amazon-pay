@@ -157,7 +157,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_filter( 'woocommerce_amazon_pa_enqueue_scripts', array( $this, 'load_scripts_globally_if_button_enabled_on_cart' ), 20 );
 
 		// Single Product.
-		add_action( 'woocommerce_single_product_summary', array( $this, 'maybe_separator_and_checkout_button_single_product' ), 35 );
+		add_action( 'woocommerce_single_product_summary', array( $this, 'maybe_separator_and_checkout_button_single_product' ), 30 );
 		add_filter( 'woocommerce_amazon_pa_enqueue_scripts', array( $this, 'load_scripts_on_product_pages' ), 10 );
 
 		// Thank you.
@@ -608,7 +608,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
 		if ( $this->is_available() && $this->possible_subscription_product_supported() && $this->is_product_button_enabled() ) {
-			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
 		}
 	}
@@ -1339,15 +1338,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$can_do_async = true;
 			}
 
-			$payload['paymentDetails']   = array(
-				'paymentIntent'                 => $payment_intent,
-				'canHandlePendingAuthorization' => $can_do_async,
-				// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
-				'chargeAmount'                  => array(
-					'amount'       => $order_total,
-					'currencyCode' => $currency,
-				),
+			$payload['paymentDetails'] = array_merge(
+				isset( $payload['paymentDetails'] ) && is_array( $payload['paymentDetails'] ) ? $payload['paymentDetails'] : array(),
+				array(
+					'paymentIntent'                 => $payment_intent,
+					'canHandlePendingAuthorization' => $can_do_async,
+					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
+					'chargeAmount'                  => array(
+						'amount'       => $order_total,
+						'currencyCode' => $currency,
+					),
+				)
 			);
+
 			$payload['merchantMetadata'] = WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id );
 
 			$payload = apply_filters( 'woocommerce_amazon_pa_update_checkout_session_payload', $payload, $checkout_session_id, $order, $doing_classic_payment );
