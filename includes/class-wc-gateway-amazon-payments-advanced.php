@@ -1242,6 +1242,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return $ret;
 	}
 
+	/**
+	 * Checks that a phone has been provided when using Amazon Pay "Classic"
+	 *
+	 * @param array $data
+	 * @param WP_Error $errors
+	 * @return void
+	 */
 	public function classic_validation( $data, $errors ) {
 		/* If any of those is true equivalent. This isn't Amazon "Classic", so we bail. */
 		if ( empty( $data['payment_method'] ) || 'amazon_payments_advanced' !== $data['payment_method'] || $this->get_checkout_session_id() ) {
