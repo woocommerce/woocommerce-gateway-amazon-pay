@@ -1337,15 +1337,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$can_do_async = true;
 			}
 
-			$payload['paymentDetails']   = array(
-				'paymentIntent'                 => $payment_intent,
-				'canHandlePendingAuthorization' => $can_do_async,
-				// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
-				'chargeAmount'                  => array(
-					'amount'       => $order_total,
-					'currencyCode' => $currency,
-				),
+			$payload['paymentDetails'] = array_merge(
+				isset( $payload['paymentDetails'] ) && is_array( $payload['paymentDetails'] ) ? $payload['paymentDetails'] : array(),
+				array(
+					'paymentIntent'                 => $payment_intent,
+					'canHandlePendingAuthorization' => $can_do_async,
+					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
+					'chargeAmount'                  => array(
+						'amount'       => $order_total,
+						'currencyCode' => $currency,
+					),
+				)
 			);
+
 			$payload['merchantMetadata'] = WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id );
 
 			$payload = apply_filters( 'woocommerce_amazon_pa_update_checkout_session_payload', $payload, $checkout_session_id, $order, $doing_classic_payment );
