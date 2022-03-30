@@ -592,7 +592,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button() {
-		if ( $this->is_available() && $this->possible_cart_subscription_supported() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
+		if ( $this->is_available() && $this->possible_subscription_cart_supported() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_cart' );
 			$this->update_js( 'wc-apa-update-vals-cart' );
