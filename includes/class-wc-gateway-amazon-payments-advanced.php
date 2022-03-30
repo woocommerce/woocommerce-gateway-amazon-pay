@@ -592,7 +592,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button() {
-		if ( $this->is_available() && $this->cart_contains_subs_while_subs_supported() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
+		if ( $this->is_available() && $this->possible_cart_subscription_supported() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_cart' );
 			$this->update_js( 'wc-apa-update-vals-cart' );
@@ -607,7 +607,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
-		if ( $this->is_available() && $this->is_sub_while_sub_supported() && $this->is_product_button_enabled() ) {
+		if ( $this->is_available() && $this->possible_sub_product_supported() && $this->is_product_button_enabled() ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
 		}
@@ -2740,7 +2740,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @return bool
 	 */
-	protected function is_sub_while_sub_supported() {
+	protected function possible_sub_product_supported() {
 		if ( 'yes' === $this->settings['subscriptions_enabled'] || ! class_exists( 'WC_Subscriptions_Product' ) ) {
 			return true;
 		}
@@ -2767,7 +2767,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @return bool
 	 */
-	protected function cart_contains_subs_while_subs_supported() {
+	protected function possible_cart_subscription_supported() {
 		if ( 'yes' === $this->settings['subscriptions_enabled'] || ! class_exists( 'WC_Subscriptions_Cart' ) ) {
 			return true;
 		}
