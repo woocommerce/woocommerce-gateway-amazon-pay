@@ -59,6 +59,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'wp', array( __CLASS__, 'ajax_pay_action' ), 10 );
 		add_action( 'wp_ajax_apa_change_wc_carts', array( $this, 'ajax_apa_change_wc_carts' ) );
 		add_action( 'wp_ajax_no_priv_apa_change_wc_carts', array( $this, 'ajax_apa_change_wc_carts' ) );
+
+		// Mini cart regeneration needs to be hooked really early.
+		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'maybe_separator_and_checkout_button' ), 30 );
 	}
 
 	/**
@@ -151,7 +154,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'before_woocommerce_pay', array( $this, 'remove_amazon_gateway_order_pay' ), 5 );
 
 		// Mini cart.
-		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'maybe_separator_and_checkout_button' ), 30 );
 		add_filter( 'woocommerce_amazon_pa_enqueue_scripts', array( $this, 'load_scripts_globally_if_button_enabled_on_cart' ), 20 );
 
 		// Single Product.
@@ -590,7 +592,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button() {
-		if ( $this->is_available() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
+		if ( $this->is_available() && $this->possible_subscription_cart_supported() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
 			$this->display_amazon_pay_button_separator_html();
 			$this->checkout_button( true, 'div', 'pay_with_amazon_cart' );
 			$this->update_js( 'wc-apa-update-vals-cart' );
@@ -605,7 +607,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
-		if ( $this->is_available() && $this->is_product_button_enabled() ) {
+		if ( $this->is_available() && $this->possible_subscription_product_supported() && $this->is_product_button_enabled() ) {
 			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
 		}
 	}
@@ -2661,7 +2663,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return bool
 	 */
 	public function load_scripts_globally_if_button_enabled_on_cart( $load_scripts ) {
-		return $load_scripts ? $load_scripts : ( ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'] );
+		return $load_scripts ? $load_scripts : $this->is_mini_cart_button_enabled();
 	}
 
 	/**
@@ -2671,7 +2673,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return bool
 	 */
 	public function load_scripts_on_product_pages( $load_scripts ) {
-		return $load_scripts ? $load_scripts : is_product();
+		return $load_scripts ? $load_scripts : is_product() && $this->is_product_button_enabled();
 	}
 
 	/**
@@ -2730,5 +2732,49 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			wp_send_json_success( $data, 200 );
 		}
 		wp_send_json_error();
+	}
+
+	/**
+	 * Checks if a product is a subscription while we don't support subscriptions.
+	 * 
+	 * Runs before outputting the markup for the Amazon Pay button in single products.
+	 * If the subscription support is enabled it will always return true.
+	 * If not, it will return true only when the product is not a subscription.
+	 *
+	 * @return bool
+	 */
+	protected function possible_subscription_product_supported() {
+		if ( 'yes' === $this->settings['subscriptions_enabled'] || ! class_exists( 'WC_Subscriptions_Product' ) ) {
+			return true;
+		}
+
+		$pid = get_the_ID();
+
+		/**
+		 * If we can't access product id's while the WC_Subscriptions_Product class exists.
+		 * We should return false.
+		 */
+		if ( ! $pid ) {
+			return false;
+		}
+
+		return ! WC_Subscriptions_Product::is_subscription( $pid );
+	}
+
+	/**
+	 * Checks if the current cart contains a subscription.
+	 *
+	 * Runs before outputting the markup for the Amazon Pay button in the mini cart.
+	 * If the subscription support is enabled it will always return true.
+	 * If not, it will return true only when the cart does not contain any subscriptions.
+	 *
+	 * @return bool
+	 */
+	protected function possible_subscription_cart_supported() {
+		if ( 'yes' === $this->settings['subscriptions_enabled'] || ! class_exists( 'WC_Subscriptions_Cart' ) ) {
+			return true;
+		}
+
+		return ! WC_Subscriptions_Cart::cart_contains_subscription();
 	}
 }
