@@ -57,8 +57,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'wp_loaded', array( $this, 'init_handlers' ), 11 );
 		add_action( 'woocommerce_create_refund', array( $this, 'current_refund_set' ) );
 		add_action( 'wp', array( __CLASS__, 'ajax_pay_action' ), 10 );
-		add_action( 'wp_ajax_apa_change_wc_carts', array( $this, 'ajax_apa_change_wc_carts' ) );
-		add_action( 'wp_ajax_no_priv_apa_change_wc_carts', array( $this, 'ajax_apa_change_wc_carts' ) );
+		add_action( 'wp_ajax_amazon_change_wc_carts', array( $this, 'ajax_amazon_change_wc_carts' ) );
+		add_action( 'wp_ajax_nopriv_amazon_change_wc_carts', array( $this, 'ajax_amazon_change_wc_carts' ) );
 
 		// Mini cart regeneration needs to be hooked really early.
 		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'maybe_separator_and_checkout_button' ), 30 );
@@ -243,8 +243,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$params = array();
 		if ( ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'] ) {
-			$params['change_cart_ajax_nonce'] = wp_create_nonce( 'apa_change_wc_carts' );
-			$params['change_cart_action']     = 'apa_change_wc_carts';
+			$params['change_cart_ajax_nonce'] = wp_create_nonce( 'amazon_change_wc_carts' );
+			$params['change_cart_action']     = 'amazon_change_wc_carts';
 			$params['product_action']         = $this->get_current_product_action();
 		}
 
@@ -2696,12 +2696,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Stores current cart in session and creates a new one.
 	 * Notifies JS of the current checkout session config params.
 	 *
-	 * Ajax endpoint hooked in the 'apa_change_wc_cart' action.
+	 * Ajax endpoint hooked in the 'amazon_change_wc_carts_change_wc_cart' action.
 	 *
 	 * @return void
 	 */
-	public function ajax_apa_change_wc_carts() {
-		check_ajax_referer( 'apa_change_wc_carts', '_change_carts_nonce' );
+	public function ajax_amazon_change_wc_carts() {
+		check_ajax_referer( 'amazon_change_wc_carts', '_change_carts_nonce' );
 		if ( ! empty( $_GET['product_id'] ) && ! empty( $_GET['quantity'] ) ) {
 			$selected_product = absint( $_GET['product_id'] );
 			$quantity         = absint( $_GET['quantity'] );
