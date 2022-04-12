@@ -16,7 +16,6 @@ class WC_Amazon_Payments_Advanced_Alexa_Notifications {
 	 *
 	 * You can integrate Alexa Notifications in your shipping plugin by calling.
 	 * do_action( 'woocommerce_amazon_pa_enable_alexa_notifications', $tracking_number, $carrier, $order_id );
-	 *
 	 */
 	public function __construct() {
 		add_action(
@@ -35,10 +34,13 @@ class WC_Amazon_Payments_Advanced_Alexa_Notifications {
 	 * integration.
 	 *
 	 * $carrier should be supported by Amazon API.
+	 *
 	 * @see https://developer.amazon.com/docs/amazon-pay-checkout/setting-up-delivery-notifications.html
 	 *
 	 * For a list of supported carriers,
 	 * @see https://eps-eu-external-file-share.s3.eu-central-1.amazonaws.com/Alexa/Delivery+Notifications/amazon-pay-delivery-tracker-supported-carriers-v2.csv
+	 *
+	 * @throws Exception On error, but the functions catches it and logs it.
 	 *
 	 * @param mixed      $tracking_number The tracking number provided by the carrier.
 	 * @param string     $carrier         The carrier code through the shipping is being handled.

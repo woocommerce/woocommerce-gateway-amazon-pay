@@ -346,6 +346,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param  array    $payload Payload to send to the API before proceding to checkout.
 	 * @param  string   $checkout_session_id Checkout Session Id.
 	 * @param  WC_Order $order Order object.
+	 * @param  bool     $doing_classic_payment Indicates whether this is an Amazon "Classic" Transaction or not.
 	 * @return array
 	 */
 	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order, $doing_classic_payment ) {
