@@ -668,7 +668,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			ob_start();
 			?>
 			</table>
-			<?php echo $html; ?>
+			<?php echo $html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<table class="form-table">
 			<?php
 			$html = ob_get_clean();
@@ -883,6 +883,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 *
 	 * @param  bool   $echo Wether to echo or not.
 	 * @param  string $elem HTML tag to render.
+	 * @param  string $id   The id attribute to provide the HTML tag with.
 	 * @return bool|string|void
 	 */
 	public function checkout_button( $echo = true, $elem = 'div', $id = 'pay_with_amazon' ) {

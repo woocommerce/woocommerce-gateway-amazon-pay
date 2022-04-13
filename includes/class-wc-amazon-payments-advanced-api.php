@@ -95,7 +95,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Enables Alexa Notifications for an order specified in $payload.
 	 *
-	 * @param array $payload
+	 * @param array $payload Data passed to Amazon to Enable delivery notifications on the user's Alexa.
 	 * @return array
 	 */
 	public static function trigger_alexa_notifications( $payload ) {
@@ -844,6 +844,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		/**
 		 * Amazon Pay API v2 supports a merchantStoreName property of a 50 chars max length.
+		 *
 		 * @see https://developer.amazon.com/docs/amazon-pay-api-v2/charge.html#type-merchantmetadata
 		 *
 		 * We could completely avoid providing this property, since it is used to overwrite what the merchant
