@@ -70,7 +70,7 @@
 		} );
 
 		/* Handles Amazon Pay Button on Cart after a cart update. */
-		$( document.body ).on( 'wc_fragments_loaded', function( event ) {
+		$( document.body ).on( 'wc_fragments_loaded wc_fragments_refreshed', function( event ) {
 			renderButton( '#pay_with_amazon_cart', 'cart' );
 		} );
 
