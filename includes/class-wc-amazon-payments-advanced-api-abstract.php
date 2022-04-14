@@ -210,8 +210,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	 */
 	public static function is_region_supports_shop_currency() {
 		$region = self::get_region();
-		// Avoid interferences of external multi-currency plugins.
-		$currency = get_option( 'woocommerce_currency' );
+		// Take into consideration external multi-currency plugins when not supported multicurrency region.
+		$currency = apply_filters( 'woocommerce_amazon_pa_active_currency', get_option( 'woocommerce_currency' ) );
 
 		switch ( $region ) {
 			case 'eu':

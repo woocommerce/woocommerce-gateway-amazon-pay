@@ -49,7 +49,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 */
 	public function maybe_disable_due_to_unsupported_currency() {
 		// If selected currency is not compatible with Amazon.
-		if ( ! $this->is_currency_compatible( $this->get_selected_currency() ) ) {
+		if ( ! $this->is_currency_compatible( static::get_active_currency() ) ) {
 			add_filter( 'woocommerce_amazon_payments_init', '__return_false' );
 			return;
 		}
@@ -60,11 +60,31 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	}
 
 	/**
-	 * Interface for get selected currency function
+	 * Get selected currency function.
+	 *
+	 * @deprecated 2.1.2
+	 *
+	 * @abstract Used to be abstract up to version 2.1.1. Has been replaced by get_active_currency.
 	 *
 	 * @return string
 	 */
-	abstract public function get_selected_currency();
+	public function get_selected_currency() {
+		_deprecated_function( __METHOD__, '2.1.2', 'WC_Amazon_Payments_Advanced_Multi_Currency_Abstract::get_active_currency' );
+		return static::get_active_currency();
+	}
+
+	/**
+	 * Interface for get active currency function
+	 *
+	 * @abstract It will be made abstract in future release, in order to give time to merchants extending this class to adjust their code.
+	 *
+	 * @since 2.1.2
+	 *
+	 * @return string
+	 */
+	public static function get_active_currency() {
+		return get_woocommerce_currency();
+	}
 
 	/**
 	 * If Multi-currency plugin is frontend compatible, meaning all currency changes happens only on frontend level.
@@ -94,7 +114,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		$original_currency = WC()->session->get( self::ORIGINAL_CURRENCY_SESSION );
 
 		if ( ! $original_currency ) {
-			WC()->session->set( self::ORIGINAL_CURRENCY_SESSION, $this->get_selected_currency() );
+			WC()->session->set( self::ORIGINAL_CURRENCY_SESSION, static::get_active_currency() );
 			WC()->session->set( self::CURRENCY_TIMES_SWITCHED_SESSION, 0 );
 		} else {
 			// Only increase once, on ajax checkout render.
@@ -134,7 +154,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 			$payload['paymentDetails'] = array();
 		}
 
-		$payload['paymentDetails']['presentmentCurrency'] = $this->get_selected_currency();
+		$payload['paymentDetails']['presentmentCurrency'] = static::get_active_currency();
 
 		return $payload;
 	}
@@ -174,7 +194,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 */
 	public function ajax_get_currency() {
 		check_ajax_referer( 'multi_currency_nonce', 'nonce' );
-		echo $this->get_selected_currency();
+		echo static::get_active_currency();
 		wp_die();
 	}
 
@@ -226,7 +246,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 			return $valid;
 		}
 
-		if ( $checkout_session->paymentDetails->presentmentCurrency !== $this->get_selected_currency() ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName
+		if ( static::get_active_currency() !== $checkout_session->paymentDetails->presentmentCurrency ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName
 			return new WP_Error( 'currency_changed', __( 'The selected currency changed, please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 		}
 

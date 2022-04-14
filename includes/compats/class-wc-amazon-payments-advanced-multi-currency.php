@@ -45,6 +45,9 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 			return; // already initialized.
 		}
 
+		/* Filter out the active currency selected. */
+		add_filter( 'woocommerce_amazon_pa_active_currency', array( self::class, 'get_active_currency' ) );
+
 		// Load multicurrency fields if compatibility. (Only on settings admin).
 		if ( is_admin() ) {
 			$compatible_region = isset( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) ? self::compatible_region( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) : self::compatible_region();
@@ -59,32 +62,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 			return;
 		}
 
-		$compatible_plugin = self::compatible_plugin();
-		if ( $compatible_plugin ) {
-			require_once 'class-wc-amazon-payments-advanced-multi-currency-abstract.php';
-
-			switch ( $compatible_plugin ) {
-				case 'global_WOOCS':
-					require_once 'class-wc-amazon-payments-advanced-multi-currency-woocs.php';
-					self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_Woocs();
-					break;
-				case 'class_WC_Product_Price_Based_Country':
-					require_once 'class-wc-amazon-payments-advanced-multi-currency-ppbc.php';
-					self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_PPBC();
-					break;
-				case 'global_woocommerce_wpml':
-					$wpml_settings = get_option( '_wcml_settings' );
-					if ( ( WCML_MULTI_CURRENCIES_DISABLED !== $wpml_settings['enable_multi_currency'] ) ) {
-						require_once 'class-wc-amazon-payments-advanced-multi-currency-wpml.php';
-						self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_WPML();
-					}
-					break;
-				case 'class_WC_Currency_Converter':
-					require_once 'class-wc-amazon-payments-advanced-multi-currency-wccw.php';
-					self::$compatible_instance = new WC_Amazon_Payments_Advanced_Multi_Currency_WCCW();
-					break;
-			}
-		}
+		self::init_compatible_plugin_instance();
 	}
 
 	/**
@@ -138,7 +116,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 * @return string
 	 */
 	public static function get_selected_currency() {
-		return self::$compatible_instance->get_selected_currency();
+		return self::$compatible_instance::get_active_currency();
 	}
 
 	/**
@@ -237,5 +215,66 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 		return $form_fields;
 	}
 
+	/**
+	 * Searches for the compatible plugin instance.
+	 *
+	 * @param boolean $init When true it will init the found compatible instance and assign it to self::$compatible_instance.
+	 *                      When false it will just return the full class name of the compatible instance.
+	 * @return string|WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
+	 */
+	protected static function init_compatible_plugin_instance( bool $init = true ) {
+		$found_plugin_instance = null;
+
+		$compatible_plugin = self::compatible_plugin();
+		if ( $compatible_plugin ) {
+			require_once 'class-wc-amazon-payments-advanced-multi-currency-abstract.php';
+
+			switch ( $compatible_plugin ) {
+				case 'global_WOOCS':
+					require_once 'class-wc-amazon-payments-advanced-multi-currency-woocs.php';
+					$found_plugin_instance = $init ? new WC_Amazon_Payments_Advanced_Multi_Currency_Woocs() : WC_Amazon_Payments_Advanced_Multi_Currency_Woocs::class;
+					break;
+				case 'class_WC_Product_Price_Based_Country':
+					require_once 'class-wc-amazon-payments-advanced-multi-currency-ppbc.php';
+					$found_plugin_instance = $init ? new WC_Amazon_Payments_Advanced_Multi_Currency_PPBC() : WC_Amazon_Payments_Advanced_Multi_Currency_PPBC::class;
+					break;
+				case 'global_woocommerce_wpml':
+					$wpml_settings = get_option( '_wcml_settings' );
+					if ( ( WCML_MULTI_CURRENCIES_DISABLED !== $wpml_settings['enable_multi_currency'] ) ) {
+						require_once 'class-wc-amazon-payments-advanced-multi-currency-wpml.php';
+						$found_plugin_instance = $init ? new WC_Amazon_Payments_Advanced_Multi_Currency_WPML() : WC_Amazon_Payments_Advanced_Multi_Currency_WPML::class;
+					}
+					break;
+				case 'class_WC_Currency_Converter':
+					require_once 'class-wc-amazon-payments-advanced-multi-currency-wccw.php';
+					$found_plugin_instance = $init ? new WC_Amazon_Payments_Advanced_Multi_Currency_WCCW() : WC_Amazon_Payments_Advanced_Multi_Currency_WCCW::class;
+					break;
+			}
+			if ( $init ) {
+				self::$compatible_instance = $found_plugin_instance;
+			}
+			return $found_plugin_instance;
+		}
+	}
+
+	/**
+	 * Determines current active currency based on the region and the supported multicurrency plugins.
+	 *
+	 * In the case that its not a supported multicurrency region but there is a supported multicurrency plugin
+	 * enabled. We need to find out what's the selected currency is, because Amazon API does not support other currencies
+	 * than JPY in Japan region and USD in United States region.
+	 *
+	 * @param string $currency WooCommerce's currency.
+	 * @return string
+	 */
+	public static function get_active_currency( string $currency ) {
+		if ( self::is_active() || self::compatible_region() ) {
+			return $currency;
+		}
+
+		$found_plugin_instance = self::init_compatible_plugin_instance( false );
+
+		return ! is_null( $found_plugin_instance ) ? $found_plugin_instance::get_active_currency() : $currency;
+	}
 }
 
