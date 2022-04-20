@@ -11,6 +11,13 @@
 abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 	/**
+	 * Merchant identifier of the Solution Provider (SP).
+	 *
+	 * @see https://developer.amazon.com/docs/amazon-pay-api-v2/checkout-session.html#ERL9CA7OsPD
+	 */
+	const AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID = 'A1BVJDFFHQ7US4';
+
+	/**
 	 * Login App setup - Client ID Retrieval Instruction URLs
 	 *
 	 * @var array

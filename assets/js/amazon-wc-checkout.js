@@ -3,14 +3,14 @@
 	$( function() {
 		var button_count = 0;
 		var button_id = '#pay_with_amazon';
-		var classic_button_id = '#classic_pay_with_amazon';
-		var amzCreateCheckoutConfig = null;
+		var classicButtonId = '#classic_pay_with_amazon';
+		var amazonCreateCheckoutConfig = null;
 
 		/* Handles 'classic' payment method on checkout. */
 		$( 'form.checkout' ).on( 'checkout_place_order_success', function( e, result ) {
-			if ( 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
-				amzCreateCheckoutConfig = JSON.parse( result.amzCreateCheckoutParams );
-				renderAndInitAmazonCheckout( classic_button_id, 'classic', amzCreateCheckoutConfig );
+			if ( 'undefined' !== typeof result.amazonCreateCheckoutParams && $( classicButtonId ).length > 0 ) {
+				amazonCreateCheckoutConfig = JSON.parse( result.amazonCreateCheckoutParams );
+				renderAndInitAmazonCheckout( classicButtonId, 'classic', amazonCreateCheckoutConfig );
 				return true;
 			}
 			return true;
@@ -33,9 +33,9 @@
 						success: function( result ) {
 							unblock( $( 'form#order_review' ) );
 							try {
-								if ( 'success' === result.result && 'undefined' !== typeof result.amzCreateCheckoutParams && $( classic_button_id ).length > 0 ) {
-									amzCreateCheckoutConfig = JSON.parse( result.amzCreateCheckoutParams );
-									renderAndInitAmazonCheckout( classic_button_id, 'classic', amzCreateCheckoutConfig );
+								if ( 'success' === result.result && 'undefined' !== typeof result.amazonCreateCheckoutParams && $( classicButtonId ).length > 0 ) {
+									amazonCreateCheckoutConfig = JSON.parse( result.amazonCreateCheckoutParams );
+									renderAndInitAmazonCheckout( classicButtonId, 'classic', amazonCreateCheckoutConfig );
 								} else {
 									throw 'Result failure';
 								}
@@ -81,23 +81,23 @@
 
 		/* Handles Amazon Pay Button on Product Pages. */
 
-		var amzPrdBtnCont = $( '#pay_with_amazon_product' );
+		var amazonProductButtonContainer = $( '#pay_with_amazon_product' );
 
-		if ( amzPrdBtnCont.length > 0 ) {
+		if ( amazonProductButtonContainer.length > 0 ) {
 
-			var amazonProductBtn = renderButton( '#pay_with_amazon_product', 'product' );
+			var amazonProductButton = renderButton( '#pay_with_amazon_product', 'product' );
 
-			if ( null !== amazonProductBtn ) {
+			if ( null !== amazonProductButton ) {
 
-				amazonProductBtn.onClick( function() {
+				amazonProductButton.onClick( function() {
 					var singleAddToCart = $( '.single_add_to_cart_button' );
 					if ( singleAddToCart.hasClass( 'disabled' ) ) {
 						singleAddToCart.trigger( 'click' );
 						return;
 					}
-					var elemToBlock = amzPrdBtnCont.closest( 'div.summary' ).length > 0 ? amzPrdBtnCont.closest( 'div.summary' ) : false;
-					if ( elemToBlock ) {
-						block( elemToBlock );
+					var elementToBlock = amazonProductButtonContainer.closest( 'div.summary' ).length > 0 ? amazonProductButtonContainer.closest( 'div.summary' ) : false;
+					if ( elementToBlock ) {
+						block( elementToBlock );
 					}
 
 					var pid = singleAddToCart.val() || 0;
@@ -126,7 +126,7 @@
 							data: $.param( data ),
 							success: function( result ) {
 								if ( result.data.create_checkout_session_config ) {
-									amazonProductBtn.initCheckout( {
+									amazonProductButton.initCheckout( {
 										createCheckoutSessionConfig: result.data.create_checkout_session_config
 									} );
 								}
@@ -136,39 +136,39 @@
 							}
 						}
 					).always( function() {
-						if ( elemToBlock ) {
-							unblock( elemToBlock );
+						if ( elementToBlock ) {
+							unblock( elementToBlock );
 						}
 					} );
 				} );
 			}
 		}
 
-		function submit_error( $elem, error_message ) {
+		function submit_error( $element, errorMessage ) {
 			$( '.woocommerce-NoticeGroup-checkout, .woocommerce-error, .woocommerce-message' ).remove();
-			$elem.prepend( '<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">' + error_message + '</div>' ); // eslint-disable-line max-len
-			$elem.removeClass( 'processing' ).unblock();
+			$element.prepend( '<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">' + errorMessage + '</div>' ); // eslint-disable-line max-len
+			$element.removeClass( 'processing' ).unblock();
 		}
 
-		function renderAndInitAmazonCheckout( btnId, flag, checkoutConfig ) {
-			var amazonClassicBtn = renderButton( btnId, flag );
-			if ( null !== amazonClassicBtn ) {
-				amazonClassicBtn.initCheckout( { createCheckoutSessionConfig: checkoutConfig } );
+		function renderAndInitAmazonCheckout( buttonId, flag, checkoutConfig ) {
+			var amazonClassicButton = renderButton( buttonId, flag );
+			if ( null !== amazonClassicButton ) {
+				amazonClassicButton.initCheckout( { createCheckoutSessionConfig: checkoutConfig } );
 			}
 		}
 
-		function renderButton( btnId, buttonSettingsFlag ) {
-			btnId = btnId || button_id;
+		function renderButton( buttonId, buttonSettingsFlag ) {
+			buttonId = buttonId || button_id;
 			attemptRefreshData( buttonSettingsFlag );
-			if ( 0 === $( btnId ).length ) {
+			if ( 0 === $( buttonId ).length ) {
 				return;
 			}
 			button_count++;
-			var amazonPayBtn = null;
-			$( btnId ).each( function() {
+			var amazonPayButton = null;
+			$( buttonId ).each( function() {
 				var thisButton = $( this );
 				var thisId = thisButton.attr( 'id' );
-				if ( ! thisButton.is( ':visible' ) && classic_button_id !== '#' + thisId ) {
+				if ( ! thisButton.is( ':visible' ) && classicButtonId !== '#' + thisId ) {
 					return;
 				}
 				if ( typeof thisId === 'undefined' ) {
@@ -178,7 +178,7 @@
 				var thisIdRaw = thisId;
 				thisId = '#' + thisId;
 				var separator_id = '.wc-apa-button-separator';
-				var button_settings = getButtonSettings( buttonSettingsFlag );
+				var buttonSettings = getButtonSettings( buttonSettingsFlag );
 
 				var thisConfigHash = amazon_payments_advanced.create_checkout_session_hash;
 				var oldConfigHash = thisButton.data( 'amazonRenderedSettings' );
@@ -195,10 +195,10 @@
 				}
 				thisButton.data( 'amazonRenderedSettings', thisConfigHash );
 
-				amazonPayBtn = amazon.Pay.renderButton( thisId, button_settings );
+				amazonPayButton = amazon.Pay.renderButton( thisId, buttonSettings );
 				thisButton.siblings( separator_id ).show();
 			} );
-			return amazonPayBtn;
+			return amazonPayButton;
 		}
 		renderButton();
 		$( document.body ).on( 'updated_wc_div', renderButton );
@@ -207,22 +207,22 @@
 		$( document.body ).on( 'updated_shipping_method', renderButton );
 
 		function attemptRefreshData( flag ) {
-			var dataCont = 'cart' === flag ? $( '#wc-apa-update-vals-cart' ) : $( '#wc-apa-update-vals' );
-			if ( ! dataCont.length ) {
+			var dataContainer = 'cart' === flag ? $( '#wc-apa-update-vals-cart' ) : $( '#wc-apa-update-vals' );
+			if ( ! dataContainer.length ) {
 				return;
 			}
-			var data = dataCont.data( 'value' );
+			var data = dataContainer.data( 'value' );
 			$.extend( amazon_payments_advanced, data );
-			dataCont.remove();
+			dataContainer.remove();
 		}
 
 		function activateChange( button_id, action ) {
-			var $btn = $( button_id );
-			if ( 0 === $btn.length || $btn.data( 'wc_apa_chage_bind' ) === action ) {
+			var $button = $( button_id );
+			if ( 0 === $button.length || $button.data( 'wc_apa_chage_bind' ) === action ) {
 				return;
 			}
-			$btn.data( 'wc_apa_chage_bind', action );
-			$btn.on( 'click', function( e ) {
+			$button.data( 'wc_apa_chage_bind', action );
+			$button.on( 'click', function( e ) {
 				e.preventDefault();
 			} );
 			amazon.Pay.bindChangeAction( button_id, {
@@ -253,9 +253,9 @@
 			};
 			if ( 'product' === buttonSettingsFlag ) {
 				obj.productType = amazon_payments_advanced.product_action;
-			} else if ( 'classic' === buttonSettingsFlag && null !== amzCreateCheckoutConfig ) {
-				obj.productType = 'undefined' !== typeof amzCreateCheckoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
-				amzCreateCheckoutConfig.payloadJSON = JSON.stringify( amzCreateCheckoutConfig.payloadJSON );
+			} else if ( 'classic' === buttonSettingsFlag && null !== amazonCreateCheckoutConfig ) {
+				obj.productType = 'undefined' !== typeof amazonCreateCheckoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
+				amazonCreateCheckoutConfig.payloadJSON = JSON.stringify( amazonCreateCheckoutConfig.payloadJSON );
 			} else {
 				obj.createCheckoutSessionConfig = amazon_payments_advanced.create_checkout_session_config;
 			}

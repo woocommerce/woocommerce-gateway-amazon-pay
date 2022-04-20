@@ -29,40 +29,40 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
 };
 
 /**
- * Renders an Amazon Pay Button on elements identified by btnId.
+ * Renders an Amazon Pay Button on elements identified by buttonId.
  *
- * @param {string} btnId Selector on where the Amazon Pay button will be rendered on.
+ * @param {string} buttonId Selector on where the Amazon Pay button will be rendered on.
  * @param {string} buttonSettingsFlag Specifies the context of the rendering.
  * @param {string} checkoutConfig The checkoutConfig with which we will provide Amazon Pay.
  * @returns {object} The Amazon Pay rendered button.
  */
-const renderAmazonButton = ( btnId, buttonSettingsFlag, checkoutConfig ) => {
-	let amazonPayBtn = null;
-	const btns = document.querySelectorAll( btnId );
-	for ( const btn of btns ) {
-		const thisId = '#' + btn.getAttribute( 'id' );
-		const button_settings = getButtonSettings(
+const renderAmazonButton = ( buttonId, buttonSettingsFlag, checkoutConfig ) => {
+	let amazonPayButton = null;
+	const buttons = document.querySelectorAll( buttonId );
+	for ( const button of buttons ) {
+		const thisId = '#' + button.getAttribute( 'id' );
+		const buttonSettings = getButtonSettings(
 			buttonSettingsFlag,
 			checkoutConfig
 		);
-		amazonPayBtn = amazon.Pay.renderButton( thisId, button_settings );
+		amazonPayButton = amazon.Pay.renderButton( thisId, buttonSettings );
 	}
-	return amazonPayBtn;
+	return amazonPayButton;
 };
 
 /**
- * Renders and inits the Amazon checkout Process on elements identified by btnId.
+ * Renders and inits the Amazon checkout Process on elements identified by buttonId.
  *
- * @param {string} btnId Selector on where the Amazon Pay button will be rendered on.
+ * @param {string} buttonId Selector on where the Amazon Pay button will be rendered on.
  * @param {string} flag Specifies the context of the rendering.
  * @param {string} checkoutConfig The checkoutConfig with which we will provide Amazon Pay on init.
  */
-export const renderAndInitAmazonCheckout = ( btnId, flag, checkoutConfig ) => {
+export const renderAndInitAmazonCheckout = ( buttonId, flag, checkoutConfig ) => {
 	checkoutConfig = JSON.parse( checkoutConfig );
-	var amazonClassicBtn = renderAmazonButton( btnId, flag, checkoutConfig );
-	if ( null !== amazonClassicBtn ) {
+	const amazonClassicButton = renderAmazonButton( buttonId, flag, checkoutConfig );
+	if ( null !== amazonClassicButton ) {
 		checkoutConfig.payloadJSON = JSON.stringify( checkoutConfig.payloadJSON );
-		amazonClassicBtn.initCheckout( {
+		amazonClassicButton.initCheckout( {
 			createCheckoutSessionConfig: checkoutConfig,
 		} );
 	}
