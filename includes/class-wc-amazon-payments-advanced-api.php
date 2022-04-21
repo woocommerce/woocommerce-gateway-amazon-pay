@@ -374,7 +374,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
 		$payload      = array(
 			'storeId'            => $settings['store_id'],
-			'platformId'         => 'A1BVJDFFHQ7US4',
+			'platformId'         => self::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
 			'webCheckoutDetails' => array(
 				'checkoutReviewReturnUrl' => add_query_arg( 'amazon_login', '1', $redirect_url ),
 				'checkoutResultReturnUrl' => add_query_arg( 'amazon_return', '1', $redirect_url ),
@@ -420,7 +420,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
 		$payload      = array(
 			'storeId'            => $settings['store_id'],
-			'platformId'         => 'A1BVJDFFHQ7US4',
+			'platformId'         => self::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
 			'webCheckoutDetails' => array(
 				'checkoutMode'            => 'ProcessOrder',
 				'checkoutResultReturnUrl' => add_query_arg( 'amazon_return_classic', '1', $redirect_url ),
@@ -466,13 +466,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * Get classic create checkout session config to send to Amazon.
 	 *
 	 * @param array  $payload      The payload that will be used to create a checkout session.
-	 * @param string $redirect_url Redirect URL on success.
 	 * @return array
 	 */
-	public static function get_create_checkout_classic_session_config( $payload, $redirect_url = null ) {
+	public static function get_create_checkout_classic_session_config( $payload ) {
 		$settings  = self::get_settings();
-		$client    = self::get_client();
-		$signature = $client->generateButtonSignature( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
+		$signature = self::get_client()->generateButtonSignature( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
 		return array(
 			'publicKeyId' => $settings['public_key_id'],
 			'payloadJSON' => $payload,

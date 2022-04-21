@@ -705,7 +705,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 				'OrderReferenceAttributes.SellerNote' => $seller_note,
 				'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
 				'OrderReferenceAttributes.SellerOrderAttributes.StoreName' => $site_name,
-				'OrderReferenceAttributes.PlatformId' => 'A1BVJDFFHQ7US4',
+				'OrderReferenceAttributes.PlatformId' => WC_Amazon_Payments_Advanced_API_Legacy::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
 				'OrderReferenceAttributes.SellerOrderAttributes.CustomInformation' => $version_note,
 			),
 			$overrides

@@ -198,7 +198,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			/* translators: 1) Subscription IDs */
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.SellerBillingAgreementId' => sprintf( __( 'Subscription(s): %s.', 'woocommerce-gateway-amazon-payments-advanced' ), implode( ', ', $subscription_ids ) ),
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName' => $site_name,
-			'BillingAgreementAttributes.PlatformId' => 'A1BVJDFFHQ7US4',
+			'BillingAgreementAttributes.PlatformId' => WC_Amazon_Payments_Advanced_API_Legacy::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation' => $version_note,
 		);
 

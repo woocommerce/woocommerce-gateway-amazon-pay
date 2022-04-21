@@ -28,7 +28,7 @@ const AmazonPayBtn = ( props ) => {
 				renderAndInitAmazonCheckout(
 					'#classic_pay_with_amazon',
 					'classic',
-					paymentDetails?.amzCreateCheckoutParams
+					paymentDetails?.amazonCreateCheckoutParams
 				);
 				return true;
 			}

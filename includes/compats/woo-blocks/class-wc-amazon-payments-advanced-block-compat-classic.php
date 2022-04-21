@@ -42,14 +42,6 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	protected function scripts_name_per_type( $type = '' ) {
 		$script_data = include wc_apa()->path . '/build/index.asset.php';
 		wp_register_script( 'amazon_payments_advanced_classic_block_compat', wc_apa()->plugin_url . '/build/index.js', $script_data['dependencies'], $script_data['version'], true );
-		$scripts = array();
-		switch ( $type ) {
-			case 'frontend':
-			case 'backend':
-			default:
-				$scripts[] = 'amazon_payments_advanced_classic_block_compat';
-				break;
-		}
-		return $scripts;
+		return array( 'amazon_payments_advanced_classic_block_compat' );
 	}
 }

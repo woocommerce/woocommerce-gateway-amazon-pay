@@ -54,7 +54,7 @@ class WC_Amazon_Payments_Advanced_Alexa_Notifications {
 		$order = wc_get_order( $order_id );
 
 		/* If we cant retrieve the order or if the order doesn't needs shipping we bail. */
-		if ( ! is_a( $order, 'WC_Order' ) || count( $order->get_items( 'shipping' ) ) <= 0 ) {
+		if ( ! class_exists( 'WC_Order' ) || ! ( $order instanceof \WC_Order ) || count( $order->get_items( 'shipping' ) ) <= 0 ) {
 			return;
 		}
 
