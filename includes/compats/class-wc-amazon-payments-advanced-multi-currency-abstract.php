@@ -56,6 +56,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 
 		add_filter( 'woocommerce_amazon_pa_is_checkout_session_still_valid', array( $this, 'is_checkout_session_still_valid' ), 10, 2 );
 		add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'set_presentment_currency' ) );
+		add_filter( 'woocommerce_amazon_pa_create_checkout_session_classic_params', array( $this, 'set_presentment_currency' ) );
 	}
 
 	/**

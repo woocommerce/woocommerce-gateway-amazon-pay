@@ -19,6 +19,7 @@ class WC_Amazon_Payments_Advanced_Compat {
 		$this->require_compats(); // Need to require early for some static methods to be available.
 		add_action( 'woocommerce_amazon_pa_init', array( $this, 'load_compats' ) );
 		add_action( 'woocommerce_amazon_pa_init', array( $this, 'load_multicurrency' ) );
+		add_action( 'woocommerce_blocks_loaded', array( $this, 'load_block_compatibility' ) );
 	}
 
 	/**
@@ -69,5 +70,18 @@ class WC_Amazon_Payments_Advanced_Compat {
 	 */
 	public function load_multicurrency() {
 		WC_Amazon_Payments_Advanced_Multi_Currency::init();
+	}
+
+	/**
+	 * Loads the WooCommerce Block Compatibility Classes,
+	 * when the WooCommerce Blocks Plugin is active.
+	 *
+	 * @return void
+	 */
+	public function load_block_compatibility() {
+		if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) && file_exists( __DIR__ . '/compats/woo-blocks/class-wc-amazon-payments-advanced-block-compatibility.php' ) ) {
+			require_once __DIR__ . '/compats/woo-blocks/class-wc-amazon-payments-advanced-block-compatibility.php';
+			add_action( 'woocommerce_blocks_payment_method_type_registration', array( WC_Amazon_Payments_Advanced_Block_Compatibility::class, 'init' ) );
+		}
 	}
 }

@@ -1,4 +1,6 @@
-#pay_with_amazon {
+#pay_with_amazon,
+#pay_with_amazon_cart,
+#pay_with_amazon_product {
 	margin: 0px auto;
 	max-width: 100%;
 	line-height: 1em;
@@ -6,7 +8,9 @@
 	border: 0;
 	text-align: right;
 }
-#pay_with_amazon img {
+#pay_with_amazon img,
+#pay_with_amazon_cart img,
+#pay_with_amazon_product img {
 	width: auto !important;
 	vertical-align: middle;
 	cursor: pointer;
@@ -22,7 +26,9 @@
 	min-height: 300px;
 	margin: 0 auto !important;
 }
-.woocommerce-info #pay_with_amazon {
+.woocommerce-info #pay_with_amazon,
+.woocommerce-info #pay_with_amazon_cart,
+.woocommerce-info #pay_with_amazon_product {
 	float: right;
 }
 #amazon_customer_details.wc-amazon-payments-advanced-populated
@@ -46,7 +52,9 @@
 	margin-right: 10px;
 	margin-bottom: 10px;
 }
-#payment .payment_methods li #pay_with_amazon img {
+#payment .payment_methods li #pay_with_amazon img,
+#payment .payment_methods li #pay_with_amazon_cart img,
+#payment .payment_methods li #pay_with_amazon_product img {
 	max-height: 100%;
 }
 form.checkout .hidden {
@@ -73,7 +81,7 @@ img.wc-apa-amazon-logo {
 }
 
 span.wc-apa-amazon-logo {
-	background-image: url("../images/logo-amazonpay-primary-fullcolor-positive.svg");
+	background-image: url('../images/logo-amazonpay-primary-fullcolor-positive.svg');
 	background-position: 0 0;
 	background-size: contain;
 	background-repeat: no-repeat;
@@ -85,15 +93,18 @@ span.wc-apa-amazon-logo {
 	margin-bottom: 1.618em;
 }
 
-
 .woocommerce-order-pay {
-	.wc_apa_login_again_text + #pay_with_amazon {
+	.wc_apa_login_again_text + #pay_with_amazon,
+	.wc_apa_login_again_text + #pay_with_amazon_cart,
+	.wc_apa_login_again_text + #pay_with_amazon_product {
 		margin-top: 1em;
 	}
 	#order_review {
 		#payment {
 			.payment_box.payment_method_amazon_payments_advanced {
-				#payment_method_widget, #shipping_address_widget, #billing_address_widget {
+				#payment_method_widget,
+				#shipping_address_widget,
+				#billing_address_widget {
 					margin-bottom: 0;
 					& + #payment_method_widget,
 					& + #shipping_address_widget,
@@ -109,8 +120,21 @@ span.wc-apa-amazon-logo {
 	}
 }
 
-.wc-apa-button-separator { 
+.wc-apa-button-separator {
 	margin: 1.5em 0;
 	text-align: center;
 	display: none;
+}
+
+#classic_pay_with_amazon {
+	display: none;
+}
+
+#pay_with_amazon_product {
+	margin: 0.7em auto;
+}
+
+.site-header .widget_shopping_cart div.buttons {
+	padding-left: 1.41575em;
+	padding-right: 1.41575em;
 }

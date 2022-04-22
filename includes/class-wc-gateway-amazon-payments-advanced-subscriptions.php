@@ -52,7 +52,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		if ( 'v2' === strtolower( $version ) ) { // These only execute after the migration (not before).
 			add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'recurring_checkout_session' ) );
-			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 3 );
+			add_filter( 'woocommerce_amazon_pa_create_checkout_session_classic_params', array( $this, 'recurring_checkout_session' ) );
+			add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'recurring_checkout_session_update' ), 10, 4 );
 			add_filter( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array( $this, 'recurring_complete_checkout_session_update' ), 10, 3 );
 			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
 			add_filter( 'wcs_renewal_order_meta', array( $this, 'copy_meta_from_sub' ), 10, 3 );
@@ -345,9 +346,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param  array    $payload Payload to send to the API before proceding to checkout.
 	 * @param  string   $checkout_session_id Checkout Session Id.
 	 * @param  WC_Order $order Order object.
+	 * @param  bool     $doing_classic_payment Indicates whether this is an Amazon "Classic" Transaction or not.
 	 * @return array
 	 */
-	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order ) {
+	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order, $doing_classic_payment ) {
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) && $order->get_id() === absint( $_POST['woocommerce_change_payment'] ) ) {
 			$checkout_session = wc_apa()->get_gateway()->get_checkout_session();
 
@@ -359,6 +361,21 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			return $payload;
 		}
 
+		if ( $doing_classic_payment && 'PayAndShip' === wc_apa()->get_gateway()->get_current_cart_action() ) {
+			$phone_number = $order->get_shipping_phone();
+			$phone_number = $phone_number ? $phone_number : $order->get_billing_phone();
+
+			$payload['addressDetails'] = array(
+				'name'          => utf8_encode( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ),
+				'addressLine1'  => utf8_encode( $order->get_shipping_address_1() ),
+				'city'          => utf8_encode( $order->get_shipping_city() ),
+				'stateOrRegion' => utf8_encode( $order->get_shipping_state() ),
+				'postalCode'    => utf8_encode( $order->get_shipping_postcode() ),
+				'countryCode'   => $order->get_shipping_country( 'edit' ),
+				'phoneNumber'   => utf8_encode( $phone_number ),
+			);
+		}
+
 		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
 			return $payload;
 		}
@@ -368,7 +385,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$subscriptions_in_cart = is_array( WC()->cart->recurring_carts ) ? count( WC()->cart->recurring_carts ) : 0;
 
 		if ( 0 === $subscriptions_in_cart ) {
-			// Weird, but ok.
 			return $payload;
 		}
 

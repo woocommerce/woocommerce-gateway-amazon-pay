@@ -11,6 +11,13 @@
 abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 	/**
+	 * Merchant identifier of the Solution Provider (SP).
+	 *
+	 * @see https://developer.amazon.com/docs/amazon-pay-api-v2/checkout-session.html#ERL9CA7OsPD
+	 */
+	const AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID = 'A1BVJDFFHQ7US4';
+
+	/**
 	 * Login App setup - Client ID Retrieval Instruction URLs
 	 *
 	 * @var array
@@ -114,6 +121,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$default  = array(
 			'enabled'                         => 'yes',
 			'title'                           => __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'description'                     => __( 'Complete your payment using Amazon Pay!', 'woocommerce-gateway-amazon-payments-advanced' ),
 			'merchant_id'                     => '',
 			'store_id'                        => '',
 			'public_key_id'                   => '',
@@ -137,6 +145,9 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'hide_button_mode'                => 'no',
 			'amazon_keys_setup_and_validated' => '0',
 			'subscriptions_enabled'           => 'yes',
+			'mini_cart_button'                => 'no',
+			'product_button'                  => 'no',
+			'alexa_notifications_support'     => 'no',
 		);
 
 		$settings = apply_filters( 'woocommerce_amazon_pa_settings', array_merge( $default, $settings ) );

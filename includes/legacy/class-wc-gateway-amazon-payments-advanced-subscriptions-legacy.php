@@ -198,7 +198,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			/* translators: 1) Subscription IDs */
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.SellerBillingAgreementId' => sprintf( __( 'Subscription(s): %s.', 'woocommerce-gateway-amazon-payments-advanced' ), implode( ', ', $subscription_ids ) ),
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName' => $site_name,
-			'BillingAgreementAttributes.PlatformId' => 'A1BVJDFFHQ7US4',
+			'BillingAgreementAttributes.PlatformId' => WC_Amazon_Payments_Advanced_API_Legacy::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
 			'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation' => $version_note,
 		);
 
@@ -384,12 +384,15 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		} catch ( Exception $e ) {
 			wc_apa()->log( "Error: Exception encountered in 'GetBillingAgreementDetails': {$e->getMessage()}" );
 
+			//phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			return new WP_Error(
 				'billing_agreemment_details_failed',
 				is_object( $response ) && ! empty( $response->Error ) && is_object( $response->Error->Message ) && ! empty( $response->Error->Message ) ?
 				$response->Error->Message :
+				/* Translators: The billing agreement id. */
 				sprintf( __( 'Amazon API responded with an unexpected error when requesting for "GetBillingAgreementDetails" of billing agreement with ID %s', 'woocommerce-gateway-amazon-payments-advanced' ), $amazon_billing_agreement_id )
 			);
+			//phpcs:enable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		}
 		return $response;
 	}
