@@ -168,7 +168,7 @@
 			$( buttonId ).each( function() {
 				var thisButton = $( this );
 				var thisId = thisButton.attr( 'id' );
-				if ( ! thisButton.is( ':visible' ) && classicButtonId !== '#' + thisId ) {
+				if ( button_id === '#' + thisId && ! thisButton.is( ':visible' ) ) {
 					return;
 				}
 				if ( typeof thisId === 'undefined' ) {
