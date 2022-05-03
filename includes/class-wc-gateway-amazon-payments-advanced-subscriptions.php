@@ -366,14 +366,26 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$phone_number = $phone_number ? $phone_number : $order->get_billing_phone();
 
 			$payload['addressDetails'] = array(
-				'name'          => utf8_encode( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ),
-				'addressLine1'  => utf8_encode( $order->get_shipping_address_1() ),
-				'city'          => utf8_encode( $order->get_shipping_city() ),
-				'stateOrRegion' => utf8_encode( $order->get_shipping_state() ),
-				'postalCode'    => utf8_encode( $order->get_shipping_postcode() ),
+				'name'          => rawurlencode( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ),
+				'addressLine1'  => rawurlencode( $order->get_shipping_address_1() ),
+				'addressLine2'  => rawurlencode( $order->get_shipping_address_2() ),
+				'city'          => rawurlencode( $order->get_shipping_city() ),
+				'stateOrRegion' => rawurlencode( $order->get_shipping_state() ),
+				'postalCode'    => rawurlencode( $order->get_shipping_postcode() ),
 				'countryCode'   => $order->get_shipping_country( 'edit' ),
-				'phoneNumber'   => utf8_encode( $phone_number ),
+				'phoneNumber'   => rawurlencode( $phone_number ),
 			);
+
+			/**
+			 * Address Validation for the EU region.
+			 *
+			 * @see https://developer.amazon.com/docs/amazon-pay-checkout/address-formatting-and-validation.html#address-validation
+			 */
+			if ( in_array( $payload['addressDetails']['countryCode'], array( 'UK', 'GB', 'SG', 'AE', 'MX' ), true ) ) {
+				$payload['addressDetails']['districtOrCounty'] = $payload['addressDetails']['stateOrRegion'];
+				unset( $payload['addressDetails']['stateOrRegion'] );
+				$payload['addressDetails'] = array_filter( $payload['addressDetails'] );
+			}
 		}
 
 		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
