@@ -1,3 +1,6 @@
+import { useEffect, useState } from '@wordpress/element';
+import { decodeEntities } from '@wordpress/html-entities';
+
 /**
  * Returns an array of the sibling of the element that have the class className.
  * 
@@ -37,4 +40,41 @@ export const getBlocksConfiguration = ( name ) => {
 	}
 
 	return amazonPayServerData;
+};
+
+/**
+ * Label component
+ *
+ * @param {object} props Props from payment API.
+ */
+export const Label = ( { label, ...props } ) => {
+	const { PaymentMethodLabel } = props.components;
+	return <PaymentMethodLabel text={ label } />;
+};
+
+/**
+ * Returns a React Component.
+ *
+ * @param {object} param0  RenderedComponent and props
+ * @returns {RenderedComponent}
+ */
+export const AmazonComponent = ( { RenderedComponent, ...props } ) => {
+	const [ errorMessage, setErrorMessage ] = useState( '' );
+
+	useEffect( () => {
+		if ( errorMessage ) {
+			throw new Error( errorMessage );
+		}
+	}, [ errorMessage ] );
+
+	return <RenderedComponent { ...props } />;
+};
+
+/**
+ * Returns the payment method's description.
+ *
+ * @returns {string}
+ */
+export const Content = ( { description, ...props } ) => {
+	return decodeEntities( description );
 };

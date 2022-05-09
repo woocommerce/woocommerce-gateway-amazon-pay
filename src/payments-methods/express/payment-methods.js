@@ -1,4 +1,5 @@
 import { getBlocksConfiguration, Content } from '../../utils';
+import { PAYMENT_METHOD_NAME } from './constants';
 import { useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
@@ -9,7 +10,7 @@ import React from 'react';
  * @param {object} props
  * @returns React component
  */
-const AmazonPayBtn = ( props ) => {
+const AmazonPayExpressBtn = ( props ) => {
 	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onCheckoutAfterProcessingWithSuccess(
 			async ( { processingResponse } ) => {
@@ -61,11 +62,11 @@ const AmazonPayBtn = ( props ) => {
  * @param {object} props
  * @returns React Component
  */
-export const AmazonContent = ( props ) => {
+export const AmazonExpressContent = ( props ) => {
 	return (
 		<React.Fragment>
-			<Content description={ getBlocksConfiguration( 'amazon_payments_advanced_data' )?.description }/>
-			<AmazonPayBtn { ...props } />
+			<Content description={ getBlocksConfiguration( PAYMENT_METHOD_NAME + '_data' )?.description || '' } />
+			<AmazonPayExpressBtn { ...props } />
 		</React.Fragment>
 	);
 };
