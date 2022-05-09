@@ -5,6 +5,8 @@ import { __ } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
 import { useEffect, useState } from '@wordpress/element';
 
+const { registerPaymentMethod } = wc.wcBlocksRegistry;
+
 /**
  * Internal dependencies
  */
@@ -47,7 +49,7 @@ const Label = ( props ) => {
 /**
  * Amazon Pay "Classic" payment method config object.
  */
-export const amazonPayPaymentMethod = {
+const amazonPayPaymentMethod = {
 	name: PAYMENT_METHOD_NAME,
 	label: <Label />,
 	placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -59,3 +61,8 @@ export const amazonPayPaymentMethod = {
 		features: settings?.supports ?? [],
 	},
 };
+
+/**
+ * Registers Amazon Pay "Classic" as a Payment Method in the Checkout Block of WooCommerce Blocks.
+ */
+registerPaymentMethod( amazonPayPaymentMethod );
