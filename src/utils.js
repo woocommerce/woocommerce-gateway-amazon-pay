@@ -1,5 +1,6 @@
 import { useEffect, useState } from '@wordpress/element';
 import { decodeEntities } from '@wordpress/html-entities';
+import { amazonPayImage } from './amazon-pay-preview';
 
 /**
  * Returns an array of the sibling of the element that have the class className.
@@ -78,3 +79,5 @@ export const AmazonComponent = ( { RenderedComponent, ...props } ) => {
 export const Content = ( { description, ...props } ) => {
 	return decodeEntities( description );
 };
+
+export const AmazonPayPreview = () => <img src={ amazonPayImage } alt="" />;

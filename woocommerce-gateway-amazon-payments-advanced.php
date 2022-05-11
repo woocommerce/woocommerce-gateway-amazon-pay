@@ -253,6 +253,13 @@ class WC_Amazon_Payments_Advanced {
 	public function add_gateway( $methods ) {
 		$methods[] = $this->gateway;
 
+		if ( method_exists( $this->gateway, 'is_express_enabled' ) && $this->gateway->is_express_enabled() ) {
+			if ( ! class_exists( 'WC_Gateway_Amazon_Payments_Advanced_Express' ) ) {
+				require_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-express.php';
+			}
+			$methods[] = new WC_Gateway_Amazon_Payments_Advanced_Express();
+		}
+
 		return $methods;
 	}
 

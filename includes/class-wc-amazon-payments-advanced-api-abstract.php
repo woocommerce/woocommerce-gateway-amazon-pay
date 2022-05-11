@@ -148,6 +148,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'mini_cart_button'                => 'no',
 			'product_button'                  => 'no',
 			'alexa_notifications_support'     => 'no',
+			'enable_express_gateway'          => 'yes',
 		);
 
 		$settings = apply_filters( 'woocommerce_amazon_pa_settings', array_merge( $default, $settings ) );

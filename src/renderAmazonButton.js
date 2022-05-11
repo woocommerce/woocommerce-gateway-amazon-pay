@@ -8,7 +8,7 @@
  * @returns {object} The settings to provide the Amazon Pay Button with.
  */
 const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
-	const obj = {
+	let obj = {
 		// set checkout environment
 		merchantId: amazon_payments_advanced.merchant_id,
 		ledgerCurrency: amazon_payments_advanced.ledger_currency,
@@ -19,12 +19,15 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
 		checkoutLanguage:
 			amazon_payments_advanced.button_language !== ''
 				? amazon_payments_advanced.button_language.replace( '-', '_' )
-				: undefined,
-		productType:
-			'undefined' !== typeof checkoutConfig.payloadJSON.addressDetails
-				? 'PayAndShip'
-				: 'PayOnly',
+				: undefined
 	};
+
+	if ( 'express' === buttonSettingsFlag ) {
+		obj.productType = amazon_payments_advanced.action;
+		obj.createCheckoutSessionConfig = amazon_payments_advanced.create_checkout_session_config;
+	} else {
+		obj.productType = 'undefined' !== typeof checkoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
+	}
 	return obj;
 };
 
@@ -36,7 +39,7 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
  * @param {string} checkoutConfig The checkoutConfig with which we will provide Amazon Pay.
  * @returns {object} The Amazon Pay rendered button.
  */
-const renderAmazonButton = ( buttonId, buttonSettingsFlag, checkoutConfig ) => {
+export const renderAmazonButton = ( buttonId, buttonSettingsFlag, checkoutConfig ) => {
 	let amazonPayButton = null;
 	const buttons = document.querySelectorAll( buttonId );
 	for ( const button of buttons ) {

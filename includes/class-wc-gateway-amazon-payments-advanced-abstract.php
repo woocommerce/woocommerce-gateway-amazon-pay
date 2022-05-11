@@ -520,6 +520,14 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'type'        => 'checkbox',
 				'default'     => 'no',
 			),
+			'enable_express_gateway'        => array(
+				'title'       => __( 'Enable Express Gateway', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable Amazon Pay as an Express Gateway to be used with WooCommerce Blocks.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will enable Amazon Pay as an Express Gateway to be used with WooCommerce Checkout and Cart Blocks.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'yes',
+			),
 		);
 
 		if ( $this->has_other_gateways_enabled() ) {
@@ -1046,6 +1054,15 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Returns if the express Gateway is enabled.
+	 *
+	 * @return boolean
+	 */
+	public function is_express_enabled() {
+		return ! empty( $this->settings['enable_express_gateway'] ) && 'yes' === $this->settings['enable_express_gateway'];
 	}
 
 	/**
