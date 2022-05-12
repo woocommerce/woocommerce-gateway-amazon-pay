@@ -238,7 +238,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @return array
 	 */
-	public function get_js_params() {
+	protected function get_js_params() {
 		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
 
 		$params = array();
@@ -781,7 +781,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function get_checkout_session_id() {
 		$session_key = $this->get_checkout_session_key();
-		return WC()->session->get( $session_key, false );
+		return ! empty( WC()->session ) ? WC()->session->get( $session_key, false ) : false;
 	}
 
 	/**
