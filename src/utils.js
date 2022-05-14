@@ -1,6 +1,7 @@
 import { useEffect, useState } from '@wordpress/element';
 import { decodeEntities } from '@wordpress/html-entities';
 import { amazonPayImage } from './amazon-pay-preview';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Returns an array of the sibling of the element that have the class className.

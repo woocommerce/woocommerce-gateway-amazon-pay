@@ -70,3 +70,27 @@ export const renderAndInitAmazonCheckout = ( buttonId, flag, checkoutConfig ) =>
 		} );
 	}
 };
+
+/**
+ * Bounds a change Action to button identified by button_id.
+ *
+ * @param {string} button_id ID of button to bound Amazon Change event on.
+ * @param {string} action Type of action to bound the button with.
+ */
+export const activateChange = ( button_id, action ) => {
+	var button = document.getElementById( button_id );
+	if ( 0 === button.length || button.getAttribute( 'data-wc_apa_chage_bind' ) === action ) {
+		return;
+	}
+
+	button.setAttribute( 'data-wc_apa_chage_bind', action );
+	button.addEventListener( 'click', function( e ) {
+		e.preventDefault();
+	} );
+
+
+	amazon.Pay.bindChangeAction( '#' + button.getAttribute( 'id' ), {
+		amazonCheckoutSessionId: amazon_payments_advanced.checkout_session_id,
+		changeAction: action
+	} );
+};

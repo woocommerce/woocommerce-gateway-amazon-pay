@@ -43,8 +43,11 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 	 */
 	public function get_payment_method_data() {
 		return array_merge( $this->settings, array(
-			'supports'    => $this->get_supported_features(),
-			'logoutUrl'   => wc_apa()->get_gateway()->get_amazon_logout_url(),
+			'supports'              => $this->get_supported_features(),
+			'logoutUrl'             => wc_apa()->get_gateway()->get_amazon_logout_url(),
+			'logoutMessage'         => apply_filters( 'woocommerce_amazon_pa_checkout_logout_message', __( 'You\'re logged in with your Amazon Account.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
+			'selectedPaymentMethod' => esc_html( wc_apa()->get_gateway()->get_selected_payment_label() ),
+			'hasPaymentPreferences' => wc_apa()->get_gateway()->has_payment_preferences(),
 		) );
 	}
 

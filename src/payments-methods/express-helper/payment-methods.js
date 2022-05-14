@@ -1,8 +1,49 @@
-import { getBlocksConfiguration, Content } from '../../utils';
-import { useEffect } from '@wordpress/element';
+import { getBlocksConfiguration } from '../../utils';
+import { useEffect, render, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { decodeEntities } from '@wordpress/html-entities';
 import { PAYMENT_METHOD_NAME } from '../express/constants';
+import { activateChange } from '../../renderAmazonButton';
 import React from 'react';
+
+const settings = getBlocksConfiguration(PAYMENT_METHOD_NAME + '_data');
+
+const LogOutBanner = () => {
+	return (
+		<div className="woocommerce-info info">
+			{ decodeEntities( settings.logoutMessage ) } { " " }
+			<a href={ settings.logoutUrl }>
+				{ decodeEntities( __( 'Log out &raquo;', 'woocommerce-gateway-amazon-payments-advanced' ) ) }
+			</a>
+		</div>
+	);
+};
+
+const ChangePayment = () => {
+	useEffect( () => {
+		activateChange( 'amazon_change_payment_method', 'changePayment' );
+	}, [] );
+
+	return (
+		<a href="#" className="wc-apa-widget-change" id="amazon_change_payment_method">
+			{ settings.hasPaymentPreferences ? __( 'Change', 'woocommerce-gateway-amazon-payments-advanced' ) : __( 'Select', 'woocommerce-gateway-amazon-payments-advanced' ) }
+		</a>
+	);
+};
+
+const ChangeShippingAddress = () => {
+	useEffect( () => {
+		activateChange( 'amazon_change_shipping_address', 'changeAddress' );
+	}, [] );
+
+	return (
+		<h2 style={{ width: '100%', display: 'flex', flexFlow: 'row nowrap', justifyContent: 'space-between' }} className="wc-block-components-title wc-block-components-checkout-step__title" aria-hidden="true">{ __( 'Shipping address', 'woocommerce' ) }
+			<a href="#" className="wc-apa-widget-change" id="amazon_change_shipping_address">
+				{ __( 'Change', 'woocommerce-gateway-amazon-payments-advanced' ) }
+			</a>
+		</h2>
+	);
+};
 
 /**
  * Returns a react component and also sets an observer for the onCheckoutAfterProcessingWithSuccess event.
@@ -10,6 +51,14 @@ import React from 'react';
  * @returns React component
  */
 const AmazonPayBtn = ( props ) => {
+	const [ isActive, setIsActive ] = useState( true );
+
+	useEffect( () => {
+		activateChange( 'amazon_change_payment_method', 'changePayment' );
+	}, [] );
+
+	// console.log( isActive, setIsActive );
+
 	// useEffect( () => {
 	// 	const unsubscribe = props.eventRegistration.onCheckoutAfterProcessingWithSuccess(
 	// 		async ( { processingResponse } ) => {
@@ -52,7 +101,29 @@ const AmazonPayBtn = ( props ) => {
 	// 	props.emitResponse.responseTypes.SUCCESS,
 	// ] );
 
-	return <React.Fragment/>;
+	return (
+		<React.Fragment>
+			<p>
+				<ChangePayment />
+				{ __( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ) }
+			</p>
+			<div className="payment_method_display">
+				<span className="wc-apa-amazon-logo"></span>{ decodeEntities( settings.selectedPaymentMethod ) }
+			</div>
+		</React.Fragment>
+	);
+};
+
+export const AmazonExpressLabel = ( { label, ...props } ) => {
+
+	const { PaymentMethodLabel } = props.components;
+
+	useEffect( () => {
+		render( <LogOutBanner/>, document.getElementsByClassName( 'wp-block-woocommerce-checkout-express-payment-block' )[0] );
+		render( <ChangeShippingAddress/>, document.querySelector( '.wc-block-checkout__shipping-fields > .wc-block-components-checkout-step__heading' ) );
+	}, [] );
+
+	return <PaymentMethodLabel text={ label } />;
 };
 
 /**
@@ -64,7 +135,6 @@ const AmazonPayBtn = ( props ) => {
 export const AmazonContent = ( props ) => {
 	return (
 		<React.Fragment>
-			<Content description={ getBlocksConfiguration(PAYMENT_METHOD_NAME + '_data')?.description }/>
 			<AmazonPayBtn { ...props } />
 		</React.Fragment>
 	);
