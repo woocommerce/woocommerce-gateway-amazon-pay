@@ -81,4 +81,4 @@ export const Content = ( { description, ...props } ) => {
 	return decodeEntities( description );
 };
 
-export const AmazonPayPreview = () => <img src={ amazonPayImage } alt="" />;
+export const AmazonPayPreview = () => <img style={{ width: 'auto' }} src={ amazonPayImage } alt="" />;
