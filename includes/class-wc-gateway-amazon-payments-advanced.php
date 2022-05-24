@@ -2813,14 +2813,21 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$phone_number = $order->get_shipping_phone();
 		$phone_number = $phone_number ? $phone_number : $order->get_billing_phone();
 
+		$shipping_state   = $order->get_shipping_state();
+		$shipping_country = $order->get_shipping_country( 'edit' );
+
+		if ( 'JP' === strtoupper( $shipping_country ) && 'JP' === strtoupper( WC_Amazon_Payments_Advanced_API::get_region() ) && isset( self::JP_REGION_CODE_MAP[ $shipping_state ] ) ) {
+			$shipping_state = self::JP_REGION_CODE_MAP[ $shipping_state ];
+		}
+
 		$payload['addressDetails'] = array(
 			'name'          => rawurlencode( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ),
 			'addressLine1'  => rawurlencode( $order->get_shipping_address_1() ),
 			'addressLine2'  => rawurlencode( $order->get_shipping_address_2() ),
 			'city'          => rawurlencode( $order->get_shipping_city() ),
-			'stateOrRegion' => rawurlencode( $order->get_shipping_state() ),
+			'stateOrRegion' => rawurlencode( $shipping_state ),
 			'postalCode'    => rawurlencode( $order->get_shipping_postcode() ),
-			'countryCode'   => $order->get_shipping_country( 'edit' ),
+			'countryCode'   => $shipping_country,
 			'phoneNumber'   => rawurlencode( $phone_number ),
 		);
 
