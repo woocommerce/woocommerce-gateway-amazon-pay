@@ -159,6 +159,15 @@
 
 		function renderButton( buttonId, buttonSettingsFlag ) {
 			buttonId = buttonId || button_id;
+
+			/**
+			 * On lines 213-216, renderButton is being declared as the callback to jQuery Events.
+			 * As a result its being supplied with the callbacks variables.
+			 * We make sure here, our variables are set to their defaults when that happens.
+			 */
+			buttonId = buttonId instanceof $.Event ? button_id : buttonId;
+			buttonSettingsFlag = 'string' !== typeof buttonSettingsFlag ? null : buttonSettingsFlag;
+
 			attemptRefreshData( buttonSettingsFlag );
 			if ( 0 === $( buttonId ).length ) {
 				return;

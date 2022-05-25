@@ -343,7 +343,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	/**
 	 * Filter the payload to add recurring data to the checkout session update object.
 	 *
-	 * @param  array    $payload Payload to send to the API before proceding to checkout.
+	 * @param  array    $payload Payload to send to the API before proceeding to checkout.
 	 * @param  string   $checkout_session_id Checkout Session Id.
 	 * @param  WC_Order $order Order object.
 	 * @param  bool     $doing_classic_payment Indicates whether this is an Amazon "Classic" Transaction or not.
@@ -359,21 +359,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			$payload['paymentDetails']['chargeAmount'] = WC_Amazon_Payments_Advanced::format_amount( $checkout_session->recurringMetadata->amount ); // phpcs:ignore WordPress.NamingConventions
 
 			return $payload;
-		}
-
-		if ( $doing_classic_payment && 'PayAndShip' === wc_apa()->get_gateway()->get_current_cart_action() ) {
-			$phone_number = $order->get_shipping_phone();
-			$phone_number = $phone_number ? $phone_number : $order->get_billing_phone();
-
-			$payload['addressDetails'] = array(
-				'name'          => utf8_encode( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ),
-				'addressLine1'  => utf8_encode( $order->get_shipping_address_1() ),
-				'city'          => utf8_encode( $order->get_shipping_city() ),
-				'stateOrRegion' => utf8_encode( $order->get_shipping_state() ),
-				'postalCode'    => utf8_encode( $order->get_shipping_postcode() ),
-				'countryCode'   => $order->get_shipping_country( 'edit' ),
-				'phoneNumber'   => utf8_encode( $phone_number ),
-			);
 		}
 
 		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {

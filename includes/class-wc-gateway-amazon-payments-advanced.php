@@ -146,6 +146,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
+		// Sets the payload's addressDetails property if checking out using Amazon "Classic" and there is a physical product.
+		add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'update_address_details_for_classic' ), 10, 4 );
+
 		// Scripts.
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 
@@ -2836,5 +2839,54 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return ! WC_Subscriptions_Cart::cart_contains_subscription();
+	}
+
+	/**
+	 * Filter the payload to add the addressDetails data to the checkout session object.
+	 *
+	 * @param  array    $payload Payload to send to the API before proceeding to checkout.
+	 * @param  string   $checkout_session_id Checkout Session Id.
+	 * @param  WC_Order $order Order object.
+	 * @param  bool     $doing_classic_payment Indicates whether this is an Amazon "Classic" Transaction or not.
+	 * @return array
+	 */
+	public function update_address_details_for_classic( $payload, $checkout_session_id, $order, $doing_classic_payment ) {
+		if ( ! $doing_classic_payment || 'PayAndShip' !== wc_apa()->get_gateway()->get_current_cart_action() ) {
+			return $payload;
+		}
+
+		$phone_number = $order->get_shipping_phone();
+		$phone_number = $phone_number ? $phone_number : $order->get_billing_phone();
+
+		$shipping_state   = $order->get_shipping_state();
+		$shipping_country = $order->get_shipping_country( 'edit' );
+
+		if ( 'JP' === strtoupper( $shipping_country ) && 'JP' === strtoupper( WC_Amazon_Payments_Advanced_API::get_region() ) && isset( self::JP_REGION_CODE_MAP[ $shipping_state ] ) ) {
+			$shipping_state = self::JP_REGION_CODE_MAP[ $shipping_state ];
+		}
+
+		$payload['addressDetails'] = array(
+			'name'          => rawurlencode( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ),
+			'addressLine1'  => rawurlencode( $order->get_shipping_address_1() ),
+			'addressLine2'  => rawurlencode( $order->get_shipping_address_2() ),
+			'city'          => rawurlencode( $order->get_shipping_city() ),
+			'stateOrRegion' => rawurlencode( $shipping_state ),
+			'postalCode'    => rawurlencode( $order->get_shipping_postcode() ),
+			'countryCode'   => $shipping_country,
+			'phoneNumber'   => rawurlencode( $phone_number ),
+		);
+
+		/**
+		 * Address Validation for the EU region.
+		 *
+		 * @see https://developer.amazon.com/docs/amazon-pay-checkout/address-formatting-and-validation.html#address-validation
+		 */
+		if ( in_array( $payload['addressDetails']['countryCode'], array( 'UK', 'GB', 'SG', 'AE', 'MX' ), true ) ) {
+			$payload['addressDetails']['districtOrCounty'] = $payload['addressDetails']['stateOrRegion'];
+			unset( $payload['addressDetails']['stateOrRegion'] );
+			$payload['addressDetails'] = array_filter( $payload['addressDetails'] );
+		}
+
+		return $payload;
 	}
 }
