@@ -48,6 +48,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 			'logoutMessage'         => apply_filters( 'woocommerce_amazon_pa_checkout_logout_message', __( 'You\'re logged in with your Amazon Account.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
 			'selectedPaymentMethod' => esc_html( wc_apa()->get_gateway()->get_selected_payment_label() ),
 			'hasPaymentPreferences' => wc_apa()->get_gateway()->has_payment_preferences(),
+			'allOtherGateways'      => $this->gateways_to_unset_on_fe(),
 		) );
 	}
 
@@ -84,5 +85,27 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 			return $gateways['amazon_payments_advanced']->supports;
 		}
 		return array();
+	}
+
+	public function gateways_to_unset_on_fe() {
+		$available_gateways = WC()->payment_gateways->payment_gateways();
+
+		$express_gateway = wc_apa()->get_express_gateway();
+
+		$regular_gateway = wc_apa()->get_gateway();
+
+		if ( is_null( $express_gateway ) ) {
+			return array();
+		}
+
+		if ( empty( $express_gateway->id ) || empty( $regular_gateway->id ) ) {
+			return array();
+		}
+
+		if ( empty( $available_gateways[ $express_gateway->id ] ) || empty( $available_gateways[ $regular_gateway->id ] ) ) {
+			return array();
+		}
+
+		return array_diff( array_keys( $available_gateways ), array( $express_gateway->id, $regular_gateway->id ) );
 	}
 }

@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
 import React from 'react';
 
-const { registerPaymentMethod } = wc.wcBlocksRegistry;
+const { registerPaymentMethod, registerPaymentMethodExtensionCallbacks } = wc.wcBlocksRegistry;
 
 /**
  * Internal dependencies
@@ -18,6 +18,16 @@ const settings = getBlocksConfiguration(PAYMENT_METHOD_NAME + '_data');
 const label =
 	decodeEntities(settings.title) ||
 	__('Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced');
+
+// Unsets all other Gateways.
+if ( settings.allOtherGateways ) {
+	let hideAllOtherPaymentGateways = {};
+	for ( const offset in settings.allOtherGateways ) {
+		hideAllOtherPaymentGateways[ settings.allOtherGateways[ offset ] ] = () => { return false; };
+	}
+	registerPaymentMethodExtensionCallbacks( 'amazon_payments_advanced', hideAllOtherPaymentGateways );
+}
+
 
 /**
  * Amazon Pay "Classic" payment method config object.

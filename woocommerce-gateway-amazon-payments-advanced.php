@@ -82,6 +82,13 @@ class WC_Amazon_Payments_Advanced {
 	private $gateway;
 
 	/**
+	 * Amazon Pay Express Gateway
+	 *
+	 * @var WC_Gateway_Amazon_Payments_Advanced_Express
+	 */
+	private $express_gateway = null;
+
+	/**
 	 * Amazon Pay Gateway Admin Class
 	 *
 	 * @var WC_Amazon_Payments_Advanced_Admin
@@ -257,7 +264,8 @@ class WC_Amazon_Payments_Advanced {
 			if ( ! class_exists( 'WC_Gateway_Amazon_Payments_Advanced_Express' ) ) {
 				require_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-express.php';
 			}
-			$methods[] = new WC_Gateway_Amazon_Payments_Advanced_Express();
+			$this->express_gateway = new WC_Gateway_Amazon_Payments_Advanced_Express();
+			$methods[] = $this->express_gateway;
 		}
 
 		return $methods;
@@ -518,6 +526,17 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function get_gateway() {
 		return $this->gateway;
+	}
+	
+	/**
+	 * Return instance of WC_Gateway_Amazon_Payments_Advanced_Express.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return WC_Gateway_Amazon_Payments_Advanced_Express
+	 */
+	public function get_express_gateway() {
+		return $this->express_gateway;
 	}
 }
 
