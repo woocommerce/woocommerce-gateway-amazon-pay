@@ -1,5 +1,15 @@
 *** Amazon Pay Changelog ***
 
+= 2.2.0 - 2022-xx-xx =
+
+* Add - Make Amazon Pay available as a traditional gateway option.
+* Add - Support Alexa Delivery notifications.
+* Add - Support Amazon Pay "Classic" on the checkout block of WooCommerce blocks.
+* Fix - Render Amazon Pay buttons even if they are not visible.
+* Fix - Prevents a JavaScript fatal when rendering Amazon Pay button.
+* Fix - Make Amazon Pay available for supported currencies only.
+* Dev - Bumped tested up to WordPress v6.0
+
 = 2.1.2 - 2022-03-17 =
 * Fix - Payment fails when site name is longer than 50 characters.
 * Fix - Payment fails when recurring payment frequency is passed as an integer.
