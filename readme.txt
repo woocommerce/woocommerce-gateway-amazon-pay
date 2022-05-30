@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 6.0
-Stable tag: 2.1.3
+Stable tag: 2.2.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -53,6 +53,16 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.2.0 - 2022-05-30 =
+
+* Add - Make Amazon Pay available as a traditional gateway option.
+* Add - Support Alexa Delivery notifications.
+* Add - Support Amazon Pay "Classic" on the checkout block of WooCommerce blocks.
+* Fix - Render Amazon Pay buttons even if they are not visible.
+* Fix - Prevents a JavaScript fatal when rendering Amazon Pay button.
+* Fix - Make Amazon Pay available for supported currencies only.
+* Dev - Bumped tested up to WordPress v6.0.
 
 = 2.1.3 - 2022-04-11 =
 * Fix - Amazon Pay shouldn't be available when not supported currency selected.
