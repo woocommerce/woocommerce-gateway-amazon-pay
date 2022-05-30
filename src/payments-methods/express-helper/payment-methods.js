@@ -1,10 +1,21 @@
-import { getBlocksConfiguration } from '../../utils';
-import { useEffect, render, useState } from '@wordpress/element';
+import { getBlocksConfiguration, getCheckOutFieldsLabel } from '../../utils';
+import { useEffect, render } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
 import { PAYMENT_METHOD_NAME } from '../express/constants';
 import { activateChange } from '../../renderAmazonButton';
 import React from 'react';
+const { registerCheckoutBlock } = wc.blocksCheckout;
+
+const options = {
+	metadata: {
+		name: 'amazon-payments-advanced/change-address',
+		parent: [ 'woocommerce/checkout-shipping-address-block' ],
+	},
+	component: () => <ChangeShippingAddress />,
+};
+
+registerCheckoutBlock( options );
 
 const settings = getBlocksConfiguration(PAYMENT_METHOD_NAME + '_data');
 
@@ -37,11 +48,9 @@ const ChangeShippingAddress = () => {
 	}, [] );
 
 	return (
-		<h2 style={{ width: '100%', display: 'flex', flexFlow: 'row nowrap', justifyContent: 'space-between' }} className="wc-block-components-title wc-block-components-checkout-step__title" aria-hidden="true">{ __( 'Shipping address', 'woocommerce' ) }
-			<a href="#" className="wc-apa-widget-change" id="amazon_change_shipping_address">
-				{ __( 'Change', 'woocommerce-gateway-amazon-payments-advanced' ) }
-			</a>
-		</h2>
+		<a href="#" className="wc-apa-widget-change" id="amazon_change_shipping_address">
+			{ __( 'Change', 'woocommerce-gateway-amazon-payments-advanced' ) }
+		</a>
 	);
 };
 
@@ -51,55 +60,52 @@ const ChangeShippingAddress = () => {
  * @returns React component
  */
 const AmazonPayBtn = ( props ) => {
-	const [ isActive, setIsActive ] = useState( true );
+	const { shippingAddress, setShippingAddress } = props.shippingData;
+
+	const { billingData } = props.billing;
+
+	const { amazonBilling, amazonShipping } = settings.amazonAddress;
 
 	useEffect( () => {
 		activateChange( 'amazon_change_payment_method', 'changePayment' );
 	}, [] );
 
-	// console.log( isActive, setIsActive );
-
-	// useEffect( () => {
-	// 	const unsubscribe = props.eventRegistration.onCheckoutAfterProcessingWithSuccess(
-	// 		async ( { processingResponse } ) => {
-	// 			const paymentDetails = processingResponse. || {};
-	// 			renderAndInitAmazonCheckout(paymentDetails
-	// 				'#classic_pay_with_amazon',
-	// 				'classic',
-	// 				paymentDetails?.amazonCreateCheckoutParams
-	// 			);
-	// 			return true;
-	// 		}
-	// 	);
-	// 	return () => unsubscribe();
-	// }, [
-	// 	props.eventRegistration.onCheckoutAfterProcessingWithSuccess,
-	// 	props.emitResponse.noticeContexts.PAYMENTS,
-	// 	props.emitResponse.responseTypes.ERROR,
-	// 	props.emitResponse.responseTypes.SUCCESS,
-	// ] );
-
-	// useEffect( () => {
-	// 	const unsubscribe = props.eventRegistration.onPaymentProcessing(
-	// 		async () => {
-	// 			const shippingPhone = document.getElementById( 'shipping-phone' );
-	// 			const billingPhone = document.getElementById( 'phone' );
-	// 			if ( ! shippingPhone?.value && ! billingPhone?.value ) {
-	// 				return {
-	// 					type: 'error',
-	// 					message: __( 'A phone number is required to complete your checkout through Amazon Pay.', 'woocommerce-gateway-amazon-payments-advanced' )
-	// 				};
-	// 			}
-	// 			return true;
-	// 		}
-	// 	);
-	// 	return () => unsubscribe();
-	// }, [
-	// 	props.eventRegistration.onPaymentProcessing,
-	// 	props.emitResponse.noticeContexts.PAYMENTS,
-	// 	props.emitResponse.responseTypes.ERROR,
-	// 	props.emitResponse.responseTypes.SUCCESS,
-	// ] );
+	useEffect( () => {
+		const unsubscribe = props.eventRegistration.onCheckoutValidationBeforeProcessing(
+			async () => {
+				for ( const shippingField in amazonShipping ) {
+					if ( amazonShipping[ shippingField ] !== shippingAddress[ shippingField ] ) {
+						return {
+							errorMessage: __( 'We were expecting "', 'woocommerce-gateway-amazon-payments-advanced' ) + amazonShipping[ shippingField ] + __( '" but we received "', 'woocommerce-gateway-amazon-payments-advanced' ) + shippingAddress[ shippingField ] + __( '" instead for the Shipping field "', 'woocommerce-gateway-amazon-payments-advanced' ) + getCheckOutFieldsLabel( shippingField, 'shipping' ) + __( '". Please make any changes to your Shipping details through Amazon.', 'woocommerce-gateway-amazon-payments-advanced' )
+						};
+					}
+				}
+				// Not sure if we should check billing details as well. @todo
+				// if ( 'undefined' !== typeof jQuery ) {
+				// 	if ( ! jQuery( '.wc-block-checkout__use-address-for-billing input.wc-block-components-checkbox__input' ).is( ':checked' ) ) {
+				// 		for ( const billingField in amazonBilling ) {
+				// 			if ( amazonBilling[ billingField ] !== billingData[ billingField ] ) {
+				// 				return {
+				// 					errorMessage: __( 'We were expecting "', 'woocommerce-gateway-amazon-payments-advanced' ) + amazonBilling[ billingField ] + __( '" but we received "', 'woocommerce-gateway-amazon-payments-advanced' ) + billingData[ billingField ] + __( '" instead for the Billing field "', 'woocommerce-gateway-amazon-payments-advanced' ) + getCheckOutFieldsLabel( billingField, 'billing' ) + __( '". Please make any changes to your Billing details through Amazon.', 'woocommerce-gateway-amazon-payments-advanced' )
+				// 				};
+				// 			}
+				// 		}
+				// 	}
+				// }
+				return true;
+			}
+		);
+		return () => unsubscribe();
+	}, [
+		props.eventRegistration.onCheckoutValidationBeforeProcessing,
+		billingData,
+		shippingAddress,
+		amazonBilling,
+		amazonShipping,
+		props.emitResponse.noticeContexts.PAYMENTS,
+		props.emitResponse.responseTypes.ERROR,
+		props.emitResponse.responseTypes.SUCCESS,
+	] );
 
 	return (
 		<React.Fragment>
@@ -115,12 +121,10 @@ const AmazonPayBtn = ( props ) => {
 };
 
 export const AmazonExpressLabel = ( { label, ...props } ) => {
-
 	const { PaymentMethodLabel } = props.components;
 
 	useEffect( () => {
 		render( <LogOutBanner/>, document.getElementsByClassName( 'wp-block-woocommerce-checkout-express-payment-block' )[0] );
-		render( <ChangeShippingAddress/>, document.querySelector( '.wc-block-checkout__shipping-fields > .wc-block-components-checkout-step__heading' ) );
 	}, [] );
 
 	return <PaymentMethodLabel text={ label } />;

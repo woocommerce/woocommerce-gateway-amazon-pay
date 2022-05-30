@@ -82,3 +82,8 @@ export const Content = ( { description, ...props } ) => {
 };
 
 export const AmazonPayPreview = () => <img style={{ width: 'auto' }} src={ amazonPayImage } alt="" />;
+
+export const getCheckOutFieldsLabel = ( field, billingOrShipping ) => {
+	const elem = document.getElementById( billingOrShipping + '-' + field );
+	return elem && elem.getAttribute( 'aria-label' ) ? elem.getAttribute( 'aria-label' ) : '';
+}

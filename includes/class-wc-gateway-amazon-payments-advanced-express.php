@@ -46,7 +46,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 	/**
 	 * Update a single option.
 	 *
-	 * @since 3.4.0
 	 * @param string $key Option key.
 	 * @param mixed  $value Value to set.
 	 * @return bool was anything saved?

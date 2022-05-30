@@ -160,9 +160,14 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler.php';
 		include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-ipn-handler-legacy.php';
 
+		
 		// On install hook.
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-install.php';
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
+		
+		/* Amazon Blocks */
+		include_once $this->includes_path . 'blocks/class-wc-amazon-payments-advanced-register-blocks.php';
+		new WC_Amazon_Payments_Advanced_Register_Blocks();
 
 		add_action( 'woocommerce_init', array( $this, 'init' ) );
 
@@ -527,11 +532,9 @@ class WC_Amazon_Payments_Advanced {
 	public function get_gateway() {
 		return $this->gateway;
 	}
-	
+
 	/**
 	 * Return instance of WC_Gateway_Amazon_Payments_Advanced_Express.
-	 *
-	 * @since 2.0.0
 	 *
 	 * @return WC_Gateway_Amazon_Payments_Advanced_Express
 	 */

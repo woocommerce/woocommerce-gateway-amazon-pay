@@ -8,27 +8,28 @@ const fs = require( 'fs' );
 function getWebpackEntryPoints() {
 	const entryPoints = {};
 
-    const entryPaths = [
-        fromProjectRoot( path.join( 'src', 'payments-methods' ) ),
-    ];
+    const entryPaths = {
+        'payments-methods': fromProjectRoot( path.join( 'src', 'payments-methods' ) ),
+        'blocks': fromProjectRoot( path.join( 'src', 'blocks' ) ),
+    };
 
     const entryNames = [ 'index' ];
     // const entryNames = [ 'index', 'frontend' ];
 
 	entryNames.forEach( ( entryName ) => {
-        for ( const entryPath of entryPaths ) {
+        for ( const entryPath in entryPaths ) {
             const dirs = fs
-                .readdirSync( entryPath, {
+                .readdirSync( entryPaths[ entryPath ], {
                     withFileTypes: true,
                 } )
                 .filter( ( item ) => item.isDirectory() )
                 .map( ( item ) => item.name );
 
             dirs.forEach( ( dir ) => {
-                const filepath = path.resolve( entryPath, dir, `${ entryName }.js` );
+                const filepath = path.resolve( entryPaths[ entryPath ], dir, `${ entryName }.js` );
                 if ( fs.existsSync( filepath ) ) {
-                    entryPoints[ dir + '/' + entryName ] = filepath;
-                    entryPoints[ dir + '/' + entryName + '.min' ] = filepath;
+                    entryPoints[ entryPath + '/' + dir + '/' + entryName ] = filepath;
+                    entryPoints[ entryPath + '/' + dir + '/' + entryName + '.min' ] = filepath;
                 }
             } );
 
