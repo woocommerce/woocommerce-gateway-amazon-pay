@@ -3,12 +3,12 @@
  * Plugin Name: WooCommerce Amazon Pay
  * Plugin URI: https://woocommerce.com/products/pay-with-amazon/
  * Description: Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.
- * Version: 2.1.2
+ * Version: 2.1.3
  * Author: WooCommerce
  * Author URI: https://woocommerce.com
  * Text Domain: woocommerce-gateway-amazon-payments-advanced
  * Domain Path: /languages/
- * Tested up to: 5.9
+ * Tested up to: 6.0
  * WC tested up to: 5.3
  * WC requires at least: 2.6
  *
@@ -19,7 +19,7 @@
  * @package WC_Gateway_Amazon_Pay
  */
 
-define( 'WC_AMAZON_PAY_VERSION', '2.1.2' ); // WRCS: DEFINED_VERSION.
+define( 'WC_AMAZON_PAY_VERSION', '2.1.3' ); // WRCS: DEFINED_VERSION.
 define( 'WC_AMAZON_PAY_VERSION_CV1', '1.13.1' );
 
 /**
@@ -235,6 +235,12 @@ class WC_Amazon_Payments_Advanced {
 			$this->gateway = new WC_Gateway_Amazon_Payments_Advanced_Legacy();
 		}
 		$this->gateway->gateway_settings_init();
+
+		/* Enable Alexa Notifications support based on Gateway's option. */
+		if ( ! empty( $this->settings['alexa_notifications_support'] ) && 'yes' === $this->settings['alexa_notifications_support'] ) {
+			include_once $this->includes_path . 'class-wc-amazon-payments-advanced-alexa-notifications.php';
+			new WC_Amazon_Payments_Advanced_Alexa_Notifications();
+		}
 	}
 
 	/**

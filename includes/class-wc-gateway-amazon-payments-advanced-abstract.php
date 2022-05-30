@@ -11,6 +11,63 @@
 abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_Gateway {
 
 	/**
+	 * ISO region codes for JAPAN mapped to Japanese.
+	 *
+	 * Used to pass the region in Japanese to the Amazon API.
+	 *
+	 * Specifically requested by Amazon's JP Team.
+	 */
+	const JP_REGION_CODE_MAP = array(
+		'JP01' => '北海道',
+		'JP02' => '青森県',
+		'JP03' => '岩手県',
+		'JP04' => '宮城県',
+		'JP05' => '秋田県',
+		'JP06' => '山形県',
+		'JP07' => '福島県',
+		'JP08' => '茨城県',
+		'JP09' => '栃木県',
+		'JP10' => '群馬県',
+		'JP11' => '埼玉県',
+		'JP12' => '千葉県',
+		'JP13' => '東京都',
+		'JP14' => '神奈川県',
+		'JP15' => '新潟県',
+		'JP16' => '富山県',
+		'JP17' => '石川県',
+		'JP18' => '福井県',
+		'JP19' => '山梨県',
+		'JP20' => '長野県',
+		'JP21' => '岐阜県',
+		'JP22' => '静岡県',
+		'JP23' => '愛知県',
+		'JP24' => '三重県',
+		'JP25' => '滋賀県',
+		'JP26' => '京都府',
+		'JP27' => '大阪府',
+		'JP28' => '兵庫県',
+		'JP29' => '奈良県',
+		'JP30' => '和歌山県',
+		'JP31' => '鳥取県',
+		'JP32' => '島根県',
+		'JP33' => '岡山県',
+		'JP34' => '広島県',
+		'JP35' => '山口県',
+		'JP36' => '徳島県',
+		'JP37' => '香川県',
+		'JP38' => '愛媛県',
+		'JP39' => '高知県',
+		'JP40' => '福岡県',
+		'JP41' => '佐賀県',
+		'JP42' => '長崎県',
+		'JP43' => '熊本県',
+		'JP44' => '大分県',
+		'JP45' => '宮崎県',
+		'JP46' => '鹿児島県',
+		'JP47' => '沖縄県',
+	);
+
+	/**
 	 * Amazon Private Key
 	 *
 	 * @var string
@@ -238,6 +295,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		$this->title                   = $settings['title'];
+		$this->description             = $settings['description'];
 		$this->payment_region          = $settings['payment_region'];
 		$this->merchant_id             = $settings['merchant_id'];
 		$this->store_id                = $settings['store_id'];
@@ -309,6 +367,20 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'type'        => 'checkbox',
 				'description' => '',
 				'default'     => 'yes',
+			),
+			'title'                         => array(
+				'title'       => __( 'Title', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'text',
+				'description' => __( 'This controls the title which the user sees during checkout.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'default'     => __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+			),
+			'description'                   => array(
+				'title'       => __( 'Description', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'type'        => 'textarea',
+				'description' => __( 'Payment method description that the customer will see on your checkout.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'default'     => __( 'Complete your payment using Amazon Pay!', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
 			),
 			'account_details'               => array(
 				'title'       => __( 'Amazon Pay Merchant account details', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -468,7 +540,39 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			'hide_button_mode'              => array(
 				'title'       => __( 'Hide Button Mode', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable hide button mode', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'description' => __( 'This will hides Amazon buttons on cart and checkout pages so the gateway looks not available to the customers. The buttons are hidden via CSS. Only enable this when troubleshooting your integration.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will hides Amazon buttons on the mini-cart and on cart, checkout and product pages so the gateway looks not available to the customers. It will not hide the classic integration, if it\'s enabled. The buttons are hidden via CSS. Only enable this when troubleshooting your integration.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'no',
+			),
+			'enable_classic_gateway'        => array(
+				'title'       => __( 'Classic Gateway', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable Amazon Pay as a classic Gateway Option', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will enable Amazon Pay to also appear along other Gateway Options. Compatible with the Checkout Block of WooCommerce Blocks.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'yes',
+			),
+			'mini_cart_button'              => array(
+				'title'       => __( 'Amazon Pay on mini cart', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable Amazon Pay on mini cart', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will only work if you are using WooCommerce\'s mini cart. If you enable it and the Amazon Pay does not show please disable since it also enables loading of required assets globally in your frontend. Not compatible with WooCommerce Blocks.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'no',
+			),
+			'product_button'                => array(
+				'title'       => __( 'Amazon Pay on product pages', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable Amazon Pay on product pages', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will enable the Amazon Pay button on the product pages next to the Add to Cart button. Not compatible with WooCommerce Blocks.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'no',
+			),
+			'alexa_notifications_support'   => array(
+				'title'       => __( 'Support Alexa Delivery Notifications', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable support for Alexa Delivery Notifications', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will enable support for Alexa Delivery notifications.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 				'type'        => 'checkbox',
 				'default'     => 'no',
@@ -621,7 +725,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			ob_start();
 			?>
 			</table>
-			<?php echo $html; ?>
+			<?php echo $html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<table class="form-table">
 			<?php
 			$html = ob_get_clean();
@@ -836,9 +940,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 *
 	 * @param  bool   $echo Wether to echo or not.
 	 * @param  string $elem HTML tag to render.
+	 * @param  string $id   The id attribute to provide the HTML tag with.
 	 * @return bool|string|void
 	 */
-	public function checkout_button( $echo = true, $elem = 'div' ) {
+	public function checkout_button( $echo = true, $elem = 'div', $id = 'pay_with_amazon' ) {
 		$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
 		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
 		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
@@ -847,13 +952,43 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			return;
 		}
 
-		$button_placeholder = '<' . $elem . ' id="pay_with_amazon"></' . $elem . '>';
+		$button_placeholder = '<' . $elem . ' id="' . esc_attr( $id ) . '"></' . $elem . '>';
 
 		if ( false === $echo ) {
 			return $button_placeholder;
 		} else {
-			echo $button_placeholder;
+			echo $button_placeholder; // phpcs:ignore WordPress.Security.EscapeOutput
 			return true;
+		}
+	}
+
+	/**
+	 * Classic Checkout button
+	 *
+	 * Triggered from 'woocommerce_after_checkout_form' and 'woocommerce_pay_order_after_submit'.
+	 *
+	 * @param bool   $echo Wether to echo or not.
+	 * @param string $elem HTML tag to render.
+	 * @return bool|string|void
+	 */
+	public function classic_integration_button( $echo = true, $elem = 'div' ) {
+		if ( $this->is_available() && $this->is_classic_enabled() ) {
+			$subscriptions_installed = class_exists( 'WC_Subscriptions_Order' ) && function_exists( 'wcs_create_renewal_order' );
+			$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
+			$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
+
+			if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+				return;
+			}
+
+			$button_placeholder = '<' . $elem . ' id="classic_pay_with_amazon"></' . $elem . '>';
+
+			if ( false === $echo ) {
+				return $button_placeholder;
+			} else {
+				echo $button_placeholder; // phpcs:ignore WordPress.Security.EscapeOutput
+				return true;
+			}
 		}
 	}
 
@@ -865,7 +1000,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @return array
 	 */
 	public function remove_amazon_gateway( $gateways ) {
-		if ( isset( $gateways[ $this->id ] ) ) {
+		if ( ! empty( $this->settings['enable_classic_gateway'] ) && 'no' === $this->settings['enable_classic_gateway'] && isset( $gateways[ $this->id ] ) ) {
 			unset( $gateways[ $this->id ] );
 		}
 
@@ -968,5 +1103,32 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Returns if the classic integration is enabled.
+	 *
+	 * @return boolean
+	 */
+	public function is_classic_enabled() {
+		return empty( $this->settings['enable_classic_gateway'] ) || 'yes' === $this->settings['enable_classic_gateway'];
+	}
+
+	/**
+	 * Returns if the mini-cart button placement is enabled.
+	 *
+	 * @return boolean
+	 */
+	protected function is_mini_cart_button_enabled() {
+		return ! empty( $this->settings['mini_cart_button'] ) && 'yes' === $this->settings['mini_cart_button'];
+	}
+
+	/**
+	 * Returns if the product button placement is enabled.
+	 *
+	 * @return boolean
+	 */
+	protected function is_product_button_enabled() {
+		return ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'];
 	}
 }

@@ -10,6 +10,10 @@
 * Fix - Make Amazon Pay available for supported currencies only.
 * Dev - Bumped tested up to WordPress v6.0.
 
+= 2.1.3 - 2022-04-11 =
+* Fix - Amazon Pay shouldn't be available when not supported currency selected.
+* Dev - Bumped tested up to WordPress 5.9.
+
 = 2.1.2 - 2022-03-17 =
 * Fix - Payment fails when site name is longer than 50 characters.
 * Fix - Payment fails when recurring payment frequency is passed as an integer.

@@ -93,6 +93,16 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	}
 
 	/**
+	 * Enables Alexa Notifications for an order specified in $payload.
+	 *
+	 * @param array $payload Data passed to Amazon to Enable delivery notifications on the user's Alexa.
+	 * @return array
+	 */
+	public static function trigger_alexa_notifications( $payload ) {
+		return self::get_client()->deliveryTrackers( $payload );
+	}
+
+	/**
 	 * Add Amazon reference information in order item response.
 	 *
 	 * @since 2.0.0
@@ -355,8 +365,8 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		if ( is_null( $redirect_url ) ) {
 			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
 				$parts        = wp_parse_url( home_url() );
-				$current_uri  = "{$parts['scheme']}://{$parts['host']}" . add_query_arg( null, null );
-				$redirect_url = $current_uri;
+				$path         = ! empty( $parts['path'] ) ? $parts['path'] : '';
+				$redirect_url = "{$parts['scheme']}://{$parts['host']}{$path}" . add_query_arg( null, null );
 			} else {
 				$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
 			}
@@ -364,7 +374,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
 		$payload      = array(
 			'storeId'            => $settings['store_id'],
-			'platformId'         => 'A1BVJDFFHQ7US4',
+			'platformId'         => self::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
 			'webCheckoutDetails' => array(
 				'checkoutReviewReturnUrl' => add_query_arg( 'amazon_login', '1', $redirect_url ),
 				'checkoutResultReturnUrl' => add_query_arg( 'amazon_return', '1', $redirect_url ),
@@ -390,6 +400,50 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	}
 
 	/**
+	 * Create classic checkout session parameters for button.
+	 *
+	 * @param string $redirect_url Redirect URL on success.
+	 * @return array
+	 */
+	public static function create_checkout_session_classic_params( $redirect_url = null ) {
+
+		$settings = self::get_settings();
+		if ( is_null( $redirect_url ) ) {
+			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
+				$parts        = wp_parse_url( home_url() );
+				$path         = ! empty( $parts['path'] ) ? $parts['path'] : '';
+				$redirect_url = "{$parts['scheme']}://{$parts['host']}{$path}" . add_query_arg( null, null );
+			} else {
+				$redirect_url = get_permalink( wc_get_page_id( 'checkout' ) );
+			}
+		}
+		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
+		$payload      = array(
+			'storeId'            => $settings['store_id'],
+			'platformId'         => self::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
+			'webCheckoutDetails' => array(
+				'checkoutMode'            => 'ProcessOrder',
+				'checkoutResultReturnUrl' => add_query_arg( 'amazon_return_classic', '1', $redirect_url ),
+			),
+		);
+
+		$restrictions = self::get_shipping_restrictions();
+		if ( $restrictions ) {
+			$payload['deliverySpecifications'] = array(
+				'addressRestrictions' => array(
+					'type'         => 'Allowed',
+					'restrictions' => $restrictions,
+				),
+			);
+		}
+
+		$payload = apply_filters( 'woocommerce_amazon_pa_create_checkout_session_classic_params', $payload, $redirect_url );
+
+		return $payload;
+
+	}
+
+	/**
 	 * Get create checkout session config to send to the
 	 *
 	 * @param  string $redirect_url Redirect URL on success.
@@ -401,6 +455,22 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 		$payload  = self::create_checkout_session_params( $redirect_url );
 
 		$signature = $client->generateButtonSignature( $payload );
+		return array(
+			'publicKeyId' => $settings['public_key_id'],
+			'payloadJSON' => $payload,
+			'signature'   => $signature,
+		);
+	}
+
+	/**
+	 * Get classic create checkout session config to send to Amazon.
+	 *
+	 * @param array  $payload      The payload that will be used to create a checkout session.
+	 * @return array
+	 */
+	public static function get_create_checkout_classic_session_config( $payload ) {
+		$settings  = self::get_settings();
+		$signature = self::get_client()->generateButtonSignature( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
 		return array(
 			'publicKeyId' => $settings['public_key_id'],
 			'payloadJSON' => $payload,
@@ -772,6 +842,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		/**
 		 * Amazon Pay API v2 supports a merchantStoreName property of a 50 chars max length.
+		 *
 		 * @see https://developer.amazon.com/docs/amazon-pay-api-v2/charge.html#type-merchantmetadata
 		 *
 		 * We could completely avoid providing this property, since it is used to overwrite what the merchant
