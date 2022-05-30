@@ -62,7 +62,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 * Fix - Render Amazon Pay buttons even if they are not visible.
 * Fix - Prevents a JavaScript fatal when rendering Amazon Pay button.
 * Fix - Make Amazon Pay available for supported currencies only.
-* Dev - Bumped tested up to WordPress v6.0
+* Dev - Bumped tested up to WordPress v6.0.
 
 = 2.1.2 - 2022-03-17 =
 * Fix - Payment fails when site name is longer than 50 characters.
