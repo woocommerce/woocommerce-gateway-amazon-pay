@@ -1052,7 +1052,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		foreach ( $checkout_session->paymentPreferences as $pref ) { // phpcs:ignore WordPress.NamingConventions
 			if ( isset( $pref->paymentDescriptor ) ) {
-				$selected_label = $pref->paymentDescriptor;
+				$selected_label = $pref->paymentDescriptor; // phpcs:ignore WordPress.NamingConventions
 			}
 		}
 

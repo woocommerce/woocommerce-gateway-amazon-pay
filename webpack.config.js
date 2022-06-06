@@ -13,8 +13,7 @@ function getWebpackEntryPoints() {
         'blocks': fromProjectRoot( path.join( 'src', 'blocks' ) ),
     };
 
-    const entryNames = [ 'index' ];
-    // const entryNames = [ 'index', 'frontend' ];
+    const entryNames = [ 'index', 'frontend' ];
 
 	entryNames.forEach( ( entryName ) => {
         for ( const entryPath in entryPaths ) {

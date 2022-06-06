@@ -9,12 +9,21 @@
  * Backend registration of Amazon Blocks.
  */
 class WC_Amazon_Payments_Advanced_Register_Blocks {
+	/**
+	 * Custom arguments used to identify if a block has
+	 * - frontend script
+	 * - frontend style
+	 * - backend style
+	 */
 	const CUSTOM_ARGS = array(
 		'frontend_script',
 		'backend_style',
 		'frontend_style',
 	);
 
+	/**
+	 * Amazon Pay Blocks
+	 */
 	const BLOCKS = array(
 		'change-address' => array(
 			'frontend_script' => false,
@@ -23,10 +32,18 @@ class WC_Amazon_Payments_Advanced_Register_Blocks {
 		),
 	);
 
+	/**
+	 * Register our hooks.
+	 */
 	public function __construct() {
 		add_action( 'init', array( $this, 'register_amazon_blocks' ), 90 );
 	}
 
+	/**
+	 * Registers Amazon Pay Blocks.
+	 *
+	 * @return void
+	 */
 	public function register_amazon_blocks() {
 		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
@@ -43,14 +60,24 @@ class WC_Amazon_Payments_Advanced_Register_Blocks {
 			$script_helper_data = include $script_data_file;
 			wp_register_script( 'amazon-payments-advanced-blocks-' . $block . '-editor', wc_apa()->plugin_url . '/build/blocks/' . $block . '/index' . $min . '.js', $script_helper_data['dependencies'], $script_helper_data['version'], true );
 
-			if ( $args['frontend_script'] ) {
+			if ( ! empty( $args['frontend_script'] ) ) {
+				$script_helper_data = include $plugin_root . '/build/blocks/' . $block . '/frontend' . $min . '.asset.php';
+				wp_register_script( 'amazon-payments-advanced-blocks-' . $block, wc_apa()->plugin_url . '/build/blocks/' . $block . '/frontend' . $min . '.js', $script_helper_data['dependencies'], $script_helper_data['version'], true );
 			}
-			if ( $args['frontend_style'] ) {
+
+			if ( ! empty( $args['frontend_style'] ) ) {
+				wp_register_style( 'amazon-payments-advanced-blocks-' . $block, wc_apa()->plugin_url . '/build/blocks/' . $block . '/style-index.css', array(), $script_helper_data['version'] );
 			}
-			if ( $args['backend_style'] ) {
+
+			if ( ! empty( $args['backend_style'] ) ) {
+				wp_register_style( 'amazon-payments-advanced-blocks-' . $block . '-editor', wc_apa()->plugin_url . '/build/blocks/' . $block . '/index.css', array(), $script_helper_data['version'] );
 			}
 
 			foreach ( self::CUSTOM_ARGS as $custom_arg ) {
+				if ( ! isset( $args[ $custom_arg ] ) ) {
+					continue;
+				}
+
 				unset( $args[ $custom_arg ] );
 			}
 

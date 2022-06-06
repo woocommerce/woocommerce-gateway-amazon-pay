@@ -61,7 +61,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 	 */
 	public function visually_hide_amazon_express_on_backend() {
 		?>
-		<style>table.wc_gateways tr[data-gateway_id="<?php echo esc_attr( $this->id ); ?>"]{display:none;}</style>
+		<style>table.wc_gateways tr[data-gateway_id="<?php echo esc_attr( $this->id ); ?>"]{display:none!important;}</style>
 		<?php
 	}
 
