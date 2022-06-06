@@ -1,8 +1,10 @@
-import { getBlocksConfiguration, Content } from '../../utils';
 import { useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
 import React from 'react';
+
+import { Content } from '../../utils';
+import { settings } from './settings';
+import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
 
 /**
  * Returns a react component and also sets an observer for the onCheckoutAfterProcessingWithSuccess event.
@@ -64,7 +66,7 @@ const AmazonPayBtn = ( props ) => {
 export const AmazonContent = ( props ) => {
 	return (
 		<React.Fragment>
-			<Content description={ getBlocksConfiguration( 'amazon_payments_advanced_data' )?.description }/>
+			<Content description={ settings?.description }/>
 			<AmazonPayBtn { ...props } />
 		</React.Fragment>
 	);

@@ -9,8 +9,9 @@ const { registerExpressPaymentMethod } = wc.wcBlocksRegistry;
  * Internal dependencies
  */
 import { PAYMENT_METHOD_NAME } from './constants';
-import { getBlocksConfiguration, AmazonComponent, AmazonPayPreview } from '../../utils';
+import { AmazonComponent, AmazonPayPreview } from '../../utils';
 import { AmazonExpressContent } from './payment-methods';
+import { settings } from './settings';
 
 /**
  * Amazon Pay "Express" payment method config object.
@@ -21,7 +22,7 @@ const amazonPayPaymentMethod = {
     edit: <AmazonPayPreview />,
     canMakePayment: () => true,
     supports: {
-        features: getBlocksConfiguration( PAYMENT_METHOD_NAME + '_data' )?.supports ?? [],
+        features: settings?.supports ?? [],
     },
 };
 

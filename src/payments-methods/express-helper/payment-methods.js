@@ -1,11 +1,19 @@
-import { getBlocksConfiguration, getCheckOutFieldsLabel } from '../../utils';
+/**
+ * External dependencies
+ */
 import { useEffect, render } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
-import { PAYMENT_METHOD_NAME } from '../express/constants';
-import { activateChange } from '../../renderAmazonButton';
 import React from 'react';
+
 const { registerCheckoutBlock } = wc.blocksCheckout;
+
+/**
+ * Internal dependencies
+ */
+import { getCheckOutFieldsLabel } from '../../utils';
+import { activateChange } from '../../renderAmazonButton';
+import { settings } from '../express/settings';
 
 const options = {
 	metadata: {
@@ -17,8 +25,11 @@ const options = {
 
 registerCheckoutBlock( options );
 
-const settings = getBlocksConfiguration(PAYMENT_METHOD_NAME + '_data');
-
+/**
+ * The logout Banner component.
+ *
+ * @returns React component
+ */
 const LogOutBanner = () => {
 	return (
 		<div className="woocommerce-info info">
@@ -30,6 +41,11 @@ const LogOutBanner = () => {
 	);
 };
 
+/**
+ * The change Payment method component.
+ *
+ * @returns React component
+ */
 const ChangePayment = () => {
 	useEffect( () => {
 		activateChange( 'amazon_change_payment_method', 'changePayment' );
@@ -42,6 +58,11 @@ const ChangePayment = () => {
 	);
 };
 
+/**
+ * The change Shipping Address Component.
+ *
+ * @returns React component
+ */
 const ChangeShippingAddress = () => {
 	useEffect( () => {
 		activateChange( 'amazon_change_shipping_address', 'changeAddress' );
@@ -55,11 +76,12 @@ const ChangeShippingAddress = () => {
 };
 
 /**
- * Returns a react component and also sets an observer for the onCheckoutAfterProcessingWithSuccess event.
+ * Returns a react component and also sets an observer for the onCheckoutValidationBeforeProcessing event.
+ *
  * @param {object} props
  * @returns React component
  */
-const AmazonPayBtn = ( props ) => {
+const AmazonPayInfo = ( props ) => {
 	const { shippingAddress, setShippingAddress } = props.shippingData;
 
 	const { billingData } = props.billing;
@@ -120,6 +142,13 @@ const AmazonPayBtn = ( props ) => {
 	);
 };
 
+/**
+ * Return the Component that will be used as the label for Amazon Pay "Express".
+ *
+ * @param {string} label The text label.
+ * @param {object} props Props from payment API.
+ * @returns React Component
+ */
 export const AmazonExpressLabel = ( { label, ...props } ) => {
 	const { PaymentMethodLabel } = props.components;
 
@@ -131,15 +160,15 @@ export const AmazonExpressLabel = ( { label, ...props } ) => {
 };
 
 /**
- * Returns the Components that will be used by Amazon Pay "Classic".
+ * Returns the Components that will be used by Amazon Pay "Express".
  *
  * @param {object} props
  * @returns React Component
  */
-export const AmazonContent = ( props ) => {
+export const AmazonExpressContent = ( props ) => {
 	return (
 		<React.Fragment>
-			<AmazonPayBtn { ...props } />
+			<AmazonPayInfo { ...props } />
 		</React.Fragment>
 	);
 };

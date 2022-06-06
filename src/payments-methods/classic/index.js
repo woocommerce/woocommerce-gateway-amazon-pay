@@ -10,10 +10,10 @@ const { registerPaymentMethod } = wc.wcBlocksRegistry;
  * Internal dependencies
  */
 import { PAYMENT_METHOD_NAME } from './constants';
-import { getBlocksConfiguration, Label, AmazonComponent } from '../../utils';
+import { Label, AmazonComponent } from '../../utils';
 import { AmazonContent } from './payment-methods';
+import { settings } from './settings';
 
-const settings = getBlocksConfiguration( PAYMENT_METHOD_NAME + '_data' );
 const label = decodeEntities( settings.title ) || __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' );
 
 

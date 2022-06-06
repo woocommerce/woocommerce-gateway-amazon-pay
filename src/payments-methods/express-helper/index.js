@@ -11,15 +11,15 @@ const { registerPaymentMethod, registerPaymentMethodExtensionCallbacks } = wc.wc
  * Internal dependencies
  */
 import { PAYMENT_METHOD_NAME } from '../express/constants';
-import { getBlocksConfiguration, AmazonComponent } from '../../utils';
-import { AmazonContent, AmazonExpressLabel } from './payment-methods';
+import { AmazonComponent } from '../../utils';
+import { AmazonExpressContent, AmazonExpressLabel } from './payment-methods';
+import { settings } from '../express/settings';
 
-const settings = getBlocksConfiguration(PAYMENT_METHOD_NAME + '_data');
 const label =
 	decodeEntities(settings.title) ||
 	__('Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced');
 
-// Unsets all other Gateways.
+// Unset all other Gateways.
 if ( settings.allOtherGateways ) {
 	let hideAllOtherPaymentGateways = {};
 	for ( const offset in settings.allOtherGateways ) {
@@ -30,14 +30,14 @@ if ( settings.allOtherGateways ) {
 
 
 /**
- * Amazon Pay "Classic" payment method config object.
+ * Amazon Pay "Express" payment method config object.
  */
 const amazonPayPaymentMethod = {
 	name: PAYMENT_METHOD_NAME,
 	label: <AmazonExpressLabel label={ label } />,
 	placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
-	content: <AmazonComponent RenderedComponent={ AmazonContent } />,
-	edit: <AmazonComponent RenderedComponent={ AmazonContent } />,
+	content: <AmazonComponent RenderedComponent={ AmazonExpressContent } />,
+	edit: <AmazonComponent RenderedComponent={ AmazonExpressContent } />,
 	canMakePayment: () => true,
 	ariaLabel: label,
 	supports: {
@@ -46,6 +46,6 @@ const amazonPayPaymentMethod = {
 };
 
 /**
- * Registers Amazon Pay "Classic" as a Payment Method in the Checkout Block of WooCommerce Blocks.
+ * Registers Amazon Pay "Express" as a Payment Method in the Checkout Block of WooCommerce Blocks.
  */
 registerPaymentMethod(amazonPayPaymentMethod);

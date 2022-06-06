@@ -1,7 +1,14 @@
+/**
+ * External dependencies
+ */
 import { useEffect, useState } from '@wordpress/element';
 import { decodeEntities } from '@wordpress/html-entities';
-import { amazonPayImage } from './amazon-pay-preview';
 import { __ } from '@wordpress/i18n';
+
+/**
+ * Internal dependencies
+ */
+import { amazonPayImage } from './amazon-pay-preview';
 
 /**
  * Returns an array of the sibling of the element that have the class className.
@@ -47,7 +54,9 @@ export const getBlocksConfiguration = ( name ) => {
 /**
  * Label component
  *
+ * @param {string} label The text label.
  * @param {object} props Props from payment API.
+ * @returns React Component
  */
 export const Label = ( { label, ...props } ) => {
 	const { PaymentMethodLabel } = props.components;
@@ -81,8 +90,20 @@ export const Content = ( { description, ...props } ) => {
 	return decodeEntities( description );
 };
 
+/**
+ * The Amazon Pay preview image for the editor.
+ *
+ * @returns React component
+ */
 export const AmazonPayPreview = () => <img style={{ width: 'auto' }} src={ amazonPayImage } alt="" />;
 
+/**
+ * Returns a checkout field's label.
+ *
+ * @param {string} field The field's name to retrieve the label for.
+ * @param {string} billingOrShipping If the field is for billing or shipping details.
+ * @returns {string} The field's label.
+ */
 export const getCheckOutFieldsLabel = ( field, billingOrShipping ) => {
 	const elem = document.getElementById( billingOrShipping + '-' + field );
 	return elem && elem.getAttribute( 'aria-label' ) ? elem.getAttribute( 'aria-label' ) : '';
