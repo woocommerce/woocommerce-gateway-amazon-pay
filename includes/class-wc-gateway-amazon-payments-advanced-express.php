@@ -10,6 +10,11 @@
  */
 class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Payments_Advanced {
 
+	/**
+	 * Payment's method id.
+	 *
+	 * @var string
+	 */
 	public $id = 'amazon_payments_advanced_express';
 
 	/**

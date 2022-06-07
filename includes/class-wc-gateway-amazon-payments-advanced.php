@@ -1012,7 +1012,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Returns whether there are payment preferences set in the checkout
 	 * session object.
 	 *
-	 * @param object $checkout_session
+	 * @param  object $checkout_session The active checkout session.
 	 * @return boolean
 	 */
 	public function has_payment_preferences( $checkout_session = null ) {
@@ -1030,7 +1030,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Returns the selected payment method from Amazon.
 	 *
-	 * @param object $checkout_session
+	 * @param object $checkout_session The active checkout session.
 	 * @return string
 	 */
 	public function get_selected_payment_label( $checkout_session = null ) {
@@ -1038,7 +1038,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$checkout_session = $this->get_checkout_session();
 		}
 
-		$default =  esc_html__( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' );
+		$default = esc_html__( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' );
 
 		if ( ! $checkout_session || is_wp_error( $checkout_session ) ) {
 			return $default;
@@ -1051,7 +1051,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$selected_label = '';
 
 		foreach ( $checkout_session->paymentPreferences as $pref ) { // phpcs:ignore WordPress.NamingConventions
-			if ( isset( $pref->paymentDescriptor ) ) {
+			if ( isset( $pref->paymentDescriptor ) ) { // phpcs:ignore WordPress.NamingConventions
 				$selected_label = $pref->paymentDescriptor; // phpcs:ignore WordPress.NamingConventions
 			}
 		}

@@ -465,7 +465,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Get classic create checkout session config to send to Amazon.
 	 *
-	 * @param array  $payload      The payload that will be used to create a checkout session.
+	 * @param  array $payload The payload that will be used to create a checkout session.
 	 * @return array
 	 */
 	public static function get_create_checkout_classic_session_config( $payload ) {

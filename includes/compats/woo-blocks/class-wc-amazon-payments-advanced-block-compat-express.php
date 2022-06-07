@@ -54,8 +54,8 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 				'hasPaymentPreferences' => wc_apa()->get_gateway()->has_payment_preferences( $checkout_session ),
 				'allOtherGateways'      => $this->gateways_to_unset_on_fe(),
 				'amazonAddress'         => array(
-					'amazonBilling'  => $checkout_session && ! is_wp_error( $checkout_session ) && ! empty( $checkout_session->billingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) : null,
-					'amazonShipping' => $checkout_session && ! is_wp_error( $checkout_session ) && ! empty( $checkout_session->shippingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) : null,
+					'amazonBilling'  => $checkout_session && ! is_wp_error( $checkout_session ) && ! empty( $checkout_session->billingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) : null, // phpcs:ignore WordPress.NamingConventions
+					'amazonShipping' => $checkout_session && ! is_wp_error( $checkout_session ) && ! empty( $checkout_session->shippingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) : null, // phpcs:ignore WordPress.NamingConventions
 				),
 			)
 		);
@@ -94,7 +94,12 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 		return array();
 	}
 
-	public function gateways_to_unset_on_fe() {
+	/**
+	 * Returns an array of payment method ids to unset on the frontend.
+	 *
+	 * @return array
+	 */
+	protected function gateways_to_unset_on_fe() {
 		$available_gateways = WC()->payment_gateways->payment_gateways();
 
 		$express_gateway = wc_apa()->get_express_gateway();
