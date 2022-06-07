@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useEffect, render } from '@wordpress/element';
+import { useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
 import React from 'react';
@@ -14,32 +14,11 @@ const { registerCheckoutBlock } = wc.blocksCheckout;
 import { getCheckOutFieldsLabel } from '../../utils';
 import { activateChange } from '../../renderAmazonButton';
 import { settings } from '../express/settings';
+import { changeShippingAddressOptions, logOutBannerOptions } from './checkout-blocks';
 
-const options = {
-	metadata: {
-		name: 'amazon-payments-advanced/change-address',
-		parent: [ 'woocommerce/checkout-shipping-address-block' ],
-	},
-	component: () => <ChangeShippingAddress />,
-};
-
-registerCheckoutBlock( options );
-
-/**
- * The logout Banner component.
- *
- * @returns React component
- */
-const LogOutBanner = () => {
-	return (
-		<div className="woocommerce-info info">
-			{ decodeEntities( settings.logoutMessage ) } { " " }
-			<a href={ settings.logoutUrl }>
-				{ decodeEntities( __( 'Log out &raquo;', 'woocommerce-gateway-amazon-payments-advanced' ) ) }
-			</a>
-		</div>
-	);
-};
+// Register our checkout Blocks.
+registerCheckoutBlock( changeShippingAddressOptions );
+registerCheckoutBlock( logOutBannerOptions );
 
 /**
  * The change Payment method component.
@@ -59,23 +38,6 @@ const ChangePayment = () => {
 };
 
 /**
- * The change Shipping Address Component.
- *
- * @returns React component
- */
-const ChangeShippingAddress = () => {
-	useEffect( () => {
-		activateChange( 'amazon_change_shipping_address', 'changeAddress' );
-	}, [] );
-
-	return (
-		<a href="#" className="wc-apa-widget-change" id="amazon_change_shipping_address">
-			{ __( 'Change', 'woocommerce-gateway-amazon-payments-advanced' ) }
-		</a>
-	);
-};
-
-/**
  * Returns a react component and also sets an observer for the onCheckoutValidationBeforeProcessing event.
  *
  * @param {object} props
@@ -87,10 +49,6 @@ const AmazonPayInfo = ( props ) => {
 	const { billingData } = props.billing;
 
 	const { amazonBilling, amazonShipping } = settings.amazonAddress;
-
-	useEffect( () => {
-		activateChange( 'amazon_change_payment_method', 'changePayment' );
-	}, [] );
 
 	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onCheckoutValidationBeforeProcessing(
@@ -151,10 +109,6 @@ const AmazonPayInfo = ( props ) => {
  */
 export const AmazonExpressLabel = ( { label, ...props } ) => {
 	const { PaymentMethodLabel } = props.components;
-
-	useEffect( () => {
-		render( <LogOutBanner/>, document.getElementsByClassName( 'wp-block-woocommerce-checkout-express-payment-block' )[0] );
-	}, [] );
 
 	return <PaymentMethodLabel text={ label } />;
 };

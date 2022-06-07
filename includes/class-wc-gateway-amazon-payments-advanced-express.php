@@ -31,7 +31,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 
 		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		$this->load_settings();
-		add_action( 'admin_head', array( $this, 'visually_hide_amazon_express_on_backend' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'visually_hide_amazon_express_on_backend' ) );
+		add_action( 'woocommerce_amazon_pa_processed_order', array( $this, 'update_orders_payment_method' ), 1 );
 	}
 
 	/**
@@ -59,10 +60,20 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 	 *
 	 * @return void
 	 */
-	public function visually_hide_amazon_express_on_backend() {
-		?>
-		<style>table.wc_gateways tr[data-gateway_id="<?php echo esc_attr( $this->id ); ?>"]{display:none!important;}</style>
-		<?php
+	public static function visually_hide_amazon_express_on_backend() {
+		wp_enqueue_style( 'amazon_payments_advanced_hide_express', wc_apa()->plugin_url . '/assets/css/hide-amazon-express-admin.css', array(), wc_apa()->version );
 	}
 
+	/**
+	 * Change the payment method after order is completed.
+	 *
+	 * @param WC_Order $order The order being completed.
+	 * @return void
+	 */
+	public function update_orders_payment_method( $order ) {
+		if ( $this->id === $order->get_payment_method() ) {
+			$order->set_payment_method( wc_apa()->get_gateway() );
+			$order->save();
+		}
+	}
 }

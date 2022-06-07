@@ -1,10 +1,10 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
-	"name": "amazon-payments-advanced/change-address",
-	"title": "Amazon Change Address Block Widget",
+	"name": "amazon-payments-advanced/log-out-banner",
+	"title": "Amazon Log Out Banner",
 	"category": "woocommerce",
-	"parent": ["woocommerce/checkout-shipping-address-block"],
+	"parent": ["woocommerce/checkout-fields-block"],
 	"textdomain": "woocommerce-gateway-amazon-payments-advanced",
 	"attributes": {
 		"lock": {
@@ -18,5 +18,6 @@
 	"supports": {
 		"html": false
 	},
-	"editorScript": "amazon-payments-advanced-blocks-change-address-editor"
+	"editorScript": "amazon-payments-advanced-blocks-log-out-banner-editor",
+	"style": "amazon-payments-advanced-blocks-log-out-banner"
 }
