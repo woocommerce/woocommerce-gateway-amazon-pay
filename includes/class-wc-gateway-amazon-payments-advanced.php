@@ -85,7 +85,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	protected function get_availability() {
 
-		if ( ! parent::is_available() && ! empty( $this->settings['merchant_id'] ) ) {
+		if ( ! parent::is_available() || empty( $this->settings['merchant_id'] ) ) {
 			return false;
 		}
 
