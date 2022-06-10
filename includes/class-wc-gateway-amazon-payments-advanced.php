@@ -1266,6 +1266,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
+		// If its virtual only bail.
+		if ( 'PayOnly' === $this->get_current_cart_action() ) {
+			return;
+		}
+
 		if ( ! empty( $data['billing_phone'] ) || ! empty( $data['shipping_phone'] ) ) {
 			return;
 		}
