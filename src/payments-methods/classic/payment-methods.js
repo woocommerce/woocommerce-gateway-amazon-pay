@@ -5,13 +5,14 @@ import { __ } from '@wordpress/i18n';
 import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
 import React from 'react';
 
+const settings = getBlocksConfiguration( 'amazon_payments_advanced_data' );
+
 /**
  * Returns the payment method's description.
  *
  * @returns {string}
  */
 const Content = () => {
-	const settings = getBlocksConfiguration( 'amazon_payments_advanced_data' );
 	return decodeEntities( settings.description || '' );
 };
 
@@ -21,6 +22,8 @@ const Content = () => {
  * @returns React component
  */
 const AmazonPayBtn = ( props ) => {
+	const { action } = settings;
+
 	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onCheckoutAfterProcessingWithSuccess(
 			async ( { processingResponse } ) => {
@@ -44,6 +47,9 @@ const AmazonPayBtn = ( props ) => {
 	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onPaymentProcessing(
 			async () => {
+				if ( 'PayOnly' === action ) {
+					return true;
+				}
 				const shippingPhone = document.getElementById( 'shipping-phone' );
 				const billingPhone = document.getElementById( 'phone' );
 				if ( ! shippingPhone?.value && ! billingPhone?.value ) {
@@ -61,6 +67,7 @@ const AmazonPayBtn = ( props ) => {
 		props.emitResponse.noticeContexts.PAYMENTS,
 		props.emitResponse.responseTypes.ERROR,
 		props.emitResponse.responseTypes.SUCCESS,
+		action,
 	] );
 
 	return <div id="classic_pay_with_amazon" />;
