@@ -54,6 +54,10 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.2.0 - 2022-xx-xx =
+
+* Fix - Addresses incorrect gateway availability logic.
+
 = 2.2.0 - 2022-05-30 =
 
 * Add - Make Amazon Pay available as a traditional gateway option.
