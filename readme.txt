@@ -54,7 +54,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.2.0 - 2022-xx-xx =
+= 2.2.1 - 2022-xx-xx =
 
 * Fix - Addresses incorrect gateway availability logic.
 
