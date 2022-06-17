@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.2.2 - 2022-xx-xx =
+= 2.2.2 - 2022-06-17 =
 
 * Fix - Require phone number only when purchasing physical products.
 
