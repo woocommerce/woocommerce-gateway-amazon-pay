@@ -795,7 +795,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return object the Checkout Session Object from Amazon API
 	 */
 	public function get_checkout_session( $force = false, $checkout_session_id = null ) {
-		if ( ! $force && ! is_null( $this->checkout_session ) ) {
+		if ( ! $force && null !== $this->checkout_session ) {
 			return $this->checkout_session;
 		}
 
