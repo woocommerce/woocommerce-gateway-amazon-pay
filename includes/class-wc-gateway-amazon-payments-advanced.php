@@ -62,6 +62,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Mini cart regeneration needs to be hooked really early.
 		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'maybe_separator_and_checkout_button' ), 30 );
+
+		// Sets the payload's addressDetails property if checking out using Amazon "Classic" and there is a physical product.
+		add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'update_address_details_for_classic' ), 10, 4 );
 	}
 
 	/**
@@ -85,7 +88,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	protected function get_availability() {
 
-		if ( ! parent::is_available() && ! empty( $this->settings['merchant_id'] ) ) {
+		if ( ! parent::is_available() || empty( $this->settings['merchant_id'] ) ) {
 			return false;
 		}
 
@@ -145,9 +148,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( ! isset( $available_gateways[ $this->id ] ) ) {
 			return;
 		}
-
-		// Sets the payload's addressDetails property if checking out using Amazon "Classic" and there is a physical product.
-		add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'update_address_details_for_classic' ), 10, 4 );
 
 		// Scripts.
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
@@ -1308,6 +1308,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function classic_validation( $data, $errors ) {
 		/* If any of those is true equivalent. This isn't Amazon "Classic", so we bail. */
 		if ( empty( $data['payment_method'] ) || 'amazon_payments_advanced' !== $data['payment_method'] || $this->get_checkout_session_id() ) {
+			return;
+		}
+
+		// If its virtual only bail.
+		if ( 'PayOnly' === $this->get_current_cart_action() ) {
 			return;
 		}
 

@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 6.0
-Stable tag: 2.2.0
+Stable tag: 2.2.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -53,6 +53,14 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.2.2 - 2022-06-17 =
+
+* Fix - Require phone number only when purchasing physical products.
+
+= 2.2.1 - 2022-06-13 =
+
+* Fix - Addresses incorrect gateway availability logic.
 
 = 2.2.0 - 2022-05-30 =
 

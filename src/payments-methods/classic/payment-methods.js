@@ -12,6 +12,8 @@ import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
  * @returns React component
  */
 const AmazonPayBtn = ( props ) => {
+	const { action } = settings;
+
 	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onCheckoutAfterProcessingWithSuccess(
 			async ( { processingResponse } ) => {
@@ -35,6 +37,9 @@ const AmazonPayBtn = ( props ) => {
 	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onPaymentProcessing(
 			async () => {
+				if ( 'PayOnly' === action ) {
+					return true;
+				}
 				const shippingPhone = document.getElementById( 'shipping-phone' );
 				const billingPhone = document.getElementById( 'phone' );
 				if ( ! shippingPhone?.value && ! billingPhone?.value ) {
@@ -52,6 +57,7 @@ const AmazonPayBtn = ( props ) => {
 		props.emitResponse.noticeContexts.PAYMENTS,
 		props.emitResponse.responseTypes.ERROR,
 		props.emitResponse.responseTypes.SUCCESS,
+		action,
 	] );
 
 	return <div id="classic_pay_with_amazon" />;
