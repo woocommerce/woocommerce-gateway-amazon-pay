@@ -985,7 +985,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param  null|object $checkout_session Checkout session object to use.
 	 */
 	public function display_payment_method_selected( $checkout_session = null ) {
-		if ( is_null( $checkout_session ) ) {
+		if ( null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 		?>
@@ -1016,7 +1016,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return boolean
 	 */
 	public function has_payment_preferences( $checkout_session = null ) {
-		if ( is_null( $checkout_session ) ) {
+		if ( null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 
@@ -1034,7 +1034,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return string
 	 */
 	public function get_selected_payment_label( $checkout_session = null ) {
-		if ( is_null( $checkout_session ) ) {
+		if ( null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 
@@ -1065,7 +1065,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param  null|object $checkout_session Checkout session object to use.
 	 */
 	public function display_billing_address_selected( $checkout_session = null ) {
-		if ( is_null( $checkout_session ) ) {
+		if ( null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 		if ( ! empty( $checkout_session->billingAddress ) ) : // phpcs:ignore WordPress.NamingConventions

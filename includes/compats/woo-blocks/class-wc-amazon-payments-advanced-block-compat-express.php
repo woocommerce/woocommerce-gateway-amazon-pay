@@ -104,11 +104,11 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 
 		$express_gateway = wc_apa()->get_express_gateway();
 
-		$regular_gateway = wc_apa()->get_gateway();
-
-		if ( is_null( $express_gateway ) ) {
+		if ( null === $express_gateway ) {
 			return array();
 		}
+
+		$regular_gateway = wc_apa()->get_gateway();
 
 		if ( empty( $express_gateway->id ) || empty( $regular_gateway->id ) ) {
 			return array();
