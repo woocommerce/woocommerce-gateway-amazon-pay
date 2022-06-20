@@ -60,18 +60,7 @@ const AmazonPayInfo = ( props ) => {
 						};
 					}
 				}
-				// Not sure if we should check billing details as well. @todo
-				// if ( 'undefined' !== typeof jQuery ) {
-				// 	if ( ! jQuery( '.wc-block-checkout__use-address-for-billing input.wc-block-components-checkbox__input' ).is( ':checked' ) ) {
-				// 		for ( const billingField in amazonBilling ) {
-				// 			if ( amazonBilling[ billingField ] !== billingData[ billingField ] ) {
-				// 				return {
-				// 					errorMessage: __( 'We were expecting "', 'woocommerce-gateway-amazon-payments-advanced' ) + amazonBilling[ billingField ] + __( '" but we received "', 'woocommerce-gateway-amazon-payments-advanced' ) + billingData[ billingField ] + __( '" instead for the Billing field "', 'woocommerce-gateway-amazon-payments-advanced' ) + getCheckOutFieldsLabel( billingField, 'billing' ) + __( '". Please make any changes to your Billing details through Amazon.', 'woocommerce-gateway-amazon-payments-advanced' )
-				// 				};
-				// 			}
-				// 		}
-				// 	}
-				// }
+
 				return true;
 			}
 		);
