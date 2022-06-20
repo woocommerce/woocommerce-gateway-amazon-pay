@@ -11,8 +11,8 @@ const { registerPaymentMethod, registerPaymentMethodExtensionCallbacks } = wc.wc
  * Internal dependencies
  */
 import { PAYMENT_METHOD_NAME } from '../express/constants';
-import { AmazonComponent } from '../../utils';
-import { AmazonExpressContent, AmazonExpressLabel } from './payment-methods';
+import { AmazonComponent, Label } from '../../utils';
+import { AmazonExpressContent } from './payment-methods';
 import { settings } from '../express/settings';
 
 const label =
@@ -34,7 +34,7 @@ if ( settings.allOtherGateways ) {
  */
 const amazonPayPaymentMethod = {
 	name: PAYMENT_METHOD_NAME,
-	label: <AmazonExpressLabel label={ label } />,
+	label: <Label label={ label } />,
 	placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
 	content: <AmazonComponent RenderedComponent={ AmazonExpressContent } />,
 	edit: <AmazonComponent RenderedComponent={ AmazonExpressContent } />,

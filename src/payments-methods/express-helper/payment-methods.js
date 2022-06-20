@@ -101,19 +101,6 @@ const AmazonPayInfo = ( props ) => {
 };
 
 /**
- * Return the Component that will be used as the label for Amazon Pay "Express".
- *
- * @param {string} label The text label.
- * @param {object} props Props from payment API.
- * @returns React Component
- */
-export const AmazonExpressLabel = ( { label, ...props } ) => {
-	const { PaymentMethodLabel } = props.components;
-
-	return <PaymentMethodLabel text={ label } />;
-};
-
-/**
  * Returns the Components that will be used by Amazon Pay "Express".
  *
  * @param {object} props

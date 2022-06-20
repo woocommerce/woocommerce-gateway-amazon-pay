@@ -79,11 +79,11 @@ export const renderAndInitAmazonCheckout = ( buttonId, flag, checkoutConfig ) =>
  */
 export const activateChange = ( button_id, action ) => {
 	var button = document.getElementById( button_id );
-	if ( 0 === button.length || button.getAttribute( 'data-wc_apa_chage_bind' ) === action ) {
+	if ( 0 === button.length || button.getAttribute( 'data-wc_apa_change_bind' ) === action ) {
 		return;
 	}
 
-	button.setAttribute( 'data-wc_apa_chage_bind', action );
+	button.setAttribute( 'data-wc_apa_change_bind', action );
 	button.addEventListener( 'click', function( e ) {
 		e.preventDefault();
 	} );
