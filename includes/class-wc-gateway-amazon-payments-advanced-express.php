@@ -18,6 +18,16 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 	public $id = 'amazon_payments_advanced_express';
 
 	/**
+	 * Gateways availability.
+	 * 
+	 * Only available before processing checkout through
+	 * WooCommerce Blocks.
+	 *
+	 * @var boolean
+	 */
+	protected $available = false;
+
+	/**
 	 * Constructor
 	 *
 	 * Needs to remain empty, so no hooks are being registered twice.
@@ -38,6 +48,25 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 		$this->load_settings();
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'visually_hide_amazon_express_on_backend' ) );
 		add_action( 'woocommerce_amazon_pa_processed_order', array( $this, 'update_orders_payment_method' ), 1 );
+		add_action( 'woocommerce_store_api_checkout_update_order_meta', array( $this, 'unavailable_on_classic_checkout' ) );
+	}
+
+	/**
+	 * Make the gateway available when checkout triggered through WooCommerce Blocks.
+	 *
+	 * @return void
+	 */
+	public function unavailable_on_classic_checkout( $gateways ) {
+		$this->available = true;
+	}
+
+	/**
+	 * Returns Amazon Pay Express availability.
+	 *
+	 * @return bool
+	 */
+	protected function get_availability() {
+		return parent::get_availability() && $this->available;
 	}
 
 	/**
