@@ -21,7 +21,7 @@
     "wp_org_slug": "woocommerce-gateway-amazon-payments-advanced"
   },
   "scripts": {
-    "test:php": "./vendor/bin/phpunit",
+    "test:php": "php ./vendor/bin/phpunit",
     "lint:php": "./vendor/bin/phpcs",
     "test": "cross-env NODE_CONFIG_DIR='./tests/e2e/config' BABEL_ENV=commonjs mocha \"tests/e2e\" --compilers js:babel-register --recursive",
     "test:grep": "cross-env NODE_CONFIG_DIR='./tests/e2e/config' BABEL_ENV=commonjs mocha \"tests/e2e\" --compilers js:babel-register --grep ",
