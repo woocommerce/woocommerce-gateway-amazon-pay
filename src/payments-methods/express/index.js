@@ -27,6 +27,16 @@ const amazonPayPaymentMethod = {
 };
 
 /**
- * Registers Amazon Pay "Express" as a Payment Method in the Checkout Block of WooCommerce Blocks.
+ * Don't register as an Express Payment method if the hidden button mode is on,
+ * since the layout would appear misleading to users in cases when there are no
+ * other registered Express Payment methods.
+ *
+ * In the cart an "OR" would appear without an actual user selection
+ * and in the checkout the express checkout block would render and it would appear empty.
  */
-registerExpressPaymentMethod( amazonPayPaymentMethod );
+if ( 'yes' !== settings['hide_button_mode'] ) {
+    /**
+     * Registers Amazon Pay "Express" as a Payment Method in the Checkout Block of WooCommerce Blocks.
+     */
+    registerExpressPaymentMethod( amazonPayPaymentMethod );
+}
