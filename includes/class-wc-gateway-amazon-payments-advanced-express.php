@@ -19,7 +19,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 
 	/**
 	 * Gateways availability.
-	 * 
+	 *
 	 * Only available before processing checkout through
 	 * WooCommerce Blocks.
 	 *
@@ -48,7 +48,19 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 		$this->load_settings();
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'visually_hide_amazon_express_on_backend' ) );
 		add_action( 'woocommerce_amazon_pa_processed_order', array( $this, 'update_orders_payment_method' ), 1 );
-		add_action( 'woocommerce_store_api_checkout_update_order_meta', array( $this, 'unavailable_on_classic_checkout' ) );
+		add_action( 'woocommerce_store_api_checkout_update_order_meta', array( $this, 'available_on_block_checkout' ) );
+		add_action( 'woocommerce_checkout_init', array( $this, 'restore_amazon_payments_advanced' ), 30 );
+	}
+
+	/**
+	 * Skip un-setting amazon_payments_advanced gateway when using WooCommerce Blocks Checkout.
+	 *
+	 * @return void
+	 */
+	public function restore_amazon_payments_advanced() {
+		if ( $this->using_woo_blocks() ) {
+			remove_filter( 'woocommerce_available_payment_gateways', array( wc_apa()->get_gateway(), 'remove_amazon_gateway' ) );
+		}
 	}
 
 	/**
@@ -56,7 +68,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 	 *
 	 * @return void
 	 */
-	public function unavailable_on_classic_checkout( $gateways ) {
+	public function available_on_block_checkout() {
 		$this->available = true;
 	}
 

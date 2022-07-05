@@ -557,7 +557,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function checkout_init( $checkout ) {
 
 		/**
-		 * Make sure this is checkout initiated from front-end where cart exsits.
+		 * Make sure this is checkout initiated from front-end where cart exists.
 		 *
 		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/238
 		 */
