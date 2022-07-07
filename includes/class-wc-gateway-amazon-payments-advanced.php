@@ -1858,6 +1858,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$valid = $current[ $prop ] === $value;
 			}
 
+			/**
+			 * If the condition is true, that means that a multi currency plugin changed the
+			 * currency after the Amazon Pay button was initially clicked.
+			 * 
+			 * We shouldn't throw an error since Amazon Pay docs mention that using the currencyCode prop
+			 * during  updating checkout will also automatically update the checkout session's presentmentCurrency
+			 * prop if they are different.
+			 *
+			 * @see https://developer.amazon.com/docs/amazon-pay-checkout/multi-currency-integration.html#2-set-payment-currencycode
+			 */
+			if ( 'presentmentCurrency' === $prop && false === $valid ) {
+				$valid = true;
+			}
+
 			if ( false === $valid ) {
 				$full_prop = implode( '.', $path );
 
