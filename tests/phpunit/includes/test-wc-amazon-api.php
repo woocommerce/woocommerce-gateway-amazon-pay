@@ -1000,6 +1000,143 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Run tests on `format_address() for german countries`.
+	 *
+	 * @dataProvider data_format_address_german_countries
+	 *
+	 * @param array  $array     Address lines.
+	 * @param array  $expected  Expected formated address.
+	 */
+	public function test_format_address_german_countries( $address, $expected ) {
+		list(
+			$address_line1,
+			$address_line2,
+			$address_line3 ) = $address;
+
+			$formatted_address = WC_Amazon_Payments_Advanced_API::format_address(
+				new SimpleXMLElement(
+					"<root>
+						<CountryCode>DE</CountryCode>
+						<AddressLine1>$address_line1</AddressLine1>
+						<AddressLine2>$address_line2</AddressLine2>
+						<AddressLine3>$address_line3</AddressLine3>
+					</root>"
+				)
+			);
+		$this->assertEquals(
+			$expected,
+			$formatted_address
+		);
+	}
+
+	/**
+	 * Data provider method for testing `test_format_address_german_countries()`.
+	 *
+	 * @return array
+	 */
+	public function data_format_address_german_countries() {
+		return array(
+			'all empty'                     => array(
+				'address'  => array(
+					'',
+					'',
+					'',
+				),
+				'expected' => array(
+					'first_name' => '',
+					'last_name'  => '',
+					'company'    => '',
+					'country'    => 'DE',
+				),
+			),
+			'only AddressLine1'             => array(
+				'address'   => array(
+					'Not empty field',
+					'',
+					'',
+				),
+				'expected' => array(
+					'first_name' => '',
+					'last_name'  => '',
+					'address_1'  => 'Not empty field',
+					'company'    => '',
+					'country'    => 'DE',
+				),
+			),
+			'only AddressLine2'             => array(
+				'address'  => array(
+					'',
+					'Not empty field',
+					'',
+				),
+				'expected' => array(
+					'first_name' => '',
+					'last_name'  => '',
+					'address_1'  => 'Not empty field',
+					'company'    => '',
+					'country'    => 'DE',
+				),
+			),
+			'only AddressLine3'             => array(
+				'address'  => array(
+					'',
+					'',
+					'Not empty field',
+				),
+				'expected' => array(
+					'first_name' => '',
+					'last_name'  => '',
+					'address_1'  => 'Not empty field',
+					'company'    => '',
+					'country'    => 'DE',
+				),
+			),
+			'AddressLine1 and AddressLine2' => array(
+				'address'  => array(
+					'Not empty field',
+					'Not empty field',
+					'',
+				),
+				'expected' => array(
+					'first_name' => '',
+					'last_name'  => '',
+					'address_1'  => 'Not empty field',
+					'company'    => 'Not empty field',
+					'country'    => 'DE',
+				),
+			),
+			'AddressLine2 and AddressLine3' => array(
+				'address'  => array(
+					'',
+					'Not empty field',
+					'Not empty field',
+				),
+				'expected' => array(
+					'first_name' => '',
+					'last_name'  => '',
+					'address_1'  => 'Not empty field',
+					'company'    => 'Not empty field',
+					'country'    => 'DE',
+				),
+			),
+			'all'                           => array(
+				'address'  => array(
+					'Not empty field',
+					'Not empty field',
+					'Not empty field',
+				),
+				'expected' => array(
+					'first_name' => '',
+					'last_name'  => '',
+					'address_1'  => 'Not empty field',
+					'company'    => 'Not empty field Not empty field',
+					'country'    => 'DE',
+				),
+			),
+		);
+	}
+
+	/**
 	 * Test that single names fallback to using period in format_address.
 	 */
 	public function test_format_address_single_name() {
