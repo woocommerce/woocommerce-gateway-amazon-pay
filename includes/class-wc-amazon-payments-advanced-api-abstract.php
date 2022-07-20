@@ -424,7 +424,11 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		// @codingStandardsIgnoreStart
 		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'AT', 'DE' ) ) ) {
 
-			$address_parts = array_filter( [(string) $address->AddressLine1, (string) $address->AddressLine2, (string) $address->AddressLine3] );
+			$address_parts = array_filter( array(
+				(string) $address->AddressLine1,
+				(string) $address->AddressLine2,
+				(string) $address->AddressLine3)
+			);
 			$formatted['address_1'] = array_pop( $address_parts );
 			$formatted['company'] = implode( ' ', $address_parts );
 

@@ -1004,7 +1004,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_format_address_german_countries
 	 *
-	 * @param array $address     Address lines.
+	 * @param array $address   Address lines.
 	 * @param array $expected  Expected formated address.
 	 */
 	public function test_format_address_german_countries( $address, $expected ) {
