@@ -1004,8 +1004,8 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_format_address_german_countries
 	 *
-	 * @param array  $array     Address lines.
-	 * @param array  $expected  Expected formated address.
+	 * @param array $address     Address lines.
+	 * @param array $expected  Expected formated address.
 	 */
 	public function test_format_address_german_countries( $address, $expected ) {
 		list(
@@ -1050,7 +1050,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 				),
 			),
 			'only AddressLine1'             => array(
-				'address'   => array(
+				'address'  => array(
 					'Not empty field',
 					'',
 					'',
