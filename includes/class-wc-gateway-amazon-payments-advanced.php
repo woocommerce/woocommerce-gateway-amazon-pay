@@ -1776,6 +1776,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			$needs_shipping = count( $order->get_items( 'shipping' ) ) > 0;
 		} else {
+			// If the cart is not set, we are on the backend. So lets bail.
+			if ( empty( WC()->cart ) ) {
+				return false;
+			}
+
 			$needs_shipping = WC()->cart->needs_shipping();
 		}
 		return apply_filters( 'woocommerce_amazon_pa_current_cart_action', $needs_shipping ? 'PayAndShip' : 'PayOnly' );
