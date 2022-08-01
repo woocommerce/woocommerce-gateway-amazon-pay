@@ -1768,6 +1768,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( is_wc_endpoint_url( 'order-pay' ) ) {
 			$order_id       = get_query_var( 'order-pay' );
 			$order          = wc_get_order( $order_id );
+
+			// If we can't retrieve the order, lets bail.
+			if ( ! is_a( $order, 'WC_Order' ) ) {
+				return false;
+			}
+
 			$needs_shipping = count( $order->get_items( 'shipping' ) ) > 0;
 		} else {
 			$needs_shipping = WC()->cart->needs_shipping();
