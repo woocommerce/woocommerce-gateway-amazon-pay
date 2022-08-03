@@ -109,7 +109,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 *
 	 * @return WP_Error|bool Error
 	 */
-	protected static function validate_api_settings() {
+	public static function validate_api_settings() {
 		$settings = self::get_settings();
 
 		if ( empty( $settings['merchant_id'] ) ) {
@@ -450,6 +450,16 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * @return array
 	 */
 	public static function get_create_checkout_session_config( $redirect_url = null ) {
+		$valid_settings = self::validate_api_settings();
+		if ( is_wp_error( $valid_settings ) ) {
+			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
+			return array(
+				'publicKeyId' => '',
+				'payloadJSON' => '',
+				'signature'   => '',
+			);
+		}
+
 		$settings = self::get_settings();
 		$client   = self::get_client();
 		$payload  = self::create_checkout_session_params( $redirect_url );
@@ -469,6 +479,16 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * @return array
 	 */
 	public static function get_create_checkout_classic_session_config( $payload ) {
+		$valid_settings = self::validate_api_settings();
+		if ( is_wp_error( $valid_settings ) ) {
+			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
+			return array(
+				'publicKeyId' => '',
+				'payloadJSON' => '',
+				'signature'   => '',
+			);
+		}
+
 		$settings  = self::get_settings();
 		$signature = self::get_client()->generateButtonSignature( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
 		return array(

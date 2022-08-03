@@ -88,7 +88,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	protected function get_availability() {
 
-		if ( ! parent::is_available() || empty( $this->settings['merchant_id'] ) ) {
+		if ( ! parent::is_available() ) {
+			return false;
+		}
+
+		if ( is_wp_error( WC_Amazon_Payments_Advanced_API::validate_api_settings() ) ) {
+			wc_apa()->get_gateway()->update_option( 'amazon_keys_setup_and_validated', 0 );
 			return false;
 		}
 
