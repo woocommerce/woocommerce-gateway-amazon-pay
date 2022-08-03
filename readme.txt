@@ -23,6 +23,7 @@ As earth’s most customer-centric company, we are continuously innovating on be
 - **Automatic Decline Handling**: Reduce lost sales with a consistent experience for customers to gracefully recover from a declined payment.
 - **Payment Protection Policy**: Protection against fraud-related chargebacks[3].
 - **Amazon Pay A-to-z Guarantee**: Increase customer confidence to complete purchase in your online store with extra assurance on the timeliness of delivery and order quality[4].
+- **Delivery Notifications**: Proactively alert customers on the arrival status of physical goods orders via Amazon Alexa[5].
 
 = Definitions =
 
@@ -30,6 +31,7 @@ As earth’s most customer-centric company, we are continuously innovating on be
 - [2] Consumer Net Promoter Score (NPS) Surveys: Conducted by Amazon Pay in 2019 among US, UK, DE, FR, IT, and ES consumers who had used Amazon Pay in the 12 months preceding to the survey launch dates.
 - [3] Available for qualified physical goods purchases only.
 - [4] For eligible transactions detailed on the [Amazon Pay Customer Agreement](https://pay.amazon.com/help/201212430).
+- [5]  Not available for Royal Mail in the UK.
 
 == Installation ==
 

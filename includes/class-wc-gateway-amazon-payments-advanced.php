@@ -1811,10 +1811,21 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function get_current_cart_action() {
 		if ( is_wc_endpoint_url( 'order-pay' ) ) {
-			$order_id       = get_query_var( 'order-pay' );
-			$order          = wc_get_order( $order_id );
+			$order_id = get_query_var( 'order-pay' );
+			$order    = wc_get_order( $order_id );
+
+			// If we can't retrieve the order, lets bail.
+			if ( ! is_a( $order, 'WC_Order' ) ) {
+				return false;
+			}
+
 			$needs_shipping = count( $order->get_items( 'shipping' ) ) > 0;
 		} else {
+			// If the cart is not set, we are on the backend. So lets bail.
+			if ( empty( WC()->cart ) ) {
+				return false;
+			}
+
 			$needs_shipping = WC()->cart->needs_shipping();
 		}
 		return apply_filters( 'woocommerce_amazon_pa_current_cart_action', $needs_shipping ? 'PayAndShip' : 'PayOnly' );
@@ -1901,6 +1912,27 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				}
 			} else {
 				$valid = $current[ $prop ] === $value;
+			}
+
+			/**
+			 * If the condition is true, that means that a multi currency plugin changed the
+			 * currency after the Amazon Pay button was initially clicked.
+			 *
+			 * We shouldn't throw an error since Amazon Pay docs mention that using the currencyCode prop
+			 * during updating checkout will also automatically update the checkout session's presentmentCurrency
+			 * prop if they are different.
+			 *
+			 * @see https://developer.amazon.com/docs/amazon-pay-checkout/multi-currency-integration.html#2-set-payment-currencycode
+			 */
+			if ( 'presentmentCurrency' === $prop && false === $valid ) {
+				$valid = true;
+			}
+
+			/**
+			 * Same as above, but for subscriptions.
+			 */
+			if ( ( 'recurringMetadata.amount.currencyCode' === implode( '.', $path ) || 'recurringMetadata.amount.amount' === implode( '.', $path ) ) && false === $valid ) {
+				$valid = true;
 			}
 
 			if ( false === $valid ) {
