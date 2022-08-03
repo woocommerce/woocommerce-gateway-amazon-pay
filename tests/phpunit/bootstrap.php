@@ -13,13 +13,13 @@ require_once $_tests_dir . '/includes/functions.php';
 
 /**
  * Loads the plugin early
- *
  */
 function _manually_load_plugin() {
 	$base_dir = dirname( dirname( dirname( __FILE__ ) ) );
 	require $base_dir . '/woocommerce-gateway-amazon-payments-advanced.php';
 	require $base_dir . '/../woocommerce/woocommerce.php';
 }
+
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
 tests_add_filter(
@@ -53,7 +53,3 @@ tests_add_filter(
 );
 
 require $_tests_dir . '/includes/bootstrap.php';
-
-// Require the WooCommerce tests bootstrap so that we can use WooCommerce's testing resources as well.
-$plugins_dir = dirname( dirname( dirname( dirname( __FILE__ ) ) ) );
-require_once $plugins_dir . '/woocommerce/tests/legacy/bootstrap.php';
