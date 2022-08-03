@@ -109,7 +109,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 *
 	 * @return WP_Error|bool Error
 	 */
-	protected static function validate_api_settings() {
+	public static function validate_api_settings() {
 		$settings = self::get_settings();
 
 		if ( empty( $settings['merchant_id'] ) ) {
