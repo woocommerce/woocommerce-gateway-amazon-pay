@@ -54,7 +54,6 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 			return;
 		}
 
-		add_filter( 'woocommerce_amazon_pa_is_checkout_session_still_valid', array( $this, 'is_checkout_session_still_valid' ), 10, 2 );
 		add_filter( 'woocommerce_amazon_pa_create_checkout_session_params', array( $this, 'set_presentment_currency' ) );
 		add_filter( 'woocommerce_amazon_pa_create_checkout_session_classic_params', array( $this, 'set_presentment_currency' ) );
 	}
@@ -233,25 +232,5 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 		}
 		return false;
 	}
-
-	/**
-	 * Filters the validity of the current checkout_session
-	 *
-	 * @param  bool|WP_Error $valid Is the checkout_session_still_valid?.
-	 * @param  object        $checkout_session Checkout Session Object.
-	 * @return bool|WP_Error
-	 */
-	public function is_checkout_session_still_valid( $valid, $checkout_session ) {
-		if ( is_wp_error( $valid ) ) {
-			return $valid;
-		}
-
-		if ( static::get_active_currency() !== $checkout_session->paymentDetails->presentmentCurrency ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName
-			return new WP_Error( 'currency_changed', __( 'The selected currency changed, please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		return $valid;
-	}
-
 }
 
