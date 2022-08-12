@@ -56,6 +56,9 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.2.4 - 2022-xx-xx =
+* Fix - Infinite Loop causing Memory Exhaustion.
+
 = 2.2.3 - 2022-08-12 =
 
 * Fix - Pick the proper currency when it gets changed by and external multi-currency plugins.
