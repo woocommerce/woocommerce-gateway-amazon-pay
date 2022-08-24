@@ -189,6 +189,8 @@
 				var separator_id = '.wc-apa-button-separator';
 				var buttonSettings = getButtonSettings( buttonSettingsFlag );
 
+				console.log( buttonSettings );
+
 				var thisConfigHash = amazon_payments_advanced.create_checkout_session_hash;
 				var oldConfigHash = thisButton.data( 'amazonRenderedSettings' );
 				if ( typeof oldConfigHash !== 'undefined' ) {
@@ -258,7 +260,8 @@
 				placement: amazon_payments_advanced.placement,
 				buttonColor: amazon_payments_advanced.button_color,
 				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
-				productType: amazon_payments_advanced.action
+				productType: amazon_payments_advanced.action,
+				estimatedOrderAmount: amazon_payments_advanced.estimated_order_amount,
 			};
 			if ( 'product' === buttonSettingsFlag ) {
 				obj.productType = amazon_payments_advanced.product_action;
