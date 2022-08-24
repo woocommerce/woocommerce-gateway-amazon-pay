@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 6.0
-Stable tag: 2.2.3
+Stable tag: 2.2.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -55,6 +55,10 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.2.4 - 2022-08-12 =
+
+* Fix - Infinite Loop causing Memory Exhaustion.
 
 = 2.2.3 - 2022-08-12 =
 
