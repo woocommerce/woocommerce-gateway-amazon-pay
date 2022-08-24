@@ -189,8 +189,6 @@
 				var separator_id = '.wc-apa-button-separator';
 				var buttonSettings = getButtonSettings( buttonSettingsFlag );
 
-				console.log( buttonSettings );
-
 				var thisConfigHash = amazon_payments_advanced.create_checkout_session_hash;
 				var oldConfigHash = thisButton.data( 'amazonRenderedSettings' );
 				if ( typeof oldConfigHash !== 'undefined' ) {
