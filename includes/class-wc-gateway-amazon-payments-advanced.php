@@ -1751,9 +1751,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param string $id The value to provide the id attribute of the script with.
 	 * @return void
 	 */
-	public function update_js( $id ) {
+	public function update_js( $id = '' ) {
 
-		if ( '' === $id ) {
+		if ( empty( $id ) ) {
 			$id = 'wc-apa-update-vals';
 		}
 
