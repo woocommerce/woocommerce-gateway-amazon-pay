@@ -30,3 +30,4 @@ default.env export-ignore
 docker-compose.yml export-ignore
 docs/DOCKER.md export-ignore
 wordpress_org_assets export-ignore
+src export-ignore

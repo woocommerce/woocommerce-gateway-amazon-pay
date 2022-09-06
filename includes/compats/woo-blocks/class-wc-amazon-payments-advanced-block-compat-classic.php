@@ -30,7 +30,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 * @return boolean
 	 */
 	public function is_active() {
-		return wc_apa()->get_gateway()->is_available() && wc_apa()->get_gateway()->is_classic_enabled();
+		return wc_apa()->get_gateway()->is_available() && wc_apa()->get_gateway()->is_classic_enabled() && ! wc_apa()->get_gateway()->get_checkout_session_id();
 	}
 
 	/**
@@ -57,8 +57,9 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 * @return array Return an array of script handles that have been registered already.
 	 */
 	protected function scripts_name_per_type( $type = '' ) {
-		$script_data = include wc_apa()->path . '/build/index.asset.php';
-		wp_register_script( 'amazon_payments_advanced_classic_block_compat', wc_apa()->plugin_url . '/build/index.js', $script_data['dependencies'], $script_data['version'], true );
+		$script_data = include wc_apa()->path . '/build/payments-methods/classic/index.asset.php';
+		wp_register_script( 'amazon_payments_advanced_classic_block_compat', wc_apa()->plugin_url . '/build/payments-methods/classic/index.js', $script_data['dependencies'], $script_data['version'], true );
+
 		return array( 'amazon_payments_advanced_classic_block_compat' );
 	}
 }

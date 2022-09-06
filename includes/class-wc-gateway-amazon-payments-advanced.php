@@ -562,7 +562,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function checkout_init( $checkout ) {
 
 		/**
-		 * Make sure this is checkout initiated from front-end where cart exsits.
+		 * Make sure this is checkout initiated from front-end where cart exists.
 		 *
 		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/238
 		 */
@@ -789,7 +789,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function get_checkout_session_id() {
 		$session_key = $this->get_checkout_session_key();
-		return WC()->session->get( $session_key, false );
+		return ! empty( WC()->session ) ? WC()->session->get( $session_key, false ) : false;
 	}
 
 	/**
@@ -800,7 +800,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return object the Checkout Session Object from Amazon API
 	 */
 	public function get_checkout_session( $force = false, $checkout_session_id = null ) {
-		if ( ! $force && ! is_null( $this->checkout_session ) ) {
+		if ( ! $force && null !== $this->checkout_session ) {
 			return $this->checkout_session;
 		}
 
@@ -990,33 +990,78 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param  null|object $checkout_session Checkout session object to use.
 	 */
 	public function display_payment_method_selected( $checkout_session = null ) {
-		if ( is_null( $checkout_session ) ) {
+		if ( null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 		?>
 		<div id="payment_method_widget">
 			<?php
-			$payments     = $checkout_session->paymentPreferences; // phpcs:ignore WordPress.NamingConventions
 			$change_label = esc_html__( 'Change', 'woocommerce-gateway-amazon-payments-advanced' );
-			if ( empty( $payments ) ) {
+			if ( ! $this->has_payment_preferences( $checkout_session ) ) {
 				$change_label = esc_html__( 'Select', 'woocommerce-gateway-amazon-payments-advanced' );
 			}
-			$selected_label = esc_html__( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' );
-			foreach ( $checkout_session->paymentPreferences as $pref ) { // phpcs:ignore WordPress.NamingConventions
-				if ( isset( $pref->paymentDescriptor ) ) { // phpcs:ignore WordPress.NamingConventions
-					$selected_label = $pref->paymentDescriptor; // phpcs:ignore WordPress.NamingConventions
-				}
-			}
+
 			?>
 			<h3>
 				<a href="#" class="wc-apa-widget-change" id="payment_method_widget_change"><?php echo $change_label; ?></a>
 				<?php esc_html_e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 			</h3>
 			<div class="payment_method_display">
-				<span class="wc-apa-amazon-logo"></span><?php echo esc_html( $selected_label ); ?>
+				<span class="wc-apa-amazon-logo"></span><?php echo esc_html( $this->get_selected_payment_label( $checkout_session ) ); ?>
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Returns whether there are payment preferences set in the checkout
+	 * session object.
+	 *
+	 * @param  object $checkout_session The active checkout session.
+	 * @return boolean
+	 */
+	public function has_payment_preferences( $checkout_session = null ) {
+		if ( null === $checkout_session ) {
+			$checkout_session = $this->get_checkout_session();
+		}
+
+		if ( ! $checkout_session || is_wp_error( $checkout_session ) ) {
+			return false;
+		}
+
+		return ! empty( $checkout_session->paymentPreferences ); // phpcs:ignore WordPress.NamingConventions
+	}
+
+	/**
+	 * Returns the selected payment method from Amazon.
+	 *
+	 * @param object $checkout_session The active checkout session.
+	 * @return string
+	 */
+	public function get_selected_payment_label( $checkout_session = null ) {
+		if ( null === $checkout_session ) {
+			$checkout_session = $this->get_checkout_session();
+		}
+
+		$default = esc_html__( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' );
+
+		if ( ! $checkout_session || is_wp_error( $checkout_session ) ) {
+			return $default;
+		}
+
+		if ( empty( $checkout_session->paymentPreferences ) ) { // phpcs:ignore WordPress.NamingConventions
+			return $default;
+		}
+
+		$selected_label = '';
+
+		foreach ( $checkout_session->paymentPreferences as $pref ) { // phpcs:ignore WordPress.NamingConventions
+			if ( isset( $pref->paymentDescriptor ) ) { // phpcs:ignore WordPress.NamingConventions
+				$selected_label = $pref->paymentDescriptor; // phpcs:ignore WordPress.NamingConventions
+			}
+		}
+
+		return $selected_label ? $selected_label : $default;
 	}
 
 	/**
@@ -1025,7 +1070,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param  null|object $checkout_session Checkout session object to use.
 	 */
 	public function display_billing_address_selected( $checkout_session = null ) {
-		if ( is_null( $checkout_session ) ) {
+		if ( null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 		if ( ! empty( $checkout_session->billingAddress ) ) : // phpcs:ignore WordPress.NamingConventions

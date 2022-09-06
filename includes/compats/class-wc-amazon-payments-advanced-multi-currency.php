@@ -222,7 +222,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 *                      When false it will just return the full class name of the compatible instance.
 	 * @return string|WC_Amazon_Payments_Advanced_Multi_Currency_Abstract
 	 */
-	protected static function init_compatible_plugin_instance( bool $init = true ) {
+	protected static function init_compatible_plugin_instance( $init = true ) {
 		$found_plugin_instance = null;
 
 		$compatible_plugin = self::compatible_plugin();
@@ -267,7 +267,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 * @param string $currency WooCommerce's currency.
 	 * @return string
 	 */
-	public static function get_active_currency( string $currency ) {
+	public static function get_active_currency( $currency ) {
 		if ( self::is_active() || self::compatible_region() ) {
 			return $currency;
 		}
