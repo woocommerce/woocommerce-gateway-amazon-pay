@@ -269,7 +269,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'checkout_session_id'            => $this->get_checkout_session_id(),
 				'button_language'                => $this->settings['button_language'],
 				'ledger_currency'                => $this->get_ledger_currency(),
-				'estimated_order_amount'         => $this->get_estimated_order_amount(),
+				'estimated_order_amount'         => self::get_estimated_order_amount(),
 			),
 			$params
 		);
@@ -1808,7 +1808,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			'action'                         => $this->get_current_cart_action(),
 			'create_checkout_session_config' => $checkout_session_config,
 			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
-			'estimated_order_amount'         => $this->get_estimated_order_amount(),
+			'estimated_order_amount'         => self::get_estimated_order_amount(),
 		);
 		?>
 		<script type="text/template" id="<?php echo esc_attr( $id ); ?>" data-value="<?php echo esc_attr( wp_json_encode( $data ) ); ?>"></script>

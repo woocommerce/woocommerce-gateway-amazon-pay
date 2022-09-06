@@ -16,6 +16,7 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
 		// customize the buyer experience
 		placement: amazon_payments_advanced.placement,
 		buttonColor: amazon_payments_advanced.button_color,
+		estimatedOrderAmount: amazon_payments_advanced.estimated_order_amount,
 		checkoutLanguage:
 			amazon_payments_advanced.button_language !== ''
 				? amazon_payments_advanced.button_language.replace( '-', '_' )
@@ -28,6 +29,7 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
 	} else {
 		obj.productType = 'undefined' !== typeof checkoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
 	}
+
 	return obj;
 };
 
