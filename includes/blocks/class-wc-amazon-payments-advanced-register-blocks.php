@@ -50,6 +50,14 @@ class WC_Amazon_Payments_Advanced_Register_Blocks {
 	 * @return void
 	 */
 	public function register_amazon_blocks() {
+		/**
+		 * This blocks are only being used along with WooCommerce Blocks.
+		 * So if WooCommerce blocks isn't present, we bail registration.
+		 */
+		if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Package' ) ) {
+			return;
+		}
+
 		$plugin_root = wc_apa()->path;
 
 		foreach ( self::BLOCKS as $block => $args ) {
