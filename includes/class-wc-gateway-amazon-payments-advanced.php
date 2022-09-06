@@ -269,6 +269,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'checkout_session_id'            => $this->get_checkout_session_id(),
 				'button_language'                => $this->settings['button_language'],
 				'ledger_currency'                => $this->get_ledger_currency(),
+				'estimated_order_amount'         => self::get_estimated_order_amount(),
 			),
 			$params
 		);
@@ -1795,13 +1796,19 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param string $id The value to provide the id attribute of the script with.
 	 * @return void
 	 */
-	public function update_js( $id = 'wc-apa-update-vals' ) {
+	public function update_js( $id = '' ) {
+
+		if ( empty( $id ) ) {
+			$id = 'wc-apa-update-vals';
+		}
+
 		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
 
 		$data = array(
 			'action'                         => $this->get_current_cart_action(),
 			'create_checkout_session_config' => $checkout_session_config,
 			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
+			'estimated_order_amount'         => self::get_estimated_order_amount(),
 		);
 		?>
 		<script type="text/template" id="<?php echo esc_attr( $id ); ?>" data-value="<?php echo esc_attr( wp_json_encode( $data ) ); ?>"></script>
@@ -2552,6 +2559,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return true;
 		}
 
+		// To capture the cart redirect on update cart actions.
+		if ( isset( $_SERVER['HTTP_REFERER'] ) && $_SERVER['HTTP_REFERER'] === wc_get_cart_url() ) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -2929,5 +2941,24 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * Get the estimated order amount from the cart totals.
+	 *
+	 * @return array
+	 */
+	private static function get_estimated_order_amount() {
+
+		if ( is_null( WC()->cart ) ) {
+			return array();
+		}
+
+		return wp_json_encode(
+			array(
+				'amount'       => WC()->cart->get_total( 'amount' ),
+				'currencyCode' => get_woocommerce_currency(),
+			)
+		);
 	}
 }
