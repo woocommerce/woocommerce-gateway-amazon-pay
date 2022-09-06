@@ -82,6 +82,13 @@ class WC_Amazon_Payments_Advanced {
 	private $gateway;
 
 	/**
+	 * Amazon Pay Express Gateway
+	 *
+	 * @var WC_Gateway_Amazon_Payments_Advanced_Express
+	 */
+	private $express_gateway = null;
+
+	/**
 	 * Amazon Pay Gateway Admin Class
 	 *
 	 * @var WC_Amazon_Payments_Advanced_Admin
@@ -156,6 +163,10 @@ class WC_Amazon_Payments_Advanced {
 		// On install hook.
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-install.php';
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
+
+		/* Amazon Blocks */
+		include_once $this->includes_path . 'blocks/class-wc-amazon-payments-advanced-register-blocks.php';
+		new WC_Amazon_Payments_Advanced_Register_Blocks();
 
 		add_action( 'woocommerce_init', array( $this, 'init' ) );
 
@@ -252,6 +263,13 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function add_gateway( $methods ) {
 		$methods[] = $this->gateway;
+
+		// Load express gateway only if WooCommerce blocks is installed and activated.
+		if ( class_exists( 'Automattic\WooCommerce\Blocks\Package' ) ) {
+			require_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-express.php';
+			$this->express_gateway = new WC_Gateway_Amazon_Payments_Advanced_Express();
+			$methods[]             = $this->express_gateway;
+		}
 
 		return $methods;
 	}
@@ -511,6 +529,15 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function get_gateway() {
 		return $this->gateway;
+	}
+
+	/**
+	 * Return instance of WC_Gateway_Amazon_Payments_Advanced_Express.
+	 *
+	 * @return WC_Gateway_Amazon_Payments_Advanced_Express
+	 */
+	public function get_express_gateway() {
+		return $this->express_gateway;
 	}
 }
 

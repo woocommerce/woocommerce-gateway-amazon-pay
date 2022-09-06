@@ -64,6 +64,12 @@ form.checkout .hidden {
 	float: right;
 }
 
+#amazon_change_shipping_address {
+	position: absolute;
+	right:0;
+	top:-2.5rem;
+}
+
 .wc-apa-amazon-logo {
 	display: inline-block;
 	vertical-align: baseline;
