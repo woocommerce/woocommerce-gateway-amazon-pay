@@ -47,6 +47,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 		return array_merge(
 			$this->settings,
 			array(
+				'loggedIn'              => ! is_admin() && $checkout_session && ! is_wp_error( $checkout_session ),
 				'supports'              => $this->get_supported_features(),
 				'logoutUrl'             => wc_apa()->get_gateway()->get_amazon_logout_url(),
 				'logoutMessage'         => apply_filters( 'woocommerce_amazon_pa_checkout_logout_message', __( 'You\'re logged in with your Amazon Account.', 'woocommerce-gateway-amazon-payments-advanced' ) ),
@@ -72,13 +73,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 		$script_data = include wc_apa()->path . '/build/payments-methods/express/index.asset.php';
 		wp_register_script( 'amazon_payments_advanced_express_block_compat', wc_apa()->plugin_url . '/build/payments-methods/express/index.js', $script_data['dependencies'], $script_data['version'], true );
 
-		/* Registering Regular Payment Script, which takes over after user is logged in via Amazon. */
-		$script_helper_data = include wc_apa()->path . '/build/payments-methods/express-helper/index.asset.php';
-		wp_register_script( 'amazon_payments_advanced_express-helper_block_compat', wc_apa()->plugin_url . '/build/payments-methods/express-helper/index.js', $script_helper_data['dependencies'], $script_helper_data['version'], true );
-
-		/* If the user is logged in via Amazon and in FrontEnd, return the helper script. */
-		$script_dir_suffix = ! is_admin() && wc_apa()->get_gateway()->get_checkout_session_id() ? '-helper' : '';
-		return array( 'amazon_payments_advanced_express' . $script_dir_suffix . '_block_compat' );
+		return array( 'amazon_payments_advanced_express_block_compat' );
 	}
 
 	/**
