@@ -18,7 +18,7 @@ import { AmazonContent } from './payment-methods';
 import { settings } from './settings';
 import { changeShippingAddressOptions, logOutBannerOptions } from './checkout-blocks';
 
-if ( settings['loggedIn'] ) {
+if ( settings.loggedIn ) {
     const label =
 	decodeEntities(settings.title) ||
 	__('Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced');
@@ -40,7 +40,7 @@ if ( settings['loggedIn'] ) {
      * Amazon Pay "Express" payment method config object in the case user is logged in to Amazon.
      * In this case Amazon pay is being registered as a normal WooCommerce Gateway.
      */
-    const amazonPayPaymentMethod = {
+    const amazonPayExpressPaymentMethod = {
         name: PAYMENT_METHOD_NAME,
         label: <Label label={ label } />,
         placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -56,13 +56,13 @@ if ( settings['loggedIn'] ) {
     /**
      * Registers Amazon Pay "Express" as a Payment Method in the Checkout Block of WooCommerce Blocks.
      */
-    registerPaymentMethod(amazonPayPaymentMethod);
+    registerPaymentMethod( amazonPayExpressPaymentMethod );
 } else {
     /**
      * Amazon Pay "Express" payment method config object in the case user is logged out of Amazon.
      * In this case Amazon pay is being registered as an Express WooCommerce Gateway.
      */
-    const amazonPayPaymentMethod = {
+    const amazonPayExpressPaymentMethod = {
         name: PAYMENT_METHOD_NAME,
         content: <AmazonComponent RenderedComponent={ AmazonExpressContent }/>,
         edit: <AmazonPayPreview />,
@@ -84,6 +84,6 @@ if ( settings['loggedIn'] ) {
         /**
          * Registers Amazon Pay "Express" as a Payment Method in the Checkout Block of WooCommerce Blocks.
          */
-        registerExpressPaymentMethod( amazonPayPaymentMethod );
+        registerExpressPaymentMethod( amazonPayExpressPaymentMethod );
     }
 }
