@@ -5,9 +5,11 @@
  *
  * @param {string} buttonSettingsFlag Specifies the context of the rendering.
  * @param {string} checkoutConfig The checkoutConfig with which we will provide Amazon Pay.
+ * @param {object} estimatedOrderAmount The estimatedOrderAmount object or null to be passed to the Button's settings.
  * @returns {object} The settings to provide the Amazon Pay Button with.
  */
-const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
+const getButtonSettings = ( buttonSettingsFlag, checkoutConfig, estimatedOrderAmount ) => {
+	estimatedOrderAmount = estimatedOrderAmount || amazon_payments_advanced.estimated_order_amount;
 	let obj = {
 		// set checkout environment
 		merchantId: amazon_payments_advanced.merchant_id,
@@ -16,7 +18,7 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
 		// customize the buyer experience
 		placement: amazon_payments_advanced.placement,
 		buttonColor: amazon_payments_advanced.button_color,
-		estimatedOrderAmount: amazon_payments_advanced.estimated_order_amount,
+		estimatedOrderAmount: estimatedOrderAmount,
 		checkoutLanguage:
 			amazon_payments_advanced.button_language !== ''
 				? amazon_payments_advanced.button_language.replace( '-', '_' )
@@ -39,16 +41,18 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig ) => {
  * @param {string} buttonId Selector on where the Amazon Pay button will be rendered on.
  * @param {string} buttonSettingsFlag Specifies the context of the rendering.
  * @param {string} checkoutConfig The checkoutConfig with which we will provide Amazon Pay.
+ * @param {object} estimatedOrderAmount The estimatedOrderAmount object or null to be passed to the Button's settings.
  * @returns {object} The Amazon Pay rendered button.
  */
-export const renderAmazonButton = ( buttonId, buttonSettingsFlag, checkoutConfig ) => {
+export const renderAmazonButton = ( buttonId, buttonSettingsFlag, checkoutConfig, estimatedOrderAmount ) => {
 	let amazonPayButton = null;
 	const buttons = document.querySelectorAll( buttonId );
 	for ( const button of buttons ) {
 		const thisId = '#' + button.getAttribute( 'id' );
 		const buttonSettings = getButtonSettings(
 			buttonSettingsFlag,
-			checkoutConfig
+			checkoutConfig,
+			estimatedOrderAmount
 		);
 		amazonPayButton = amazon.Pay.renderButton( thisId, buttonSettings );
 	}
