@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useEffect } from '@wordpress/element';
+import { useEffect, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -14,11 +14,25 @@ import { renderAmazonButton } from '../../renderAmazonButton';
  * @returns React component
  */
 const AmazonPayExpressBtn = ( props ) => {
+	const estimatedOrderAmount = calculateEstimatedOrderAmount( props );
+
 	useEffect( () => {
-		renderAmazonButton( '#pay_with_amazon_express', 'express', null );
+		renderAmazonButton( '#pay_with_amazon_express', 'express', null, estimatedOrderAmount );
 	}, [] );
 
 	return <div id="pay_with_amazon_express" />;
+};
+
+const calculateEstimatedOrderAmount = ( props ) => {
+	const { billing } = props;
+	const { currency } = billing;
+
+	const stringCartTotal     = String( billing.cartTotal.value );
+	const cartTotalLength     = stringCartTotal.length;
+	const decimals            = currency.minorUnit;
+	const checkOutValue       = stringCartTotal.slice( 0, cartTotalLength - decimals ) + '.' + stringCartTotal.slice( cartTotalLength - decimals );
+
+	return cartTotalLength < decimals ? null : { amount: checkOutValue, currencyCode: currency.code };
 };
 
 /**
@@ -28,5 +42,15 @@ const AmazonPayExpressBtn = ( props ) => {
  * @returns React Component
  */
 export const AmazonExpressContent = ( props ) => {
-	return <AmazonPayExpressBtn { ...props } />;
+	const estimatedOrderAmount = calculateEstimatedOrderAmount( props );
+
+	const [id, setId] = useState( estimatedOrderAmount ? estimatedOrderAmount.amount + estimatedOrderAmount.currencyCode : '0' );
+
+	useEffect( () => {
+		setId( estimatedOrderAmount ? estimatedOrderAmount.amount + estimatedOrderAmount.currencyCode : '0' );
+	}, [
+		estimatedOrderAmount
+	] );
+
+	return <AmazonPayExpressBtn key={id} { ...props } />;
 };
