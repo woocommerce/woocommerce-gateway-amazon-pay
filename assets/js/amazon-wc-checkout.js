@@ -164,7 +164,7 @@
 			buttonId = buttonId || button_id;
 
 			/**
-			 * On lines 213-216, renderButton is being declared as the callback to jQuery Events.
+			 * On lines 216-219, renderButton is being declared as the callback to jQuery Events.
 			 * As a result its being supplied with the callbacks variables.
 			 * We make sure here, our variables are set to their defaults when that happens.
 			 */
