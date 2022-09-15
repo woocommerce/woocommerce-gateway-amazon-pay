@@ -1455,7 +1455,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					'result'   => 'success',
 					'redirect' => $redirect,
 				),
-				( $doing_classic_payment ? array( 'amazonCreateCheckoutParams' => wp_json_encode( $create_checkout_config ) ) : array() )
+				( $doing_classic_payment ? array( 'amazonCreateCheckoutParams' => wp_json_encode( $create_checkout_config ), 'amazonEstimatedOrderAmount' => self::get_estimated_order_amount() ) : array() )
 			);
 
 		} catch ( Exception $e ) {

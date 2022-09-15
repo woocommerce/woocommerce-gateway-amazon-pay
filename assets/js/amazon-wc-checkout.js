@@ -5,12 +5,14 @@
 		var button_id = '#pay_with_amazon';
 		var classicButtonId = '#classic_pay_with_amazon';
 		var amazonCreateCheckoutConfig = null;
+		var amazonEstimatedOrderAmount = null;
 
 		/* Handles 'classic' payment method on checkout. */
 		$( 'form.checkout' ).on( 'checkout_place_order_success', function( e, result ) {
 			if ( 'undefined' !== typeof result.amazonCreateCheckoutParams && $( classicButtonId ).length > 0 ) {
 				amazonCreateCheckoutConfig = JSON.parse( result.amazonCreateCheckoutParams );
-				renderAndInitAmazonCheckout( classicButtonId, 'classic', amazonCreateCheckoutConfig );
+				amazonEstimatedOrderAmount = 'undefined' !== typeof result.amazonEstimatedOrderAmount && result.amazonEstimatedOrderAmount ? JSON.parse( result.amazonEstimatedOrderAmount ) : null;
+				renderAndInitAmazonCheckout( classicButtonId, 'classic', amazonCreateCheckoutConfig, amazonEstimatedOrderAmount );
 				return true;
 			}
 			return true;
@@ -35,6 +37,7 @@
 							try {
 								if ( 'success' === result.result && 'undefined' !== typeof result.amazonCreateCheckoutParams && $( classicButtonId ).length > 0 ) {
 									amazonCreateCheckoutConfig = JSON.parse( result.amazonCreateCheckoutParams );
+									amazonEstimatedOrderAmount = 'undefined' !== typeof result.amazonEstimatedOrderAmount && result.amazonEstimatedOrderAmount ? JSON.parse( result.amazonEstimatedOrderAmount ) : null;
 									renderAndInitAmazonCheckout( classicButtonId, 'classic', amazonCreateCheckoutConfig );
 								} else {
 									throw 'Result failure';
@@ -259,15 +262,19 @@
 				buttonColor: amazon_payments_advanced.button_color,
 				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
 				productType: amazon_payments_advanced.action,
-				estimatedOrderAmount: amazon_payments_advanced.estimated_order_amount,
 			};
 			if ( 'product' === buttonSettingsFlag ) {
 				obj.productType = amazon_payments_advanced.product_action;
 			} else if ( 'classic' === buttonSettingsFlag && null !== amazonCreateCheckoutConfig ) {
 				obj.productType = 'undefined' !== typeof amazonCreateCheckoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
 				amazonCreateCheckoutConfig.payloadJSON = JSON.stringify( amazonCreateCheckoutConfig.payloadJSON );
+
+				if ( null !== amazonEstimatedOrderAmount && 'undefined' !== typeof amazonEstimatedOrderAmount.amount && 'undefined' !== typeof amazonEstimatedOrderAmount.currencyCode ) {
+					obj.estimatedOrderAmount = amazonEstimatedOrderAmount;
+				}
 			} else {
 				obj.createCheckoutSessionConfig = amazon_payments_advanced.create_checkout_session_config;
+				obj.estimatedOrderAmount = amazon_payments_advanced.estimated_order_amount;
 			}
 			return obj;
 		}
