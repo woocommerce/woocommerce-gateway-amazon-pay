@@ -185,6 +185,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
 		add_action( 'woocommerce_after_checkout_form', array( $this, 'classic_integration_button' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'classic_validation' ), 10, 2 );
+		if ( $this->doing_ajax() ) {
+			add_action( 'woocommerce_review_order_after_order_total', array( $this, 'update_js' ) );
+		}
 
 		// Pay Order.
 		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'classic_integration_button' ) );
@@ -259,7 +262,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			array(
 				'ajax_url'                       => admin_url( 'admin-ajax.php' ),
 				'create_checkout_session_config' => $checkout_session_config,
-				'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
+				'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] . self::get_estimated_order_amount() ),
 				'button_color'                   => $this->settings['button_color'],
 				'placement'                      => $this->get_current_placement(),
 				'action'                         => $this->get_current_cart_action(),
@@ -1455,7 +1458,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					'result'   => 'success',
 					'redirect' => $redirect,
 				),
-				( $doing_classic_payment ? array( 'amazonCreateCheckoutParams' => wp_json_encode( $create_checkout_config ) ) : array() )
+				( $doing_classic_payment ? array( 'amazonCreateCheckoutParams' => wp_json_encode( $create_checkout_config ), 'amazonEstimatedOrderAmount' => self::get_estimated_order_amount() ) : array() )
 			);
 
 		} catch ( Exception $e ) {
@@ -1807,7 +1810,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$data = array(
 			'action'                         => $this->get_current_cart_action(),
 			'create_checkout_session_config' => $checkout_session_config,
-			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
+			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] . self::get_estimated_order_amount() ),
 			'estimated_order_amount'         => self::get_estimated_order_amount(),
 		);
 		?>
@@ -2844,6 +2847,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			$data = array(
 				'create_checkout_session_config' => $checkout_session_config,
+				'estimated_order_amount'         => self::get_estimated_order_amount(),
 			);
 			wp_send_json_success( $data, 200 );
 		}

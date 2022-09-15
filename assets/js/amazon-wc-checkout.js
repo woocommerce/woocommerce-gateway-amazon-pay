@@ -5,11 +5,13 @@
 		var button_id = '#pay_with_amazon';
 		var classicButtonId = '#classic_pay_with_amazon';
 		var amazonCreateCheckoutConfig = null;
+		var amazonEstimatedOrderAmount = null;
 
 		/* Handles 'classic' payment method on checkout. */
 		$( 'form.checkout' ).on( 'checkout_place_order_success', function( e, result ) {
 			if ( 'undefined' !== typeof result.amazonCreateCheckoutParams && $( classicButtonId ).length > 0 ) {
 				amazonCreateCheckoutConfig = JSON.parse( result.amazonCreateCheckoutParams );
+				amazonEstimatedOrderAmount = 'undefined' !== typeof result.amazonEstimatedOrderAmount && result.amazonEstimatedOrderAmount ? JSON.parse( result.amazonEstimatedOrderAmount ) : null;
 				renderAndInitAmazonCheckout( classicButtonId, 'classic', amazonCreateCheckoutConfig );
 				return true;
 			}
@@ -35,6 +37,7 @@
 							try {
 								if ( 'success' === result.result && 'undefined' !== typeof result.amazonCreateCheckoutParams && $( classicButtonId ).length > 0 ) {
 									amazonCreateCheckoutConfig = JSON.parse( result.amazonCreateCheckoutParams );
+									amazonEstimatedOrderAmount = 'undefined' !== typeof result.amazonEstimatedOrderAmount && result.amazonEstimatedOrderAmount ? JSON.parse( result.amazonEstimatedOrderAmount ) : null;
 									renderAndInitAmazonCheckout( classicButtonId, 'classic', amazonCreateCheckoutConfig );
 								} else {
 									throw 'Result failure';
@@ -126,6 +129,12 @@
 							data: $.param( data ),
 							success: function( result ) {
 								if ( result.data.create_checkout_session_config ) {
+									if ( result.data.estimated_order_amount ) {
+										var productsEstimatedOrderAmount = JSON.parse( result.data.estimated_order_amount );
+										if ( 'undefined' !== typeof productsEstimatedOrderAmount.amount && 'undefined' !== productsEstimatedOrderAmount.currencyCode ) {
+											amazonProductButton.updateButtonInfo( productsEstimatedOrderAmount );
+										}
+									}
 									amazonProductButton.initCheckout( {
 										createCheckoutSessionConfig: result.data.create_checkout_session_config
 									} );
@@ -161,7 +170,7 @@
 			buttonId = buttonId || button_id;
 
 			/**
-			 * On lines 213-216, renderButton is being declared as the callback to jQuery Events.
+			 * On lines 216-219, renderButton is being declared as the callback to jQuery Events.
 			 * As a result its being supplied with the callbacks variables.
 			 * We make sure here, our variables are set to their defaults when that happens.
 			 */
@@ -259,15 +268,19 @@
 				buttonColor: amazon_payments_advanced.button_color,
 				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
 				productType: amazon_payments_advanced.action,
-				estimatedOrderAmount: amazon_payments_advanced.estimated_order_amount,
 			};
 			if ( 'product' === buttonSettingsFlag ) {
 				obj.productType = amazon_payments_advanced.product_action;
 			} else if ( 'classic' === buttonSettingsFlag && null !== amazonCreateCheckoutConfig ) {
 				obj.productType = 'undefined' !== typeof amazonCreateCheckoutConfig.payloadJSON.addressDetails ? 'PayAndShip' : 'PayOnly';
 				amazonCreateCheckoutConfig.payloadJSON = JSON.stringify( amazonCreateCheckoutConfig.payloadJSON );
+
+				if ( null !== amazonEstimatedOrderAmount && 'undefined' !== typeof amazonEstimatedOrderAmount.amount && 'undefined' !== typeof amazonEstimatedOrderAmount.currencyCode ) {
+					obj.estimatedOrderAmount = amazonEstimatedOrderAmount;
+				}
 			} else {
 				obj.createCheckoutSessionConfig = amazon_payments_advanced.create_checkout_session_config;
+				obj.estimatedOrderAmount = amazon_payments_advanced.estimated_order_amount;
 			}
 			return obj;
 		}
