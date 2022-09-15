@@ -2847,6 +2847,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			$data = array(
 				'create_checkout_session_config' => $checkout_session_config,
+				'estimated_order_amount'         => self::get_estimated_order_amount(),
 			);
 			wp_send_json_success( $data, 200 );
 		}
