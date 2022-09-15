@@ -12,7 +12,7 @@
 			if ( 'undefined' !== typeof result.amazonCreateCheckoutParams && $( classicButtonId ).length > 0 ) {
 				amazonCreateCheckoutConfig = JSON.parse( result.amazonCreateCheckoutParams );
 				amazonEstimatedOrderAmount = 'undefined' !== typeof result.amazonEstimatedOrderAmount && result.amazonEstimatedOrderAmount ? JSON.parse( result.amazonEstimatedOrderAmount ) : null;
-				renderAndInitAmazonCheckout( classicButtonId, 'classic', amazonCreateCheckoutConfig, amazonEstimatedOrderAmount );
+				renderAndInitAmazonCheckout( classicButtonId, 'classic', amazonCreateCheckoutConfig );
 				return true;
 			}
 			return true;
