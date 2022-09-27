@@ -54,6 +54,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 				'selectedPaymentMethod' => esc_html( wc_apa()->get_gateway()->get_selected_payment_label( $checkout_session ) ),
 				'hasPaymentPreferences' => wc_apa()->get_gateway()->has_payment_preferences( $checkout_session ),
 				'allOtherGateways'      => $this->gateways_to_unset_on_fe(),
+				'allowedCurrencies'     => WC_Amazon_Payments_Advanced_API::get_selected_currencies(),
 				'amazonAddress'         => array(
 					'amazonBilling'  => $checkout_session && ! is_wp_error( $checkout_session ) && ! empty( $checkout_session->billingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) : null, // phpcs:ignore WordPress.NamingConventions
 					'amazonShipping' => $checkout_session && ! is_wp_error( $checkout_session ) && ! empty( $checkout_session->shippingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) : null, // phpcs:ignore WordPress.NamingConventions

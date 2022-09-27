@@ -43,10 +43,11 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 */
 	public function get_payment_method_data() {
 		return array(
-			'title'       => $this->settings['title'],
-			'description' => $this->settings['description'],
-			'supports'    => $this->get_supported_features(),
-			'action'      => wc_apa()->get_gateway()->get_current_cart_action(),
+			'title'             => $this->settings['title'],
+			'description'       => $this->settings['description'],
+			'supports'          => $this->get_supported_features(),
+			'action'            => wc_apa()->get_gateway()->get_current_cart_action(),
+			'allowedCurrencies' => WC_Amazon_Payments_Advanced_API::get_selected_currencies(),
 		);
 	}
 

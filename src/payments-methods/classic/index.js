@@ -26,7 +26,11 @@ const amazonPayPaymentMethod = {
 	placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
 	content: <AmazonComponent RenderedComponent={ AmazonContent }/>,
 	edit: <AmazonComponent RenderedComponent={ AmazonContent }/>,
-	canMakePayment: () => true,
+	canMakePayment: ( {cartTotals } ) => {
+		const currencyCode = cartTotals.currency_code;
+		const { allowedCurrencies } = settings;
+		return allowedCurrencies ? allowedCurrencies.includes( currencyCode ) : true;
+	},
 	ariaLabel: label,
 	supports: {
 		features: settings?.supports ?? [],

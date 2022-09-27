@@ -46,7 +46,11 @@ if ( settings.loggedIn ) {
         placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
         content: <AmazonComponent RenderedComponent={ AmazonContent } />,
         edit: <AmazonComponent RenderedComponent={ AmazonContent } />,
-        canMakePayment: () => true,
+        canMakePayment: ( {cartTotals } ) => {
+            const currencyCode = cartTotals.currency_code;
+            const { allowedCurrencies } = settings;
+            return allowedCurrencies ? allowedCurrencies.includes( currencyCode ) : true;
+        },
         ariaLabel: label,
         supports: {
             features: settings?.supports ?? [],
@@ -66,7 +70,11 @@ if ( settings.loggedIn ) {
         name: PAYMENT_METHOD_NAME,
         content: <AmazonComponent RenderedComponent={ AmazonExpressContent }/>,
         edit: <AmazonPayPreview />,
-        canMakePayment: () => true,
+        canMakePayment: ( {cartTotals } ) => {
+            const currencyCode = cartTotals.currency_code;
+            const { allowedCurrencies } = settings;
+            return allowedCurrencies ? allowedCurrencies.includes( currencyCode ) : true;
+        },
         supports: {
             features: settings?.supports ?? [],
         },
