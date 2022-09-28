@@ -12,7 +12,7 @@ const { registerCheckoutBlock } = wc.blocksCheckout;
  * Internal dependencies
  */
 import { PAYMENT_METHOD_NAME } from './constants';
-import { AmazonComponent, AmazonPayPreview, Label } from '../../utils';
+import { AmazonComponent, AmazonPayPreview, Label, amazonPayCanMakePayment } from '../../utils';
 import { AmazonExpressContent } from './payment-methods-express';
 import { AmazonContent } from './payment-methods';
 import { settings } from './settings';
@@ -46,10 +46,8 @@ if ( settings.loggedIn ) {
         placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
         content: <AmazonComponent RenderedComponent={ AmazonContent } />,
         edit: <AmazonComponent RenderedComponent={ AmazonContent } />,
-        canMakePayment: ( {cartTotals } ) => {
-            const currencyCode = cartTotals.currency_code;
-            const { allowedCurrencies } = settings;
-            return allowedCurrencies ? allowedCurrencies.includes( currencyCode ) : true;
+        canMakePayment: ( props ) => {
+            return amazonPayCanMakePayment( props, settings );
         },
         ariaLabel: label,
         supports: {
@@ -70,10 +68,8 @@ if ( settings.loggedIn ) {
         name: PAYMENT_METHOD_NAME,
         content: <AmazonComponent RenderedComponent={ AmazonExpressContent }/>,
         edit: <AmazonPayPreview />,
-        canMakePayment: ( {cartTotals } ) => {
-            const currencyCode = cartTotals.currency_code;
-            const { allowedCurrencies } = settings;
-            return allowedCurrencies ? allowedCurrencies.includes( currencyCode ) : true;
+        canMakePayment: ( props ) => {
+            return amazonPayCanMakePayment( props, settings );
         },
         supports: {
             features: settings?.supports ?? [],
