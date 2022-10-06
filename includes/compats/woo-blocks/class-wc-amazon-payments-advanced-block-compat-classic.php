@@ -30,7 +30,8 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 * @return boolean
 	 */
 	public function is_active() {
-		return wc_apa()->get_gateway()->is_available() && wc_apa()->get_gateway()->is_classic_enabled() && ! wc_apa()->get_gateway()->get_checkout_session_id();
+		$wc_apa_gateway = wc_apa()->get_gateway();
+		return $wc_apa_gateway->is_available() && $wc_apa_gateway->is_classic_enabled() && ! $wc_apa_gateway->get_checkout_session_id();
 	}
 
 	/**
