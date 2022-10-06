@@ -1,23 +1,40 @@
 <?php
 /**
  * PHPUnit bootstrap file
+ *
  * @package WC_Gateway_Amazon_Pay
  */
 
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
 if ( ! $_tests_dir ) {
-	$_tests_dir = sys_get_temp_dir() . '/wordpress-tests-lib';
+	$_tests_dir = rtrim( sys_get_temp_dir(), '/\\' ) . '/wordpress-tests-lib';
 }
 
+if ( ! file_exists( $_tests_dir . '/includes/functions.php' ) ) {
+	echo "Could not find $_tests_dir/includes/functions.php, have you run tests/bin/install-wp-tests.sh ?" . PHP_EOL; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	exit( 1 );
+}
+
+if ( PHP_VERSION_ID >= 80000 && file_exists( $_tests_dir . '/includes/phpunit7/MockObject' ) ) {
+	// WP Core test library includes patches for PHPUnit 7 to make it compatible with PHP 8+.
+	require_once $_tests_dir . '/includes/phpunit7/MockObject/Builder/NamespaceMatch.php';
+	require_once $_tests_dir . '/includes/phpunit7/MockObject/Builder/ParametersMatch.php';
+	require_once $_tests_dir . '/includes/phpunit7/MockObject/InvocationMocker.php';
+	require_once $_tests_dir . '/includes/phpunit7/MockObject/MockMethod.php';
+}
+
+// Give access to tests_add_filter() function.
 require_once $_tests_dir . '/includes/functions.php';
 
 /**
  * Loads the plugin early
  */
 function _manually_load_plugin() {
-	$base_dir = dirname( dirname( dirname( __FILE__ ) ) );
-	require $base_dir . '/woocommerce-gateway-amazon-payments-advanced.php';
-	require $base_dir . '/../woocommerce/woocommerce.php';
+	$_plugins_dir = dirname( __FILE__ ) . '/../../../';
+
+	// require_once $_plugins_dir . 'woocommerce/woocommerce.php';
+
+	require_once $_plugins_dir . 'woocommerce-gateway-amazon-payments-advanced/woocommerce-gateway-amazon-payments-advanced.php';
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
