@@ -44,10 +44,11 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 */
 	public function get_payment_method_data() {
 		return array(
-			'title'       => $this->settings['title'],
-			'description' => $this->settings['description'],
-			'supports'    => $this->get_supported_features(),
-			'action'      => wc_apa()->get_gateway()->get_current_cart_action(),
+			'title'               => $this->settings['title'],
+			'description'         => $this->settings['description'],
+			'supports'            => $this->get_supported_features(),
+			'amazonPayPreviewUrl' => esc_url( wc_apa()->plugin_url . '/assets/images/amazon-pay-preview.png' ),
+			'action'              => wc_apa()->get_gateway()->get_current_cart_action(),
 		);
 	}
 
