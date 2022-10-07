@@ -32,11 +32,26 @@ const calculateEstimatedOrderAmount = ( props ) => {
 	const { billing } = props;
 	const { currency } = billing;
 
-	const stringCartTotal     = String( billing.cartTotal.value );
-	const cartTotalLength     = stringCartTotal.length;
-	const decimals            = currency.minorUnit;
-	const checkOutValue       = stringCartTotal.slice( 0, cartTotalLength - decimals ) + '.' + stringCartTotal.slice( cartTotalLength - decimals );
+	/**
+	 * Get how many charactes are present in the cart's total value.
+	 * So if the checkout value was 23.76,
+	 * billing.cartTotal.value would be equal to 2376
+	 * cartTotalLength would be equal to 4 and
+	 * currency.minorUnit would be 2.
+	 */
+	const stringCartTotal = String( billing.cartTotal.value );
+	const cartTotalLength = stringCartTotal.length;
 
+	// Get how many decimals is the store configured to use.
+	const decimals = currency.minorUnit;
+
+	/**
+	 * Since we know the total length of the checkout value and the length of the decimals,
+	 * we can build the checkout value in the format expected by Amazon Pay.
+	 */
+	const checkOutValue = stringCartTotal.slice( 0, cartTotalLength - decimals ) + '.' + stringCartTotal.slice( cartTotalLength - decimals );
+
+	// If the number of decimals are more than the total number of chars in the checkout value. Something has gone wrong, so we return null.
 	return cartTotalLength < decimals ? null : { amount: checkOutValue, currencyCode: currency.code };
 };
 
