@@ -1,5 +1,4 @@
 const defaultConfig = require('@wordpress/scripts/config/webpack.config');
-// eslint-disable-next-line import/no-extraneous-dependencies
 const TerserPlugin = require('terser-webpack-plugin');
 const path = require('path');
 const { fromProjectRoot } = require('@wordpress/scripts/utils/file');
