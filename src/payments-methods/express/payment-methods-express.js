@@ -63,9 +63,7 @@ const calculateEstimatedOrderAmount = ( props ) => {
  */
 export const AmazonExpressContent = ( props ) => {
 	const estimatedOrderAmount = calculateEstimatedOrderAmount( props );
-
 	const key = estimatedOrderAmount ? `${ estimatedOrderAmount.amount }${ estimatedOrderAmount.currencyCode }` : '0';
-
 	const [id, setId] = useState( key );
 
 	useEffect( () => {
