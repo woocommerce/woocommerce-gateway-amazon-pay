@@ -23,6 +23,11 @@ const AmazonPayExpressBtn = ( props ) => {
 	return <div id="pay_with_amazon_express" />;
 };
 
+/**
+ * Returns the estimated order amount button attribute.
+ * @param {object} props
+ * @returns {object}|null Estimated order amount button attribute.
+ */
 const calculateEstimatedOrderAmount = ( props ) => {
 	const { billing } = props;
 	const { currency } = billing;
