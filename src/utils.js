@@ -105,4 +105,15 @@ export const AmazonPayPreview = ( { settings, ...props } ) => {
 export const getCheckOutFieldsLabel = ( field, billingOrShipping ) => {
 	const elem = document.getElementById( billingOrShipping + '-' + field );
 	return elem && elem.getAttribute( 'aria-label' ) ? elem.getAttribute( 'aria-label' ) : '';
-}
+};
+
+/**
+ * Manages the FE's availability of the Gateway.
+ *
+ * @param {object} props All the props being fed to the canMakePayment callback of the Gateways.
+ * @param {object} settings The gateways settings.
+ * @returns {bool}
+ */
+export const amazonPayCanMakePayment = ( { cartTotals }, { allowedCurrencies } ) => {
+	return allowedCurrencies ? allowedCurrencies.includes( cartTotals.currency_code ) : true;
+};

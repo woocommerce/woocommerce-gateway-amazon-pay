@@ -12,7 +12,7 @@ const { registerCheckoutBlock } = wc.blocksCheckout;
  * Internal dependencies
  */
 import { PAYMENT_METHOD_NAME } from './constants';
-import { AmazonComponent, AmazonPayPreview, Label } from '../../utils';
+import { AmazonComponent, AmazonPayPreview, Label, amazonPayCanMakePayment } from '../../utils';
 import { AmazonExpressContent } from './payment-methods-express';
 import { AmazonContent } from './payment-methods';
 import { settings } from './settings';
@@ -46,7 +46,9 @@ if ( settings.loggedIn ) {
         placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
         content: <AmazonComponent RenderedComponent={ AmazonContent } />,
         edit: <AmazonComponent RenderedComponent={ AmazonContent } />,
-        canMakePayment: () => true,
+        canMakePayment: ( props ) => {
+            return amazonPayCanMakePayment( props, settings );
+        },
         ariaLabel: label,
         supports: {
             features: settings?.supports ?? [],
@@ -66,7 +68,9 @@ if ( settings.loggedIn ) {
         name: PAYMENT_METHOD_NAME,
         content: <AmazonComponent RenderedComponent={ AmazonExpressContent }/>,
         edit: <AmazonPayPreview settings={ settings } />,
-        canMakePayment: () => true,
+        canMakePayment: ( props ) => {
+            return amazonPayCanMakePayment( props, settings );
+        },
         supports: {
             features: settings?.supports ?? [],
         },

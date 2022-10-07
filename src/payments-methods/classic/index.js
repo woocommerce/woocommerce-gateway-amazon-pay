@@ -10,7 +10,7 @@ const { registerPaymentMethod } = wc.wcBlocksRegistry;
  * Internal dependencies
  */
 import { PAYMENT_METHOD_NAME } from './constants';
-import { Label, AmazonComponent } from '../../utils';
+import { Label, AmazonComponent, amazonPayCanMakePayment } from '../../utils';
 import { AmazonContent } from './payment-methods';
 import { settings } from './settings';
 
@@ -26,7 +26,9 @@ const amazonPayPaymentMethod = {
 	placeOrderButtonLabel: __( 'Proceed to Amazon', 'woocommerce-gateway-amazon-payments-advanced' ),
 	content: <AmazonComponent RenderedComponent={ AmazonContent }/>,
 	edit: <AmazonComponent RenderedComponent={ AmazonContent }/>,
-	canMakePayment: () => true,
+	canMakePayment: ( props ) => {
+		return amazonPayCanMakePayment( props, settings );
+	},
 	ariaLabel: label,
 	supports: {
 		features: settings?.supports ?? [],
