@@ -67,7 +67,7 @@ if ( settings.loggedIn ) {
     const amazonPayExpressPaymentMethod = {
         name: PAYMENT_METHOD_NAME,
         content: <AmazonComponent RenderedComponent={ AmazonExpressContent }/>,
-        edit: <AmazonPayPreview />,
+        edit: <AmazonPayPreview settings={ settings } />,
         canMakePayment: ( props ) => {
             return amazonPayCanMakePayment( props, settings );
         },
