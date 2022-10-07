@@ -258,7 +258,8 @@
 				placement: amazon_payments_advanced.placement,
 				buttonColor: amazon_payments_advanced.button_color,
 				checkoutLanguage: amazon_payments_advanced.button_language !== '' ? amazon_payments_advanced.button_language.replace( '-', '_' ) : undefined,
-				productType: amazon_payments_advanced.action
+				productType: amazon_payments_advanced.action,
+				estimatedOrderAmount: amazon_payments_advanced.estimated_order_amount,
 			};
 			if ( 'product' === buttonSettingsFlag ) {
 				obj.productType = amazon_payments_advanced.product_action;
