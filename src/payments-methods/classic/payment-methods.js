@@ -1,7 +1,13 @@
+/**
+ * External dependencies
+ */
 import { useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import React from 'react';
 
+/**
+ * Internal dependencies
+ */
 import { Content } from '../../utils';
 import { settings } from './settings';
 import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
