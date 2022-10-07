@@ -1058,6 +1058,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		foreach ( $checkout_session->paymentPreferences as $pref ) { // phpcs:ignore WordPress.NamingConventions
 			if ( isset( $pref->paymentDescriptor ) ) { // phpcs:ignore WordPress.NamingConventions
 				$selected_label = $pref->paymentDescriptor; // phpcs:ignore WordPress.NamingConventions
+				break;
 			}
 		}
 
@@ -1797,10 +1798,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function update_js( $id = '' ) {
-
-		if ( empty( $id ) ) {
-			$id = 'wc-apa-update-vals';
-		}
+		$id = $id ? $id : 'wc-apa-update-vals';
 
 		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
 
@@ -2559,8 +2557,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return true;
 		}
 
-		// To capture the cart redirect on update cart actions.
-		if ( isset( $_SERVER['HTTP_REFERER'] ) && $_SERVER['HTTP_REFERER'] === wc_get_cart_url() ) {
+		/**
+		 * To capture the cart redirect on update cart actions.
+		 * Considered wp_get_referer instead, but it wouldn't produce the expected
+		 * results when Update cart is clicked on the cart page.
+		 */
+		if ( isset( $_SERVER['HTTP_REFERER'] ) && wc_get_cart_url() === $_SERVER['HTTP_REFERER'] ) {
 			return true;
 		}
 
@@ -2946,12 +2948,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Get the estimated order amount from the cart totals.
 	 *
-	 * @return array
+	 * @return string
 	 */
 	private static function get_estimated_order_amount() {
-
-		if ( is_null( WC()->cart ) ) {
-			return array();
+		if ( null === WC()->cart ) {
+			return '';
 		}
 
 		return wp_json_encode(
