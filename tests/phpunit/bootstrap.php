@@ -17,6 +17,13 @@ require_once $_tests_dir . '/includes/functions.php';
 function _manually_load_plugin() {
 	$base_dir = dirname( dirname( dirname( __FILE__ ) ) );
 	require $base_dir . '/woocommerce-gateway-amazon-payments-advanced.php';
+	
+	require_once $base_dir . '/../woocommerce/includes/abstracts/abstract-wc-settings-api.php';
+	require_once $base_dir . '/../woocommerce/includes/abstracts/abstract-wc-payment-gateway.php';
+
+	require_once $base_dir . '/includes/class-wc-gateway-amazon-payments-advanced-abstract.php';
+	require_once $base_dir . '/includes/class-wc-gateway-amazon-payments-advanced.php';
+
 	require $base_dir . '/../woocommerce/woocommerce.php';
 }
 

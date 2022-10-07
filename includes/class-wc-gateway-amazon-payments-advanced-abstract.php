@@ -553,10 +553,18 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'type'        => 'checkbox',
 				'default'     => 'yes',
 			),
+			'using_woo_blocks' => array(
+				'title'       => __( 'WooCommerce Blocks', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Are you using WooCommerce Blocks for your checkout page?', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'Compatibility with WooCommerce blocks should work fine out of the box. This option for the time being ensures compatibility only when using WooCommerce Blocks Checkout without the "Classic" Amazon Gateway enabled.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'no',
+			),
 			'mini_cart_button'              => array(
 				'title'       => __( 'Amazon Pay on mini cart', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable Amazon Pay on mini cart', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'description' => __( 'This will only work if you are using WooCommerce\'s mini cart. If you enable it and the Amazon Pay does not show please disable since it also enables loading of required assets globally in your frontend. Not compatible with WooCommerce Blocks.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will only work if you are using WooCommerce\'s mini cart. If you enable it and the Amazon Pay does not show please disable since it also enables loading of required assets globally in your frontend. Compatible with WooCommerce Blocks.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 				'type'        => 'checkbox',
 				'default'     => 'no',
@@ -564,7 +572,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			'product_button'                => array(
 				'title'       => __( 'Amazon Pay on product pages', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable Amazon Pay on product pages', 'woocommerce-gateway-amazon-payments-advanced' ),
-				'description' => __( 'This will enable the Amazon Pay button on the product pages next to the Add to Cart button. Not compatible with WooCommerce Blocks.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will enable the Amazon Pay button on the product pages next to the Add to Cart button. Compatible with WooCommerce Blocks.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 				'type'        => 'checkbox',
 				'default'     => 'no',
@@ -1000,7 +1008,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @return array
 	 */
 	public function remove_amazon_gateway( $gateways ) {
-		if ( ! empty( $this->settings['enable_classic_gateway'] ) && 'no' === $this->settings['enable_classic_gateway'] && isset( $gateways[ $this->id ] ) ) {
+		if ( ! $this->is_classic_enabled() && isset( $gateways[ $this->id ] ) ) {
 			unset( $gateways[ $this->id ] );
 		}
 
@@ -1130,5 +1138,14 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 */
 	protected function is_product_button_enabled() {
 		return ! empty( $this->settings['product_button'] ) && 'yes' === $this->settings['product_button'];
+	}
+
+	/**
+	 * Returns if the user is using woo blocks.
+	 *
+	 * @return boolean
+	 */
+	protected function using_woo_blocks() {
+		return ! empty( $this->settings['using_woo_blocks'] ) && 'yes' === $this->settings['using_woo_blocks'];
 	}
 }
