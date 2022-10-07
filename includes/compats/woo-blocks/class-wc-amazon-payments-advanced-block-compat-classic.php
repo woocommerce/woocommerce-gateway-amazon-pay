@@ -30,7 +30,8 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 * @return boolean
 	 */
 	public function is_active() {
-		return wc_apa()->get_gateway()->is_available() && wc_apa()->get_gateway()->is_classic_enabled() && ! wc_apa()->get_gateway()->get_checkout_session_id();
+		$wc_apa_gateway = wc_apa()->get_gateway();
+		return $wc_apa_gateway->is_available() && $wc_apa_gateway->is_classic_enabled() && ! $wc_apa_gateway->get_checkout_session_id();
 	}
 
 	/**
@@ -43,11 +44,11 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 */
 	public function get_payment_method_data() {
 		return array(
-			'title'             => $this->settings['title'],
-			'description'       => $this->settings['description'],
-			'supports'          => $this->get_supported_features(),
-			'action'            => wc_apa()->get_gateway()->get_current_cart_action(),
-			'allowedCurrencies' => WC_Amazon_Payments_Advanced_API::get_selected_currencies(),
+			'title'               => $this->settings['title'],
+			'description'         => $this->settings['description'],
+			'supports'            => $this->get_supported_features(),
+			'amazonPayPreviewUrl' => esc_url( wc_apa()->plugin_url . '/assets/images/amazon-pay-preview.png' ),
+			'action'              => wc_apa()->get_gateway()->get_current_cart_action(),
 		);
 	}
 

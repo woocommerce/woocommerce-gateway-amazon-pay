@@ -6,11 +6,6 @@ import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
 
 /**
- * Internal dependencies
- */
-import { amazonPayImage } from './amazon-pay-preview';
-
-/**
  * Returns an array of the sibling of the element that have the class className.
  * 
  * @param {node} element The element's whose siblings we are searching for.
@@ -95,7 +90,10 @@ export const Content = ( { description, ...props } ) => {
  *
  * @returns React component
  */
-export const AmazonPayPreview = () => <img style={{ width: 'auto' }} src={ amazonPayImage } alt="" />;
+export const AmazonPayPreview = ( { settings, ...props } ) => {
+	const { amazonPayPreviewUrl } = settings;
+	return <img style={{ width: 'auto' }} src={ amazonPayPreviewUrl } alt="" />;
+};
 
 /**
  * Returns a checkout field's label.
