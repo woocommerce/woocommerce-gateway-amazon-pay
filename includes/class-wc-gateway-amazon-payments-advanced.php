@@ -1797,7 +1797,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function update_js( $id = '' ) {
-
 		$id = $id ? $id : 'wc-apa-update-vals';
 
 		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
@@ -2951,8 +2950,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return string
 	 */
 	private static function get_estimated_order_amount() {
-
-		if ( is_null( WC()->cart ) ) {
+		if ( null === WC()->cart ) {
 			return '';
 		}
 
