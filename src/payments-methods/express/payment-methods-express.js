@@ -67,9 +67,9 @@ export const AmazonExpressContent = ( props ) => {
 	const [id, setId] = useState( key );
 
 	useEffect( () => {
-		setId( estimatedOrderAmount ? estimatedOrderAmount.amount + estimatedOrderAmount.currencyCode : '0' );
+		setId( key );
 	}, [
-		estimatedOrderAmount
+		key
 	] );
 
 	return <AmazonPayExpressBtn key={id} { ...props } />;
