@@ -56,6 +56,14 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.3.0 - 2022-xx-xx =
+
+* Add - Adds estimatedOrderAmount attribute to Amazon Pay button.
+* Add - Adds support for Amazon Pay on Cart and Checkout Blocks of WooCommerce Blocks.
+* Add - Adds the estimated order amount in every place available by the plugin.
+* Fix - If the currency changes while in the FrontEnd the Gateway will alter its availability based on its settings.
+* Fix - Warning shouldn't appear on Single product regarding the 'subscriptions_enabled' not being set.
+
 = 2.2.4 - 2022-08-12 =
 
 * Fix - Infinite Loop causing Memory Exhaustion.
