@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 4.4
 Tested up to: 6.0
-Stable tag: 2.2.4
+Stable tag: 2.3.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -56,7 +56,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.3.0 - 2022-xx-xx =
+= 2.3.0 - 2022-10-11 =
 
 * Add - Adds estimatedOrderAmount attribute to Amazon Pay button.
 * Add - Adds support for Amazon Pay on Cart and Checkout Blocks of WooCommerce Blocks.
