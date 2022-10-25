@@ -264,15 +264,7 @@ class WC_Amazon_Payments_Advanced {
 	public function add_gateway( $methods ) {
 		$methods[] = $this->gateway;
 
-		/**
-		 * Load express gateway only if
-		 *
-		 * 1) Merchant has migrated to V2 of the Amazon API and as a result
-		 *    he is using the WC_Gateway_Amazon_Payments_Advanced class as the
-		 *    Amazon Pay main Gateway.
-		 * 2) WooCommerce blocks is installed and activated
-		 */
-		if ( class_exists( 'WC_Gateway_Amazon_Payments_Advanced' ) && class_exists( 'Automattic\WooCommerce\Blocks\Package' ) ) {
+		if ( $this->should_express_be_loaded() ) {
 			require_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-express.php';
 			$this->express_gateway = new WC_Gateway_Amazon_Payments_Advanced_Express();
 			$methods[]             = $this->express_gateway;
@@ -545,6 +537,22 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function get_express_gateway() {
 		return $this->express_gateway;
+	}
+
+	/**
+	 * Checks whether Express Gateway should be loaded or not.
+	 *
+	 * Express gateway should only be loaded if:
+	 *
+	 * 1) Merchant has migrated to V2 of the Amazon API and as a result
+	 *    he is using the WC_Gateway_Amazon_Payments_Advanced class as the
+	 *    Amazon Pay main Gateway.
+	 * 2) WooCommerce blocks is installed and activated
+	 *
+	 * @return boolean
+	 */
+	public function should_express_be_loaded() {
+		return class_exists( 'WC_Gateway_Amazon_Payments_Advanced' ) && class_exists( 'Automattic\WooCommerce\Blocks\Package' );
 	}
 }
 
