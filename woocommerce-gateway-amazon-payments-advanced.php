@@ -552,7 +552,7 @@ class WC_Amazon_Payments_Advanced {
 	 * @return boolean
 	 */
 	public function should_express_be_loaded() {
-		return class_exists( 'WC_Gateway_Amazon_Payments_Advanced' ) && class_exists( 'Automattic\WooCommerce\Blocks\Package' );
+		return WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() && class_exists( 'Automattic\WooCommerce\Blocks\Package' );
 	}
 }
 
