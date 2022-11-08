@@ -30,7 +30,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 	 * @return boolean
 	 */
 	public function is_active() {
-		return wc_apa()->should_express_be_loaded() && wc_apa()->get_gateway()->is_available();;
+		return wc_apa()->should_express_be_loaded() && wc_apa()->get_gateway()->is_available();
 	}
 
 	/**
