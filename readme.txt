@@ -38,6 +38,7 @@ As earth’s most customer-centric company, we are continuously innovating on be
 = Minimum Requirements =
 
 * WordPress 5.5 or greater
+* WooCommerce 4.0 or greater
 
 = Automatic installation =
 
