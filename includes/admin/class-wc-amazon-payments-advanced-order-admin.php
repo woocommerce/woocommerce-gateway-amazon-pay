@@ -108,6 +108,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	public function meta_box() {
 		global $post, $wpdb;
 
+		if ( empty( $post->ID ) ) {
+			return;
+		}
 		$order_id = absint( $post->ID );
 		$order    = wc_get_order( $order_id );
 		if ( ! $order ) {
@@ -131,6 +134,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	public function authorization_box() {
 		global $post, $wpdb;
 
+		if ( empty( $post->ID ) ) {
+			return;
+		}
 		$order_id = absint( $post->ID );
 		$order    = wc_get_order( $order_id );
 
