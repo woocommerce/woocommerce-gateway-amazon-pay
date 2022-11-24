@@ -504,18 +504,25 @@ class WC_Amazon_Payments_Advanced {
 	 * @return WP_REST_Response REST response
 	 */
 	public function rest_api_add_amazon_ref_info( $response, $post ) {
-		if ( 'amazon_payments_advanced' === $response->data['payment_method'] ) {
-			$response->data['amazon_reference'] = array(
-
-				'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
-				'amazon_reference_id'        => get_post_meta( $post->ID, 'amazon_reference_id', true ),
-				'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
-				'amazon_authorization_id'    => get_post_meta( $post->ID, 'amazon_authorization_id', true ),
-				'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
-				'amazon_capture_id'          => get_post_meta( $post->ID, 'amazon_capture_id', true ),
-				'amazon_refund_ids'          => get_post_meta( $post->ID, 'amazon_refund_id', false ),
-			);
+		if ( 'amazon_payments_advanced' !== $response->data['payment_method'] ) {
+			return $response;
 		}
+
+		$or = wc_get_order( $post->ID );
+
+		if ( ! ( $or instanceof \WC_Order ) ) {
+			return $response;
+		}
+
+		$response->data['amazon_reference'] = array(
+			'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
+			'amazon_reference_id'        => $or->get_meta( 'amazon_reference_id', true, 'edit' ),
+			'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
+			'amazon_authorization_id'    => $or->get_meta( 'amazon_authorization_id', true, 'edit' ),
+			'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
+			'amazon_capture_id'          => $or->get_meta( 'amazon_capture_id', true, 'edit' ),
+			'amazon_refund_ids'          => $or->get_meta( 'amazon_refund_id', false, 'edit' ),
+		);
 
 		return $response;
 	}

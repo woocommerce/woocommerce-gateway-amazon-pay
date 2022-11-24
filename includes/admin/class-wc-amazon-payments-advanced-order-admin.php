@@ -14,7 +14,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 * Constructor
 	 */
 	public function __construct() {
-		add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
+		add_action( 'add_meta_boxes', array( $this, 'meta_box' ), 10, 2 );
 		add_action( 'wp_ajax_amazon_order_action', array( $this, 'order_actions' ) );
 		add_action( 'current_screen', array( $this, 'order_actions_non_ajax' ) );
 		add_action( 'wc_amazon_authorization_box_render', array( $this, 'auth_box_render' ), 10, 2 );
@@ -105,12 +105,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	/**
 	 * Amazon Pay authorization metabox.
 	 */
-	public function meta_box() {
-		global $post, $wpdb;
+	public function meta_box( $screen, $order ) {
 
-		$order_id = absint( $post->ID );
-		$order    = wc_get_order( $order_id );
-		if ( ! $order ) {
+		$order = $order instanceof \WC_Order ? $order : wc_get_order( $order->ID );
+		if ( ! ( $order instanceof \WC_Order ) ) {
 			return;
 		}
 
@@ -118,23 +116,35 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			return;
 		}
 
-		$post_types = apply_filters( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( 'shop_order' ) );
+		if ( function_exists( 'wc_get_container' ) && class_exists( 'Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' ) ) {
+			$screen = wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+			? wc_get_page_screen_id( 'shop-order' )
+			: 'shop_order';
+		} else {
+			$screen = 'shop_order';
+		}
+
+
+		$post_types = apply_filters( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( $screen ) );
 
 		foreach ( $post_types as $post_type ) {
-			add_meta_box( 'woocommerce-amazon-payments-advanced', __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ), array( $this, 'authorization_box' ), $post_type, 'side' );
+			add_meta_box(
+				'woocommerce-amazon-payments-advanced',
+				__( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ),
+				array( $this, 'authorization_box' ),
+				$post_type,
+				'side'
+			);
 		}
 	}
 
 	/**
 	 * Authorization metabox content.
 	 */
-	public function authorization_box() {
-		global $post, $wpdb;
+	public function authorization_box( $object ) {
+		$order = $object instanceof WC_Order ? $object : wc_get_order( $object->ID );
 
-		$order_id = absint( $post->ID );
-		$order    = wc_get_order( $order_id );
-
-		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_id );
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 
 		do_action( 'wc_amazon_authorization_box_render', $order, $version );
 	}
