@@ -111,6 +111,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 	 */
 	private function clear_stored_states( $order_id ) {
 		$order = wc_get_order( $order_id );
+		if ( ! ( $order instanceof WC_Order ) ) {
+			return;
+		}
+
 		$order->delete_meta_data( 'amazon_reference_state' );
 		$order->delete_meta_data( 'amazon_capture_state' );
 		$order->delete_meta_data( 'amazon_authorization_state' );
