@@ -188,11 +188,11 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				break;
 			case 'delete':
 			case 'edit':
-				$post           = get_post( (int) $request['order_id'] );
+				$post           = wc_get_order( (int) $request['order_id'] );
 				$has_permission = (
-					$post
+					$post instanceof \WC_Order
 					&&
-					wc_rest_check_post_permissions( $this->post_type, $action, $post->ID )
+					wc_rest_check_post_permissions( $this->post_type, $action, $post->get_id() )
 				);
 				break;
 		}

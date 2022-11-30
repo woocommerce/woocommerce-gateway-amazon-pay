@@ -314,8 +314,9 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
 			wc_apa()->log( "Info: Beginning processing of payment for order {$order_id} for the amount of {$order_total} {$currency}. Amazon reference ID: {$amazon_reference_id}." );
-			update_post_meta( $order_id, 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION_CV1 );
-			update_post_meta( $order_id, 'woocommerce_version', WC()->version );
+			$order->update_meta_data( 'amazon_payment_advanced_version', WC_AMAZON_PAY_VERSION_CV1 );
+			$order->update_meta_data( 'woocommerce_version', WC()->version );
+			$order->save();
 
 			// Get order details and save them to the order later.
 			$order_details = $this->get_amazon_order_details( $amazon_reference_id );
@@ -370,9 +371,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			}
 
 			// Store reference ID in the order.
-			update_post_meta( $order_id, 'amazon_reference_id', $amazon_reference_id );
-			update_post_meta( $order_id, '_transaction_id', $amazon_reference_id );
-			update_post_meta( $order_id, 'amazon_order_language', $order_language );
+			$order->update_meta_data( 'amazon_reference_id', $amazon_reference_id );
+			$order->update_meta_data( '_transaction_id', $amazon_reference_id );
+			$order->update_meta_data( 'amazon_order_language', $order_language );
+			$order->save();
 
 			wc_apa()->log( sprintf( 'Info: Payment Capture method is %s', $this->payment_capture ? $this->payment_capture : 'authorize and capture' ) );
 
@@ -441,7 +443,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 */
 	public function process_async_auth( $order, $amazon_reference_id ) {
 
-		update_post_meta( $order->get_id(), 'amazon_timed_out_transaction', true );
+		$order->update_meta_data( 'amazon_timed_out_transaction', true );
+		$order->save();
 		$order->update_status( 'on-hold', __( 'Transaction with Amazon Pay is currently being validated.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 
 		// https://pay.amazon.com/it/developer/documentation/lpwa/201953810
@@ -648,8 +651,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 */
 	public static function do_process_refund( $order_id, $refund_amount = null, $reason = '' ) {
 		wc_apa()->log( 'Info: Trying to refund for order ' . $order_id );
+		$order = wc_get_order( $order_id );
+		if ( ! ( $order instanceof \WC_Order ) ) {
+			/* translators: Order number */
+			return new WP_Error( 'error', sprintf( __( 'Unable to refund order %s. Order id is invalid.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id ) );
+		}
 
-		$amazon_capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
+		$amazon_capture_id = $order->get_meta( 'amazon_capture_id', true, 'edit' );
 		if ( empty( $amazon_capture_id ) ) {
 			/* translators: Order number */
 			return new WP_Error( 'error', sprintf( __( 'Unable to refund order %s. Order does not have Amazon capture reference. Make sure order has been captured.', 'woocommerce-gateway-amazon-payments-advanced' ), $order_id ) );
@@ -1026,7 +1034,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @return string
 	 */
 	public function maybe_render_timeout_transaction_order_received_text( $text, $order ) {
-		if ( $order && $order->has_status( 'on-hold' ) && get_post_meta( $order->get_id(), 'amazon_timed_out_transaction', true ) ) {
+		if ( $order && $order->has_status( 'on-hold' ) && $order->get_meta( 'amazon_timed_out_transaction', true, 'edit' ) ) {
 			$text = __( 'Your transaction with Amazon Pay is currently being validated. Please be aware that we will inform you shortly as needed.', 'woocommerce-gateway-amazon-payments-advanced' );
 		}
 		return $text;
