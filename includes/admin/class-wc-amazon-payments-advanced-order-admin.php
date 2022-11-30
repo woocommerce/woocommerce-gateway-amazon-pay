@@ -50,7 +50,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			$screen_to_check = 'shop_order';
 		}
 
-		if ( $screen_to_check !== get_current_screen()->id ) {
+		if ( get_current_screen()->id !== $screen_to_check ) {
 			return;
 		}
 
@@ -112,6 +112,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 	/**
 	 * Amazon Pay authorization metabox.
+	 *
+	 * @param Object           $screen The current screen object.
+	 * @param WC_Order|WP_Post $order The current post/order object.
+	 * @return void
 	 */
 	public function meta_box( $screen, $order ) {
 
@@ -147,6 +151,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 	/**
 	 * Authorization metabox content.
+	 *
+	 * @param Object $object The current post/order object.
+	 * @return void
 	 */
 	public function authorization_box( $object ) {
 		$order = $object instanceof WC_Order ? $object : wc_get_order( $object->ID );

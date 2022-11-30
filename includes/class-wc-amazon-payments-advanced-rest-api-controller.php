@@ -428,8 +428,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				return $error;
 			}
 
-			$auth_id  = $or->get_meta( 'amazon_authorization_id', true, true );
-			$resp     = WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $or->get_id(), $auth_id );
+			$auth_id = $or->get_meta( 'amazon_authorization_id', true, true );
+			$resp    = WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $or->get_id(), $auth_id );
 			if ( is_wp_error( $resp ) ) {
 				return $resp;
 			}
@@ -530,8 +530,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				return $error;
 			}
 
-			$amount   = $request['amount'];
-			$reason   = ! empty( $request['reason'] ) ? $request['reason'] : null;
+			$amount = $request['amount'];
+			$reason = ! empty( $request['reason'] ) ? $request['reason'] : null;
 
 			if ( 0 > $amount ) {
 				return new WP_Error( 'woocommerce_rest_invalid_order_refund', __( 'Refund amount must be greater than zero.', 'woocommerce-gateway-amazon-payments-advanced' ), 400 );
