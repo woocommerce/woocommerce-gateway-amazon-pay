@@ -60,8 +60,17 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		check_admin_referer( 'amazon_order_action', 'security' );
 
-		$order_id = absint( $_GET['post'] ); // TODO: This may break when custom data stores are implemented in the future.
+		$order_id = ! empty( $_GET['post'] ) ? $_GET['post'] : false;
+		if ( ! $order_id ) {
+			$order_id = ! empty( $_GET['id'] ) ? $_GET['id'] : false;
+		}
+
+		$order_id = absint( $order_id );
 		$order    = wc_get_order( $order_id );
+
+		if ( ! ( $order instanceof \WC_Order ) ) {
+			return;
+		}
 
 		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_id );
 
