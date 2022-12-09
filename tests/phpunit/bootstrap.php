@@ -35,6 +35,8 @@ function _manually_load_plugin() {
 	require_once $_plugins_dir . 'woocommerce/woocommerce.php';
 
 	require_once $_plugins_dir . 'woocommerce-gateway-amazon-payments-advanced/woocommerce-gateway-amazon-payments-advanced.php';
+	require_once $_plugins_dir . 'woocommerce-gateway-amazon-payments-advanced/includes/class-wc-gateway-amazon-payments-advanced-abstract.php';
+	require_once $_plugins_dir . 'woocommerce-gateway-amazon-payments-advanced/includes/class-wc-gateway-amazon-payments-advanced.php';
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
