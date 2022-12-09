@@ -66,8 +66,11 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		}
 
 		$order_id = absint( $order_id );
-		$order    = wc_get_order( $order_id );
+		if ( ! $order_id ) {
+			return;
+		}
 
+		$order = wc_get_order( $order_id );
 		if ( ! ( $order instanceof \WC_Order ) ) {
 			return;
 		}
