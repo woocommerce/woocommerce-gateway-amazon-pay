@@ -109,7 +109,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 *
 	 * @return WP_Error|bool Error
 	 */
-	protected static function validate_api_settings() {
+	public static function validate_api_settings() {
 		$settings = self::get_settings();
 
 		if ( empty( $settings['merchant_id'] ) ) {
@@ -465,7 +465,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	/**
 	 * Get classic create checkout session config to send to Amazon.
 	 *
-	 * @param array  $payload      The payload that will be used to create a checkout session.
+	 * @param  array $payload The payload that will be used to create a checkout session.
 	 * @return array
 	 */
 	public static function get_create_checkout_classic_session_config( $payload ) {

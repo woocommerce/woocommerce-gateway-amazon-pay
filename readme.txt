@@ -1,9 +1,9 @@
 === WooCommerce Amazon Pay ===
 Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
-Requires at least: 4.4
+Requires at least: 5.5
 Tested up to: 6.0
-Stable tag: 2.2.2
+Stable tag: 2.3.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -37,7 +37,8 @@ As earth’s most customer-centric company, we are continuously innovating on be
 
 = Minimum Requirements =
 
-* WordPress 4.4 or greater
+* WordPress 5.5 or greater
+* WooCommerce 4.0 or greater
 
 = Automatic installation =
 
@@ -55,6 +56,24 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.3.0 - 2022-10-11 =
+
+* Add - Adds estimatedOrderAmount attribute to Amazon Pay button.
+* Add - Adds support for Amazon Pay on Cart and Checkout Blocks of WooCommerce Blocks.
+* Add - Adds the estimated order amount in every place available by the plugin.
+* Fix - If the currency changes while in the FrontEnd the Gateway will alter its availability based on its settings.
+* Fix - Warning shouldn't appear on Single product regarding the 'subscriptions_enabled' not being set.
+
+= 2.2.4 - 2022-08-12 =
+
+* Fix - Infinite Loop causing Memory Exhaustion.
+
+= 2.2.3 - 2022-08-12 =
+
+* Fix - Pick the proper currency when it gets changed by and external multi-currency plugins.
+* Fix - Addressed possible fatal errors on widgets page and order pay endpoint.
+* Fix - Addressed possible fatal errors when Amazon credentials partially provided.
 
 = 2.2.2 - 2022-06-17 =
 

@@ -392,6 +392,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 		wp_enqueue_script( 'amazon_payments_admin' );
 
 		wp_enqueue_style( 'amazon_payments_admin', wc_apa()->plugin_url . '/assets/css/style-admin.css', array(), wc_apa()->version );
+		wp_enqueue_style( 'amazon_payments_advanced_hide_express', wc_apa()->plugin_url . '/assets/css/hide-amazon-express-admin.css', array(), wc_apa()->version );
 	}
 
 	/**

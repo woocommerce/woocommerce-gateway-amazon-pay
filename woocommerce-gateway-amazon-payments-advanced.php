@@ -3,14 +3,14 @@
  * Plugin Name: WooCommerce Amazon Pay
  * Plugin URI: https://woocommerce.com/products/pay-with-amazon/
  * Description: Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.
- * Version: 2.2.2
+ * Version: 2.3.0
  * Author: WooCommerce
  * Author URI: https://woocommerce.com
  * Text Domain: woocommerce-gateway-amazon-payments-advanced
  * Domain Path: /languages/
  * Tested up to: 6.0
- * WC tested up to: 5.3
- * WC requires at least: 2.6
+ * WC tested up to: 7.0
+ * WC requires at least: 4.0
  *
  * Copyright: © 2022 WooCommerce
  * License: GNU General Public License v3.0
@@ -19,7 +19,7 @@
  * @package WC_Gateway_Amazon_Pay
  */
 
-define( 'WC_AMAZON_PAY_VERSION', '2.2.2' ); // WRCS: DEFINED_VERSION.
+define( 'WC_AMAZON_PAY_VERSION', '2.3.0' ); // WRCS: DEFINED_VERSION.
 define( 'WC_AMAZON_PAY_VERSION_CV1', '1.13.1' );
 
 /**
@@ -80,6 +80,13 @@ class WC_Amazon_Payments_Advanced {
 	 * @var WC_Gateway_Amazon_Payments_Advanced|WC_Gateway_Amazon_Payments_Advanced_Legacy
 	 */
 	private $gateway;
+
+	/**
+	 * Amazon Pay Express Gateway
+	 *
+	 * @var WC_Gateway_Amazon_Payments_Advanced_Express
+	 */
+	private $express_gateway = null;
 
 	/**
 	 * Amazon Pay Gateway Admin Class
@@ -156,6 +163,10 @@ class WC_Amazon_Payments_Advanced {
 		// On install hook.
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-install.php';
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
+
+		/* Amazon Blocks */
+		include_once $this->includes_path . 'blocks/class-wc-amazon-payments-advanced-register-blocks.php';
+		new WC_Amazon_Payments_Advanced_Register_Blocks();
 
 		add_action( 'woocommerce_init', array( $this, 'init' ) );
 
@@ -252,6 +263,13 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function add_gateway( $methods ) {
 		$methods[] = $this->gateway;
+
+		// Load express gateway only if WooCommerce blocks is installed and activated.
+		if ( class_exists( 'Automattic\WooCommerce\Blocks\Package' ) ) {
+			require_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-express.php';
+			$this->express_gateway = new WC_Gateway_Amazon_Payments_Advanced_Express();
+			$methods[]             = $this->express_gateway;
+		}
 
 		return $methods;
 	}
@@ -511,6 +529,15 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function get_gateway() {
 		return $this->gateway;
+	}
+
+	/**
+	 * Return instance of WC_Gateway_Amazon_Payments_Advanced_Express.
+	 *
+	 * @return WC_Gateway_Amazon_Payments_Advanced_Express
+	 */
+	public function get_express_gateway() {
+		return $this->express_gateway;
 	}
 }
 

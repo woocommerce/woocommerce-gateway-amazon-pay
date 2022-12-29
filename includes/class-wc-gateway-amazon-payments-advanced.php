@@ -88,7 +88,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	protected function get_availability() {
 
-		if ( ! parent::is_available() || empty( $this->settings['merchant_id'] ) ) {
+		if ( ! parent::is_available() ) {
+			return false;
+		}
+
+		if ( is_wp_error( WC_Amazon_Payments_Advanced_API::validate_api_settings() ) ) {
 			return false;
 		}
 
@@ -181,6 +185,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_filter( 'woocommerce_checkout_get_value', array( $this, 'use_checkout_session_data_single' ), 10, 2 );
 		add_action( 'woocommerce_after_checkout_form', array( $this, 'classic_integration_button' ) );
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'classic_validation' ), 10, 2 );
+		if ( $this->doing_ajax() ) {
+			add_action( 'woocommerce_review_order_after_order_total', array( $this, 'update_js' ) );
+		}
 
 		// Pay Order.
 		add_action( 'woocommerce_pay_order_after_submit', array( $this, 'classic_integration_button' ) );
@@ -255,7 +262,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			array(
 				'ajax_url'                       => admin_url( 'admin-ajax.php' ),
 				'create_checkout_session_config' => $checkout_session_config,
-				'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
+				'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] . self::get_estimated_order_amount() ),
 				'button_color'                   => $this->settings['button_color'],
 				'placement'                      => $this->get_current_placement(),
 				'action'                         => $this->get_current_cart_action(),
@@ -265,6 +272,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'checkout_session_id'            => $this->get_checkout_session_id(),
 				'button_language'                => $this->settings['button_language'],
 				'ledger_currency'                => $this->get_ledger_currency(),
+				'estimated_order_amount'         => self::get_estimated_order_amount(),
 			),
 			$params
 		);
@@ -557,7 +565,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function checkout_init( $checkout ) {
 
 		/**
-		 * Make sure this is checkout initiated from front-end where cart exsits.
+		 * Make sure this is checkout initiated from front-end where cart exists.
 		 *
 		 * @see https://github.com/woocommerce/woocommerce-gateway-amazon-payments-advanced/issues/238
 		 */
@@ -784,7 +792,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function get_checkout_session_id() {
 		$session_key = $this->get_checkout_session_key();
-		return WC()->session->get( $session_key, false );
+		return ! empty( WC()->session ) ? WC()->session->get( $session_key, false ) : false;
 	}
 
 	/**
@@ -795,7 +803,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return object the Checkout Session Object from Amazon API
 	 */
 	public function get_checkout_session( $force = false, $checkout_session_id = null ) {
-		if ( ! $force && ! is_null( $this->checkout_session ) ) {
+		if ( ! $force && null !== $this->checkout_session ) {
 			return $this->checkout_session;
 		}
 
@@ -985,33 +993,79 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param  null|object $checkout_session Checkout session object to use.
 	 */
 	public function display_payment_method_selected( $checkout_session = null ) {
-		if ( is_null( $checkout_session ) ) {
+		if ( null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 		?>
 		<div id="payment_method_widget">
 			<?php
-			$payments     = $checkout_session->paymentPreferences; // phpcs:ignore WordPress.NamingConventions
 			$change_label = esc_html__( 'Change', 'woocommerce-gateway-amazon-payments-advanced' );
-			if ( empty( $payments ) ) {
+			if ( ! $this->has_payment_preferences( $checkout_session ) ) {
 				$change_label = esc_html__( 'Select', 'woocommerce-gateway-amazon-payments-advanced' );
 			}
-			$selected_label = esc_html__( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' );
-			foreach ( $checkout_session->paymentPreferences as $pref ) { // phpcs:ignore WordPress.NamingConventions
-				if ( isset( $pref->paymentDescriptor ) ) { // phpcs:ignore WordPress.NamingConventions
-					$selected_label = $pref->paymentDescriptor; // phpcs:ignore WordPress.NamingConventions
-				}
-			}
+
 			?>
 			<h3>
 				<a href="#" class="wc-apa-widget-change" id="payment_method_widget_change"><?php echo $change_label; ?></a>
 				<?php esc_html_e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 			</h3>
 			<div class="payment_method_display">
-				<span class="wc-apa-amazon-logo"></span><?php echo esc_html( $selected_label ); ?>
+				<span class="wc-apa-amazon-logo"></span><?php echo esc_html( $this->get_selected_payment_label( $checkout_session ) ); ?>
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Returns whether there are payment preferences set in the checkout
+	 * session object.
+	 *
+	 * @param  object $checkout_session The active checkout session.
+	 * @return boolean
+	 */
+	public function has_payment_preferences( $checkout_session = null ) {
+		if ( null === $checkout_session ) {
+			$checkout_session = $this->get_checkout_session();
+		}
+
+		if ( ! $checkout_session || is_wp_error( $checkout_session ) ) {
+			return false;
+		}
+
+		return ! empty( $checkout_session->paymentPreferences ); // phpcs:ignore WordPress.NamingConventions
+	}
+
+	/**
+	 * Returns the selected payment method from Amazon.
+	 *
+	 * @param object $checkout_session The active checkout session.
+	 * @return string
+	 */
+	public function get_selected_payment_label( $checkout_session = null ) {
+		if ( null === $checkout_session ) {
+			$checkout_session = $this->get_checkout_session();
+		}
+
+		$default = esc_html__( 'Your selected Amazon payment method', 'woocommerce-gateway-amazon-payments-advanced' );
+
+		if ( ! $checkout_session || is_wp_error( $checkout_session ) ) {
+			return $default;
+		}
+
+		if ( empty( $checkout_session->paymentPreferences ) ) { // phpcs:ignore WordPress.NamingConventions
+			return $default;
+		}
+
+		$selected_label = '';
+
+		foreach ( $checkout_session->paymentPreferences as $pref ) { // phpcs:ignore WordPress.NamingConventions
+			if ( isset( $pref->paymentDescriptor ) ) { // phpcs:ignore WordPress.NamingConventions
+				$selected_label = $pref->paymentDescriptor; // phpcs:ignore WordPress.NamingConventions
+				break;
+			}
+		}
+
+		return $selected_label ? $selected_label : $default;
 	}
 
 	/**
@@ -1020,7 +1074,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param  null|object $checkout_session Checkout session object to use.
 	 */
 	public function display_billing_address_selected( $checkout_session = null ) {
-		if ( is_null( $checkout_session ) ) {
+		if ( null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 		if ( ! empty( $checkout_session->billingAddress ) ) : // phpcs:ignore WordPress.NamingConventions
@@ -1405,7 +1459,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					'result'   => 'success',
 					'redirect' => $redirect,
 				),
-				( $doing_classic_payment ? array( 'amazonCreateCheckoutParams' => wp_json_encode( $create_checkout_config ) ) : array() )
+				( $doing_classic_payment ? array(
+					'amazonCreateCheckoutParams' => wp_json_encode( $create_checkout_config ),
+					'amazonEstimatedOrderAmount' => self::get_estimated_order_amount(),
+				) : array() )
 			);
 
 		} catch ( Exception $e ) {
@@ -1746,13 +1803,16 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param string $id The value to provide the id attribute of the script with.
 	 * @return void
 	 */
-	public function update_js( $id = 'wc-apa-update-vals' ) {
+	public function update_js( $id = '' ) {
+		$id = $id ? $id : 'wc-apa-update-vals';
+
 		$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
 
 		$data = array(
 			'action'                         => $this->get_current_cart_action(),
 			'create_checkout_session_config' => $checkout_session_config,
-			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] ),
+			'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] . self::get_estimated_order_amount() ),
+			'estimated_order_amount'         => self::get_estimated_order_amount(),
 		);
 		?>
 		<script type="text/template" id="<?php echo esc_attr( $id ); ?>" data-value="<?php echo esc_attr( wp_json_encode( $data ) ); ?>"></script>
@@ -1766,10 +1826,21 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function get_current_cart_action() {
 		if ( is_wc_endpoint_url( 'order-pay' ) ) {
-			$order_id       = get_query_var( 'order-pay' );
-			$order          = wc_get_order( $order_id );
+			$order_id = get_query_var( 'order-pay' );
+			$order    = wc_get_order( $order_id );
+
+			// If we can't retrieve the order, lets bail.
+			if ( ! is_a( $order, 'WC_Order' ) ) {
+				return false;
+			}
+
 			$needs_shipping = count( $order->get_items( 'shipping' ) ) > 0;
 		} else {
+			// If the cart is not set, we are on the backend. So lets bail.
+			if ( empty( WC()->cart ) ) {
+				return false;
+			}
+
 			$needs_shipping = WC()->cart->needs_shipping();
 		}
 		return apply_filters( 'woocommerce_amazon_pa_current_cart_action', $needs_shipping ? 'PayAndShip' : 'PayOnly' );
@@ -1856,6 +1927,27 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				}
 			} else {
 				$valid = $current[ $prop ] === $value;
+			}
+
+			/**
+			 * If the condition is true, that means that a multi currency plugin changed the
+			 * currency after the Amazon Pay button was initially clicked.
+			 *
+			 * We shouldn't throw an error since Amazon Pay docs mention that using the currencyCode prop
+			 * during updating checkout will also automatically update the checkout session's presentmentCurrency
+			 * prop if they are different.
+			 *
+			 * @see https://developer.amazon.com/docs/amazon-pay-checkout/multi-currency-integration.html#2-set-payment-currencycode
+			 */
+			if ( 'presentmentCurrency' === $prop && false === $valid ) {
+				$valid = true;
+			}
+
+			/**
+			 * Same as above, but for subscriptions.
+			 */
+			if ( ( 'recurringMetadata.amount.currencyCode' === implode( '.', $path ) || 'recurringMetadata.amount.amount' === implode( '.', $path ) ) && false === $valid ) {
+				$valid = true;
 			}
 
 			if ( false === $valid ) {
@@ -2471,6 +2563,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return true;
 		}
 
+		/**
+		 * To capture the cart redirect on update cart actions.
+		 * Considered wp_get_referer instead, but it wouldn't produce the expected
+		 * results when Update cart is clicked on the cart page.
+		 */
+		if ( isset( $_SERVER['HTTP_REFERER'] ) && wc_get_cart_url() === $_SERVER['HTTP_REFERER'] ) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -2751,6 +2852,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			$data = array(
 				'create_checkout_session_config' => $checkout_session_config,
+				'estimated_order_amount'         => self::get_estimated_order_amount(),
 			);
 			wp_send_json_success( $data, 200 );
 		}
@@ -2767,7 +2869,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return bool
 	 */
 	protected function possible_subscription_product_supported() {
-		if ( 'yes' === $this->settings['subscriptions_enabled'] || ! class_exists( 'WC_Subscriptions_Product' ) ) {
+		if ( ( ! empty( $this->settings['subscriptions_enabled'] ) && 'yes' === $this->settings['subscriptions_enabled'] ) || ! class_exists( 'WC_Subscriptions_Product' ) ) {
 			return true;
 		}
 
@@ -2848,5 +2950,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * Get the estimated order amount from the cart totals.
+	 *
+	 * @return string
+	 */
+	private static function get_estimated_order_amount() {
+		if ( null === WC()->cart ) {
+			return '';
+		}
+
+		return wp_json_encode(
+			array(
+				'amount'       => WC()->cart->get_total( 'amount' ),
+				'currencyCode' => get_woocommerce_currency(),
+			)
+		);
 	}
 }
