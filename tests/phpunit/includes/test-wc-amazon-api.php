@@ -1000,36 +1000,6 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Run tests on `format_address() for german countries`.
-	 *
-	 * @dataProvider data_format_address_german_countries
-	 *
-	 * @param array $address   Address lines.
-	 * @param array $expected  Expected formated address.
-	 */
-	public function test_format_address_german_countries( $address, $expected ) {
-		list(
-			$address_line1,
-			$address_line2,
-			$address_line3 ) = $address;
-
-			$formatted_address = WC_Amazon_Payments_Advanced_API::format_address(
-				new SimpleXMLElement(
-					"<root>
-						<CountryCode>DE</CountryCode>
-						<AddressLine1>$address_line1</AddressLine1>
-						<AddressLine2>$address_line2</AddressLine2>
-						<AddressLine3>$address_line3</AddressLine3>
-					</root>"
-				)
-			);
-		$this->assertEquals(
-			$expected,
-			$formatted_address
-		);
-	}
-
-	/**
 	 * Data provider method for testing `test_format_address_german_countries()`.
 	 *
 	 * @return array
