@@ -17,6 +17,10 @@
     "config": {
         "platform": {
             "php": "7.3"
+        },
+        "allow-plugins": {
+            "phpstan/extension-installer": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
     "require-dev": {
@@ -28,6 +32,6 @@
         "yoast/phpunit-polyfills": "^1.0"
     },
     "require": {
-        "amzn/amazon-pay-api-sdk-php": "^2.2"
+        "amzn/amazon-pay-api-sdk-php": "^2.4"
     }
 }
