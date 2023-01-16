@@ -471,13 +471,13 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @return string|bool Returns false if failed
 	 */
 	public static function get_reference_state( $order_id, $id ) {
-		$or = wc_get_order( $order_id );
+		$order = wc_get_order( $order_id );
 
-		if ( ! ( $or instanceof \WC_Order ) ) {
+		if ( ! ( $order instanceof \WC_Order ) ) {
 			return false;
 		}
 
-		$state = $or->get_meta( 'amazon_reference_state', true, 'edit' );
+		$state = $order->get_meta( 'amazon_reference_state', true, 'edit' );
 		if ( $state ) {
 			return $state;
 		}
@@ -496,8 +496,8 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		$state = (string) $response->GetOrderReferenceDetailsResult->OrderReferenceDetails->OrderReferenceStatus->State;
 		// @codingStandardsIgnoreEnd
 
-		$or->update_meta_data( 'amazon_reference_state', $state );
-		$or->save();
+		$order->update_meta_data( 'amazon_reference_state', $state );
+		$order->save();
 
 		return $state;
 	}
@@ -593,29 +593,29 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	public static function get_order_ref_state( $order_id, $state = 'amazon_reference_state' ) {
 		$ret_state = '';
 
-		$or = wc_get_order( $order_id );
+		$order = wc_get_order( $order_id );
 
-		if ( ! ( $or instanceof \WC_order ) ) {
+		if ( ! ( $order instanceof \WC_order ) ) {
 			return $ret_state;
 		}
 
 		switch ( $state ) {
 			case 'amazon_reference_state':
-				$ref_id = $or->get_meta( 'amazon_reference_id', true, 'edit' );
+				$ref_id = $order->get_meta( 'amazon_reference_id', true, 'edit' );
 				if ( $ref_id ) {
 					$ret_state = self::get_reference_state( $order_id, $ref_id );
 				}
 				break;
 
 			case 'amazon_authorization_state':
-				$ref_id = $or->get_meta( 'amazon_authorization_id', true, 'edit' );
+				$ref_id = $order->get_meta( 'amazon_authorization_id', true, 'edit' );
 				if ( $ref_id ) {
 					$ret_state = self::get_authorization_state( $order_id, $ref_id );
 				}
 				break;
 
 			case 'amazon_capture_state':
-				$ref_id = $or->get_meta( 'amazon_capture_id', true, 'edit' );
+				$ref_id = $order->get_meta( 'amazon_capture_id', true, 'edit' );
 				if ( $ref_id ) {
 					$ret_state = self::get_capture_state( $order_id, $ref_id );
 				}
