@@ -518,20 +518,20 @@ class WC_Amazon_Payments_Advanced {
 			return $response;
 		}
 
-		$or = wc_get_order( $post->ID );
+		$order = wc_get_order( $post->ID );
 
-		if ( ! ( $or instanceof \WC_Order ) ) {
+		if ( ! ( $order instanceof \WC_Order ) ) {
 			return $response;
 		}
 
 		$response->data['amazon_reference'] = array(
 			'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
-			'amazon_reference_id'        => $or->get_meta( 'amazon_reference_id', true, 'edit' ),
+			'amazon_reference_id'        => $order->get_meta( 'amazon_reference_id', true, 'edit' ),
 			'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
-			'amazon_authorization_id'    => $or->get_meta( 'amazon_authorization_id', true, 'edit' ),
+			'amazon_authorization_id'    => $order->get_meta( 'amazon_authorization_id', true, 'edit' ),
 			'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
-			'amazon_capture_id'          => $or->get_meta( 'amazon_capture_id', true, 'edit' ),
-			'amazon_refund_ids'          => $or->get_meta( 'amazon_refund_id', false, 'edit' ),
+			'amazon_capture_id'          => $order->get_meta( 'amazon_capture_id', true, 'edit' ),
+			'amazon_refund_ids'          => $order->get_meta( 'amazon_refund_id', false, 'edit' ),
 		);
 
 		return $response;
