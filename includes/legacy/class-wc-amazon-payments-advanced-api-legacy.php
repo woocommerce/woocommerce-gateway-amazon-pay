@@ -1078,6 +1078,10 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	public static function handle_payment_authorization_response( $response, $order, $capture_now, $auth_method = null ) {
 		$order = wc_get_order( $order );
 
+		if ( ! ( $order instanceof \WC_Order ) ) {
+			return false;
+		}
+
 		if ( null !== $auth_method ) {
 			_deprecated_function( 'WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response', '1.6.0', 'Parameter auth_method is not used anymore' );
 		}
@@ -1104,10 +1108,6 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @return bool Returns true if succeed.
 	 */
 	public static function update_order_from_authorize_response( $order, $response, $capture_now = false ) {
-		if ( ! ( $order instanceof \WC_Order ) ) {
-			return false;
-		}
-
 		$auth_id = self::get_auth_id_from_response( $response );
 		if ( ! $auth_id ) {
 			return false;
