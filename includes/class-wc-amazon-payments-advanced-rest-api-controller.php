@@ -577,8 +577,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 * @return null|WP_Error Null if there's no error in the request.
 	 */
 	protected function get_missing_reference_id_request_error( $order_post ) {
-		$ref_id = $order_post->get_meta( 'amazon_reference_id', true, 'edit' );
-		if ( ! $ref_id ) {
+		$reference_id = $order_post->get_meta( 'amazon_reference_id', true, 'edit' );
+		if ( ! $reference_id ) {
 			return new WP_Error( 'woocommerce_rest_order_missing_amazon_reference_id', __( 'Specified resource does not have Amazon order reference ID', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 400 ) );
 		}
 
@@ -593,8 +593,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 * @return null|WP_Error Null if there's no error in the request.
 	 */
 	protected function get_missing_authorization_id_request_error( $order_post ) {
-		$ref_id = $order_post->get_meta( 'amazon_authorization_id', true, 'edit' );
-		if ( ! $ref_id ) {
+		$reference_id = $order_post->get_meta( 'amazon_authorization_id', true, 'edit' );
+		if ( ! $reference_id ) {
 			return new WP_Error( 'woocommerce_rest_order_missing_amazon_authorization_id', __( 'Specified resource does not have Amazon authorization ID', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 400 ) );
 		}
 
@@ -609,8 +609,8 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 * @return null|WP_Error Null if there's no error in the request.
 	 */
 	protected function get_missing_capture_id_request_error( $order_post ) {
-		$ref_id = $order_post->get_meta( 'amazon_capture_id', true, 'edit' );
-		if ( ! $ref_id ) {
+		$reference_id = $order_post->get_meta( 'amazon_capture_id', true, 'edit' );
+		if ( ! $reference_id ) {
 			return new WP_Error( 'woocommerce_rest_order_missing_amazon_capture_id', __( 'Specified resource does not have Amazon capture ID', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 400 ) );
 		}
 
