@@ -378,14 +378,14 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	protected function authorize_order_v1( $order_id, $authorize_args = array() ) {
 		$authorize_args = wp_parse_args( $authorize_args, array( 'capture_now' => false ) );
 
-		$resp = WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
-		if ( is_wp_error( $resp ) ) {
-			return $resp;
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
 
 		$order = wc_get_order( $order_id );
 
-		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $resp, $order_id, $authorize_args['capture_now'] );
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $response, $order_id, $authorize_args['capture_now'] );
 
 		$ret = array(
 			'authorized'              => $result,
@@ -428,14 +428,14 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				return $error;
 			}
 
-			$auth_id = $order->get_meta( 'amazon_authorization_id', true, true );
-			$resp    = WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $order->get_id(), $auth_id );
-			if ( is_wp_error( $resp ) ) {
-				return $resp;
+			$authorization_id = $order->get_meta( 'amazon_authorization_id', true, true );
+			$response         = WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $order->get_id(), $authorization_id );
+			if ( is_wp_error( $response ) ) {
+				return $response;
 			}
 
 			$ret = array(
-				'authorization_closed' => $resp,
+				'authorization_closed' => $response,
 			);
 
 			return rest_ensure_response( $ret );
@@ -474,14 +474,14 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				return $error;
 			}
 
-			$resp = WC_Amazon_Payments_Advanced_API_Legacy::capture( $order->get_id() );
-			if ( is_wp_error( $resp ) ) {
-				return $resp;
+			$response = WC_Amazon_Payments_Advanced_API_Legacy::capture( $order->get_id() );
+			if ( is_wp_error( $response ) ) {
+				return $response;
 			}
 
 			$order_closed = false;
 
-			$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_capture_response( $resp, $order->get_id() );
+			$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_capture_response( $response, $order->get_id() );
 			if ( $result ) {
 				$order_closed = WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order->get_id() );
 				$order_closed = ( ! is_wp_error( $order_closed ) && $order_closed );
