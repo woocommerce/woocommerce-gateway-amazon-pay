@@ -154,7 +154,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	/**
 	 * Authorization metabox content.
 	 *
-	 * @param Object $object The current post/order object.
+	 * @param WC_Order|WP_Post $object The current post/order object.
 	 * @return void
 	 */
 	public function authorization_box( $object ) {
