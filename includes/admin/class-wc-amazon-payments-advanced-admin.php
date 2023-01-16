@@ -355,13 +355,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 			$current_screen = 'wc_apa_settings';
 		}
 
-		if ( function_exists( 'wc_get_container' ) && class_exists( 'Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' ) ) {
-			$screen_to_check = wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
-			? wc_get_page_screen_id( 'shop-order' )
-			: 'shop_order';
-		} else {
-			$screen_to_check = 'shop_order';
-		}
+		$screen_to_check = WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id();
 
 		switch ( $current_screen ) {
 			case $screen_to_check:

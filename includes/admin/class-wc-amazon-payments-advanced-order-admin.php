@@ -42,13 +42,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 * Non AJAX handler that performs order actions.
 	 */
 	public function order_actions_non_ajax() {
-		if ( function_exists( 'wc_get_container' ) && class_exists( 'Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' ) ) {
-			$screen_to_check = wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
-			? wc_get_page_screen_id( 'shop-order' )
-			: 'shop_order';
-		} else {
-			$screen_to_check = 'shop_order';
-		}
+		$screen_to_check = WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id();
 
 		if ( get_current_screen()->id !== $screen_to_check ) {
 			return;
@@ -140,13 +134,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			return;
 		}
 
-		if ( function_exists( 'wc_get_container' ) && class_exists( 'Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' ) ) {
-			$screen = wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
-			? wc_get_page_screen_id( 'shop-order' )
-			: 'shop_order';
-		} else {
-			$screen = 'shop_order';
-		}
+		$screen = WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id();
 
 		$post_types = apply_filters( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( $screen ) );
 

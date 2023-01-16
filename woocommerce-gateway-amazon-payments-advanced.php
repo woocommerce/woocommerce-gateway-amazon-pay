@@ -165,6 +165,9 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-api-legacy.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
 
+		// Utils.
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-utils.php';
+
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-compat.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler-abstract.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler.php';
