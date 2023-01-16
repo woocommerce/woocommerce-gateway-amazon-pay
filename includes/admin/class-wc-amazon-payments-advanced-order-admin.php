@@ -54,8 +54,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		check_admin_referer( 'amazon_order_action', 'security' );
 
+		// Find order id with HPOS disabled.
 		$order_id = ! empty( $_GET['post'] ) ? $_GET['post'] : false;
 		if ( ! $order_id ) {
+			// Find order id with HPOS enabled.
 			$order_id = ! empty( $_GET['id'] ) ? $_GET['id'] : false;
 		}
 
