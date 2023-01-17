@@ -264,7 +264,15 @@ class WC_Amazon_Payments_Advanced {
 	public function add_gateway( $methods ) {
 		$methods[] = $this->gateway;
 
-		if ( $this->should_express_be_loaded() ) {
+		/**
+		 * Method should_express_be_loaded can be used early before actually loading the class WC_Gateway_Amazon_Payments_Advanced
+		 *
+		 * @see includes/compats/woo-blocks/class-wc-amazon-payments-advanced-block-compat-express.php method is_active()
+		 *
+		 * Here though the class WC_Gateway_Amazon_Payments_Advanced should already be loaded as long as the merchant is
+		 * using v2 keys. so we make sure it can be loaded by checking the class's existence.
+		 */
+		if ( $this->should_express_be_loaded() && class_exists( 'WC_Gateway_Amazon_Payments_Advanced' ) ) {
 			require_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-express.php';
 			$this->express_gateway = new WC_Gateway_Amazon_Payments_Advanced_Express();
 			$methods[]             = $this->express_gateway;
