@@ -116,7 +116,6 @@ abstract class WC_Amazon_Payments_Advanced_Block_Compat_Abstract extends Abstrac
 			return false;
 		}
 
-		$allowed_currencies = WC_Amazon_Payments_Advanced_API::get_selected_currencies();
-		return ! empty( $allowed_currencies ) && is_array( $allowed_currencies ) ? array_values( $allowed_currencies ) : false;
+		return array_values( WC_Amazon_Payments_Advanced_API::get_selected_currencies() );
 	}
 }
