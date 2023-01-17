@@ -547,12 +547,13 @@ class WC_Amazon_Payments_Advanced {
 	 * 1) Merchant has migrated to V2 of the Amazon API and as a result
 	 *    he is using the WC_Gateway_Amazon_Payments_Advanced class as the
 	 *    Amazon Pay main Gateway.
-	 * 2) WooCommerce blocks is installed and activated
+	 * 2) Class WC_Gateway_Amazon_Payments_Advanced has been loaded.
+	 * 3) WooCommerce blocks is installed and activated
 	 *
 	 * @return boolean
 	 */
 	public function should_express_be_loaded() {
-		return class_exists( 'WC_Gateway_Amazon_Payments_Advanced' ) && class_exists( 'Automattic\WooCommerce\Blocks\Package' );
+		return WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() && class_exists( 'WC_Gateway_Amazon_Payments_Advanced' ) && class_exists( 'Automattic\WooCommerce\Blocks\Package' );
 	}
 }
 
