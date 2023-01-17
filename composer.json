@@ -17,8 +17,20 @@
     "config": {
         "platform": {
             "php": "7.3"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true
         }
     },
+    "scripts": {
+		"phpcs": [
+			"phpcs . --ignore=vendor,node_modules,build --extensions=php -s -p"
+		],
+        "phpcbf": [
+			"phpcbf . --ignore=vendor,node_modules,build --extensions=php -p"
+		]
+	},
     "require-dev": {
         "phpunit/phpunit": "5.7.27",
         "woocommerce/woocommerce-sniffs": "0.1.0",
