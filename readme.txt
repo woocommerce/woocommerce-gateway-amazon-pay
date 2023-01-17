@@ -1,7 +1,7 @@
 === WooCommerce Amazon Pay ===
 Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
-Requires at least: 4.4
+Requires at least: 5.5
 Tested up to: 6.0
 Stable tag: 2.3.0
 License: GPLv3
@@ -37,7 +37,8 @@ As earth’s most customer-centric company, we are continuously innovating on be
 
 = Minimum Requirements =
 
-* WordPress 4.4 or greater
+* WordPress 5.5 or greater
+* WooCommerce 4.0 or greater
 
 = Automatic installation =
 
