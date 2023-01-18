@@ -445,6 +445,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 		$order->update_meta_data( 'amazon_timed_out_transaction', true );
 		$order->save();
+
 		$order->update_status( 'on-hold', __( 'Transaction with Amazon Pay is currently being validated.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 
 		// https://pay.amazon.com/it/developer/documentation/lpwa/201953810
