@@ -259,6 +259,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			$order->delete_meta_data( 'amazon_capture_state' );
 			$order->delete_meta_data( 'amazon_authorization_state' );
 			$order->save();
+
 			wc_apa()->get_gateway()->refresh_cached_charge_permission_status( $order );
 			wc_apa()->get_gateway()->get_cached_charge_status( $order );
 		}

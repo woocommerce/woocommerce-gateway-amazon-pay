@@ -119,6 +119,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 		$order->delete_meta_data( 'amazon_capture_state' );
 		$order->delete_meta_data( 'amazon_authorization_state' );
 		$order->save();
+
 		do_action( 'woocommerce_amazon_pa_v1_cleared_stored_states', $order_id );
 	}
 
