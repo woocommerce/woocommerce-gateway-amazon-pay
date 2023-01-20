@@ -9,8 +9,8 @@
  * Text Domain: woocommerce-gateway-amazon-payments-advanced
  * Domain Path: /languages/
  * Tested up to: 6.0
- * WC tested up to: 5.3
- * WC requires at least: 2.6
+ * WC tested up to: 7.0
+ * WC requires at least: 4.0
  *
  * Copyright: © 2022 WooCommerce
  * License: GNU General Public License v3.0
@@ -21,6 +21,16 @@
 
 define( 'WC_AMAZON_PAY_VERSION', '2.3.0' ); // WRCS: DEFINED_VERSION.
 define( 'WC_AMAZON_PAY_VERSION_CV1', '1.13.1' );
+
+// Declare HPOS compatibility.
+add_action(
+	'before_woocommerce_init',
+	function() {
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+		}
+	}
+);
 
 /**
  * Amazon Pay main class
@@ -154,6 +164,9 @@ class WC_Amazon_Payments_Advanced {
 
 		include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-api-legacy.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
+
+		// Utils.
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-utils.php';
 
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-compat.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler-abstract.php';
@@ -503,18 +516,25 @@ class WC_Amazon_Payments_Advanced {
 	 * @return WP_REST_Response REST response
 	 */
 	public function rest_api_add_amazon_ref_info( $response, $post ) {
-		if ( 'amazon_payments_advanced' === $response->data['payment_method'] ) {
-			$response->data['amazon_reference'] = array(
-
-				'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
-				'amazon_reference_id'        => get_post_meta( $post->ID, 'amazon_reference_id', true ),
-				'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
-				'amazon_authorization_id'    => get_post_meta( $post->ID, 'amazon_authorization_id', true ),
-				'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
-				'amazon_capture_id'          => get_post_meta( $post->ID, 'amazon_capture_id', true ),
-				'amazon_refund_ids'          => get_post_meta( $post->ID, 'amazon_refund_id', false ),
-			);
+		if ( 'amazon_payments_advanced' !== $response->data['payment_method'] ) {
+			return $response;
 		}
+
+		$order = wc_get_order( $post->ID );
+
+		if ( ! ( $order instanceof \WC_Order ) ) {
+			return $response;
+		}
+
+		$response->data['amazon_reference'] = array(
+			'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
+			'amazon_reference_id'        => $order->get_meta( 'amazon_reference_id', true, 'edit' ),
+			'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
+			'amazon_authorization_id'    => $order->get_meta( 'amazon_authorization_id', true, 'edit' ),
+			'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
+			'amazon_capture_id'          => $order->get_meta( 'amazon_capture_id', true, 'edit' ),
+			'amazon_refund_ids'          => $order->get_meta( 'amazon_refund_id', false, 'edit' ),
+		);
 
 		return $response;
 	}

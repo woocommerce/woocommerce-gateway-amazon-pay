@@ -366,7 +366,7 @@
 			window.onbeforeunload = null;
 		} );
 	}
-	if ( $( 'body' ).hasClass( 'post-type-shop_order' ) ) {
+	if ( $( 'body' ).hasClass( 'post-type-shop_order' ) || $( 'body' ).hasClass( 'woocommerce_page_wc-orders' ) ) {
 		jQuery( '#woocommerce-amazon-payments-advanced.postbox' ).each( function() {
 			var thisPostBox = $( this );
 
