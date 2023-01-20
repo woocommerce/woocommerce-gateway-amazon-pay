@@ -2567,10 +2567,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		/**
 		 * To capture the cart redirect on update cart actions.
-		 * Considered wp_get_referer instead, but it wouldn't produce the expected
-		 * results when Update cart is clicked on the cart page.
+		 *
+		 * wp_get_referer will return false when the request comes from the same page.
 		 */
-		if ( isset( $_SERVER['HTTP_REFERER'] ) && wc_get_cart_url() === $_SERVER['HTTP_REFERER'] ) {
+		if ( false === wp_get_referer() ) {
 			return true;
 		}
 
