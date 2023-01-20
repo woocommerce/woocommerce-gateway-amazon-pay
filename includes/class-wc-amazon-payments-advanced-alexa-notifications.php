@@ -72,8 +72,10 @@ class WC_Amazon_Payments_Advanced_Alexa_Notifications {
 			array(
 				'chargePermissionId' => $charge_permission_id,
 				'deliveryDetails'    => array(
-					'trackingNumber' => $tracking_number,
-					'carrierCode'    => $carrier,
+					array(
+						'trackingNumber' => $tracking_number,
+						'carrierCode'    => $carrier,
+					),
 				),
 			),
 			$order,
