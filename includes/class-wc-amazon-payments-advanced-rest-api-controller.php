@@ -188,11 +188,11 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 				break;
 			case 'delete':
 			case 'edit':
-				$post           = get_post( (int) $request['order_id'] );
+				$order          = wc_get_order( (int) $request['order_id'] );
 				$has_permission = (
-					$post
+					$order instanceof \WC_Order
 					&&
-					wc_rest_check_post_permissions( $this->post_type, $action, $post->ID )
+					wc_rest_check_post_permissions( $this->post_type, $action, $order->get_id() )
 				);
 				break;
 		}
@@ -246,20 +246,20 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 * @return array|WP_Error|WP_REST_Response
 	 */
 	public function get_reference_state( $request ) {
-		$order_post = $this->is_valid_order( $request['order_id'] );
+		$order = $this->is_valid_order( $request['order_id'] );
 
-		if ( is_wp_error( $order_post ) ) {
-			return $order_post;
+		if ( is_wp_error( $order ) ) {
+			return $order;
 		}
-
-		$order = wc_get_order( $order_post->ID );
 
 		// If `refresh=1` is passed, cache ref states will be cleared so it
 		// makes a call to Amazon to get the details.
 		if ( ! empty( $request['refresh'] ) ) {
-			delete_post_meta( $order_post->ID, 'amazon_reference_state' );
-			delete_post_meta( $order_post->ID, 'amazon_capture_state' );
-			delete_post_meta( $order_post->ID, 'amazon_authorization_state' );
+			$order->delete_meta_data( 'amazon_reference_state' );
+			$order->delete_meta_data( 'amazon_capture_state' );
+			$order->delete_meta_data( 'amazon_authorization_state' );
+			$order->save();
+
 			wc_apa()->get_gateway()->refresh_cached_charge_permission_status( $order );
 			wc_apa()->get_gateway()->get_cached_charge_status( $order );
 		}
@@ -273,12 +273,12 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 		// TODO: Implement subscriptions v1 billing agreement, along with auth and capture methods for that.
 
 		$ref_detail = array(
-			'amazon_reference_state'         => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_reference_state' ),
-			'amazon_reference_id'            => get_post_meta( $order_post->ID, 'amazon_reference_id', true ),
-			'amazon_authorization_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_authorization_state' ),
-			'amazon_authorization_id'        => get_post_meta( $order_post->ID, 'amazon_authorization_id', true ),
-			'amazon_capture_state'           => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order_post->ID, 'amazon_capture_state' ),
-			'amazon_capture_id'              => get_post_meta( $order_post->ID, 'amazon_capture_id', true ),
+			'amazon_reference_state'         => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order->get_id(), 'amazon_reference_state' ),
+			'amazon_reference_id'            => $order->get_meta( 'amazon_reference_id', true, 'edit' ),
+			'amazon_authorization_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order->get_id(), 'amazon_authorization_state' ),
+			'amazon_authorization_id'        => $order->get_meta( 'amazon_authorization_id', true, 'edit' ),
+			'amazon_capture_state'           => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $order->get_id(), 'amazon_capture_state' ),
+			'amazon_capture_id'              => $order->get_meta( 'amazon_capture_id', true, 'edit' ),
 			'amazon_charge_permission_state' => $charge_permission_cached_status->status ? $charge_permission_cached_status->status : '',
 			'amazon_charge_permission_id'    => $charge_permission_id,
 			'amazon_charge_state'            => $charge_cached_status->status ? $charge_cached_status->status : '',
@@ -299,19 +299,19 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 *                                   WP_REST_Response instance.
 	 */
 	public function authorize( $request ) {
-		$order_post = $this->is_valid_order( $request['order_id'] );
-		if ( is_wp_error( $order_post ) ) {
-			return $order_post;
+		$order = $this->is_valid_order( $request['order_id'] );
+		if ( is_wp_error( $order ) ) {
+			return $order;
 		}
-		$order   = wc_get_order( $order_post->ID );
-		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
+
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v1' === strtolower( $version ) ) {
-			$error = $this->get_missing_reference_id_request_error( $order_post );
+			$error = $this->get_missing_reference_id_request_error( $order );
 			if ( is_wp_error( $error ) ) {
 				return $error;
 			}
 
-			return $this->authorize_order_v1( $order_post->ID );
+			return $this->authorize_order_v1( $order->get_id() );
 		} else {
 			$result             = array();
 			$charge             = wc_apa()->get_gateway()->perform_authorization( $order, false );
@@ -337,19 +337,19 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 *                                   WP_REST_Response instance.
 	 */
 	public function authorize_and_capture( $request ) {
-		$order_post = $this->is_valid_order( $request['order_id'] );
-		if ( is_wp_error( $order_post ) ) {
-			return $order_post;
+		$order = $this->is_valid_order( $request['order_id'] );
+		if ( is_wp_error( $order ) ) {
+			return $order;
 		}
-		$order   = wc_get_order( $order_post->ID );
-		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
+
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v1' === strtolower( $version ) ) {
-			$error = $this->get_missing_reference_id_request_error( $order_post );
+			$error = $this->get_missing_reference_id_request_error( $order );
 			if ( is_wp_error( $error ) ) {
 				return $error;
 			}
 
-			return $this->authorize_order_v1( $order_post->ID, array( 'capture_now' => true ) );
+			return $this->authorize_order_v1( $order->get_id(), array( 'capture_now' => true ) );
 		} else {
 			$result = array();
 			$charge = wc_apa()->get_gateway()->perform_authorization( $order, true );
@@ -379,21 +379,23 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	protected function authorize_order_v1( $order_id, $authorize_args = array() ) {
 		$authorize_args = wp_parse_args( $authorize_args, array( 'capture_now' => false ) );
 
-		$resp = WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
-		if ( is_wp_error( $resp ) ) {
-			return $resp;
+		$response = WC_Amazon_Payments_Advanced_API_Legacy::authorize( $order_id, $authorize_args );
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
 
-		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $resp, $order_id, $authorize_args['capture_now'] );
+		$order = wc_get_order( $order_id );
+
+		$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_authorization_response( $response, $order_id, $authorize_args['capture_now'] );
 
 		$ret = array(
 			'authorized'              => $result,
-			'amazon_authorization_id' => get_post_meta( $order_id, 'amazon_authorization_id', true ),
+			'amazon_authorization_id' => $order->get_meta( 'amazon_authorization_id', true, 'edit' ),
 		);
 
 		if ( $authorize_args['capture_now'] ) {
 			$ret['captured']          = $result;
-			$ret['amazon_capture_id'] = get_post_meta( $order_id, 'amazon_capture_id', true );
+			$ret['amazon_capture_id'] = $order->get_meta( 'amazon_capture_id', true, 'edit' );
 
 			$order_closed = WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
 			$order_closed = ( ! is_wp_error( $order_closed ) && $order_closed );
@@ -415,28 +417,26 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 *                                   WP_REST_Response instance.
 	 */
 	public function close_authorization( $request ) {
-		$order_post = $this->is_valid_order( $request['order_id'] );
-		if ( is_wp_error( $order_post ) ) {
-			return $order_post;
+		$order = $this->is_valid_order( $request['order_id'] );
+		if ( is_wp_error( $order ) ) {
+			return $order;
 		}
 
-		$order   = wc_get_order( $order_post->ID );
-		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v1' === strtolower( $version ) ) {
-			$error = $this->get_missing_authorization_id_request_error( $order_post );
+			$error = $this->get_missing_authorization_id_request_error( $order );
 			if ( is_wp_error( $error ) ) {
 				return $error;
 			}
 
-			$order_id = (int) $request['order_id'];
-			$auth_id  = get_post_meta( $order_id, 'amazon_authorization_id', true );
-			$resp     = WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $order_id, $auth_id );
-			if ( is_wp_error( $resp ) ) {
-				return $resp;
+			$authorization_id = $order->get_meta( 'amazon_authorization_id', true, true );
+			$response         = WC_Amazon_Payments_Advanced_API_Legacy::close_authorization( $order->get_id(), $authorization_id );
+			if ( is_wp_error( $response ) ) {
+				return $response;
 			}
 
 			$ret = array(
-				'authorization_closed' => $resp,
+				'authorization_closed' => $response,
 			);
 
 			return rest_ensure_response( $ret );
@@ -463,37 +463,34 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 *                                   WP_REST_Response instance.
 	 */
 	public function capture( $request ) {
-		$order_post = $this->is_valid_order( $request['order_id'] );
-		if ( is_wp_error( $order_post ) ) {
-			return $order_post;
+		$order = $this->is_valid_order( $request['order_id'] );
+		if ( is_wp_error( $order ) ) {
+			return $order;
 		}
 
-		$order   = wc_get_order( $order_post->ID );
-		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v1' === strtolower( $version ) ) {
-			$error = $this->get_missing_authorization_id_request_error( $order_post );
+			$error = $this->get_missing_authorization_id_request_error( $order );
 			if ( is_wp_error( $error ) ) {
 				return $error;
 			}
 
-			$order_id = (int) $request['order_id'];
-
-			$resp = WC_Amazon_Payments_Advanced_API_Legacy::capture( $order_id );
-			if ( is_wp_error( $resp ) ) {
-				return $resp;
+			$response = WC_Amazon_Payments_Advanced_API_Legacy::capture( $order->get_id() );
+			if ( is_wp_error( $response ) ) {
+				return $response;
 			}
 
 			$order_closed = false;
 
-			$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_capture_response( $resp, $order_id );
+			$result = WC_Amazon_Payments_Advanced_API_Legacy::handle_payment_capture_response( $response, $order->get_id() );
 			if ( $result ) {
-				$order_closed = WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order_id );
+				$order_closed = WC_Amazon_Payments_Advanced_API_Legacy::close_order_reference( $order->get_id() );
 				$order_closed = ( ! is_wp_error( $order_closed ) && $order_closed );
 			}
 
 			$ret = array(
 				'captured'          => $result,
-				'amazon_capture_id' => get_post_meta( $order_id, 'amazon_capture_id', true ),
+				'amazon_capture_id' => $order->get_meta( 'amazon_capture_id', true, 'edit' ),
 				'order_closed'      => $order_closed,
 			);
 
@@ -522,33 +519,31 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 *                                   WP_REST_Response instance.
 	 */
 	public function refund( $request ) {
-		$order_post = $this->is_valid_order( $request['order_id'] );
-		if ( is_wp_error( $order_post ) ) {
-			return $order_post;
+		$order = $this->is_valid_order( $request['order_id'] );
+		if ( is_wp_error( $order ) ) {
+			return $order;
 		}
 
-		$order   = wc_get_order( $order_post->ID );
-		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_post->ID );
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 		if ( 'v1' === strtolower( $version ) ) {
-			$error = $this->get_missing_capture_id_request_error( $order_post );
+			$error = $this->get_missing_capture_id_request_error( $order );
 			if ( is_wp_error( $error ) ) {
 				return $error;
 			}
 
-			$order_id = (int) $request['order_id'];
-			$amount   = $request['amount'];
-			$reason   = ! empty( $request['reason'] ) ? $request['reason'] : null;
+			$amount = $request['amount'];
+			$reason = ! empty( $request['reason'] ) ? $request['reason'] : null;
 
 			if ( 0 > $amount ) {
 				return new WP_Error( 'woocommerce_rest_invalid_order_refund', __( 'Refund amount must be greater than zero.', 'woocommerce-gateway-amazon-payments-advanced' ), 400 );
 			}
 
-			$amazon_capture_id = get_post_meta( $order_id, 'amazon_capture_id', true );
-			$refunded          = WC_Amazon_Payments_Advanced_API_Legacy::refund_payment( $order_id, $amazon_capture_id, $amount, $reason );
+			$amazon_capture_id = $order->get_meta( 'amazon_capture_id', true, 'edit' );
+			$refunded          = WC_Amazon_Payments_Advanced_API_Legacy::refund_payment( $order->get_id(), $amazon_capture_id, $amount, $reason );
 
 			$ret = array( 'refunded' => $refunded );
 			if ( $refunded ) {
-				$ret['amazon_refund_id'] = get_post_meta( $order_id, 'amazon_refund_id', true );
+				$ret['amazon_refund_id'] = $order->get_meta( 'amazon_refund_id', true, 'edit' );
 			}
 
 			return rest_ensure_response( $ret );
@@ -578,13 +573,13 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	/**
 	 * Get error from request when no reference_id from specified order.
 	 *
-	 * @param WP_Post $order_post WP Post object.
+	 * @param WC_Order $order Order object.
 	 *
 	 * @return null|WP_Error Null if there's no error in the request.
 	 */
-	protected function get_missing_reference_id_request_error( $order_post ) {
-		$ref_id = get_post_meta( $order_post->ID, 'amazon_reference_id', true );
-		if ( ! $ref_id ) {
+	protected function get_missing_reference_id_request_error( $order ) {
+		$reference_id = $order->get_meta( 'amazon_reference_id', true, 'edit' );
+		if ( ! $reference_id ) {
 			return new WP_Error( 'woocommerce_rest_order_missing_amazon_reference_id', __( 'Specified resource does not have Amazon order reference ID', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 400 ) );
 		}
 
@@ -594,13 +589,13 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	/**
 	 * Get error from request when no authorization_id from specified order.
 	 *
-	 * @param WP_Post $order_post WP Post object.
+	 * @param WC_Order $order Order object.
 	 *
 	 * @return null|WP_Error Null if there's no error in the request.
 	 */
-	protected function get_missing_authorization_id_request_error( $order_post ) {
-		$ref_id = get_post_meta( $order_post->ID, 'amazon_authorization_id', true );
-		if ( ! $ref_id ) {
+	protected function get_missing_authorization_id_request_error( $order ) {
+		$reference_id = $order->get_meta( 'amazon_authorization_id', true, 'edit' );
+		if ( ! $reference_id ) {
 			return new WP_Error( 'woocommerce_rest_order_missing_amazon_authorization_id', __( 'Specified resource does not have Amazon authorization ID', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 400 ) );
 		}
 
@@ -610,13 +605,13 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	/**
 	 * Get error from request when no capture_id from specified order.
 	 *
-	 * @param WP_Post $order_post WP Post object.
+	 * @param WC_Order $order Order object.
 	 *
 	 * @return null|WP_Error Null if there's no error in the request.
 	 */
-	protected function get_missing_capture_id_request_error( $order_post ) {
-		$ref_id = get_post_meta( $order_post->ID, 'amazon_capture_id', true );
-		if ( ! $ref_id ) {
+	protected function get_missing_capture_id_request_error( $order ) {
+		$reference_id = $order->get_meta( 'amazon_capture_id', true, 'edit' );
+		if ( ! $reference_id ) {
 			return new WP_Error( 'woocommerce_rest_order_missing_amazon_capture_id', __( 'Specified resource does not have Amazon capture ID', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 400 ) );
 		}
 
@@ -631,14 +626,14 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 	 * @return WP_Post|WP_Error Post object if it's valid, WP_Error if it's invalid.
 	 */
 	protected function is_valid_order( $order_id ) {
-		$order_post = get_post( (int) $order_id );
+		$order = wc_get_order( (int) $order_id );
 
-		if ( empty( $order_post->post_type ) || $this->post_type !== $order_post->post_type ) {
+		if ( ! ( $order instanceof \WC_Order ) ) {
 			return new WP_Error( 'woocommerce_rest_order_invalid_id', __( 'Invalid order ID.', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 404 ) );
 		}
 
-		$is_valid = 'amazon_payments_advanced' === get_post_meta( $order_post->ID, '_payment_method', true );
+		$is_valid = 'amazon_payments_advanced' === $order->get_payment_method()->id;
 
-		return $is_valid ? $order_post : new WP_Error( 'woocommerce_rest_order_invalid_id', __( 'Invalid order ID.', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 404 ) );
+		return $is_valid ? $order : new WP_Error( 'woocommerce_rest_order_invalid_id', __( 'Invalid order ID.', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 404 ) );
 	}
 }

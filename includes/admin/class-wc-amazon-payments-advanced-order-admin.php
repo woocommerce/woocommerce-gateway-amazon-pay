@@ -14,7 +14,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 * Constructor
 	 */
 	public function __construct() {
-		add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
+		add_action( 'add_meta_boxes', array( $this, 'meta_box' ), 10, 2 );
 		add_action( 'wp_ajax_amazon_order_action', array( $this, 'order_actions' ) );
 		add_action( 'current_screen', array( $this, 'order_actions_non_ajax' ) );
 		add_action( 'wc_amazon_authorization_box_render', array( $this, 'auth_box_render' ), 10, 2 );
@@ -42,7 +42,9 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 * Non AJAX handler that performs order actions.
 	 */
 	public function order_actions_non_ajax() {
-		if ( 'shop_order' !== get_current_screen()->id ) {
+		$screen_to_check = WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id();
+
+		if ( get_current_screen()->id !== $screen_to_check ) {
 			return;
 		}
 
@@ -52,8 +54,22 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		check_admin_referer( 'amazon_order_action', 'security' );
 
-		$order_id = absint( $_GET['post'] ); // TODO: This may break when custom data stores are implemented in the future.
-		$order    = wc_get_order( $order_id );
+		// Find order id with HPOS disabled.
+		$order_id = ! empty( $_GET['post'] ) ? $_GET['post'] : false;
+		if ( ! $order_id ) {
+			// Find order id with HPOS enabled.
+			$order_id = ! empty( $_GET['id'] ) ? $_GET['id'] : false;
+		}
+
+		$order_id = absint( $order_id );
+		if ( ! $order_id ) {
+			return;
+		}
+
+		$order = wc_get_order( $order_id );
+		if ( ! ( $order instanceof \WC_Order ) ) {
+			return;
+		}
 
 		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_id );
 
@@ -104,13 +120,15 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 	/**
 	 * Amazon Pay authorization metabox.
+	 *
+	 * @param Object           $screen The current screen object.
+	 * @param WC_Order|WP_Post $order The current post/order object.
+	 * @return void
 	 */
-	public function meta_box() {
-		global $post, $wpdb;
+	public function meta_box( $screen, $order ) {
 
-		$order_id = absint( $post->ID );
-		$order    = wc_get_order( $order_id );
-		if ( ! $order ) {
+		$order = $order instanceof \WC_Order ? $order : wc_get_order( $order->ID );
+		if ( ! ( $order instanceof \WC_Order ) ) {
 			return;
 		}
 
@@ -118,23 +136,31 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			return;
 		}
 
-		$post_types = apply_filters( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( 'shop_order' ) );
+		$screen = WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id();
+
+		$post_types = apply_filters( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( $screen ) );
 
 		foreach ( $post_types as $post_type ) {
-			add_meta_box( 'woocommerce-amazon-payments-advanced', __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ), array( $this, 'authorization_box' ), $post_type, 'side' );
+			add_meta_box(
+				'woocommerce-amazon-payments-advanced',
+				__( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ),
+				array( $this, 'authorization_box' ),
+				$post_type,
+				'side'
+			);
 		}
 	}
 
 	/**
 	 * Authorization metabox content.
+	 *
+	 * @param WC_Order|WP_Post $object The current post/order object.
+	 * @return void
 	 */
-	public function authorization_box() {
-		global $post, $wpdb;
+	public function authorization_box( $object ) {
+		$order = $object instanceof WC_Order ? $object : wc_get_order( $object->ID );
 
-		$order_id = absint( $post->ID );
-		$order    = wc_get_order( $order_id );
-
-		$version = WC_Amazon_Payments_Advanced::get_order_version( $order_id );
+		$version = WC_Amazon_Payments_Advanced::get_order_version( $order->get_id() );
 
 		do_action( 'wc_amazon_authorization_box_render', $order, $version );
 	}
