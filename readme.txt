@@ -57,6 +57,16 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.4.0 - 2023-xx-xx =
+
+* Update - Bumped required WordPress and WooCommerce versions.
+* Fix - Address street missing in billing address (Germany addresses).
+* Fix - Activate alexa delivery notifications request format.
+* Fix - Allowed currencies population is not taking into account status of compatible multi currency plugin.
+* Fix - Cancelled authorizations should mark order as "Pending payment".
+* Fix - Compatibility with WooCommerce HPOS (custom order tables).
+* Fix - Fatal error when merchant was not migrated to V2 keys.
+
 = 2.3.0 - 2022-10-11 =
 
 * Add - Adds estimatedOrderAmount attribute to Amazon Pay button.
