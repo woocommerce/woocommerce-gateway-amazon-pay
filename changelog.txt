@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.4.0 - 2023-01-25 =
+= 2.4.0 - 2023-xx-xx =
 
 * Update - Bumped required WordPress and WooCommerce versions.
 * Fix - Address street missing in billing address (Germany addresses).
