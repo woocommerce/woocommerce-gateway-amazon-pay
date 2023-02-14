@@ -3,24 +3,34 @@
  * Plugin Name: WooCommerce Amazon Pay
  * Plugin URI: https://woocommerce.com/products/pay-with-amazon/
  * Description: Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.
- * Version: 2.2.4
+ * Version: 2.4.0
  * Author: WooCommerce
  * Author URI: https://woocommerce.com
  * Text Domain: woocommerce-gateway-amazon-payments-advanced
  * Domain Path: /languages/
  * Tested up to: 6.0
- * WC tested up to: 5.3
- * WC requires at least: 2.6
+ * WC tested up to: 7.0
+ * WC requires at least: 4.0
  *
- * Copyright: © 2022 WooCommerce
+ * Copyright: © 2023 WooCommerce
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  *
  * @package WC_Gateway_Amazon_Pay
  */
 
-define( 'WC_AMAZON_PAY_VERSION', '2.2.4' ); // WRCS: DEFINED_VERSION.
+define( 'WC_AMAZON_PAY_VERSION', '2.4.0' ); // WRCS: DEFINED_VERSION.
 define( 'WC_AMAZON_PAY_VERSION_CV1', '1.13.1' );
+
+// Declare HPOS compatibility.
+add_action(
+	'before_woocommerce_init',
+	function() {
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+		}
+	}
+);
 
 /**
  * Amazon Pay main class
@@ -80,6 +90,13 @@ class WC_Amazon_Payments_Advanced {
 	 * @var WC_Gateway_Amazon_Payments_Advanced|WC_Gateway_Amazon_Payments_Advanced_Legacy
 	 */
 	private $gateway;
+
+	/**
+	 * Amazon Pay Express Gateway
+	 *
+	 * @var WC_Gateway_Amazon_Payments_Advanced_Express
+	 */
+	private $express_gateway = null;
 
 	/**
 	 * Amazon Pay Gateway Admin Class
@@ -148,6 +165,9 @@ class WC_Amazon_Payments_Advanced {
 		include_once $this->includes_path . 'legacy/class-wc-amazon-payments-advanced-api-legacy.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-api.php';
 
+		// Utils.
+		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-utils.php';
+
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-compat.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler-abstract.php';
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-ipn-handler.php';
@@ -156,6 +176,10 @@ class WC_Amazon_Payments_Advanced {
 		// On install hook.
 		include_once $this->includes_path . 'class-wc-amazon-payments-advanced-install.php';
 		register_activation_hook( __FILE__, array( 'WC_Amazon_Payments_Advanced_Install', 'install' ) );
+
+		/* Amazon Blocks */
+		include_once $this->includes_path . 'blocks/class-wc-amazon-payments-advanced-register-blocks.php';
+		new WC_Amazon_Payments_Advanced_Register_Blocks();
 
 		add_action( 'woocommerce_init', array( $this, 'init' ) );
 
@@ -252,6 +276,12 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function add_gateway( $methods ) {
 		$methods[] = $this->gateway;
+
+		if ( $this->should_express_be_loaded() ) {
+			require_once $this->includes_path . 'class-wc-gateway-amazon-payments-advanced-express.php';
+			$this->express_gateway = new WC_Gateway_Amazon_Payments_Advanced_Express();
+			$methods[]             = $this->express_gateway;
+		}
 
 		return $methods;
 	}
@@ -486,18 +516,25 @@ class WC_Amazon_Payments_Advanced {
 	 * @return WP_REST_Response REST response
 	 */
 	public function rest_api_add_amazon_ref_info( $response, $post ) {
-		if ( 'amazon_payments_advanced' === $response->data['payment_method'] ) {
-			$response->data['amazon_reference'] = array(
-
-				'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
-				'amazon_reference_id'        => get_post_meta( $post->ID, 'amazon_reference_id', true ),
-				'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
-				'amazon_authorization_id'    => get_post_meta( $post->ID, 'amazon_authorization_id', true ),
-				'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
-				'amazon_capture_id'          => get_post_meta( $post->ID, 'amazon_capture_id', true ),
-				'amazon_refund_ids'          => get_post_meta( $post->ID, 'amazon_refund_id', false ),
-			);
+		if ( 'amazon_payments_advanced' !== $response->data['payment_method'] ) {
+			return $response;
 		}
+
+		$order = wc_get_order( $post->ID );
+
+		if ( ! ( $order instanceof \WC_Order ) ) {
+			return $response;
+		}
+
+		$response->data['amazon_reference'] = array(
+			'amazon_reference_state'     => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_reference_state' ),
+			'amazon_reference_id'        => $order->get_meta( 'amazon_reference_id', true, 'edit' ),
+			'amazon_authorization_state' => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_authorization_state' ),
+			'amazon_authorization_id'    => $order->get_meta( 'amazon_authorization_id', true, 'edit' ),
+			'amazon_capture_state'       => WC_Amazon_Payments_Advanced_API_Legacy::get_order_ref_state( $post->ID, 'amazon_capture_state' ),
+			'amazon_capture_id'          => $order->get_meta( 'amazon_capture_id', true, 'edit' ),
+			'amazon_refund_ids'          => $order->get_meta( 'amazon_refund_id', false, 'edit' ),
+		);
 
 		return $response;
 	}
@@ -511,6 +548,32 @@ class WC_Amazon_Payments_Advanced {
 	 */
 	public function get_gateway() {
 		return $this->gateway;
+	}
+
+	/**
+	 * Return instance of WC_Gateway_Amazon_Payments_Advanced_Express.
+	 *
+	 * @return WC_Gateway_Amazon_Payments_Advanced_Express
+	 */
+	public function get_express_gateway() {
+		return $this->express_gateway;
+	}
+
+	/**
+	 * Checks whether Express Gateway should be loaded or not.
+	 *
+	 * Express gateway should only be loaded if:
+	 *
+	 * 1) Merchant has migrated to V2 of the Amazon API and as a result
+	 *    he is using the WC_Gateway_Amazon_Payments_Advanced class as the
+	 *    Amazon Pay main Gateway.
+	 * 2) Class WC_Gateway_Amazon_Payments_Advanced has been loaded.
+	 * 3) WooCommerce blocks is installed and activated
+	 *
+	 * @return boolean
+	 */
+	public function should_express_be_loaded() {
+		return WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() && class_exists( 'WC_Gateway_Amazon_Payments_Advanced' ) && class_exists( 'Automattic\WooCommerce\Blocks\Package' );
 	}
 }
 

@@ -1,20 +1,16 @@
-import { decodeEntities } from '@wordpress/html-entities';
-import { getBlocksConfiguration } from '../../utils';
+/**
+ * External dependencies
+ */
 import { useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
 import React from 'react';
 
-const settings = getBlocksConfiguration( 'amazon_payments_advanced_data' );
-
 /**
- * Returns the payment method's description.
- *
- * @returns {string}
+ * Internal dependencies
  */
-const Content = () => {
-	return decodeEntities( settings.description || '' );
-};
+import { Content } from '../../utils';
+import { settings } from './settings';
+import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
 
 /**
  * Returns a react component and also sets an observer for the onCheckoutAfterProcessingWithSuccess event.
@@ -82,7 +78,7 @@ const AmazonPayBtn = ( props ) => {
 export const AmazonContent = ( props ) => {
 	return (
 		<React.Fragment>
-			<Content />
+			<Content description={ settings?.description }/>
 			<AmazonPayBtn { ...props } />
 		</React.Fragment>
 	);

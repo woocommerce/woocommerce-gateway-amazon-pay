@@ -30,3 +30,8 @@ default.env export-ignore
 docker-compose.yml export-ignore
 docs/DOCKER.md export-ignore
 wordpress_org_assets export-ignore
+src export-ignore
+.vscode export-ignore
+node_modules export-ignore
+.prettierrc.js export-ignore
+woocommerce-gateway-amazon-pay.zip export-ignore

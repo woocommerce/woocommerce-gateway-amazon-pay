@@ -355,8 +355,10 @@ class WC_Amazon_Payments_Advanced_Admin {
 			$current_screen = 'wc_apa_settings';
 		}
 
+		$screen_to_check = WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id();
+
 		switch ( $current_screen ) {
-			case 'shop_order':
+			case $screen_to_check:
 			case 'wc_apa_settings':
 				break;
 			default:
@@ -392,6 +394,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 		wp_enqueue_script( 'amazon_payments_admin' );
 
 		wp_enqueue_style( 'amazon_payments_admin', wc_apa()->plugin_url . '/assets/css/style-admin.css', array(), wc_apa()->version );
+		wp_enqueue_style( 'amazon_payments_advanced_hide_express', wc_apa()->plugin_url . '/assets/css/hide-amazon-express-admin.css', array(), wc_apa()->version );
 	}
 
 	/**

@@ -1,0 +1,4 @@
+table.wc_gateways tr[data-gateway_id="amazon_payments_advanced_express"],
+.order_data_column .edit_address #_payment_method option[value="amazon_payments_advanced_express"] {
+	display: none !important;
+}

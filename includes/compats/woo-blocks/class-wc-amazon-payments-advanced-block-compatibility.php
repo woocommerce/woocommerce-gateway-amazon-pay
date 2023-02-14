@@ -19,6 +19,7 @@ class WC_Amazon_Payments_Advanced_Block_Compatibility {
 	 */
 	protected static $file_class_compats_map = array(
 		'WC_Amazon_Payments_Advanced_Block_Compat_Classic' => __DIR__ . '/class-wc-amazon-payments-advanced-block-compat-classic.php',
+		'WC_Amazon_Payments_Advanced_Block_Compat_Express' => __DIR__ . '/class-wc-amazon-payments-advanced-block-compat-express.php',
 	);
 
 	/**
