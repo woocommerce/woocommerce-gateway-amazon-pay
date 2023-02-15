@@ -57,6 +57,10 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.4.1 - 2023-xx-xx =
+
+* Fix - Identify if the provided order id refers to an actual order completed through Amazon Pay.
+
 = 2.4.0 - 2023-01-26 =
 
 * Update - Bumped required WordPress and WooCommerce versions.
