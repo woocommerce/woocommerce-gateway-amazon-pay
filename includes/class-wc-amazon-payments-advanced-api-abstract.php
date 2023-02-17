@@ -424,21 +424,13 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		// @codingStandardsIgnoreStart
 		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'AT', 'DE' ) ) ) {
 
-			if ( ! empty( $address->AddressLine3 ) && ! empty( $address->AddressLine2 ) && ! empty( $address->AddressLine1 ) ) {
-
-				$formatted['company']   = trim( (string) $address->AddressLine1 . ' ' . (string) $address->AddressLine2 );
-				$formatted['address_1'] = (string) $address->AddressLine3;
-
-			} elseif ( ! empty( $address->AddressLine2 ) && ! empty( $address->AddressLine1 ) ) {
-
-				$formatted['company']   = (string) $address->AddressLine1;
-				$formatted['address_1'] = (string) $address->AddressLine2;
-
-			} elseif ( ! empty( $address->AddressLine1 ) ) {
-
-				$formatted['address_1'] = (string) $address->AddressLine1;
-
-			}
+			$address_parts = array_filter( array(
+				(string) $address->AddressLine1,
+				(string) $address->AddressLine2,
+				(string) $address->AddressLine3)
+			);
+			$formatted['address_1'] = array_pop( $address_parts );
+			$formatted['company'] = implode( ' ', $address_parts );
 
 		} elseif ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
 

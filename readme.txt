@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, woothemes, akeda, jeffstieler, mikejolley
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
 Tested up to: 6.0
-Stable tag: 2.3.0
+Stable tag: 2.4.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -56,6 +56,20 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.4.1 - 2023-02-15 =
+
+* Fix - Identify if the provided order id refers to an actual order completed through Amazon Pay.
+
+= 2.4.0 - 2023-01-26 =
+
+* Update - Bumped required WordPress and WooCommerce versions.
+* Fix - Address street missing in billing address (Germany addresses).
+* Fix - Activate alexa delivery notifications request format.
+* Fix - Allowed currencies population is not taking into account status of compatible multi currency plugin.
+* Fix - Cancelled authorizations should mark order as "Pending payment".
+* Fix - Compatibility with WooCommerce HPOS (custom order tables).
+* Fix - Fatal error when merchant was not migrated to V2 keys.
 
 = 2.3.0 - 2022-10-11 =
 

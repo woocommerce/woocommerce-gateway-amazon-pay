@@ -115,5 +115,5 @@ export const getCheckOutFieldsLabel = ( field, billingOrShipping ) => {
  * @returns {bool}
  */
 export const amazonPayCanMakePayment = ( { cartTotals }, { allowedCurrencies } ) => {
-	return allowedCurrencies ? allowedCurrencies.includes( cartTotals.currency_code ) : true;
+	return allowedCurrencies && allowedCurrencies.length > 0 ? allowedCurrencies.includes( cartTotals.currency_code ) : true;
 };

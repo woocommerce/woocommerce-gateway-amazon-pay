@@ -105,4 +105,17 @@ abstract class WC_Amazon_Payments_Advanced_Block_Compat_Abstract extends Abstrac
 		}
 		return array();
 	}
+
+	/**
+	 * Returns supported currencies if multi currency is enabled.
+	 *
+	 * @return array|false
+	 */
+	protected function get_allowed_currencies() {
+		if ( ! WC_Amazon_Payments_Advanced_Multi_Currency::is_active() ) {
+			return false;
+		}
+
+		return array_values( WC_Amazon_Payments_Advanced_API::get_selected_currencies() );
+	}
 }
