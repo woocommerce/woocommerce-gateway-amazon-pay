@@ -2,8 +2,10 @@
 /**
  * Order helpers.
  *
- * @package WooCommerce/Tests
+ * @package WC_Gateway_Amazon_Pay/Tests
  */
+
+declare(strict_types=1);
 
 /**
  * Class WC_Helper_Order.
@@ -17,7 +19,7 @@ class WC_Helper_Order {
 	 *
 	 * @param int $order_id ID of the order to delete.
 	 */
-	public static function delete_order( $order_id ) {
+	public static function delete_order( int $order_id ) : void {
 
 		$order = wc_get_order( $order_id );
 
@@ -35,9 +37,7 @@ class WC_Helper_Order {
 	/**
 	 * Create a order.
 	 *
-	 * @since   2.4
-	 * @version 3.0 New parameter $product.
-	 *
+	 * @param string     $payment_method_id The ID of the customer the order is for.
 	 * @param int        $customer_id The ID of the customer the order is for.
 	 * @param int        $total       Total cost of the order. Defaults to 50 (4 x $10 simple helper product + $10 shipping)
 	 *                                and can be modified to test $0 orders.
@@ -45,7 +45,7 @@ class WC_Helper_Order {
 	 *
 	 * @return WC_Order
 	 */
-	public static function create_order( $payment_method_id, $customer_id = 1, $total = 50, $product = null ) {
+	public static function create_order( string $payment_method_id, int $customer_id = 1, int $total = 50, ?WC_Product $product = null ) : WC_Order {
 		if ( ! is_a( $product, 'WC_Product' ) ) {
 			$product = WC_Helper_Product::create_simple_product();
 		}

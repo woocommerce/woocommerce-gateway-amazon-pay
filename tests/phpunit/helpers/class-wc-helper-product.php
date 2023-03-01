@@ -2,8 +2,10 @@
 /**
  * Product helpers.
  *
- * @package woocommerce/tests
+ * @package WC_Gateway_Amazon_Pay/Tests
  */
+
+declare(strict_types=1);
 
 /**
  * Class WC_Helper_Product.
@@ -17,7 +19,7 @@ class WC_Helper_Product {
 	 *
 	 * @param int $product_id ID to delete.
 	 */
-	public static function delete_product( $product_id ) {
+	public static function delete_product( int $product_id ) : void {
 		$product = wc_get_product( $product_id );
 		if ( $product ) {
 			$product->delete( true );
@@ -27,11 +29,10 @@ class WC_Helper_Product {
 	/**
 	 * Create simple product.
 	 *
-	 * @since 2.3
 	 * @param bool $save Save or return object.
 	 * @return WC_Product_Simple
 	 */
-	public static function create_simple_product( $save = true ) {
+	public static function create_simple_product( bool $save = true ) : WC_Product_Simple {
 		$product = new WC_Product_Simple();
 		$product->set_props(
 			array(
@@ -59,10 +60,9 @@ class WC_Helper_Product {
 	/**
 	 * Create external product.
 	 *
-	 * @since 3.0.0
 	 * @return WC_Product_External
 	 */
-	public static function create_external_product() {
+	public static function create_external_product() : WC_Product_External {
 		$product = new WC_Product_External();
 		$product->set_props(
 			array(
@@ -81,10 +81,9 @@ class WC_Helper_Product {
 	/**
 	 * Create grouped product.
 	 *
-	 * @since 3.0.0
 	 * @return WC_Product_Grouped
 	 */
-	public static function create_grouped_product() {
+	public static function create_grouped_product() : WC_Product_Grouped {
 		$simple_product_1 = self::create_simple_product();
 		$simple_product_2 = self::create_simple_product();
 		$product          = new WC_Product_Grouped();
@@ -103,11 +102,9 @@ class WC_Helper_Product {
 	/**
 	 * Create a dummy variation product.
 	 *
-	 * @since 2.3
-	 *
 	 * @return WC_Product_Variable
 	 */
-	public static function create_variation_product() {
+	public static function create_variation_product() : WC_Product_Variable {
 		$product = new WC_Product_Variable();
 		$product->set_props(
 			array(
@@ -213,13 +210,11 @@ class WC_Helper_Product {
 	/**
 	 * Create a dummy attribute.
 	 *
-	 * @since 2.3
-	 *
-	 * @param string        $raw_name Name of attribute to create.
-	 * @param array(string) $terms          Terms to create for the attribute.
+	 * @param string   $raw_name Name of attribute to create.
+	 * @param string[] $terms    Terms to create for the attribute.
 	 * @return array
 	 */
-	public static function create_attribute( $raw_name = 'size', $terms = array( 'small' ) ) {
+	public static function create_attribute( string $raw_name = 'size', array $terms = array( 'small' ) ) : array {
 		global $wpdb, $wc_product_attributes;
 
 		// Make sure caches are clean.
@@ -304,10 +299,8 @@ class WC_Helper_Product {
 	 * Delete an attribute.
 	 *
 	 * @param int $attribute_id ID to delete.
-	 *
-	 * @since 2.3
 	 */
-	public static function delete_attribute( $attribute_id ) {
+	public static function delete_attribute( int $attribute_id ) : void {
 		global $wpdb;
 
 		$attribute_id = absint( $attribute_id );
@@ -320,12 +313,11 @@ class WC_Helper_Product {
 	/**
 	 * Creates a new product review on a specific product.
 	 *
-	 * @since 3.0
 	 * @param int    $product_id integer Product ID that the review is for.
 	 * @param string $review_content string Content to use for the product review.
 	 * @return integer Product Review ID.
 	 */
-	public static function create_product_review( $product_id, $review_content = 'Review content here' ) {
+	public static function create_product_review( int $product_id, string $review_content = 'Review content here' ) : int {
 		$data = array(
 			'comment_post_ID'      => $product_id,
 			'comment_author'       => 'admin',
@@ -341,11 +333,10 @@ class WC_Helper_Product {
 
 	/**
 	 * A helper function for hooking into save_post during the test_product_meta_save_post test.
-	 * @since 3.0.1
 	 *
 	 * @param int $id ID to update.
 	 */
-	public static function save_post_test_update_meta_data_direct( $id ) {
+	public static function save_post_test_update_meta_data_direct( int $id ) : void {
 		update_post_meta( $id, '_test2', 'world' );
 	}
 }

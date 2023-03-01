@@ -2,19 +2,29 @@
 /**
  * Test cases for WC_Gateway_Amazon_Payments_Advanced.
  *
- * @package WC_Gateway_Amazon_Pay
+ * @package WC_Gateway_Amazon_Pay/Tests
  */
+
+declare(strict_types=1);
 
 /**
  * WC_Gateway_Amazon_Payments_Advanced_Test tests functionalities in WC_Gateway_Amazon_Payments_Advanced.
- *
- * @since UNIT_TESTS_VERSION
  */
 class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 
+	/**
+	 * Store an instance of our Gateway being tested.
+	 *
+	 * @var ?WC_Gateway_Amazon_Payments_Advanced
+	 */
 	protected static $gateway;
 
-	public static function set_up_before_class() {
+	/**
+	 * Set up our DB before tests.
+	 *
+	 * @return void
+	 */
+	public static function set_up_before_class() : void {
 		parent::set_up_before_class();
 		self::$gateway = new WC_Gateway_Amazon_Payments_Advanced();
 		update_option( 'woocommerce_currency', 'EUR' );
@@ -22,7 +32,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		update_option( 'amazon_api_version', 'V2' );
 	}
 
-	public static function tear_down_after_class() {
+	/**
+	 * Restore the DB's state after tests.
+	 *
+	 * @return void
+	 */
+	public static function tear_down_after_class() : void {
 		parent::tear_down_after_class();
 		self::$gateway = null;
 		delete_option( 'woocommerce_currency' );
@@ -32,16 +47,31 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		delete_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
 	}
 
-	public function test_is_not_available() {
+	/**
+	 * Test that gateway is not available.
+	 *
+	 * @return void
+	 */
+	public function test_is_not_available() : void {
 		$this->assertFalse( self::$gateway->is_available() );
 	}
 
-	public function test_is_available() {
+	/**
+	 * Test that gateway is available.
+	 *
+	 * @return void
+	 */
+	public function test_is_available() : void {
 		self::update_plugin_settings();
 		$this->assertTrue( self::$gateway->is_available() );
 	}
 
-	public function test_express_process_payment() {
+	/**
+	 * Test happy path of the express gateway.
+	 *
+	 * @return void
+	 */
+	public function test_express_process_payment() : void {
 		$checkout_session_key = apply_filters( 'woocommerce_amazon_pa_checkout_session_key', 'amazon_checkout_session_id' );
 		WC()->session->set( $checkout_session_key, 'TEST_CHECKOUT_SESSION_ID' );
 		WC()->session->save_data();
@@ -59,7 +89,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_classic_process_payment() {
+	/**
+	 * Test happy path of classic gateway.
+	 *
+	 * @return void
+	 */
+	public function test_classic_process_payment() : void {
 		$checkout_session_key = apply_filters( 'woocommerce_amazon_pa_checkout_session_key', 'amazon_checkout_session_id' );
 		WC()->session->set( $checkout_session_key, null );
 		WC()->session->save_data();
@@ -88,7 +123,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		);
 	}
 
-	protected function update_plugin_settings() {
+	/**
+	 * Update plugin settings in order to make the gateway available.
+	 *
+	 * @return void
+	 */
+	protected function update_plugin_settings() : void {
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
 		$settings = array_merge(
 			$settings,

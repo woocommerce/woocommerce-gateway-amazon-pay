@@ -2,16 +2,22 @@
 /**
  * Test cases for WC_Amazon_Payments_Advanced_API.
  *
- * @package WC_Gateway_Amazon_Pay
+ * @package WC_Gateway_Amazon_Pay/Tests
  */
+
+declare(strict_types=1);
 
 /**
  * WC_Amazon_Payments_Advanced_API_Test tests functionalities in WC_Amazon_Payments_Advanced_API.
- *
- * @since UNIT_TESTS_VERSION
  */
 class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
-	public function test_get_default_settings() {
+
+	/**
+	 * Test gateway's default settings.
+	 *
+	 * @return void
+	 */
+	public function test_get_default_settings() : void {
 		$this->assertEquals(
 			array(
 				'enabled'                         => 'yes',
