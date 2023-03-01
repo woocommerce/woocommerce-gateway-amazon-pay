@@ -50,6 +50,16 @@ function _manually_load_plugin() {
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
+// Create Woo Tables forcefully.
+tests_add_filter(
+	'plugins_loaded',
+	function () {
+		WC_Install::create_tables();
+	},
+	1
+);
+
+// Clear the DB of all the tables.
 tests_add_filter(
 	'shutdown',
 	function() {
@@ -58,19 +68,30 @@ tests_add_filter(
 		$tables = array_merge(
 			array_values( $wpdb->tables() ),
 			array(
+				$wpdb->prefix . 'wc_admin_notes',
+				$wpdb->prefix . 'wc_admin_note_actions',
+				$wpdb->prefix . 'wc_customer_lookup',
+				$wpdb->prefix . 'wc_download_log',
+				$wpdb->prefix . 'wc_order_coupon_lookup',
+				$wpdb->prefix . 'wc_order_product_lookup',
+				$wpdb->prefix . 'wc_order_stats',
+				$wpdb->prefix . 'wc_order_tax_lookup',
+				$wpdb->prefix . 'wc_product_attributes_lookup',
+				$wpdb->prefix . 'wc_product_download_directories',
+				$wpdb->prefix . 'wc_rate_limits',
+				$wpdb->prefix . 'wc_webhooks',
 				$wpdb->prefix . 'woocommerce_api_keys',
 				$wpdb->prefix . 'woocommerce_attribute_taxonomies',
 				$wpdb->prefix . 'woocommerce_downloadable_product_permissions',
+				$wpdb->prefix . 'woocommerce_log',
 				$wpdb->prefix . 'woocommerce_order_items',
 				$wpdb->prefix . 'woocommerce_payment_tokens',
-				$wpdb->prefix . 'woocommerce_payment_tokens',
-				$wpdb->prefix . 'woocommerce_shipping_zone_locations',
 				$wpdb->prefix . 'woocommerce_sessions',
 				$wpdb->prefix . 'woocommerce_shipping_zones',
+				$wpdb->prefix . 'woocommerce_shipping_zone_locations',
 				$wpdb->prefix . 'woocommerce_shipping_zone_methods',
 				$wpdb->prefix . 'woocommerce_tax_rates',
 				$wpdb->prefix . 'woocommerce_tax_rate_locations',
-				$wpdb->prefix . 'wc_webhooks',
 			)
 		);
 
@@ -81,4 +102,5 @@ tests_add_filter(
 	9999
 );
 
+// Bootstrap.
 require $_tests_dir . '/includes/bootstrap.php';
