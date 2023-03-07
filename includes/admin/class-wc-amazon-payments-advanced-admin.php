@@ -407,11 +407,11 @@ class WC_Amazon_Payments_Advanced_Admin {
 	public function ajax_dismiss_review_prompt() {
 		check_ajax_referer( 'amazon_pay_dismiss_review_prompt', 'nonce' );
 
-		$anniversary_date  = get_option( 'amazon_payments_advanced_anniversary_date' );
+		$anniversary_date = get_option( 'amazon_payments_advanced_anniversary_date' );
 
 		// Start from the stored anniversary date.
 		// Add a year in each loop until the result is in the future.
-		$hidden_until_date = $anniversary_date;
+		$hidden_until_date = is_numeric( $anniversary_date ) ? (int) $anniversary_date : time();
 		while ( $hidden_until_date < time() ) {
 			$hidden_until_date = strtotime( '+1 year', $hidden_until_date );
 		}
