@@ -62,7 +62,23 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_is_available() : void {
-		self::update_plugin_settings();
+		// Update plugin settings to make the gateway available.
+		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
+		$settings = array_merge(
+			$settings,
+			array(
+				'enabled'        => 'yes',
+				'merchant_id'    => 'test_merchant_id',
+				'public_key_id'  => 'test_public_key_id',
+				'store_id'       => 'test_store_id',
+				'payment_region' => 'eu',
+			)
+		);
+
+		update_option( 'woocommerce_amazon_payments_advanced_settings', $settings );
+		update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, 'TEST_PRIVATE_KEY' );
+
+		// Test gateway availability.
 		$this->assertTrue( self::$gateway->is_available() );
 	}
 
@@ -121,27 +137,5 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 			),
 			$mock_gateway->process_payment( $order->get_id() )
 		);
-	}
-
-	/**
-	 * Update plugin settings in order to make the gateway available.
-	 *
-	 * @return void
-	 */
-	protected function update_plugin_settings() : void {
-		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
-		$settings = array_merge(
-			$settings,
-			array(
-				'enabled'        => 'yes',
-				'merchant_id'    => 'test_merchant_id',
-				'public_key_id'  => 'test_public_key_id',
-				'store_id'       => 'test_store_id',
-				'payment_region' => 'eu',
-			)
-		);
-
-		update_option( 'woocommerce_amazon_payments_advanced_settings', $settings );
-		update_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY, 'TEST_PRIVATE_KEY' );
 	}
 }
