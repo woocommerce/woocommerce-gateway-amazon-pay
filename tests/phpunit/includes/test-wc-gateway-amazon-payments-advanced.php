@@ -121,8 +121,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 
 		$mock_gateway = new WC_Mocker_Gateway_Amazon_Payments_Advanced( $order_total );
 
-		remove_action( 'woocommerce_after_checkout_validation', array( wc_apa()->get_gateway(), 'classic_validation' ), 10 );
-
 		$this->assertEquals(
 			array(
 				'result'                     => 'success',
