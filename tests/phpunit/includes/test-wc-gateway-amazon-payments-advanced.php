@@ -38,13 +38,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public static function tear_down_after_class() : void {
-		parent::tear_down_after_class();
 		self::$gateway = null;
 		delete_option( 'woocommerce_currency' );
 		delete_option( 'woocommerce_amazon_payments_advanced_settings' );
 		delete_option( 'woocommerce_amazon_payments_new_install' );
 		delete_option( 'amazon_api_version' );
 		delete_option( WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::KEYS_OPTION_PRIVATE_KEY );
+		parent::tear_down_after_class();
 	}
 
 	/**
