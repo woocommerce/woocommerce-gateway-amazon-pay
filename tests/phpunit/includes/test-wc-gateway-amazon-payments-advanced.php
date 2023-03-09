@@ -87,7 +87,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_express_process_payment() : void {
+	public function test_express_process_payment_succeeds() : void {
 		$checkout_session_key = apply_filters( 'woocommerce_amazon_pa_checkout_session_key', 'amazon_checkout_session_id' );
 		WC()->session->set( $checkout_session_key, 'TEST_CHECKOUT_SESSION_ID' );
 		WC()->session->save_data();
@@ -110,7 +110,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_classic_process_payment() : void {
+	public function test_classic_process_payment_succeeds() : void {
 		$checkout_session_key = apply_filters( 'woocommerce_amazon_pa_checkout_session_key', 'amazon_checkout_session_id' );
 		WC()->session->set( $checkout_session_key, null );
 		WC()->session->save_data();
