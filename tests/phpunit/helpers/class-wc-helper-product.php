@@ -32,7 +32,7 @@ class WC_Helper_Product {
 	 * @param bool $save Save or return object.
 	 * @return WC_Product_Simple
 	 */
-	public static function create_simple_product( bool $save = true ) : WC_Product_Simple {
+	public static function create_and_optionally_save_simple_product( bool $save = true ) : WC_Product_Simple {
 		$product = new WC_Product_Simple();
 		$product->set_props(
 			array(
@@ -62,7 +62,7 @@ class WC_Helper_Product {
 	 *
 	 * @return WC_Product_External
 	 */
-	public static function create_external_product() : WC_Product_External {
+	public static function create_and_save_external_product() : WC_Product_External {
 		$product = new WC_Product_External();
 		$product->set_props(
 			array(
@@ -83,9 +83,9 @@ class WC_Helper_Product {
 	 *
 	 * @return WC_Product_Grouped
 	 */
-	public static function create_grouped_product() : WC_Product_Grouped {
-		$simple_product_1 = self::create_simple_product();
-		$simple_product_2 = self::create_simple_product();
+	public static function create_and_save_grouped_product() : WC_Product_Grouped {
+		$simple_product_1 = self::create_and_optionally_save_simple_product();
+		$simple_product_2 = self::create_and_optionally_save_simple_product();
 		$product          = new WC_Product_Grouped();
 		$product->set_props(
 			array(
@@ -104,7 +104,7 @@ class WC_Helper_Product {
 	 *
 	 * @return WC_Product_Variable
 	 */
-	public static function create_variation_product() : WC_Product_Variable {
+	public static function create_and_save_variation_product() : WC_Product_Variable {
 		$product = new WC_Product_Variable();
 		$product->set_props(
 			array(

@@ -5,6 +5,8 @@
  * @package WC_Gateway_Amazon_Pay/Tests
  */
 
+declare(strict_types=1);
+
 /**
  * Class WC_Helper_Shipping.
  *

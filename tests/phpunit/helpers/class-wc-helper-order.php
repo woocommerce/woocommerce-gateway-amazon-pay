@@ -46,8 +46,8 @@ class WC_Helper_Order {
 	 * @return WC_Order
 	 */
 	public static function create_order( string $payment_method_id, int $customer_id = 1, int $total = 50, ?WC_Product $product = null ) : WC_Order {
-		if ( ! is_a( $product, 'WC_Product' ) ) {
-			$product = WC_Helper_Product::create_simple_product();
+		if ( ! ( $product instanceof WC_Product ) ) {
+			$product = WC_Helper_Product::create_and_optionally_save_simple_product();
 		}
 
 		WC_Helper_Shipping::create_simple_flat_rate();
