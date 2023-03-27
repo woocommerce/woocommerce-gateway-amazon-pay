@@ -30,7 +30,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 	 * @return boolean
 	 */
 	public function is_active() {
-		return wc_apa()->get_gateway()->is_available();
+		return wc_apa()->should_express_be_loaded() && wc_apa()->get_gateway()->is_available();
 	}
 
 	/**
@@ -56,7 +56,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 				'selectedPaymentMethod' => esc_html( $wc_apa_gateway->get_selected_payment_label( $checkout_session ) ),
 				'hasPaymentPreferences' => $wc_apa_gateway->has_payment_preferences( $checkout_session ),
 				'allOtherGateways'      => $this->gateways_to_unset_on_fe(),
-				'allowedCurrencies'     => WC_Amazon_Payments_Advanced_API::get_selected_currencies(),
+				'allowedCurrencies'     => $this->get_allowed_currencies(),
 				'amazonPayPreviewUrl'   => esc_url( wc_apa()->plugin_url . '/assets/images/amazon-pay-preview.png' ),
 				'amazonAddress'         => array(
 					'amazonBilling'  => $checkout_session && ! is_wp_error( $checkout_session ) && ! empty( $checkout_session->billingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) : null, // phpcs:ignore WordPress.NamingConventions

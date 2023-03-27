@@ -1680,7 +1680,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				wc_apa()->ipn_handler->schedule_hook( $charge_id, 'CHARGE' );
 				break;
 			case 'Canceled':
-				$order->update_status( 'on-hold' );
+				if ( 'cancelled' !== $order->get_status() ) {
+					$order->update_status( 'pending' );
+				}
 				wc_maybe_reduce_stock_levels( $order->get_id() );
 				break;
 			case 'Declined':
@@ -2113,11 +2115,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	private function format_status_details( $status_details ) {
 		$charge_status         = $status_details->state; // phpcs:ignore WordPress.NamingConventions
-		$charge_status_reasons = $status_details->reasons; // phpcs:ignore WordPress.NamingConventions
-		if ( empty( $charge_status_reasons ) ) {
-			$charge_status_reasons = array();
-		}
-		$charge_status_reason = $status_details->reasonCode; // phpcs:ignore WordPress.NamingConventions
+		$charge_status_reasons = isset( $status_details->reasons ) && is_array( $status_details->reasons ) ? $status_details->reasons : array(); // phpcs:ignore WordPress.NamingConventions
+
+		$charge_status_reason = isset( $status_details->reasonCode ) ? $status_details->reasonCode : null; // phpcs:ignore WordPress.NamingConventions
 
 		if ( $charge_status_reason ) {
 			$charge_status_reasons[] = (object) array(
@@ -2565,10 +2565,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		/**
 		 * To capture the cart redirect on update cart actions.
-		 * Considered wp_get_referer instead, but it wouldn't produce the expected
-		 * results when Update cart is clicked on the cart page.
+		 *
+		 * wp_get_referer will return false when the request comes from the same page.
 		 */
-		if ( isset( $_SERVER['HTTP_REFERER'] ) && wc_get_cart_url() === $_SERVER['HTTP_REFERER'] ) {
+		if ( false === wp_get_referer() ) {
 			return true;
 		}
 
