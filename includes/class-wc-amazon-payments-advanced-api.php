@@ -75,8 +75,11 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$client  = self::get_client();
 			$payload = self::create_checkout_session_params();
 
-			$headers = array( 'x-amz-pay-Idempotency-Key' => uniqid() );
-			$result  = $client->createCheckoutSession( $payload, array_merge( $headers, self::get_amazon_pay_platform_headers() ) );
+			$headers = array_merge(
+				array( 'x-amz-pay-Idempotency-Key' => uniqid() ),
+				self::get_amazon_pay_platform_headers()
+			);
+			$result  = $client->createCheckoutSession( $payload, $headers );
 			if ( ! isset( $result['status'] ) || 201 !== $result['status'] ) {
 				throw new Exception( __( 'Error: API is not responding.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
@@ -533,7 +536,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	public static function update_checkout_session_data( $checkout_session_id, $data = array() ) {
 		$client = self::get_client();
 
-		$headers = self::get_extra_headers( __FUNCTION__ );
+		$headers = array_merge(
+			self::get_extra_headers( __FUNCTION__ ),
+			self::get_amazon_pay_platform_headers()
+		);
 
 		wc_apa()->log(
 			sprintf( 'Checkout Session ID %s', $checkout_session_id ),
@@ -543,7 +549,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			)
 		);
 
-		$result = $client->updateCheckoutSession( $checkout_session_id, $data, array_merge( $headers, self::get_amazon_pay_platform_headers() ) );
+		$result = $client->updateCheckoutSession( $checkout_session_id, $data, $headers );
 
 		$response = json_decode( $result['response'] );
 
@@ -716,16 +722,18 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			)
 		);
 
+		$headers = array_merge(
+			$headers,
+			array(
+				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			),
+			self::get_amazon_pay_platform_headers()
+		);
+
 		$result = $client->captureCharge(
 			$charge_id,
 			$data,
-			array_merge(
-				$headers,
-				array(
-					'x-amz-pay-idempotency-key' => self::generate_uuid(),
-				),
-				self::get_amazon_pay_platform_headers()
-			)
+			$headers
 		);
 
 		$response = json_decode( $result['response'] );
@@ -774,15 +782,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			)
 		);
 
+		$headers = array_merge(
+			$headers,
+			array(
+				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			),
+			self::get_amazon_pay_platform_headers()
+		);
+
 		$result = $client->createRefund(
 			$data,
-			array_merge(
-				$headers,
-				array(
-					'x-amz-pay-idempotency-key' => self::generate_uuid(),
-				),
-				self::get_amazon_pay_platform_headers()
-			)
+			$headers
 		);
 
 		$response = json_decode( $result['response'] );
@@ -940,15 +950,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			)
 		);
 
+		$headers = array_merge(
+			$headers,
+			array(
+				'x-amz-pay-idempotency-key' => self::generate_uuid(),
+			),
+			self::get_amazon_pay_platform_headers()
+		);
+
 		$result = $client->createCharge(
 			$data,
-			array_merge(
-				$headers,
-				array(
-					'x-amz-pay-idempotency-key' => self::generate_uuid(),
-				),
-				self::get_amazon_pay_platform_headers()
-			)
+			$headers
 		);
 
 		$response = json_decode( $result['response'] );
@@ -973,7 +985,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	public static function close_charge_permission( $charge_permission_id, $reason = 'Subscription Cancelled' ) {
 		$client = self::get_client();
 
-		$headers = self::get_extra_headers( __FUNCTION__ );
+		$headers = array_merge(
+			self::get_extra_headers( __FUNCTION__ ),
+			self::get_amazon_pay_platform_headers()
+		);
 
 		wc_apa()->log( sprintf( 'Charge Permission ID %s.', $charge_permission_id ), array( 'headers' => $headers ) );
 
@@ -982,7 +997,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			array(
 				'closureReason' => $reason, // TODO: Make dynamic.
 			),
-			array_merge( $headers, self::get_amazon_pay_platform_headers() )
+			$headers
 		);
 
 		$response = json_decode( $result['response'] );
