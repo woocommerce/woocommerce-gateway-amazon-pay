@@ -377,7 +377,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 					</a>
 				</p>
 				<p>
-					<a href="https://wordpress.org/support/plugin/woocommerce-gateway-amazon-payments-advanced/" target="_blank" rel="nofollow" >
+					<a href="https://woocommerce.com/my-account/create-a-ticket/?utm_medium=amazon-pay-plugin" target="_blank" rel="nofollow" >
 						<?php esc_html_e( 'Actually, I need help...', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 					</a>
 				</p>
