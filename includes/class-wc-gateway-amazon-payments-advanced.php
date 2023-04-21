@@ -2896,7 +2896,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return bool
 	 */
 	protected function possible_subscription_cart_supported() {
-		if ( 'yes' === $this->settings['subscriptions_enabled'] || ! class_exists( 'WC_Subscriptions_Cart' ) ) {
+		if ( ( isset( $this->settings['subscriptions_enabled'] ) && 'yes' === $this->settings['subscriptions_enabled'] ) || ! class_exists( 'WC_Subscriptions_Cart' ) ) {
 			return true;
 		}
 
