@@ -40,7 +40,7 @@
         "yoast/phpunit-polyfills": "^1.0"
     },
     "require": {
-        "amzn/amazon-pay-api-sdk-php": "^2.5",
+        "amzn/amazon-pay-api-sdk-php": "2.5.2",
         "php": "7.*"
     }
 }
