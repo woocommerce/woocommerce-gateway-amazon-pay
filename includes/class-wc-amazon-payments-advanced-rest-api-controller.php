@@ -632,7 +632,7 @@ class WC_Amazon_Payments_Advanced_REST_API_Controller extends WC_REST_Controller
 			return new WP_Error( 'woocommerce_rest_order_invalid_id', __( 'Invalid order ID.', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 404 ) );
 		}
 
-		$is_valid = 'amazon_payments_advanced' === $order->get_payment_method()->id;
+		$is_valid = 'amazon_payments_advanced' === $order->get_payment_method();
 
 		return $is_valid ? $order : new WP_Error( 'woocommerce_rest_order_invalid_id', __( 'Invalid order ID.', 'woocommerce-gateway-amazon-payments-advanced' ), array( 'status' => 404 ) );
 	}

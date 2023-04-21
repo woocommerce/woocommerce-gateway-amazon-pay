@@ -162,7 +162,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin_Legacy {
 		$amazon_authorization_id = $order->get_meta( 'amazon_authorization_id', true, 'edit' );
 		$amazon_reference_id     = $order->get_meta( 'amazon_reference_id', true, 'edit' );
 		$amazon_capture_id       = $order->get_meta( 'amazon_capture_id', true, 'edit' );
-		$amazon_refund_ids       = $order->get_meta( 'amazon_refund_id', false, 'edit' );
+		$amazon_refund_ids       = wp_list_pluck( $order->get_meta( 'amazon_refund_id', false, 'edit' ), 'value' );
 
 		$override = apply_filters( 'woocommerce_amazon_pa_v1_order_admin_actions_panel', false, $order, $actions );
 

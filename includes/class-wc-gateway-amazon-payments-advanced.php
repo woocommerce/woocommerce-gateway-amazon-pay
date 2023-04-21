@@ -2139,11 +2139,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	private function format_status_details( $status_details ) {
 		$charge_status         = $status_details->state; // phpcs:ignore WordPress.NamingConventions
-		$charge_status_reasons = $status_details->reasons; // phpcs:ignore WordPress.NamingConventions
-		if ( empty( $charge_status_reasons ) ) {
-			$charge_status_reasons = array();
-		}
-		$charge_status_reason = $status_details->reasonCode; // phpcs:ignore WordPress.NamingConventions
+		$charge_status_reasons = isset( $status_details->reasons ) && is_array( $status_details->reasons ) ? $status_details->reasons : array(); // phpcs:ignore WordPress.NamingConventions
+
+		$charge_status_reason = isset( $status_details->reasonCode ) ? $status_details->reasonCode : null; // phpcs:ignore WordPress.NamingConventions
 
 		if ( $charge_status_reason ) {
 			$charge_status_reasons[] = (object) array(
@@ -2922,7 +2920,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return bool
 	 */
 	protected function possible_subscription_cart_supported() {
-		if ( 'yes' === $this->settings['subscriptions_enabled'] || ! class_exists( 'WC_Subscriptions_Cart' ) ) {
+		if ( ( isset( $this->settings['subscriptions_enabled'] ) && 'yes' === $this->settings['subscriptions_enabled'] ) || ! class_exists( 'WC_Subscriptions_Cart' ) ) {
 			return true;
 		}
 
