@@ -1427,7 +1427,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			if ( ! $doing_classic_payment ) {
 				wc_apa()->log( "Updating checkout session data for #{$order_id}." );
 
-				$response = WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
+				$response = $this->update_checkout_session_data(
 					$checkout_session_id,
 					$payload
 				);
@@ -1445,7 +1445,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				}
 				$redirect = $response->webCheckoutDetails->amazonPayRedirectUrl; // phpcs:ignore WordPress.NamingConventions
 			} else {
-				$create_checkout_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_classic_session_config( $payload );
+				$create_checkout_config = $this->get_create_checkout_classic_session_config( $payload );
 				$order->update_status( 'pending', __( 'Awaiting payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 				wc_apa()->log( "Creating checkout config for order #{$order_id}.", $create_checkout_config );
 				$redirect = '#amazon-pay-classic-id-that-should-not-exist';
@@ -1461,7 +1461,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				),
 				( $doing_classic_payment ? array(
 					'amazonCreateCheckoutParams' => wp_json_encode( $create_checkout_config ),
-					'amazonEstimatedOrderAmount' => self::get_estimated_order_amount(),
+					'amazonEstimatedOrderAmount' => static::get_estimated_order_amount(),
 				) : array() )
 			);
 
@@ -1469,6 +1469,30 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(), 'error' );
 		}
 		return array();
+	}
+
+	/**
+	 * Update Checkout Session Data
+	 *
+	 * @param  string $checkout_session_id Checkout Session Id.
+	 * @param  array  $payload Data to send to the API.
+	 * @return object|WP_Error API Response, or WP_Error.
+	 */
+	protected function update_checkout_session_data( $checkout_session_id, $payload ) {
+		return WC_Amazon_Payments_Advanced_API::update_checkout_session_data(
+			$checkout_session_id,
+			$payload
+		);
+	}
+
+	/**
+	 * Get classic create checkout session config to send to Amazon.
+	 *
+	 * @param  array $payload The payload that will be used to create a checkout session.
+	 * @return array
+	 */
+	protected function get_create_checkout_classic_session_config( $payload ) {
+		return WC_Amazon_Payments_Advanced_API::get_create_checkout_classic_session_config( $payload );
 	}
 
 	/**
@@ -2957,7 +2981,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @return string
 	 */
-	private static function get_estimated_order_amount() {
+	protected static function get_estimated_order_amount() {
 		if ( null === WC()->cart ) {
 			return '';
 		}
