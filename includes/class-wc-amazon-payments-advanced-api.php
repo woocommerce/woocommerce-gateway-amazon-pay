@@ -79,7 +79,16 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				array( 'x-amz-pay-Idempotency-Key' => uniqid() ),
 				self::get_amazon_pay_platform_headers()
 			);
-			$result  = $client->createCheckoutSession( $payload, $headers );
+
+			wc_apa()->log(
+				'Validating API keys.',
+				array(
+					'payload' => $payload,
+					'headers' => $headers,
+				)
+			);
+
+			$result = $client->createCheckoutSession( $payload, $headers );
 			if ( ! isset( $result['status'] ) || 201 !== $result['status'] ) {
 				throw new Exception( __( 'Error: API is not responding.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 			}
@@ -102,7 +111,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * @return array
 	 */
 	public static function trigger_alexa_notifications( $payload ) {
-		return self::get_client()->deliveryTrackers( $payload, self::get_amazon_pay_platform_headers() );
+		$headers = self::get_amazon_pay_platform_headers();
+
+		wc_apa()->log(
+			'Enabling Alexa notifications.',
+			array(
+				'payload' => $payload,
+				'headers' => $headers,
+			)
+		);
+
+		return self::get_client()->deliveryTrackers( $payload, $headers );
 	}
 
 	/**
@@ -489,7 +508,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 */
 	public static function get_checkout_session_data( $checkout_session_id ) {
 		$client = self::get_client();
-		$result = $client->getCheckoutSession( $checkout_session_id, self::get_amazon_pay_platform_headers() );
+
+		$headers = self::get_amazon_pay_platform_headers();
+
+		wc_apa()->log(
+			sprintf( 'Retrieving session data for session %s', $checkout_session_id ),
+			array(
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->getCheckoutSession( $checkout_session_id, $headers );
 		if ( ! isset( $result['status'] ) || 200 !== $result['status'] ) {
 			return new WP_Error( $result['status'], __( 'Error while getting checkout session.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 		}
@@ -571,9 +600,18 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * @return object|WP_Error API Response, or WP_Error.
 	 */
 	public static function complete_checkout_session( $checkout_session_id, $data = array() ) {
-		$client = self::get_client();
-		wc_apa()->log( sprintf( 'Checkout Session ID %s', $checkout_session_id ), $data );
-		$result = $client->completeCheckoutSession( $checkout_session_id, $data, self::get_amazon_pay_platform_headers() );
+		$client  = self::get_client();
+		$headers = self::get_amazon_pay_platform_headers();
+
+		wc_apa()->log(
+			sprintf( 'Completing Checkout Session ID %s', $checkout_session_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->completeCheckoutSession( $checkout_session_id, $data, $headers );
 
 		$response = json_decode( $result['response'] );
 
@@ -625,7 +663,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 */
 	public static function get_charge_permission( $charge_permission_id ) {
 		$client = self::get_client();
-		$result = $client->getChargePermission( $charge_permission_id, self::get_amazon_pay_platform_headers() );
+
+		$headers = self::get_amazon_pay_platform_headers();
+
+		wc_apa()->log(
+			sprintf( 'Retrieving Charge Permission ID %s', $charge_permission_id ),
+			array(
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->getChargePermission( $charge_permission_id, $headers );
 
 		$response = json_decode( $result['response'] );
 
@@ -644,7 +692,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 */
 	public static function get_charge( $charge_id ) {
 		$client = self::get_client();
-		$result = $client->getCharge( $charge_id, self::get_amazon_pay_platform_headers() );
+
+		$headers = self::get_amazon_pay_platform_headers();
+
+		wc_apa()->log(
+			sprintf( 'Retrieving Charge ID %s', $charge_id ),
+			array(
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->getCharge( $charge_id, $headers );
 
 		$response = json_decode( $result['response'] );
 
@@ -663,7 +721,17 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 */
 	public static function get_refund( $refund_id ) {
 		$client = self::get_client();
-		$result = $client->getRefund( $refund_id, self::get_amazon_pay_platform_headers() );
+
+		$headers = self::get_amazon_pay_platform_headers();
+
+		wc_apa()->log(
+			sprintf( 'Retrieving Refund ID %s', $refund_id ),
+			array(
+				'headers' => $headers,
+			)
+		);
+
+		$result = $client->getRefund( $refund_id, $headers );
 
 		$response = json_decode( $result['response'] );
 
@@ -712,7 +780,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			// TODO: Test with lower amount of captured than charge (multiple charges per capture).
 		}
 
-		$headers = self::get_extra_headers( __FUNCTION__ );
+		$headers = array_merge(
+			self::get_extra_headers( __FUNCTION__ ),
+			self::get_amazon_pay_platform_headers()
+		);
 
 		wc_apa()->log(
 			sprintf( 'Charge ID %s.', $charge_id ),
@@ -726,8 +797,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$headers,
 			array(
 				'x-amz-pay-idempotency-key' => self::generate_uuid(),
-			),
-			self::get_amazon_pay_platform_headers()
+			)
 		);
 
 		$result = $client->captureCharge(
@@ -772,7 +842,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$data['refundAmount']['amount'] = $amount;
 		}
 
-		$headers = self::get_extra_headers( __FUNCTION__ );
+		$headers = array_merge(
+			self::get_extra_headers( __FUNCTION__ ),
+			self::get_amazon_pay_platform_headers()
+		);
 
 		wc_apa()->log(
 			sprintf( 'Charge ID %s.', $charge_id ),
@@ -786,8 +859,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$headers,
 			array(
 				'x-amz-pay-idempotency-key' => self::generate_uuid(),
-			),
-			self::get_amazon_pay_platform_headers()
+			)
 		);
 
 		$result = $client->createRefund(
@@ -816,14 +888,25 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 */
 	public static function cancel_charge( $charge_id, $reason = 'Order Cancelled' ) {
 		$client = self::get_client();
-		wc_apa()->log( sprintf( 'Charge ID %s.', $charge_id ) );
+
+		$data = array(
+			'cancellationReason' => $reason, // TODO: Make dynamic.
+		);
+
+		$headers = self::get_amazon_pay_platform_headers();
+
+		wc_apa()->log(
+			sprintf( 'Charge ID %s.', $charge_id ),
+			array(
+				'data'    => $data,
+				'headers' => $headers,
+			)
+		);
 
 		$result = $client->cancelCharge(
 			$charge_id,
-			array(
-				'cancellationReason' => $reason, // TODO: Make dynamic.
-			),
-			self::get_amazon_pay_platform_headers()
+			$data,
+			$headers
 		);
 
 		$response = json_decode( $result['response'] );
@@ -940,7 +1023,10 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$data['chargeAmount'] = (array) $charge_permission->limits->amountBalance; // phpcs:ignore WordPress.NamingConventions
 		}
 
-		$headers = self::get_extra_headers( __FUNCTION__ );
+		$headers = array_merge(
+			self::get_extra_headers( __FUNCTION__ ),
+			self::get_amazon_pay_platform_headers()
+		);
 
 		wc_apa()->log(
 			sprintf( 'Charge Permission ID %s.', $charge_permission_id ),
@@ -954,8 +1040,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			$headers,
 			array(
 				'x-amz-pay-idempotency-key' => self::generate_uuid(),
-			),
-			self::get_amazon_pay_platform_headers()
+			)
 		);
 
 		$result = $client->createCharge(
