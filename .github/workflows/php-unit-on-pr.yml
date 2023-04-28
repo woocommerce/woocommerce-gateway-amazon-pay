@@ -60,10 +60,16 @@ jobs:
         shell: bash
         run: npm ci
 
+      # Setup MySQL
+      - name: Setup MySQL
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          mysql root password: 'root'
+
       # Prepare test environment
       - name: Prepare test environment
         run: |
-          bash tests/bin/install-phpunit-tests-dependencies.sh wc_apa_test root '' localhost latest
+          bash tests/bin/install-phpunit-tests-dependencies.sh wc_apa_test root root localhost latest
 
       # Run tests
       - name: Run tests
