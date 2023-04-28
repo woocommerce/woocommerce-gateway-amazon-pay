@@ -62,9 +62,8 @@ jobs:
 
       # Setup MySQL
       - name: Setup MySQL
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          mysql root password: 'root'
+        run: |
+          sudo /etc/init.d/mysql start
 
       # Prepare test environment
       - name: Prepare test environment
