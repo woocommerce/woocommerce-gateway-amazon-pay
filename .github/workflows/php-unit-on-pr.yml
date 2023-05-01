@@ -69,11 +69,6 @@ jobs:
         shell: bash
         run: npm ci
 
-      # Setup MySQL
-      - name: Setup MySQL
-        run: |
-          sudo /etc/init.d/mysql start
-
       # Prepare test environment
       - name: Prepare test environment
         run: |
