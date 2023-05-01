@@ -62,22 +62,22 @@ install_wp() {
 }
 
 install_woocommerce() {
-	cd $TRAVIS_BUILD_DIR
-	cd ..
+	# git clone --depth=1 --branch 7.6.1 https://github.com/woocommerce/woocommerce.git woo-repo
+	# cd woo-repo
+	# nvm use
+	# npm install -g pnpm
+	# pnpm install
+	# pnpm run build
+	# mv 
 
-	git clone --depth=1 --branch 4.3.1 https://github.com/woocommerce/woocommerce.git
-	cd woocommerce
-	composer install
-	cd -
+	download https://downloads.wordpress.org/plugin/woocommerce.7.6.1.zip ../woocommerce.zip
+	unzip ../woocommerce.zip -d ../
+	rm -rf ../woocommerce.zip
+	# cd -
 }
 
 install_test_suite() {
-	# portable in-place argument for both GNU sed and Mac OSX sed
-	if [[ $(uname -s) == 'Darwin' ]]; then
-		local ioption='-i .bak'
-	else
-		local ioption='-i'
-	fi
+	local ioption='-i'
 
 	# set up testing suite if it doesn't yet exist
 	if [ ! -d $WP_TESTS_DIR ]; then
@@ -120,18 +120,7 @@ install_db() {
 	mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA
 }
 
-set_phpunit_version() {
-	if [[ ${TRAVIS_PHP_VERSION:0:2} == "7."  ]]; then
-		composer global require "phpunit/phpunit=5.7.*"
-	else
-		composer global require "phpunit/phpunit=4.8.*"
-	fi
-}
-
 install_wp
 install_test_suite
-if [ "$TRAVIS" == true ]; then
-	install_woocommerce
-	set_phpunit_version
-fi
+install_woocommerce
 install_db
