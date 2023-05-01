@@ -30,13 +30,13 @@ require_once $_tests_dir . '/includes/functions.php';
  * Loads the plugin early
  */
 function _manually_load_plugin() {
-	$_plugins_dir = dirname( __FILE__ ) . '/../../../';
+	$_plugin_dir = dirname( __FILE__ ) . '/../../';
 
-	require_once $_plugins_dir . 'woocommerce/woocommerce.php';
+	require_once $_plugins_dir . '../woocommerce/woocommerce.php';
 
-	require_once $_plugins_dir . 'woocommerce-gateway-amazon-payments-advanced/woocommerce-gateway-amazon-payments-advanced.php';
-	require_once $_plugins_dir . 'woocommerce-gateway-amazon-payments-advanced/includes/class-wc-gateway-amazon-payments-advanced-abstract.php';
-	require_once $_plugins_dir . 'woocommerce-gateway-amazon-payments-advanced/includes/class-wc-gateway-amazon-payments-advanced.php';
+	require_once $_plugin_dir . 'woocommerce-gateway-amazon-payments-advanced.php';
+	require_once $_plugin_dir . 'includes/class-wc-gateway-amazon-payments-advanced-abstract.php';
+	require_once $_plugin_dir . 'includes/class-wc-gateway-amazon-payments-advanced.php';
 
 	// Require Test Helpers.
 	require_once __DIR__ . '/helpers/class-wc-helper-order.php';
