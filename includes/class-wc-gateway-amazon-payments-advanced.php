@@ -619,11 +619,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Prints the Amazon Pay button on the product page when the setting is on.
 	 *
+	 * Additionally checks that the product is purchasable and not out of stock.
+	 *
 	 * @hooked on 'woocommerce_single_product_summary' on 35 priority
 	 *
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
+		$prd = wc_get_product();
+
+		if ( ! $prd instanceof \WC_Product ) {
+			return;
+		}
+
+		if ( ! $prd->is_purchasable() || ! $prd->is_in_stock() ) {
+			return;
+		}
+
 		if ( $this->is_available() && $this->possible_subscription_product_supported() && $this->is_product_button_enabled() ) {
 			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
 		}
@@ -2815,13 +2827,32 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	/**
-	 * Loads scripts on product pages when the setting to display Amazon Pay button on products is enabled.
+	 * Loads scripts on product pages when the setting to display Amazon Pay button on products is enabled
+	 * and the product is purchasable and not out of stock.
 	 *
 	 * @param bool $load_scripts Whether to load Amazon Pay scripts or not.
 	 * @return bool
 	 */
 	public function load_scripts_on_product_pages( $load_scripts ) {
-		return $load_scripts ? $load_scripts : is_product() && $this->is_product_button_enabled();
+		if ( ! is_product() ) {
+			return $load_scripts;
+		}
+
+		if ( ! $this->is_product_button_enabled() ) {
+			return $load_scripts;
+		}
+
+		$prd = wc_get_product();
+
+		if ( ! $prd instanceof \WC_Product ) {
+			return $load_scripts;
+		}
+
+		if ( ! $prd->is_purchasable() || ! $prd->is_in_stock() ) {
+			return $load_scripts;
+		}
+
+		return true;
 	}
 
 	/**
