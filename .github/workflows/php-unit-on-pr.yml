@@ -69,6 +69,10 @@ jobs:
         shell: bash
         run: npm ci
 
+      # Setup jq
+      - name: 'Setup jq'
+        uses: dcarbone/install-jq-action@v1.0.1
+
       # Prepare test environment
       - name: Prepare test environment
         run: |

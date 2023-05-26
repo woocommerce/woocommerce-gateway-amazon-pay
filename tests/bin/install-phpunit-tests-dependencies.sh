@@ -70,9 +70,12 @@ install_woocommerce() {
 	# pnpm run build
 	# mv 
 
+	WC_VERSION=$(curl https://api.wordpress.org/plugins/info/1.0/woocommerce.json | jq -r '.version')
+
+	echo "Installing WooCommerce $WC_VERSION"
 	cd -
-	download https://downloads.wordpress.org/plugin/woocommerce.7.6.1.zip ../woocommerce.zip
-	unzip ../woocommerce.zip -d ../
+	download https://downloads.wordpress.org/plugin/woocommerce.$WC_VERSION.zip ../woocommerce.zip
+	unzip -o -qq ../woocommerce.zip -d ../
 	rm -rf ../woocommerce.zip
 }
 
