@@ -626,13 +626,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
-		$prd = wc_get_product();
+		$product = wc_get_product();
 
-		if ( ! $prd instanceof \WC_Product ) {
+		if ( ! $product instanceof \WC_Product ) {
 			return;
 		}
 
-		if ( ! $prd->is_purchasable() || ! $prd->is_in_stock() ) {
+		if ( ! $product->is_purchasable() || ! $product->is_in_stock() ) {
 			return;
 		}
 
@@ -2842,13 +2842,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $load_scripts;
 		}
 
-		$prd = wc_get_product();
+		$product = wc_get_product();
 
-		if ( ! $prd instanceof \WC_Product ) {
+		if ( ! $product instanceof \WC_Product ) {
 			return $load_scripts;
 		}
 
-		if ( ! $prd->is_purchasable() || ! $prd->is_in_stock() ) {
+		if ( ! $product->is_purchasable() || ! $product->is_in_stock() ) {
 			return $load_scripts;
 		}
 
