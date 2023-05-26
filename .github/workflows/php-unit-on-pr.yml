@@ -1,0 +1,92 @@
+name: PHP Unit Tests on PR
+
+on: [pull_request]
+
+jobs:
+  test:
+    name: PHP Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ 7.3, 7.4, 8.0, 8.1 ]
+    services:
+      database:
+        image: mysql:5.6
+        env:
+            MYSQL_ROOT_PASSWORD: root
+        ports:
+            - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      # Checkout the repository
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # PHP setup
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+          coverage: none
+
+      # Composer setup
+      - name: Setup Composer
+        shell: bash
+        run: composer self-update 2.0.6
+
+      # Use node version from .nvmrc
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+
+      # Cache composer dependencies
+      - name: Cache composer dependencies
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: ./vendor
+          key: ${{ runner.os }}-vendor-${{ hashFiles('composer.lock') }}
+
+      # Cache node dependencies
+      - name: Cache node dependencies
+        id: node-cache
+        uses: actions/cache@v3
+        with:
+          path: ./node_modules
+          key:  ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      # Install composer dependencies if not present on cache
+      - name: Install composer dependencies
+        if: ${{ steps.composer-cache.outputs.cache-hit == false }}
+        shell: bash
+        run: composer install --prefer-dist --no-progress --no-suggest
+      
+      # Install node dependencies if not present on cache
+      - name: Install node dependencies
+        if: ${{ steps.node-cache.outputs.cache-hit == false }}
+        shell: bash
+        run: npm ci
+
+      # Setup jq
+      - name: 'Setup jq'
+        uses: dcarbone/install-jq-action@v1.0.1
+
+      # Prepare test environment
+      - name: Prepare test environment
+        run: |
+          bash tests/bin/install-phpunit-tests-dependencies.sh wc_apa_test root root 127.0.0.1 latest
+
+      # Run tests
+      - name: Run tests
+        run: |
+          npm run test:php
+        env:
+          CI: true
+
+      # Report test results
+      - name: Report test results
+        uses: mikepenz/action-junit-report@v2
+        with:
+          report_paths: '**/junit.xml'
