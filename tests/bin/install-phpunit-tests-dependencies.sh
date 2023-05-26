@@ -62,14 +62,6 @@ install_wp() {
 }
 
 install_woocommerce() {
-	# git clone --depth=1 --branch 7.6.1 https://github.com/woocommerce/woocommerce.git woo-repo
-	# cd woo-repo
-	# nvm use
-	# npm install -g pnpm
-	# pnpm install
-	# pnpm run build
-	# mv 
-
 	WC_VERSION=$(curl https://api.wordpress.org/plugins/info/1.0/woocommerce.json | jq -r '.version')
 
 	echo "Installing WooCommerce $WC_VERSION"
