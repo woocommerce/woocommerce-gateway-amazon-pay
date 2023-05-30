@@ -107,7 +107,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Express extends WC_Gateway_Amazon_Paym
 	 * @return void
 	 */
 	public static function visually_hide_amazon_express_on_backend() {
-		wp_enqueue_style( 'amazon_payments_advanced_hide_express', wc_apa()->plugin_url . '/assets/css/hide-amazon-express-admin.css', array(), wc_apa()->version );
+		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		wp_enqueue_style( 'amazon_payments_advanced_hide_express', wc_apa()->plugin_url . '/build/css/hide-amazon-express-admin' . $min . '.css', array(), wc_apa()->version );
 	}
 
 	/**

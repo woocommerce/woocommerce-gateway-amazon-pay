@@ -370,6 +370,11 @@ class WC_Amazon_Payments_Advanced_Admin {
 			$js_suffix = '.js';
 		}
 
+		$css_suffix = '.min.css';
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+			$css_suffix = '.css';
+		}
+
 		$params = array(
 			'simple_path_urls'      => WC_Amazon_Payments_Advanced_API::$registration_urls,
 			'spids'                 => WC_Amazon_Payments_Advanced_API::$sp_ids,
@@ -393,8 +398,8 @@ class WC_Amazon_Payments_Advanced_Admin {
 		wp_localize_script( 'amazon_payments_admin', 'amazon_admin_params', $params );
 		wp_enqueue_script( 'amazon_payments_admin' );
 
-		wp_enqueue_style( 'amazon_payments_admin', wc_apa()->plugin_url . '/assets/css/style-admin.css', array(), wc_apa()->version );
-		wp_enqueue_style( 'amazon_payments_advanced_hide_express', wc_apa()->plugin_url . '/assets/css/hide-amazon-express-admin.css', array(), wc_apa()->version );
+		wp_enqueue_style( 'amazon_payments_admin', wc_apa()->plugin_url . '/build/css/style-admin' . $css_suffix, array(), wc_apa()->version );
+		wp_enqueue_style( 'amazon_payments_advanced_hide_express', wc_apa()->plugin_url . '/build/css/hide-amazon-express-admin' . $css_suffix, array(), wc_apa()->version );
 	}
 
 	/**
