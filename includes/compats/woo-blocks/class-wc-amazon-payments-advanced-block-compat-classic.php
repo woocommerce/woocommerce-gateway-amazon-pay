@@ -47,7 +47,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 			'title'               => $this->settings['title'],
 			'description'         => $this->settings['description'],
 			'supports'            => $this->get_supported_features(),
-			'amazonPayPreviewUrl' => esc_url( wc_apa()->plugin_url . '/assets/images/amazon-pay-preview.png' ),
+			'amazonPayPreviewUrl' => esc_url( wc_apa()->plugin_url . '/build/images/amazon-pay-preview.png' ),
 			'action'              => wc_apa()->get_gateway()->get_current_cart_action(),
 			'allowedCurrencies'   => $this->get_allowed_currencies(),
 		);
