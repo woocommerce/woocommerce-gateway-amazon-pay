@@ -36,3 +36,5 @@ node_modules export-ignore
 .prettierrc.js export-ignore
 *.zip export-ignore
 .nvmrc export-ignore
+.phpunit.result.cache export-ignore
+woocommerce-gateway-amazon-payments-advanced export-ignore
