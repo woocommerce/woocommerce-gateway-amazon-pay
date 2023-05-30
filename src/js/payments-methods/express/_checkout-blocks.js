@@ -8,8 +8,8 @@ import { decodeEntities } from '@wordpress/html-entities';
 /**
  * Internal dependencies
  */
-import { settings } from './settings';
-import { activateChange } from '../../renderAmazonButton';
+import { settings } from './_settings';
+import { activateChange } from '../../_renderAmazonButton';
 
 /**
  * The change Shipping Address Component.

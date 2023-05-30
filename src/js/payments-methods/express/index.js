@@ -11,12 +11,12 @@ const { registerCheckoutBlock } = wc.blocksCheckout;
 /**
  * Internal dependencies
  */
-import { PAYMENT_METHOD_NAME } from './constants';
-import { AmazonComponent, AmazonPayPreview, Label, amazonPayCanMakePayment } from '../../utils';
-import { AmazonExpressContent } from './payment-methods-express';
-import { AmazonContent } from './payment-methods';
-import { settings } from './settings';
-import { changeShippingAddressOptions, logOutBannerOptions } from './checkout-blocks';
+import { PAYMENT_METHOD_NAME } from './_constants';
+import { AmazonComponent, AmazonPayPreview, Label, amazonPayCanMakePayment } from '../../_utils';
+import { AmazonExpressContent } from './_payment-methods-express';
+import { AmazonContent } from './_payment-methods';
+import { settings } from './_settings';
+import { changeShippingAddressOptions, logOutBannerOptions } from './_checkout-blocks';
 
 if ( settings.loggedIn ) {
     const label =

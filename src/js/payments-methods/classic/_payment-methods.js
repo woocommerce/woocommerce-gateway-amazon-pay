@@ -8,9 +8,9 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import { Content } from '../../utils';
-import { settings } from './settings';
-import { renderAndInitAmazonCheckout } from '../../renderAmazonButton';
+import { Content } from '../../_utils';
+import { settings } from './_settings';
+import { renderAndInitAmazonCheckout } from '../../_renderAmazonButton';
 
 /**
  * Returns a react component and also sets an observer for the onCheckoutAfterProcessingWithSuccess event.
