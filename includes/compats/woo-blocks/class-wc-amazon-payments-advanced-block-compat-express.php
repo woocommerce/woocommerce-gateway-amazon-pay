@@ -73,9 +73,11 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 	 * @return array Return an array of script handles that have been registered already.
 	 */
 	protected function scripts_name_per_type( $type = '' ) {
+		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+
 		/* Registering Express Payment Script. */
-		$script_data = include wc_apa()->path . '/build/payments-methods/express/index.asset.php';
-		wp_register_script( 'amazon_payments_advanced_express_block_compat', wc_apa()->plugin_url . '/build/payments-methods/express/index.js', $script_data['dependencies'], $script_data['version'], true );
+		$script_data = include wc_apa()->path . '/build/js/payments-methods/express/index.asset.php';
+		wp_register_script( 'amazon_payments_advanced_express_block_compat', wc_apa()->plugin_url . '/build/js/payments-methods/express/index' . $min . '.js', $script_data['dependencies'], $script_data['version'], true );
 
 		return array( 'amazon_payments_advanced_express_block_compat' );
 	}
