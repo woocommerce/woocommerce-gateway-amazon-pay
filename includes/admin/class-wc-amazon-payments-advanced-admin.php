@@ -394,7 +394,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 			'secret_keys_urls'      => WC_Amazon_Payments_Advanced_API::get_secret_key_page_urls(), // LEGACY FIX.
 		);
 
-		wp_register_script( 'amazon_payments_admin', wc_apa()->plugin_url . '/assets/js/amazon-wc-admin' . $js_suffix, array(), wc_apa()->version, true );
+		wp_register_script( 'amazon_payments_admin', wc_apa()->plugin_url . '/build/js/non-block/amazon-wc-admin' . $js_suffix, array( 'jquery' ), wc_apa()->version, true );
 		wp_localize_script( 'amazon_payments_admin', 'amazon_admin_params', $params );
 		wp_enqueue_script( 'amazon_payments_admin' );
 

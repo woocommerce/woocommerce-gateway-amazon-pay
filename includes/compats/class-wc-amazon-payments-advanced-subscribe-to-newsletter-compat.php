@@ -30,7 +30,7 @@ class WC_Amazon_Payments_Advanced_Subscribe_To_Newsletter_Compat {
 			$js_suffix = '.js';
 		}
 
-		$url = wc_apa()->plugin_url . '/assets/js/amazon-wc-subscribe-to-newsletter-compat' . $js_suffix;
+		$url = wc_apa()->plugin_url . '/build/js/non-block/amazon-wc-subscribe-to-newsletter-compat' . $js_suffix;
 		wp_enqueue_script( 'amazon_pa_subscribe_to_newsletter_compat', $url, array( 'amazon_payments_advanced' ), wc_apa()->version, true );
 	}
 

@@ -226,7 +226,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		wp_register_style( 'amazon_payments_advanced', wc_apa()->plugin_url . '/build/css/amazon-pay' . $css_suffix, array(), wc_apa()->version );
 		wp_register_script( 'amazon_payments_advanced_checkout', $this->get_region_script(), array(), wc_apa()->version, true );
-		wp_register_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/amazon-wc-checkout' . $js_suffix, array(), wc_apa()->version, true );
+		wp_register_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/build/js/non-block/amazon-wc-checkout' . $js_suffix, array( 'jquery' ), wc_apa()->version, true );
 
 		$params = $this->get_js_params();
 
