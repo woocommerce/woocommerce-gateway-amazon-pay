@@ -137,9 +137,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		$this->assertEmpty( $should_fail_because_no_global_product );
 
 		$test_product = WC_Helper_Product::create_and_optionally_save_simple_product( true );
-
 		$test_product->set_stock_status( 'outofstock' );
-
 		$test_product->save();
 
 		$GLOBALS['post'] = get_post( $test_product->get_id() );
@@ -149,9 +147,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		$should_fail_because_out_of_stock = ob_get_clean();
 
 		$this->assertEmpty( $should_fail_because_out_of_stock );
-
 		$test_product->set_stock_status( 'instock' );
-
 		$test_product->save();
 
 		$GLOBALS['post'] = get_post( $test_product->get_id() );
@@ -188,9 +184,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		$this->assertFalse( self::$gateway->load_scripts_on_product_pages( false ) );
 
 		$test_product = WC_Helper_Product::create_and_optionally_save_simple_product( true );
-
 		$test_product->set_stock_status( 'outofstock' );
-
 		$test_product->save();
 
 		// Force the global post to the newly created test product.
@@ -202,9 +196,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 
 		// Scripts should not be loaded since product is out of stock.
 		$this->assertFalse( self::$gateway->load_scripts_on_product_pages( false ) );
-
 		$test_product->set_stock_status( 'instock' );
-
 		$test_product->save();
 
 		// Force the global post to the newly created test product.
