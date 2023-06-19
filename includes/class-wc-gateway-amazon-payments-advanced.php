@@ -626,13 +626,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
-		$product = wc_get_product();
-
-		if ( ! $product instanceof \WC_Product ) {
-			return;
-		}
-
-		if ( ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+		if ( ! $this->is_product_purchasable_and_in_stock() ) {
 			return;
 		}
 
@@ -2842,17 +2836,27 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $load_scripts;
 		}
 
-		$product = wc_get_product();
-
-		if ( ! $product instanceof \WC_Product ) {
-			return $load_scripts;
-		}
-
-		if ( ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+		if ( ! $this->is_product_purchasable_and_in_stock() ) {
 			return $load_scripts;
 		}
 
 		return true;
+	}
+
+	/**
+	 * Checks if a product is purchasable and in stock.
+	 *
+	 * @param bool|int|WC_Product $the_product Instance of product to check or product id or false to use the current product.
+	 * @return bool True if product is purchasable and in stock, false otherwise.
+	 */
+	protected function is_product_purchasable_and_in_stock( $the_product = false ) {
+		$product = wc_get_product( $the_product );
+
+		if ( ! $product instanceof \WC_Product ) {
+			return false;
+		}
+
+		return $product->is_purchasable() && $product->is_in_stock();
 	}
 
 	/**
