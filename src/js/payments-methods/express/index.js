@@ -11,7 +11,8 @@ const { registerCheckoutBlock } = wc.blocksCheckout;
 /**
  * Internal dependencies
  */
-import { PAYMENT_METHOD_NAME } from './_constants';
+import { PAYMENT_METHOD_NAME as PAYMENT_METHOD_NAME_EXPRESS } from './_constants';
+import { PAYMENT_METHOD_NAME } from '../classic/_constants';
 import { AmazonComponent, AmazonPayPreview, Label, amazonPayCanMakePayment } from '../../_utils';
 import { AmazonExpressContent } from './_payment-methods-express';
 import { AmazonContent } from './_payment-methods';
@@ -65,7 +66,7 @@ if ( settings.loggedIn ) {
      * In this case Amazon pay is being registered as an Express WooCommerce Gateway.
      */
     const amazonPayExpressPaymentMethod = {
-        name: PAYMENT_METHOD_NAME,
+        name: PAYMENT_METHOD_NAME_EXPRESS,
         content: <AmazonComponent RenderedComponent={ AmazonExpressContent }/>,
         edit: <AmazonPayPreview settings={ settings } />,
         canMakePayment: ( props ) => {
