@@ -32,7 +32,7 @@ const ChangePayment = () => {
 };
  
 /**
- * Returns a react component and also sets an observer for the onCheckoutValidationBeforeProcessing event.
+ * Returns a react component and also sets an observer for the onCheckoutValidation event.
  *
  * @param {object} props
  * @returns React component
@@ -45,14 +45,24 @@ const AmazonPayInfo = ( props ) => {
     const { amazonBilling, amazonShipping } = settings.amazonAddress;
 
     useEffect( () => {
-        const unsubscribe = props.eventRegistration.onCheckoutValidationBeforeProcessing(
+        const unsubscribe = props.eventRegistration.onCheckoutValidation(
             async () => {
                 for ( const shippingField in amazonShipping ) {
-                    if ( amazonShipping[ shippingField ] !== shippingAddress[ shippingField ] ) {
-                        return {
-                            errorMessage: __( 'We were expecting "', 'woocommerce-gateway-amazon-payments-advanced' ) + amazonShipping[ shippingField ] + __( '" but we received "', 'woocommerce-gateway-amazon-payments-advanced' ) + shippingAddress[ shippingField ] + __( '" instead for the Shipping field "', 'woocommerce-gateway-amazon-payments-advanced' ) + getCheckOutFieldsLabel( shippingField, 'shipping' ) + __( '". Please make any changes to your Shipping details through Amazon.', 'woocommerce-gateway-amazon-payments-advanced' )
-                        };
+                     // Values are the same as expected. Bail.
+                    if (amazonShipping[ shippingField ] === shippingAddress[ shippingField ]) {
+                        continue;
                     }
+            
+                    const checkoutFieldLabel = getCheckOutFieldsLabel( shippingField, 'shipping' );
+                    // Field not present in the form, as a result value can't be supplied. Bail.
+                    if ( false === checkoutFieldLabel ) {
+                        continue;
+                    }
+            
+                    // Field present in the form but value mismatch. Return error.
+                    return {
+                        errorMessage: __( 'We were expecting "', 'woocommerce-gateway-amazon-payments-advanced' ) + amazonShipping[ shippingField ] + __( '" but we received "', 'woocommerce-gateway-amazon-payments-advanced' ) + shippingAddress[ shippingField ] + __( '" instead for the Shipping field "', 'woocommerce-gateway-amazon-payments-advanced' ) + checkoutFieldLabel + __( '". Please make any changes to your Shipping details through Amazon.', 'woocommerce-gateway-amazon-payments-advanced' )
+                    };
                 }
 
                 return true;
@@ -60,7 +70,7 @@ const AmazonPayInfo = ( props ) => {
         );
         return () => unsubscribe();
     }, [
-        props.eventRegistration.onCheckoutValidationBeforeProcessing,
+        props.eventRegistration.onCheckoutValidation,
         billingData,
         shippingAddress,
         amazonBilling,
