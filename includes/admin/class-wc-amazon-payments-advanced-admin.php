@@ -45,7 +45,9 @@ class WC_Amazon_Payments_Advanced_Admin {
 
 		// Admin notices.
 		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
+		add_action( 'admin_notices', array( $this, 'review_prompt' ) );
 		add_action( 'wp_ajax_amazon_pay_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
+		add_action( 'wp_ajax_amazon_pay_dismiss_review_prompt', array( $this, 'ajax_dismiss_review_prompt' ) );
 
 		// Admin Scripts.
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
@@ -320,6 +322,103 @@ class WC_Amazon_Payments_Advanced_Admin {
 			</div>
 			<?php
 		}
+	}
+
+	/**
+	 * Display a prompt for reviews!
+	 *
+	 * @return void
+	 */
+	public function review_prompt() {
+		global $current_section;
+
+		$anniversary_date  = get_option( 'amazon_payments_advanced_anniversary_date' );
+		$hidden_until_date = get_option( 'amazon_payments_advanced_hidden_until_date' );
+
+		// Set up the dates.
+		// We do this here, so its on admin side but not dependant on user visiting the plugin's settings.
+		if ( ! $anniversary_date || ! $hidden_until_date ) {
+			$anniversary_date  = time();
+			$hidden_until_date = strtotime( '+1 month' );
+			update_option( 'amazon_payments_advanced_anniversary_date', $anniversary_date );
+			update_option( 'amazon_payments_advanced_hidden_until_date', $hidden_until_date );
+		}
+
+		// If it should be hidden yet, bail!
+		if ( $hidden_until_date > time() ) {
+			return;
+		}
+
+		// We only want prompt to appear in plugin's settings page.
+		if ( ! isset( $current_section ) || 'amazon_payments_advanced' !== $current_section ) {
+			return;
+		}
+
+		$screen = get_current_screen();
+
+		// Ensures we are in plugin's settings page.
+		if ( ! isset( $screen, $screen->id ) || 'woocommerce_page_wc-settings' !== $screen->id ) {
+			return;
+		}
+		?>
+			<div class="notice notice-info amazon-pay-review-prompt">
+				<p>
+					<?php esc_html_e( 'We\'d be grateful if you could give our plugin a 5-star rating. Your reviews help us continue to grow!', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+				</p>
+
+				<p>
+					<a href="https://wordpress.org/support/plugin/woocommerce-gateway-amazon-payments-advanced/reviews/" target="_blank" rel="nofollow" class="button-secondary">
+						<?php esc_html_e( 'Yes you deserve it!', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+					</a>
+				</p>
+				<p>
+					<a class="amazon-pay-review-prompt-dismiss" href="#" target="_blank" rel="nofollow" >
+						<?php esc_html_e( 'Hide this message / Already did!', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+					</a>
+				</p>
+				<p>
+					<a href="https://woocommerce.com/my-account/create-a-ticket/?utm_source=partner_amazon&utm_medium=product&utm_campaign=create-ticket" target="_blank" rel="nofollow" >
+						<?php esc_html_e( 'Actually, I need help...', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+					</a>
+				</p>
+				<script type="application/javascript">
+				( function( $ ) {
+					$( '.amazon-pay-review-prompt' ).on( 'click', '.amazon-pay-review-prompt-dismiss', function( e ) {
+						e.preventDefault();
+
+						jQuery.post( "<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>", {
+							action: "amazon_pay_dismiss_review_prompt",
+							nonce: "<?php echo esc_js( wp_create_nonce( 'amazon_pay_dismiss_review_prompt' ) ); ?>"
+						} ).done( function ( result ) {
+							$( '.amazon-pay-review-prompt' ).remove();
+						} );
+					} );
+				} )( jQuery );
+				</script>
+			</div>
+		<?php
+	}
+
+	/**
+	 * Handle plugin's review prompt dismissal.
+	 *
+	 * @return void
+	 */
+	public function ajax_dismiss_review_prompt() {
+		check_ajax_referer( 'amazon_pay_dismiss_review_prompt', 'nonce' );
+
+		$anniversary_date = get_option( 'amazon_payments_advanced_anniversary_date' );
+
+		// Start from the stored anniversary date.
+		// Add a year in each loop until the result is in the future.
+		$hidden_until_date = is_numeric( $anniversary_date ) ? (int) $anniversary_date : time();
+		while ( $hidden_until_date <= time() ) {
+			$hidden_until_date = strtotime( '+1 year', $hidden_until_date );
+		}
+
+		update_option( 'amazon_payments_advanced_hidden_until_date', $hidden_until_date );
+
+		wp_die( '', 200 );
 	}
 
 	/**
