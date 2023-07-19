@@ -412,7 +412,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 		// Start from the stored anniversary date.
 		// Add a year in each loop until the result is in the future.
 		$hidden_until_date = is_numeric( $anniversary_date ) ? (int) $anniversary_date : time();
-		while ( $hidden_until_date < time() ) {
+		while ( $hidden_until_date <= time() ) {
 			$hidden_until_date = strtotime( '+1 year', $hidden_until_date );
 		}
 
