@@ -619,11 +619,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Prints the Amazon Pay button on the product page when the setting is on.
 	 *
+	 * Additionally checks that the product is purchasable and not out of stock.
+	 *
 	 * @hooked on 'woocommerce_single_product_summary' on 35 priority
 	 *
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button_single_product() {
+		if ( ! $this->is_product_purchasable_and_in_stock() ) {
+			return;
+		}
+
 		if ( $this->is_available() && $this->possible_subscription_product_supported() && $this->is_product_button_enabled() ) {
 			$this->checkout_button( true, 'div', 'pay_with_amazon_product' );
 		}
@@ -2815,13 +2821,42 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	/**
-	 * Loads scripts on product pages when the setting to display Amazon Pay button on products is enabled.
+	 * Loads scripts on product pages when the setting to display Amazon Pay button on products is enabled
+	 * and the product is purchasable and not out of stock.
 	 *
 	 * @param bool $load_scripts Whether to load Amazon Pay scripts or not.
 	 * @return bool
 	 */
 	public function load_scripts_on_product_pages( $load_scripts ) {
-		return $load_scripts ? $load_scripts : is_product() && $this->is_product_button_enabled();
+		if ( ! is_product() ) {
+			return $load_scripts;
+		}
+
+		if ( ! $this->is_product_button_enabled() ) {
+			return $load_scripts;
+		}
+
+		if ( ! $this->is_product_purchasable_and_in_stock() ) {
+			return $load_scripts;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Checks if a product is purchasable and in stock.
+	 *
+	 * @param bool|int|WC_Product $the_product Instance of product to check or product id or false to use the current product.
+	 * @return bool True if product is purchasable and in stock, false otherwise.
+	 */
+	protected function is_product_purchasable_and_in_stock( $the_product = false ) {
+		$product = wc_get_product( $the_product );
+
+		if ( ! $product instanceof \WC_Product ) {
+			return false;
+		}
+
+		return $product->is_purchasable() && $product->is_in_stock();
 	}
 
 	/**
