@@ -100,10 +100,14 @@ export const AmazonPayPreview = ( { settings, ...props } ) => {
  *
  * @param {string} field The field's name to retrieve the label for.
  * @param {string} billingOrShipping If the field is for billing or shipping details.
- * @returns {string} The field's label.
+ * @returns {string}|{bool} The field's label or false if the field is not present.
  */
 export const getCheckOutFieldsLabel = ( field, billingOrShipping ) => {
 	const elem = document.getElementById( billingOrShipping + '-' + field );
+	if ( ! elem ) {
+		return false;
+	}
+
 	return elem && elem.getAttribute( 'aria-label' ) ? elem.getAttribute( 'aria-label' ) : '';
 };
 

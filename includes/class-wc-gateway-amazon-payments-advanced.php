@@ -935,8 +935,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		$checkout_session = $this->get_checkout_session();
-		$buyer_id         = $checkout_session->buyer->buyerId;
-		$buyer_email      = $checkout_session->buyer->email;
+		$buyer_id         = ! empty( $checkout_session->buyer->buyerId ) ? $checkout_session->buyer->buyerId : null;
+		$buyer_email      = ! empty( $checkout_session->buyer->email ) ? $checkout_session->buyer->email : null;
+
+		if ( ! $buyer_id || ! $buyer_email ) {
+			return; // We shouldn't be here anyways.
+		}
 
 		$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 
