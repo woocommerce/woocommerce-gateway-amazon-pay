@@ -363,7 +363,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 		?>
 			<div class="notice notice-info amazon-pay-review-prompt">
 				<p>
-					<?php esc_html_e( 'It would mean a lot to us if you would quickly give our plugin a 5-star rating. Your review is very important to us as it helps us grow more!', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
+					<?php esc_html_e( 'We\'d be grateful if you could give our plugin a 5-star rating. Your reviews help us continue to grow!', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 				</p>
 
 				<p>
@@ -377,7 +377,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 					</a>
 				</p>
 				<p>
-					<a href="https://woocommerce.com/my-account/create-a-ticket/?utm_medium=amazon-pay-plugin" target="_blank" rel="nofollow" >
+					<a href="https://woocommerce.com/my-account/create-a-ticket/?utm_source=partner_amazon&utm_medium=product&utm_campaign=create-ticket" target="_blank" rel="nofollow" >
 						<?php esc_html_e( 'Actually, I need help...', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 					</a>
 				</p>
