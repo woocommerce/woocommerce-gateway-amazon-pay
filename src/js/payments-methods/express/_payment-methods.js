@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { useEffect } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { sprintf, __ } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
 import React from 'react';
 
@@ -61,7 +61,7 @@ const AmazonPayInfo = ( props ) => {
             
                     // Field present in the form but value mismatch. Return error.
                     return {
-                        errorMessage: __( 'We were expecting "', 'woocommerce-gateway-amazon-payments-advanced' ) + amazonShipping[ shippingField ] + __( '" but we received "', 'woocommerce-gateway-amazon-payments-advanced' ) + shippingAddress[ shippingField ] + __( '" instead for the Shipping field "', 'woocommerce-gateway-amazon-payments-advanced' ) + checkoutFieldLabel + __( '". Please make any changes to your Shipping details through Amazon.', 'woocommerce-gateway-amazon-payments-advanced' )
+                        errorMessage: sprintf( __( 'We were expecting "%1$s" but we received "%2$s" instead for the Shipping field "%3$s". Please make any changes to your Shipping details through Amazon."', 'woocommerce-gateway-amazon-payments-advanced' ), amazonShipping[ shippingField ], shippingAddress[ shippingField ], checkoutFieldLabel )
                     };
                 }
 
