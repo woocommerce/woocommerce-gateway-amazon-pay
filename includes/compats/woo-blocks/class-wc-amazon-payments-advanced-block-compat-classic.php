@@ -47,7 +47,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 			'title'               => $this->settings['title'],
 			'description'         => $this->settings['description'],
 			'supports'            => $this->get_supported_features(),
-			'amazonPayPreviewUrl' => esc_url( wc_apa()->plugin_url . '/assets/images/amazon-pay-preview.png' ),
+			'amazonPayPreviewUrl' => esc_url( wc_apa()->plugin_url . '/build/images/amazon-pay-preview.png' ),
 			'action'              => wc_apa()->get_gateway()->get_current_cart_action(),
 			'allowedCurrencies'   => $this->get_allowed_currencies(),
 		);
@@ -60,8 +60,10 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 * @return array Return an array of script handles that have been registered already.
 	 */
 	protected function scripts_name_per_type( $type = '' ) {
-		$script_data = include wc_apa()->path . '/build/payments-methods/classic/index.asset.php';
-		wp_register_script( 'amazon_payments_advanced_classic_block_compat', wc_apa()->plugin_url . '/build/payments-methods/classic/index.js', $script_data['dependencies'], $script_data['version'], true );
+		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+
+		$script_data = include wc_apa()->path . '/build/js/payments-methods/classic/index.asset.php';
+		wp_register_script( 'amazon_payments_advanced_classic_block_compat', wc_apa()->plugin_url . '/build/js/payments-methods/classic/index' . $min . '.js', $script_data['dependencies'], $script_data['version'], true );
 
 		return array( 'amazon_payments_advanced_classic_block_compat' );
 	}

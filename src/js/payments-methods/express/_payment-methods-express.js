@@ -6,7 +6,7 @@ import { useEffect, useState } from '@wordpress/element';
 /**
  * Internal dependencies
  */
-import { renderAmazonButton } from '../../renderAmazonButton';
+import { renderAmazonButton } from '../../_renderAmazonButton';
 
 /**
  * Returns a react component and also sets an observer for the onCheckoutAfterProcessingWithSuccess event.

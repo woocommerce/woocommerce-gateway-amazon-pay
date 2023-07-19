@@ -9,9 +9,9 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import { getCheckOutFieldsLabel } from '../../utils';
-import { activateChange } from '../../renderAmazonButton';
-import { settings } from './settings';
+import { getCheckOutFieldsLabel } from '../../_utils';
+import { activateChange } from '../../_renderAmazonButton';
+import { settings } from './_settings';
  
 
 /**

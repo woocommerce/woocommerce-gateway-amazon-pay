@@ -28,7 +28,7 @@ class WC_Amazon_Payments_Advanced_Drip_Compat {
 			$js_suffix = '.js';
 		}
 
-		$url = wc_apa()->plugin_url . '/assets/js/amazon-wcdrip-compat' . $js_suffix;
+		$url = wc_apa()->plugin_url . '/build/js/non-block/amazon-wcdrip-compat' . $js_suffix;
 		wp_enqueue_script( 'amazon_pa_drip_compat', $url, array( 'amazon_payments_advanced' ), wc_apa()->version, true );
 	}
 

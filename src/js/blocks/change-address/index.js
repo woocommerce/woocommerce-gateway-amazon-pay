@@ -6,8 +6,8 @@ import { registerBlockType } from '@wordpress/blocks';
 /**
  * Internal dependencies
  */
-import { Edit } from './edit';
-import { save } from './save';
+import { Edit } from './_edit';
+import { save } from './_save';
 
 registerBlockType( 'amazon-payments-advanced/change-address', {
 	edit: Edit,

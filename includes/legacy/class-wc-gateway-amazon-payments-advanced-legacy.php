@@ -1775,11 +1775,16 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 			$js_suffix = '.js';
 		}
 
+		$css_suffix = '.min.css';
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+			$css_suffix = '.css';
+		}
+
 		$type = ( 'yes' === $this->settings['enable_login_app'] ) ? 'app' : 'standard';
 
-		wp_enqueue_style( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/css/style.css', array(), wc_apa()->version );
+		wp_enqueue_style( 'amazon_payments_advanced', wc_apa()->plugin_url . '/build/css/amazon-pay' . $css_suffix, array(), wc_apa()->version );
 		wp_enqueue_script( 'amazon_payments_advanced_widgets', WC_Amazon_Payments_Advanced_API_Legacy::get_widgets_url(), array(), wc_apa()->version, true );
-		wp_enqueue_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/assets/js/legacy/amazon-' . $type . '-widgets' . $js_suffix, array(), wc_apa()->version, true );
+		wp_enqueue_script( 'amazon_payments_advanced', wc_apa()->plugin_url . '/build/js/non-block/legacy/amazon-' . $type . '-widgets' . $js_suffix, array( 'jquery' ), wc_apa()->version, true );
 
 		$redirect_page = is_cart() ? $this->get_amazon_payments_checkout_url() : $this->get_amazon_payments_clean_logout_url();
 
