@@ -41,7 +41,7 @@
     "archive": "cross-var rimraf $npm_package_config_wp_org_slug.zip vendor/ node_modules/ && composer install --no-dev --optimize-autoloader && npm install --only=prod --ignore-scripts && composer archive --file=$npm_package_config_wp_org_slug --dir=$npm_package_config_wp_org_slug --format=zip",
     "postarchive": "rimraf vendor/ node_modules/ && npm install",
     "build:assets": "wp-scripts build",
-    "build": "npm run makepot && npm run build:assets && npm run archive",
+    "build": "npm run makepot && npm run build:assets && npm run archive && npm run postpackage",
     "package": "npm run build && npm run archive",
     "postpackage": "cross-var unzip -q $npm_package_config_wp_org_slug/$npm_package_config_wp_org_slug.zip -d $npm_package_config_wp_org_slug && rimraf $npm_package_config_wp_org_slug/$npm_package_config_wp_org_slug.zip && zip -q -r $npm_package_config_wp_org_slug.zip $npm_package_config_wp_org_slug -qq && rimraf -rf $npm_package_config_wp_org_slug"
   },
