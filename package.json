@@ -24,6 +24,9 @@
     },
     "wp_org_slug": "woocommerce-gateway-amazon-payments-advanced"
   },
+  "woorelease": {
+    "wp_org_slug": "woocommerce-gateway-amazon-payments-advanced"
+  },
   "scripts": {
     "postinstall": "composer install",
     "test:php": "./vendor/bin/phpunit",
