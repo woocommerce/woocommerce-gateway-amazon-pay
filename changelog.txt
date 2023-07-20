@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.5.0 - 2023-xx-xx =
+= 2.5.0 - 2023-07-20 =
 
 * Add - Plugin review Prompt.
 * Fix - Amazon Pay button is displayed on Product pages even when product is Out Of Stock.
