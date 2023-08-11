@@ -11,9 +11,23 @@ Install the Amazon Pay plugin for your WooCommerce store and take advantage of a
 
 == Description ==
 
-**What is Amazon Pay?** An end-to-end payment solution that gives hundreds of millions of active Amazon customers[1] a familiar, fast, and secure way to complete their purchase through your online store. Shoppers can use the address and payment information already stored in their Amazon account to check out – avoiding account creation or the need to re-enter their billing and shipping information. The performance is continually optimized by technology, learnings, and best practices from Amazon.
+**What is Amazon Pay?** An end-to-end payment solution that gives hundreds of millions of active Amazon customers [1] a familiar, fast, and secure way to complete their purchase through your online store. Shoppers can use the address and payment information already stored in their Amazon account to check out – avoiding account creation or the need to re-enter their billing and shipping information. The performance is continually optimized by technology, learnings, and best practices from Amazon.
 
-As earth’s most customer-centric company, we are continuously innovating on behalf of our customers. With 91% of Amazon Pay customers saying they would use Amazon Pay again and hundreds of millions of active Amazon customers already enabled for Amazon Pay, it can make it easier for you to deliver an improved customer experience online[2].
+As earth’s most customer-centric company, we are continuously innovating on behalf of our customers. With 91% of Amazon Pay customers saying they would use Amazon Pay again and hundreds of millions of active Amazon customers already enabled for Amazon Pay, it can make it easier for you to deliver an improved customer experience online [2].
+
+= The benefits of using Amazon Pay =
+
+**Keep customers engaged – from cart to finish**
+37% percent of customers abandon a site because they’re asked to create an account.[3] With Amazon Pay, there’s no need to create a new account or enter new information on your site.
+
+**Reduce chargebacks and fraudulent transactions**
+The Amazon brand is a proven winner of customer trust.[4] Our advanced fraud protection is the same technology used on Amazon.com
+
+**Grow your audience with co-marketing initiatives**
+The cost of acquiring new customers has increased by over 50% over the last five years.[5] With Amazon Pay co-marketing programs, tap into Amazon’s customer base of 200m+ global Prime customers.
+
+**Leverage the latest technology that customers love**
+Benefit from Amazon’s ecommerce innovations, enable features like recurring payments, let customers shop with their voice using Alexa, and much more.
 
 = Key Features =
 
@@ -21,17 +35,26 @@ As earth’s most customer-centric company, we are continuously innovating on be
 - **Multi-currency**: Maintain the local currency experience across the shopping journey and help customers avoid currency conversion fees from their credit card issuer or bank.
 - **Recurring payment support for [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/)** (separate purchase): available for USA, UK, Germany, France, Italy, Ireland, Spain, Luxembourg, Austria, Belgium, Cyprus, Netherlands, Sweden, Portugal, Hungary, Denmark and Japan.
 - **Automatic Decline Handling**: Reduce lost sales with a consistent experience for customers to gracefully recover from a declined payment.
-- **Payment Protection Policy**: Protection against fraud-related chargebacks[3].
-- **Amazon Pay A-to-z Guarantee**: Increase customer confidence to complete purchase in your online store with extra assurance on the timeliness of delivery and order quality[4].
-- **Delivery Notifications**: Proactively alert customers on the arrival status of physical goods orders via Amazon Alexa[5].
+- **Payment Protection Policy**: Protection against fraud-related chargebacks[6].
+- **Amazon Pay A-to-z Guarantee**: Increase customer confidence to complete purchase in your online store with extra assurance on the timeliness of delivery and order quality[7] .
+- **Delivery Notifications**: Proactively alert customers on the arrival status of physical goods orders via Amazon Alexa[8].
 
 = Definitions =
 
 - [1] Represents active Amazon customer accounts, 2020.
 - [2] Consumer Net Promoter Score (NPS) Surveys: Conducted by Amazon Pay in 2019 among US, UK, DE, FR, IT, and ES consumers who had used Amazon Pay in the 12 months preceding to the survey launch dates.
-- [3] Available for qualified physical goods purchases only.
-- [4] For eligible transactions detailed on the [Amazon Pay Customer Agreement](https://pay.amazon.com/help/201212430).
-- [5]  Not available for Royal Mail in the UK.
+- [3] Data from Mobile Checkout Optimization Report, by the Baymard Institute, 2020, commissioned by Amazon Pay.
+- [4] Axios Harris Poll 100, Corporate Reputation Rankings, July 2020.
+- [5] Profitwell, 2020
+- [6] Available for qualified physical goods purchases only.
+- [7] For eligible transactions detailed on the [Amazon Pay Customer Agreement](https://pay.amazon.com/help/201212430).
+- [8] Not available for Royal Mail in the UK.
+
+= How to enable Amazon Pay on WooCommerce =
+
+It only takes a few clicks to enable Amazon Pay on your WooCommerce storefront.
+
+https://www.youtube.com/watch?v=rYoiEjl5Ek8
 
 == Installation ==
 
