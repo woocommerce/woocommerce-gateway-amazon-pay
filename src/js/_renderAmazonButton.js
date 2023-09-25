@@ -18,7 +18,7 @@ const getButtonSettings = ( buttonSettingsFlag, checkoutConfig, estimatedOrderAm
 		// customize the buyer experience
 		placement: amazon_payments_advanced.placement,
 		buttonColor: amazon_payments_advanced.button_color,
-		estimatedOrderAmount: estimatedOrderAmount,
+		// estimatedOrderAmount: estimatedOrderAmount,
 		checkoutLanguage:
 			amazon_payments_advanced.button_language !== ''
 				? amazon_payments_advanced.button_language.replace( '-', '_' )
