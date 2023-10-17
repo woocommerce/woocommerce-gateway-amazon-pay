@@ -141,7 +141,12 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 */
 	public static function compatible_plugin( $return_name = false ) {
 
-		foreach ( self::COMPATIBLE_PLUGINS as $definition_name => $name ) {
+		/**
+		 * Filter out the compatible plugins to allow external sources to add compatibility.
+		 *
+		 * @since 2.5.1
+		 */
+		foreach ( apply_filters( 'woocommerce_amazon_pa_ml_compat_plugins', self::COMPATIBLE_PLUGINS ) as $definition_name => $name ) {
 			$match = false;
 			if ( 0 === strpos( $definition_name, 'global' ) ) {
 				$global_name = str_replace( 'global_', '', $definition_name );
@@ -155,7 +160,13 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 					$match = true;
 				}
 			}
-			if ( $match ) {
+
+			/**
+			 * Filter out whether the compatible plugin has been located in order to allow external plugins to apply their own logic.
+			 *
+			 * @since 2.5.1
+			 */
+			if ( apply_filters( 'woocommerce_amazon_pa_matched_compat_plugin_' . $definition_name, $match ) ) {
 				return ( $return_name ) ? $name : $definition_name;
 			}
 		}
@@ -248,6 +259,14 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 				case 'class_WC_Currency_Converter':
 					require_once 'class-wc-amazon-payments-advanced-multi-currency-wccw.php';
 					$found_plugin_instance = $init ? new WC_Amazon_Payments_Advanced_Multi_Currency_WCCW() : WC_Amazon_Payments_Advanced_Multi_Currency_WCCW::class;
+					break;
+				default:
+					/**
+					 * Allow external plugins to return their own compatible instance.
+					 *
+					 * @since 2.5.1
+					 */
+					$found_plugin_instance = apply_filters( 'woocommerce_amazon_pa_compat_plugin_instance_' . $compatible_plugin, $found_plugin_instance, $init );
 					break;
 			}
 			if ( $init ) {
