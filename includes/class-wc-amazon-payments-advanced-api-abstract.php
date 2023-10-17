@@ -531,4 +531,18 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		return false;
 	}
 
+	/**
+	 * Returns extra headers to be added to requests against Amazon Pay API.
+	 *
+	 * @return array
+	 */
+	protected static function get_amazon_pay_platform_headers() {
+		$version_suffix = wc_apa()->get_gateway() instanceof WC_Gateway_Amazon_Payments_Advanced_Legacy ? '-legacy' : '';
+
+		return array(
+			'x-amz-pay-platform-version'   => WC()->version,
+			'x-amz-pay-integrator-version' => wc_apa()->version . $version_suffix,
+			'x-amz-pay-integrator-id'      => static::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
+		);
+	}
 }

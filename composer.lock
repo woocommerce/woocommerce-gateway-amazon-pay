@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f8ac084417c133d5c7e6a5e2f177d2b8",
+    "content-hash": "2ca89bcc208c35341a0045d630cdf10c",
     "packages": [
         {
             "name": "amzn/amazon-pay-api-sdk-php",
-            "version": "2.5.2",
+            "version": "2.6.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amzn/amazon-pay-api-sdk-php.git",
-                "reference": "5b38287612427ecb0806d2cc626c92eb49173c6f"
+                "reference": "4583b7320e96e18fe32bef1830d7a968c0cebf49"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amzn/amazon-pay-api-sdk-php/zipball/5b38287612427ecb0806d2cc626c92eb49173c6f",
-                "reference": "5b38287612427ecb0806d2cc626c92eb49173c6f",
+                "url": "https://api.github.com/repos/amzn/amazon-pay-api-sdk-php/zipball/4583b7320e96e18fe32bef1830d7a968c0cebf49",
+                "reference": "4583b7320e96e18fe32bef1830d7a968c0cebf49",
                 "shasum": ""
             },
             "require": {
@@ -57,9 +57,9 @@
             ],
             "support": {
                 "issues": "https://github.com/amzn/amazon-pay-api-sdk-php/issues",
-                "source": "https://github.com/amzn/amazon-pay-api-sdk-php/tree/2.5.2"
+                "source": "https://github.com/amzn/amazon-pay-api-sdk-php/tree/2.6.2"
             },
-            "time": "2023-03-06T12:45:51+00:00"
+            "time": "2023-06-29T07:33:20+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
