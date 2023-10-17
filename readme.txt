@@ -80,6 +80,11 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.5.1 - 2023-xx-xx =
+
+* Add - New Amazon Pay Platform related Headers.
+* Add - Extendable Multi-currency compatibility.
+
 = 2.5.0 - 2023-07-20 =
 
 * Add - Plugin review Prompt.
