@@ -90,6 +90,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 * Add - Plugin review Prompt.
 * Fix - Amazon Pay button is displayed on Product pages even when product is Out Of Stock.
 * Fix - WooCommerce Blocks compatibility.
+* Fix - Limit gateway's frontend settings for blocks
 * Update - PHP 8 compatibility fixes.
 * Update - Update WP and WC tested up to.
 
