@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.5.1 - 2023-10-30 =
+= 2.5.1 - 2023-xx-xx =
 
 * Add - New Amazon Pay Platform related Headers.
 * Add - Extendable Multi-currency compatibility.
