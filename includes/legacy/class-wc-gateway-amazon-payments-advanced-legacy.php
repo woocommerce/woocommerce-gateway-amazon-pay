@@ -1623,10 +1623,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @since 1.6.0
 	 */
 	public function maybe_hide_amazon_buttons() {
-		$hide_button_mode_enabled = ( 'yes' === $this->settings['enabled'] && 'yes' === $this->settings['hide_button_mode'] );
-		$hide_button_mode_enabled = apply_filters( 'woocommerce_amazon_payments_hide_amazon_buttons', $hide_button_mode_enabled );
-
-		if ( ! $hide_button_mode_enabled ) {
+		if ( ! $this->is_hide_button_mode_enabled() ) {
 			return;
 		}
 

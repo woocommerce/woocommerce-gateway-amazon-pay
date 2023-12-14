@@ -1148,4 +1148,16 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	protected function using_woo_blocks() {
 		return ! empty( $this->settings['using_woo_blocks'] ) && 'yes' === $this->settings['using_woo_blocks'];
 	}
+
+	/**
+	 * Return if the hide button mode is enabled.
+	 *
+	 * @return boolean
+	 */
+	protected function is_hide_button_mode_enabled() {
+		$hide_button_mode_enabled = 'yes' === $this->settings['hide_button_mode'];
+		$hide_button_mode_enabled = apply_filters( 'woocommerce_amazon_payments_hide_amazon_buttons', $hide_button_mode_enabled );
+
+		return $hide_button_mode_enabled;
+	}
 }
