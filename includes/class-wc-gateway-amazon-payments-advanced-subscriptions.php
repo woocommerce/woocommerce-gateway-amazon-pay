@@ -57,7 +57,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			add_filter( 'woocommerce_amazon_pa_update_complete_checkout_session_payload', array( $this, 'recurring_complete_checkout_session_update' ), 10, 3 );
 			add_filter( 'woocommerce_amazon_pa_processed_order', array( $this, 'copy_meta_to_sub' ), 10, 2 );
 			add_filter( 'wcs_renewal_order_meta', array( $this, 'copy_meta_from_sub' ), 10, 3 );
-			add_filter( 'woocommerce_subscriptions_update_payment_via_pay_shortcode', array( $this, 'maybe_not_update_payment_method' ), 10, 2 );
+			add_filter( 'woocommerce_subscriptions_update_payment_via_pay_shortcode', array( $this, 'maybe_not_update_payment_method' ), 10, 3 );
 		}
 
 		do_action( 'woocommerce_amazon_pa_subscriptions_init', $version );
@@ -351,12 +351,26 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 */
 	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order, $doing_classic_payment ) {
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) && $order->get_id() === absint( $_POST['woocommerce_change_payment'] ) ) {
-			$checkout_session = wc_apa()->get_gateway()->get_checkout_session();
 
 			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
 			unset( $payload['paymentDetails']['canHandlePendingAuthorization'] );
 
-			$payload['paymentDetails']['chargeAmount'] = WC_Amazon_Payments_Advanced::format_amount( $checkout_session->recurringMetadata->amount ); // phpcs:ignore WordPress.NamingConventions
+			$amount = 0;
+			if ( $doing_classic_payment ) {
+				$amount = $order->get_total( 'edit' );
+			} else {
+				$checkout_session = wc_apa()->get_gateway()->get_checkout_session();
+
+				// phpcs:disable WordPress.NamingConventions
+				if ( isset( $checkout_session->recurringMetadata->amount->amount ) && is_numeric( $checkout_session->recurringMetadata->amount->amount ) ) {
+					$amount = WC_Amazon_Payments_Advanced::format_amount( $checkout_session->recurringMetadata->amount->amount );
+				} elseif ( isset( $checkout_session->chargeAmount->amount ) && is_numeric( $checkout_session->chargeAmount->amount ) ) {
+					$amount = WC_Amazon_Payments_Advanced::format_amount( $checkout_session->chargeAmount->amount );
+				}
+			}
+			// phpcs:enable WordPress.NamingConventions
+			$payload['paymentDetails']['chargeAmount']['amount'] = $amount;
+			$payload['recurringMetadata']['amount']['amount']    = $amount;
 
 			return $payload;
 		}
@@ -743,6 +757,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		WC_Subscriptions_Change_Payment_Gateway::update_payment_method( $order, wc_apa()->get_gateway()->id );
+		wc_add_notice( __( 'Payment method updated.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 	}
 
 	/**
@@ -823,5 +838,15 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		return $valid;
+	}
+
+
+	/**
+	 * Checks if page is pay for order and change subs payment page.
+	 *
+	 * @return bool
+	 */
+	public function is_subs_change_payment() {
+		return isset( $_GET['pay_for_order'] ) && isset( $_GET['change_payment_method'] ) && is_numeric( $_GET['change_payment_method'] ); // WPCS: CSRF ok.
 	}
 }

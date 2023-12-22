@@ -39,6 +39,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		'order_awaiting_payment',
 	);
 
+
+	/**
+	 * Cached object for the redirect host.
+	 *
+	 * @var string
+	 */
+	protected $redirect_host;
+
 	/**
 	 * Constructor
 	 */
@@ -195,6 +203,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 		}
 
+		// Change Payment Method.
+		add_action( 'woocommerce_subscriptions_change_payment_after_submit', array( $this, 'classic_integration_button' ) );
+
 		// Cart.
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
@@ -207,6 +218,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
 
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
+
+		add_filter( 'allowed_redirect_hosts', array( $this, 'allow_amazon_redirect' ) );
 	}
 
 	/**
@@ -1461,15 +1474,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$redirect = $response->webCheckoutDetails->amazonPayRedirectUrl; // phpcs:ignore WordPress.NamingConventions
 			} else {
 				$create_checkout_config = $this->get_create_checkout_classic_session_config( $payload );
-				$order->update_status( 'pending', __( 'Awaiting payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 				wc_apa()->log( "Creating checkout config for order #{$order_id}.", $create_checkout_config );
-				$redirect = '#amazon-pay-classic-id-that-should-not-exist';
+
+				if ( ! empty( wc_apa()->get_subscriptions() ) && wc_apa()->get_subscriptions()->is_subs_change_payment() ) {
+					$redirect = ! empty( $payload['webCheckoutDetails']['checkoutResultReturnUrl'] ) ? $payload['webCheckoutDetails']['checkoutResultReturnUrl'] : $order->get_change_payment_method_url();
+				} else {
+					$order->update_status( 'pending', __( 'Awaiting payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+					$redirect = '#amazon-pay-classic-id-that-should-not-exist';
+				}
 			}
+
+			$this->redirect_host = wp_parse_url( $redirect, PHP_URL_HOST );
 
 			$order->save();
 
 			// Return thank you page redirect.
-			return array_merge(
+			$result = array_merge(
 				array(
 					'result'   => 'success',
 					'redirect' => $redirect,
@@ -1480,6 +1500,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				) : array() )
 			);
 
+			if ( ! empty( wc_apa()->get_subscriptions() ) && wc_apa()->get_subscriptions()->is_subs_change_payment() ) {
+				wp_send_json_success( $result );
+			}
+
+			return $result;
 		} catch ( Exception $e ) {
 			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(), 'error' );
 		}
@@ -3036,5 +3061,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'currencyCode' => get_woocommerce_currency(),
 			)
 		);
+	}
+
+	/**
+	 * Add amazon host to allowed hosts for `wp_safe_redirect`.
+	 *
+	 * @param array $hosts The list of allowed hosts.
+	 *
+	 * @return array
+	 */
+	public function allow_amazon_redirect( $hosts ) {
+
+		if ( empty( $this->redirect_host ) ) {
+			return $hosts;
+		}
+
+		$hosts[] = $this->redirect_host;
+
+		return $hosts;
 	}
 }

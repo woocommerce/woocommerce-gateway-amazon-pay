@@ -440,7 +440,12 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			}
 		}
 		$redirect_url = add_query_arg( 'amazon_payments_advanced', 'true', $redirect_url );
-		$payload      = array(
+
+		if ( ! empty( wc_apa()->get_subscriptions() ) && wc_apa()->get_subscriptions()->is_subs_change_payment() ) {
+			$redirect_url = add_query_arg( 'change_payment_method', 'true', $redirect_url );
+		}
+
+		$payload = array(
 			'storeId'            => $settings['store_id'],
 			'platformId'         => self::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
 			'webCheckoutDetails' => array(
