@@ -322,6 +322,15 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 				}
 
 				$subscription = wcs_get_subscription( absint( $_GET['change_payment_method'] ) );
+
+				if ( $subscription && ! empty( $payload['webCheckoutDetails']['checkoutResultReturnUrl'] ) ) {
+					$payload['webCheckoutDetails']['checkoutResultReturnUrl'] = add_query_arg(
+						array(
+							'change_payment_method' => $subscription->get_id(),
+						),
+						$payload['webCheckoutDetails']['checkoutResultReturnUrl']
+					);
+				}
 			} else {
 				return $payload;
 			}
@@ -370,7 +379,10 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			}
 			// phpcs:enable WordPress.NamingConventions
 			$payload['paymentDetails']['chargeAmount']['amount'] = $amount;
-			$payload['recurringMetadata']['amount']['amount']    = $amount;
+			$payload['recurringMetadata']['amount']              = array(
+				'amount'       => $amount,
+				'currencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
+			);
 
 			return $payload;
 		}
@@ -757,7 +769,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		}
 
 		WC_Subscriptions_Change_Payment_Gateway::update_payment_method( $order, wc_apa()->get_gateway()->id );
-		wc_add_notice( __( 'Payment method updated.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+
+		// We only need to update this for the subscriptions that were changed with the classic method.
+		if ( empty( wc_apa()->get_gateway()->get_checkout_session_id() ) ) {
+			wc_add_notice( __( 'Payment method updated.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
 	}
 
 	/**

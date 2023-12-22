@@ -1500,7 +1500,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				) : array() )
 			);
 
-			if ( ! empty( wc_apa()->get_subscriptions() ) && wc_apa()->get_subscriptions()->is_subs_change_payment() ) {
+			if ( $doing_classic_payment && ! empty( wc_apa()->get_subscriptions() ) && wc_apa()->get_subscriptions()->is_subs_change_payment() ) {
 				wp_send_json_success( $result );
 			}
 
