@@ -52,7 +52,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 
 		add_filter( 'woocommerce_ajax_get_endpoint', array( $this, 'filter_ajax_endpoint' ), 10, 2 );
 
-		add_action( 'wp_footer', array( $this, 'maybe_hide_standard_checkout_button' ) );
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
 
 		// AJAX calls to get updated order reference details.
@@ -1594,25 +1593,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		if ( $previous_total > 0 ) {
 			// Force reload, re-rendering standard WC checkout form.
 			WC()->session->reload_checkout = true;
-		}
-	}
-
-	/**
-	 * Maybe hide standard WC checkout button on the cart, if enabled
-	 */
-	public function maybe_hide_standard_checkout_button() {
-		if ( 'yes' === $this->settings['enabled'] && 'yes' === $this->settings['hide_standard_checkout_button'] ) {
-			?>
-				<style type="text/css">
-					.woocommerce a.checkout-button,
-					.woocommerce input.checkout-button,
-					.cart input.checkout-button,
-					.cart a.checkout-button,
-					.widget_shopping_cart a.checkout {
-						display: none !important;
-					}
-				</style>
-			<?php
 		}
 	}
 
