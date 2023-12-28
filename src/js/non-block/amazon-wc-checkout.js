@@ -125,7 +125,7 @@
 					$.ajax(
 						{
 							url: amazon_payments_advanced.ajax_url,
-							type: 'get',
+							type: 'post',
 							data: $.param( data ),
 							success: function( result ) {
 								if ( result.data.create_checkout_session_config ) {

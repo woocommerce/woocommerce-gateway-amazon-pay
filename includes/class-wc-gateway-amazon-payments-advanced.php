@@ -2894,16 +2894,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function ajax_amazon_change_wc_carts() {
 		check_ajax_referer( 'amazon_change_wc_carts', '_change_carts_nonce' );
-		if ( ! empty( $_GET['product_id'] ) && ! empty( $_GET['quantity'] ) ) {
-			$selected_product = absint( $_GET['product_id'] );
-			$quantity         = absint( $_GET['quantity'] );
-			$variation_id     = ! empty( $_GET['variation_id'] ) ? absint( $_GET['variation_id'] ) : 0;
+		if ( ! empty( $_POST['product_id'] ) && ! empty( $_POST['quantity'] ) ) {
+			$selected_product_id = absint( $_POST['product_id'] );
+			$quantity            = absint( $_POST['quantity'] );
+
+			$variation_id = ! empty( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
 			if ( $variation_id ) {
 				$variation = new WC_Product_Variation( $variation_id );
 				$attrs     = $variation->get_variation_attributes();
 			} else {
 				$attrs = array();
 			}
+
 			if ( WC()->cart->get_cart_contents_count() > 0 ) {
 				WC()->session->set( 'amazon_pay_cart', WC()->cart->get_cart_for_session() );
 				foreach ( self::$session_keys as $session_key ) {
@@ -2915,7 +2917,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				WC()->session->save_data();
 				WC()->cart->empty_cart();
 			}
-			WC()->cart->add_to_cart( $selected_product, $quantity, $variation_id, $attrs );
+
+			WC()->cart->add_to_cart( $selected_product_id, $quantity, $variation_id, $attrs );
 			$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
 
 			$data = array(
