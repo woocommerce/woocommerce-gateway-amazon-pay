@@ -2898,6 +2898,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$selected_product_id = absint( $_POST['product_id'] );
 			$quantity            = absint( $_POST['quantity'] );
 
+			$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $selected_product_id, $quantity );
+			if ( ! $passed_validation ) {
+				wp_send_json_error();
+			}
+
 			$variation_id = ! empty( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
 			if ( $variation_id ) {
 				$variation = new WC_Product_Variation( $variation_id );
