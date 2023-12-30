@@ -320,7 +320,7 @@ class WC_Amazon_Payments_Advanced {
 	public static function format_amount( $num, $decimals = null, $decimals_sep = '.', $thousands_sep = '' ) {
 		/* Amazon won't accept any decimals more than 2. */
 		$decimals = $decimals > 2 ? null : $decimals;
-		$decimals = $decimals ? $decimals : min( wc_get_price_decimals(), 2 );
+		$decimals = null !== $decimals ? $decimals : min( wc_get_price_decimals(), 2 );
 		return number_format( $num, $decimals, $decimals_sep, $thousands_sep );
 	}
 
