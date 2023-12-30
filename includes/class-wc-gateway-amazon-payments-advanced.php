@@ -1422,16 +1422,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$can_do_async = true;
 			}
 
+			$charge_amount = array(
+				'amount'       => $order_total,
+				'currencyCode' => $currency,
+			);
+
 			$payload['paymentDetails'] = array_merge(
 				isset( $payload['paymentDetails'] ) && is_array( $payload['paymentDetails'] ) ? $payload['paymentDetails'] : array(),
 				array(
 					'paymentIntent'                 => $payment_intent,
 					'canHandlePendingAuthorization' => $can_do_async,
 					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
-					'chargeAmount'                  => array(
-						'amount'       => $order_total,
-						'currencyCode' => $currency,
-					),
+					'chargeAmount'                  => WC_Amazon_Payments_Advanced_API::format_charge_amount( $charge_amount ),
 				)
 			);
 
