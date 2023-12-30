@@ -303,11 +303,13 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 			);
 
 			if ( 1 === $subscriptions_in_cart ) {
-				$first_recurring                        = reset( WC()->cart->recurring_carts );
-				$payload['recurringMetadata']['amount'] = array(
+				$first_recurring         = reset( WC()->cart->recurring_carts );
+				$recurring_charge_amount = array(
 					'amount'       => WC_Amazon_Payments_Advanced::format_amount( $first_recurring->get_total( 'edit' ) ),
 					'currencyCode' => get_woocommerce_currency(),
 				);
+
+				$payload['recurringMetadata']['amount'] = WC_Amazon_Payments_Advanced_API::format_charge_amount( $recurring_charge_amount );
 			}
 		} elseif ( $cart_contains_renewal || $change_payment_for_subscription ) {
 			if ( $cart_contains_renewal ) {
@@ -328,12 +330,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 			$payload['chargePermissionType'] = 'Recurring';
 
+			$recurring_charge_amount = array(
+				'amount'       => WC_Amazon_Payments_Advanced::format_amount( $subscription->get_total() ),
+				'currencyCode' => wc_apa_get_order_prop( $subscription, 'order_currency' ),
+			);
+
 			$payload['recurringMetadata'] = array(
 				'frequency' => $this->parse_interval_to_apa_frequency( $subscription->get_billing_period( 'edit' ), $subscription->get_billing_interval( 'edit' ) ),
-				'amount'    => array(
-					'amount'       => WC_Amazon_Payments_Advanced::format_amount( $subscription->get_total() ),
-					'currencyCode' => wc_apa_get_order_prop( $subscription, 'order_currency' ),
-				),
+				'amount'    => WC_Amazon_Payments_Advanced_API::format_charge_amount( $recurring_charge_amount ),
 			);
 		}
 
@@ -386,10 +390,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 		$recurring_total = wc_format_decimal( $recurring_total, '' );
 
 		if ( 1 === $subscriptions_in_cart ) {
-			$payload['recurringMetadata']['amount'] = array(
+			$recurring_charge_amount = array(
 				'amount'       => WC_Amazon_Payments_Advanced::format_amount( $recurring_total ),
 				'currencyCode' => wc_apa_get_order_prop( $order, 'order_currency' ),
 			);
+
+			$payload['recurringMetadata']['amount'] = WC_Amazon_Payments_Advanced_API::format_charge_amount( $recurring_charge_amount );
 		}
 
 		if ( 0 >= (float) WC()->cart->get_total( 'edit' ) ) {
