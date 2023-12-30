@@ -1555,15 +1555,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$this->get_lock_for_order( $order_id, true );
 
+		$charge_amount = array(
+			'amount'       => $order_total,
+			'currencyCode' => $currency,
+		);
+
 		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session(
 			$checkout_session_id,
 			apply_filters(
 				'woocommerce_amazon_pa_update_complete_checkout_session_payload',
 				array(
-					'chargeAmount' => array(
-						'amount'       => $order_total,
-						'currencyCode' => $currency,
-					),
+					'chargeAmount' => WC_Amazon_Payments_Advanced_API::format_charge_amount( $charge_amount ),
 				),
 				$checkout_session_id,
 				$order
@@ -2467,16 +2469,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$currency = wc_apa_get_order_prop( $order, 'order_currency' );
 
+		$charge_amount = array(
+			'amount'       => WC_Amazon_Payments_Advanced::format_amount( $order->get_total() ),
+			'currencyCode' => $currency,
+		);
+
 		$charge = WC_Amazon_Payments_Advanced_API::create_charge(
 			$id,
 			array(
 				'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
 				'captureNow'                    => $capture_now,
 				'canHandlePendingAuthorization' => $can_do_async,
-				'chargeAmount'                  => array(
-					'amount'       => WC_Amazon_Payments_Advanced::format_amount( $order->get_total() ),
-					'currencyCode' => $currency,
-				),
+				'chargeAmount'                  => WC_Amazon_Payments_Advanced_API::format_charge_amount( $charge_amount ),
 			)
 		);
 

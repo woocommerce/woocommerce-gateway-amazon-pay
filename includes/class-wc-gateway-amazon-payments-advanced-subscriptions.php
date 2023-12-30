@@ -435,6 +435,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$payload['chargeAmount']['amount'] = WC_Amazon_Payments_Advanced::format_amount( $recurring_total );
 
+		$payload['chargeAmount'] = WC_Amazon_Payments_Advanced_API::format_charge_amount( $payload['chargeAmount'] );
+
 		return $payload;
 	}
 
@@ -545,16 +547,18 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$currency = wc_apa_get_order_prop( $order, 'order_currency' );
 
+		$charge_amount = array(
+			'amount'       => WC_Amazon_Payments_Advanced::format_amount( $amount_to_charge ),
+			'currencyCode' => $currency,
+		);
+
 		$response = WC_Amazon_Payments_Advanced_API::create_charge(
 			$charge_permission_id,
 			array(
 				'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
 				'captureNow'                    => $capture_now,
 				'canHandlePendingAuthorization' => $can_do_async,
-				'chargeAmount'                  => array(
-					'amount'       => WC_Amazon_Payments_Advanced::format_amount( $amount_to_charge ),
-					'currencyCode' => $currency,
-				),
+				'chargeAmount'                  => WC_Amazon_Payments_Advanced_API::format_charge_amount( $charge_amount ),
 			)
 		);
 
