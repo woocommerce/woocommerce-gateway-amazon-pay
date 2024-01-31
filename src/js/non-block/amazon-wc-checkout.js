@@ -111,7 +111,7 @@
 					};
 
 					$.each( singleAddToCart.closest( 'form.cart' ).serializeArray(), function( index, object ) {
-						if ( 'add-to-cart' === object.name ) {
+						if ( [ 'add-to-cart', 'product_id' ].includes( object.name ) ) {
 							data.product_id = object.value;
 						} else if ( 'undefined' !== typeof data[ object.name ] ) {
 							if ( ! $.isArray( data[ object.name ] ) ) {
