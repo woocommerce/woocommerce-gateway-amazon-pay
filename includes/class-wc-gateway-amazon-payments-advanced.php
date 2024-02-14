@@ -265,7 +265,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		return array_merge(
 			array(
-				'ajax_url'                       => admin_url( 'admin-ajax.php' ),
+				'ajax_url'                       => add_query_arg( $this->get_ajax_url_args(), admin_url( 'admin-ajax.php' ) ),
 				'create_checkout_session_config' => $checkout_session_config,
 				'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] . self::get_estimated_order_amount() ),
 				'button_color'                   => $this->settings['button_color'],
@@ -2898,17 +2898,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$selected_product_id = absint( $_POST['product_id'] );
 			$quantity            = absint( $_POST['quantity'] );
 
-			$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $selected_product_id, $quantity );
-			if ( ! $passed_validation ) {
-				wp_send_json_error();
-			}
-
 			$variation_id = ! empty( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
 			if ( $variation_id ) {
 				$variation = new WC_Product_Variation( $variation_id );
 				$attrs     = $variation->get_variation_attributes();
 			} else {
 				$attrs = array();
+			}
+
+			$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $selected_product_id, $quantity, $variation_id );
+			if ( ! $passed_validation ) {
+				wp_send_json_error();
 			}
 
 			if ( WC()->cart->get_cart_contents_count() > 0 ) {
@@ -3044,5 +3044,40 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'currencyCode' => get_woocommerce_currency(),
 			)
 		);
+	}
+
+	/**
+	 * Add amazon host to allowed hosts for `wp_safe_redirect`.
+	 *
+	 * @param array $hosts The list of allowed hosts.
+	 *
+	 * @return array
+	 */
+	public function allow_amazon_redirect( $hosts ) {
+
+		if ( empty( $this->redirect_host ) ) {
+			return $hosts;
+		}
+
+		$hosts[] = $this->redirect_host;
+
+		return $hosts;
+	}
+
+	/**
+	 * Get the arguments for the AJAX URL.
+	 *
+	 * @return string
+	 */
+	private function get_ajax_url_args() {
+		$args = array();
+
+		if ( isset( $_GET['switch-subscription'] ) && isset( $_GET['item'] ) && isset( $_GET['_wcsnonce'] ) ) {
+			$args['switch-subscription'] = wc_clean( wp_unslash( $_GET['switch-subscription'] ) );
+			$args['item']                = wc_clean( wp_unslash( $_GET['item'] ) );
+			$args['_wcsnonce']           = wc_clean( wp_unslash( $_GET['_wcsnonce'] ) );
+		}
+
+		return $args;
 	}
 }
