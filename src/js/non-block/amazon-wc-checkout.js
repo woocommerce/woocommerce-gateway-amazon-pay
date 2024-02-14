@@ -156,7 +156,7 @@
 							type: 'post',
 							data: $.param( data ),
 							success: function( result ) {
-								if ( result.data.create_checkout_session_config ) {
+								if ( 'undefined' !== typeof result.data && result.data.create_checkout_session_config ) {
 									if ( result.data.estimated_order_amount ) {
 										var productsEstimatedOrderAmount = JSON.parse( result.data.estimated_order_amount );
 										if ( 'undefined' !== typeof productsEstimatedOrderAmount.amount && 'undefined' !== typeof productsEstimatedOrderAmount.currencyCode ) {
