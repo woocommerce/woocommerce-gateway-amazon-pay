@@ -65,6 +65,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Sets the payload's addressDetails property if checking out using Amazon "Classic" and there is a physical product.
 		add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'update_address_details_for_classic' ), 10, 4 );
+
+		// Add cart action to each variation.
+		add_filter( 'woocommerce_available_variation', array( $this, 'add_variation_product_action' ), 10, 3 );
 	}
 
 	/**
@@ -1890,14 +1893,41 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Product Type used on the Amazon Pay button. Depends to whether the product needs shipping or not.
 	 *
+	 * @param WC_Product $product Product object.
+	 *
 	 * @return string Either PayAndShip or PayOnly.
 	 */
-	public function get_current_product_action() {
+	public function get_current_product_action( $product = null ) {
+		if ( ! is_null( $product ) ) {
+			$product = wc_get_product( $product );
+			return $product && $product->is_virtual() ? 'PayOnly' : 'PayAndShip';
+		}
+
 		if ( is_product() ) {
 			$product = wc_get_product( get_the_ID() );
 			return $product->is_virtual() ? 'PayOnly' : 'PayAndShip';
 		}
 		return 'PayOnly';
+	}
+
+	/**
+	 * Get Product Type used on the Amazon button for a variation.
+	 *
+	 * @param array               $data      Variation data.
+	 * @param WC_Product_Variable $product   Parent product object.
+	 * @param WC_Product          $variation Product variation object.
+	 *
+	 * @return array
+	 */
+	public function add_variation_product_action( $data, $product, $variation ) {
+
+		if ( ! $variation ) {
+			return $data;
+		}
+
+		$data['wc_amazon_product_type'] = $this->get_current_product_action( $variation );
+
+		return $data;
 	}
 
 	/**
@@ -2929,6 +2959,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$data = array(
 				'create_checkout_session_config' => $checkout_session_config,
 				'estimated_order_amount'         => self::get_estimated_order_amount(),
+				'needs_shipping'                 => WC()->cart->needs_shipping() ? 'PayAndShip' : 'PayOnly',
 			);
 			wp_send_json_success( $data, 200 );
 		}
