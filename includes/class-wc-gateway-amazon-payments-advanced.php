@@ -2991,8 +2991,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$shipping_state   = $order->get_shipping_state();
 		$shipping_country = $order->get_shipping_country( 'edit' );
 
-		if ( 'JP' === strtoupper( $shipping_country ) && 'JP' === strtoupper( WC_Amazon_Payments_Advanced_API::get_region() ) && isset( self::JP_REGION_CODE_MAP[ $shipping_state ] ) ) {
-			$shipping_state = self::JP_REGION_CODE_MAP[ $shipping_state ];
+		if ( 'JP' === strtoupper( $shipping_country ) && 'JP' === strtoupper( WC_Amazon_Payments_Advanced_API::get_region() ) ) {
+			$shipping_state = $this->maybe_get_jp_region_code( $shipping_state );
 		}
 
 		$payload['addressDetails'] = array(
@@ -3018,6 +3018,32 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * Maybe get JP region code.
+	 *
+	 * @param string $shipping_state The shipping state.
+	 *
+	 * @return string
+	 */
+	public static function maybe_get_jp_region_code( $shipping_state ) {
+
+		static $formatted_states;
+
+		if ( isset( $formatted_states[ $shipping_state ] ) ) {
+			return $formatted_states[ $shipping_state ];
+		}
+
+		$formatted_states[ $shipping_state ] = $shipping_state;
+
+		foreach ( self::JP_REGION_CODE_MAP as $region_code => $region ) {
+			if ( is_array( $region ) && in_array( $shipping_state, $region, true ) ) {
+				$formatted_states[ $shipping_state ] = $region_code;
+			}
+		}
+
+		return $formatted_states[ $shipping_state ];
 	}
 
 	/**

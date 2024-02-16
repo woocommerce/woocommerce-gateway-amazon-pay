@@ -497,6 +497,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 				$valid_state_values = array_map( 'wc_strtoupper', array_flip( array_map( 'wc_strtoupper', $valid_states ) ) );
 				$uc_state       = wc_strtoupper( $formatted['state'] );
 
+				$uc_state = WC_Gateway_Amazon_Payments_Advanced::maybe_get_jp_region_code( $uc_state );
+
 				if ( isset( $valid_state_values[ $uc_state ] ) ) {
 					// With this part we consider state value to be valid as well, convert it to the state key for the valid_states check below.
 					$uc_state = $valid_state_values[ $uc_state ];
