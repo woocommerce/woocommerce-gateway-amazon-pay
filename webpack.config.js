@@ -111,6 +111,10 @@ module.exports = {
 		path: fromProjectRoot('build' + path.sep),
 		filename: '[name].js',
 	},
+	devtool:
+		process.env.NODE_ENV === 'production'
+			? 'hidden-source-map'
+			: defaultConfig.devtool,
 	optimization: {
 		...defaultConfig.optimization,
 		minimize: true,
@@ -118,6 +122,7 @@ module.exports = {
 			new TerserPlugin({
 				parallel: true,
 				terserOptions: {
+					sourceMap: true,
 					output: {
 						comments: /translators:/i,
 					},
@@ -264,6 +269,6 @@ module.exports = {
 			patterns: [
 				{ from: 'src/images', to: './images/' }
 			]
-		})
+		}),
 	],
 };

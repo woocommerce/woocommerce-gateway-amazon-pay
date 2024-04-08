@@ -79,6 +79,7 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 		/* Registering Express Payment Script. */
 		$script_data = include wc_apa()->path . '/build/js/payments-methods/express/index.asset.php';
 		wp_register_script( 'amazon_payments_advanced_express_block_compat', wc_apa()->plugin_url . '/build/js/payments-methods/express/index' . $min . '.js', $script_data['dependencies'], $script_data['version'], true );
+		wp_set_script_translations( 'amazon_payments_advanced_express_block_compat', 'woocommerce-gateway-amazon-payments-advanced' );
 
 		return array( 'amazon_payments_advanced_express_block_compat' );
 	}
