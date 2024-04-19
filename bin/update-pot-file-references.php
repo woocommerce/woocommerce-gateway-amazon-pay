@@ -65,87 +65,25 @@ function read_pot_translations( string $file_name ): array {
 }
 
 /**
- * Generates a map with the mapping for 'original source file' -> final transpiled/minified file in the 'dist' folder.
- * Format example:
- * [
- *   'client/card-readers/settings/file-upload.js' => [
- *     'build/index.js',
- *     'build/tos.js',
- *   ]
- * ]
+ * Add the transpiled file path to the references of the translation messages.
  *
- * @return array Mapping of source js files and the generated files that use them.
- */
-function load_js_transpiling_source_maps(): array {
-	$mappings = array();
-	$patterns = array(
-		"build/**/*.js.map",
-		"build/**/**/*.js.map",
-		"build/**/**/**/*.js.map",
-		"build/**/**/**/**/*.js.map",
-		"build/**/**/**/**/**/*.js.map",
-	);
-	foreach ( $patterns as $pattern ) {
-		foreach ( glob( $pattern, GLOB_NOSORT ) as $filename ) {
-			$file_content = file_get_contents( $filename );
-			if ( $file_content === false ) {
-				echo "[WARN] Unable to read file '". $filename . "'. Some translation strings might not have the correct references as a result.\n";
-				continue;
-			}
-			$file_json = json_decode( $file_content, true );
-			if ( $file_json === null ) {
-				echo "[WARN] Unable to parse JSON file: '". $filename . "'. Some translation strings might not have the correct references as a result.\n";
-				continue;
-			}
-	
-			
-			foreach ( $file_json[ 'sources' ] as $source ) {
-				$source = preg_replace( '%^webpack://woocommerce-gateway-amazon-payments-advanced/\./(src/.*)$%', '${1}', $source );
-				if ( 'webpack' !== substr( $source, 0, 7 ) ) {
-					$mappings[ $source ][] = $file_json[ 'file' ];
-				}
-			}
-		}
-	}
-
-	if ( empty( $mappings ) ) {
-		echo "[ERROR] Unable to load JS transpiling mappings from map files. Make sure the JS assets compilation was successful (e.g. npm run build:webpack).\n";
-		die();
-	}
-
-	return $mappings;
-}
-
-/**
- * For each file reference to a javascript/typescript file (from the client folder) in the comments, it adds file
- * references to the generated files (from the build folder) that use that particular javascript/typescript as source.
- *
- * @param array $js_mappings Mapping of source js files and the generated files that use them.
  * @param array $translations POT translations (including references/comments).
  * @return array Translation messages
  */
-function add_transpiled_filepath_reference_to_comments( array $js_mappings, array $translations ): array {
+function add_transpiled_filepath_reference_to_comments( array $translations ): array {
 	foreach ( $translations as $message => $references ) {
 		// Check references for js/jsx/ts/tsx files
 		$dist_js_to_add = [];
 		foreach ( $references as $i => $ref ) {
-			if ( preg_match( '%^#: (.+\.(js|jsx|ts|tsx)):\d+$%', $ref, $m ) ) {
+			if ( preg_match( '%^#: (build.+)(\.(js|jsx|ts|tsx)):\d+$%', $ref, $m ) ) {
 				if ( preg_match( '%\.min\.js$%', $m[1] ) ) {
 					unset( $translations[ $message ][ $i ] );
 					continue;
 				}
-				if ( ! array_key_exists( $m[1], $js_mappings ) ) {
-					// The file $m[1] is not used in any of the generated client JS files. Skip it.
+				if ( empty( $m[2] ) ) {
 					continue;
 				}
-
-				foreach ( $js_mappings[ $m[1] ] as $mapping ) {
-					// Exclude not min files.
-					if ( ! preg_match( '%\.min\.js$%', $mapping ) ) {
-						continue;
-					}
-					$dist_js_to_add[] = '#: build/' . $mapping . ':1';
-				}
+				$dist_js_to_add[] = "#: {$m[1]}.min{$m[2]}:1";
 			}
 		}
 
@@ -159,18 +97,17 @@ function add_transpiled_filepath_reference_to_comments( array $js_mappings, arra
 }
 
 // Read the translation .pot file.
-$originals = read_pot_translations( $pot_filename );
+$translations = read_pot_translations( $pot_filename );
 
 // For transpiled JS client files, we need to add a reference to the generated build file.
-$js_source_maps = load_js_transpiling_source_maps();
-$originals = add_transpiled_filepath_reference_to_comments( $js_source_maps, $originals );
+$translations = add_transpiled_filepath_reference_to_comments( $translations );
 
 // Delete the original source.
 unlink( $pot_filename );
 
 $fh = fopen( $pot_filename, 'w' );
 
-foreach ( $originals as $message => $original ) {
+foreach ( $translations as $message => $original ) {
 	fwrite( $fh, implode( "\n", $original ) );
 	fwrite( $fh, "\n" . $message . "\n\n" );
 }
