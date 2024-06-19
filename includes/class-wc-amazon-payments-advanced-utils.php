@@ -26,4 +26,43 @@ class WC_Amazon_Payments_Advanced_Utils {
 		? wc_get_page_screen_id( 'shop-order' )
 		: 'shop_order';
 	}
+
+
+	/**
+	 * Get non required fields.
+	 *
+	 * @return array
+	 */
+	public static function get_non_required_fields() {
+
+		$non_required_fields = array(
+			'billing_last_name',
+			'billing_state',
+			'billing_phone',
+			'shipping_last_name',
+			'shipping_state',
+		);
+
+		return apply_filters( 'woocommerce_amazon_pa_non_required_fields', $non_required_fields );
+	}
+
+
+	/**
+	 * Get non required fields per country.
+	 *
+	 * @return array
+	 */
+	public static function get_non_required_fields_per_country() {
+
+		$non_required_fields = array(
+			'JP' => array(
+				'billing_city',
+				'shipping_city',
+				'billing-city',
+				'shipping-city',
+			),
+		);
+
+		return apply_filters( 'woocommerce_amazon_pa_non_required_fields_per_country', $non_required_fields );
+	}
 }
