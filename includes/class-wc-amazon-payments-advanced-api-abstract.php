@@ -391,7 +391,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			);
 		}
 		// Use fallback value for the last name to avoid field required errors.
-		$last_name_fallback = '-';
+		$last_name_fallback = '–';
 		$names              = explode( ' ', $name );
 		return array(
 			'first_name' => array_shift( $names ),
@@ -478,7 +478,9 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 		}
 
-		$formatted['phone'] = isset( $address->Phone ) ? (string) $address->Phone : null;
+		// Prevent invalid characters in phone number.
+		$formatted['phone'] = isset( $address->Phone ) ? (string) filter_var($address->Phone, FILTER_DEFAULT, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH) : null;
+
 		$formatted['city'] = isset( $address->City ) ? (string) $address->City : null;
 		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
 			if ( empty( $formatted['city'] ) ) {

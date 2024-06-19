@@ -99,7 +99,7 @@ jQuery( function( $ ) {
 
 	function formatAmazonName( name ) {
 		// Use fallback value for the last name to avoid field required errors.
-		var lastNameFallback = '-';
+		var lastNameFallback = '–';
 		var names = name.split( ' ' );
 		return {
 			first_name: names.shift(),
