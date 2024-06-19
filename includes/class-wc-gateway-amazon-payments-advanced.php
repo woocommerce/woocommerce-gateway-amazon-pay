@@ -1036,10 +1036,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * session object.
 	 *
 	 * @param  object $checkout_session The active checkout session.
+	 * @param  bool   $force            Whether to force the refresh of the checkout session.
+	 *
 	 * @return boolean
 	 */
-	public function has_payment_preferences( $checkout_session = null ) {
-		if ( null === $checkout_session ) {
+	public function has_payment_preferences( $checkout_session = null, $force = false ) {
+		if ( ! $force && null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 
@@ -1054,10 +1056,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Returns the selected payment method from Amazon.
 	 *
 	 * @param object $checkout_session The active checkout session.
+	 * @param bool   $force            Whether to force the refresh of the checkout session.
 	 * @return string
 	 */
-	public function get_selected_payment_label( $checkout_session = null ) {
-		if ( null === $checkout_session ) {
+	public function get_selected_payment_label( $checkout_session = null, $force = false ) {
+		if ( ! $force && null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 
