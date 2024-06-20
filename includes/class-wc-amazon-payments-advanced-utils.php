@@ -54,15 +54,23 @@ class WC_Amazon_Payments_Advanced_Utils {
 	 */
 	public static function get_non_required_fields_per_country() {
 
-		$non_required_fields = array(
+		$mapped_fields_per_country = array(
 			'JP' => array(
-				'billing_city',
-				'shipping_city',
-				'billing-city',
-				'shipping-city',
+				'city',
 			),
 		);
 
-		return apply_filters( 'woocommerce_amazon_pa_non_required_fields_per_country', $non_required_fields );
+		$non_required_fields = array();
+
+		foreach ( $mapped_fields_per_country as $country => $fields ) {
+			foreach ( $fields as $field ) {
+				$non_required_fields[ $country ][] = 'billing_' . $field;
+				$non_required_fields[ $country ][] = 'billing-' . $field;
+				$non_required_fields[ $country ][] = 'shipping_' . $field;
+				$non_required_fields[ $country ][] = 'shipping-' . $field;
+			}
+		}
+
+		return apply_filters( 'woocommerce_amazon_pa_non_required_fields_per_country', $non_required_fields, $mapped_fields_per_country );
 	}
 }
