@@ -214,7 +214,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		// Maybe Hide Cart Buttons.
-		add_action( 'wp_footer', array( $this, 'maybe_hide_standard_checkout_button' ) );
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
 
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
@@ -2670,32 +2669,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $value;
 		}
 		return $wc_data[ $current_field ];
-	}
-
-	/**
-	 * Maybe hide standard WC checkout button on the cart, if enabled
-	 */
-	public function maybe_hide_standard_checkout_button() {
-		if ( ! $this->is_available() || $this->has_other_gateways_enabled() ) {
-			return;
-		}
-
-		if ( 'yes' !== $this->settings['hide_standard_checkout_button'] ) {
-			return;
-		}
-
-		?>
-			<style type="text/css">
-				.woocommerce a.checkout-button,
-				.woocommerce input.checkout-button,
-				.cart input.checkout-button,
-				.cart a.checkout-button,
-				.widget_shopping_cart a.checkout,
-				.wc-apa-button-separator {
-					display: none !important;
-				}
-			</style>
-		<?php
 	}
 
 	/**
