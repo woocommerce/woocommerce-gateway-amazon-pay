@@ -35,6 +35,9 @@
 						success: function( result ) {
 							unblock( $( 'form#order_review' ) );
 							try {
+								if ( result.data && result.data.result ) {
+									result = result.data;
+								}
 								if ( 'success' === result.result && 'undefined' !== typeof result.amazonCreateCheckoutParams && $( classicButtonId ).length > 0 ) {
 									amazonCreateCheckoutConfig = JSON.parse( result.amazonCreateCheckoutParams );
 									amazonEstimatedOrderAmount = 'undefined' !== typeof result.amazonEstimatedOrderAmount && result.amazonEstimatedOrderAmount ? JSON.parse( result.amazonEstimatedOrderAmount ) : null;

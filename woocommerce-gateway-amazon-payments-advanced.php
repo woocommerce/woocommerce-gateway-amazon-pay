@@ -559,6 +559,16 @@ class WC_Amazon_Payments_Advanced {
 		return $this->express_gateway;
 	}
 
+
+	/**
+	 * Return instance of WC_Gateway_Amazon_Payments_Advanced_Subscriptions.
+	 *
+	 * @return WC_Gateway_Amazon_Payments_Advanced_Subscriptions
+	 */
+	public function get_subscriptions() {
+		return $this->subscriptions;
+	}
+
 	/**
 	 * Checks whether Express Gateway should be loaded or not.
 	 *
