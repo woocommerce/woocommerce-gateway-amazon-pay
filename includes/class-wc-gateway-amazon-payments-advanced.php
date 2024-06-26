@@ -73,6 +73,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Sets the payload's addressDetails property if checking out using Amazon "Classic" and there is a physical product.
 		add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'update_address_details_for_classic' ), 10, 4 );
+
+		// Add cart action to each variation.
+		add_filter( 'woocommerce_available_variation', array( $this, 'add_variation_product_action' ), 10, 3 );
 	}
 
 	/**
@@ -277,7 +280,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		return array_merge(
 			array(
-				'ajax_url'                       => admin_url( 'admin-ajax.php' ),
+				'ajax_url'                       => add_query_arg( $this->get_ajax_url_args(), admin_url( 'admin-ajax.php' ) ),
 				'create_checkout_session_config' => $checkout_session_config,
 				'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] . self::get_estimated_order_amount() ),
 				'button_color'                   => $this->settings['button_color'],
@@ -1918,14 +1921,41 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Product Type used on the Amazon Pay button. Depends to whether the product needs shipping or not.
 	 *
+	 * @param WC_Product $product Product object.
+	 *
 	 * @return string Either PayAndShip or PayOnly.
 	 */
-	public function get_current_product_action() {
+	public function get_current_product_action( $product = null ) {
+		if ( ! is_null( $product ) ) {
+			$product = wc_get_product( $product );
+			return $product && $product->is_virtual() ? 'PayOnly' : 'PayAndShip';
+		}
+
 		if ( is_product() ) {
 			$product = wc_get_product( get_the_ID() );
 			return $product->is_virtual() ? 'PayOnly' : 'PayAndShip';
 		}
 		return 'PayOnly';
+	}
+
+	/**
+	 * Get Product Type used on the Amazon button for a variation.
+	 *
+	 * @param array               $data      Variation data.
+	 * @param WC_Product_Variable $product   Parent product object.
+	 * @param WC_Product          $variation Product variation object.
+	 *
+	 * @return array
+	 */
+	public function add_variation_product_action( $data, $product, $variation ) {
+
+		if ( ! $variation ) {
+			return $data;
+		}
+
+		$data['wc_amazon_product_type'] = $this->get_current_product_action( $variation );
+
+		return $data;
 	}
 
 	/**
@@ -2895,16 +2925,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function ajax_amazon_change_wc_carts() {
 		check_ajax_referer( 'amazon_change_wc_carts', '_change_carts_nonce' );
-		if ( ! empty( $_GET['product_id'] ) && ! empty( $_GET['quantity'] ) ) {
-			$selected_product = absint( $_GET['product_id'] );
-			$quantity         = absint( $_GET['quantity'] );
-			$variation_id     = ! empty( $_GET['variation_id'] ) ? absint( $_GET['variation_id'] ) : 0;
+		if ( ! empty( $_POST['product_id'] ) && ! empty( $_POST['quantity'] ) ) {
+			$selected_product_id = absint( $_POST['product_id'] );
+			$quantity            = absint( $_POST['quantity'] );
+
+			$variation_id = ! empty( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
 			if ( $variation_id ) {
 				$variation = new WC_Product_Variation( $variation_id );
 				$attrs     = $variation->get_variation_attributes();
 			} else {
 				$attrs = array();
 			}
+
+			$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $selected_product_id, $quantity, $variation_id );
+			if ( ! $passed_validation ) {
+				wp_send_json_error();
+			}
+
 			if ( WC()->cart->get_cart_contents_count() > 0 ) {
 				WC()->session->set( 'amazon_pay_cart', WC()->cart->get_cart_for_session() );
 				foreach ( self::$session_keys as $session_key ) {
@@ -2916,12 +2953,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				WC()->session->save_data();
 				WC()->cart->empty_cart();
 			}
-			WC()->cart->add_to_cart( $selected_product, $quantity, $variation_id, $attrs );
+
+			WC()->cart->add_to_cart( $selected_product_id, $quantity, $variation_id, $attrs );
 			$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
 
 			$data = array(
 				'create_checkout_session_config' => $checkout_session_config,
 				'estimated_order_amount'         => self::get_estimated_order_amount(),
+				'needs_shipping'                 => WC()->cart->needs_shipping() ? 'PayAndShip' : 'PayOnly',
 			);
 			wp_send_json_success( $data, 200 );
 		}
@@ -3055,5 +3094,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$hosts[] = $this->redirect_host;
 
 		return $hosts;
+	}
+
+	/**
+	 * Get the arguments for the AJAX URL.
+	 *
+	 * @return string
+	 */
+	private function get_ajax_url_args() {
+		$args = array();
+
+		if ( isset( $_GET['switch-subscription'] ) && isset( $_GET['item'] ) && isset( $_GET['_wcsnonce'] ) ) {
+			$args['switch-subscription'] = wc_clean( wp_unslash( $_GET['switch-subscription'] ) );
+			$args['item']                = wc_clean( wp_unslash( $_GET['item'] ) );
+			$args['_wcsnonce']           = wc_clean( wp_unslash( $_GET['_wcsnonce'] ) );
+		}
+
+		return $args;
 	}
 }
