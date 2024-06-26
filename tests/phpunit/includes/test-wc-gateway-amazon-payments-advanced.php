@@ -115,12 +115,31 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 				'amazonCreateCheckoutParams' => wp_json_encode( WC_Mocker_Amazon_Payments_Advanced_API::get_create_checkout_classic_session_config( array( 'test' ) ) ),
 				'amazonEstimatedOrderAmount' => wp_json_encode(
 					array(
-						'amount'       => $order_total,
+						'amount'       => WC_Amazon_Payments_Advanced::format_amount( $order_total, 2 ),
 						'currencyCode' => get_woocommerce_currency(),
 					)
 				),
 			),
 			$mock_gateway->process_payment( $order->get_id() )
+		);
+	}
+
+	/**
+	 * Test happy path of classic gateway.
+	 *
+	 * @return void
+	 */
+	public function test_estimated_order_amount_format() : void {
+		$mock_gateway = new WC_Mocker_Gateway_Amazon_Payments_Advanced( '100.2501' );
+
+		$this->assertEquals(
+			wp_json_encode(
+				array(
+					'amount'       => '100.25',
+					'currencyCode' => get_woocommerce_currency(),
+				)
+			),
+			$mock_gateway::get_estimated_order_amount()
 		);
 	}
 

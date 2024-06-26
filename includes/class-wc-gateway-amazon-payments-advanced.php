@@ -3033,7 +3033,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		return wp_json_encode(
 			array(
-				'amount'       => WC()->cart->get_total( 'amount' ),
+				'amount'       => WC_Amazon_Payments_Advanced::format_amount( WC()->cart->get_total( 'amount' ) ),
 				'currencyCode' => get_woocommerce_currency(),
 			)
 		);

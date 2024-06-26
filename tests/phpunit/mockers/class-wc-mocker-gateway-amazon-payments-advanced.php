@@ -21,9 +21,9 @@ class WC_Mocker_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payme
 	/**
 	 * Overwrite actual constructor so we avoid hooking twice.
 	 *
-	 * @param int $order_total The order total to be set.
+	 * @param int|string $order_total The order total to be set.
 	 */
-	public function __construct( int $order_total = 50 ) {
+	public function __construct( int|string $order_total = 50 ) {
 		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		self::$order_total = $order_total;
@@ -77,10 +77,10 @@ class WC_Mocker_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payme
 	 *
 	 * @return string
 	 */
-	protected static function get_estimated_order_amount() : string {
+	public static function get_estimated_order_amount() : string {
 		return wp_json_encode(
 			array(
-				'amount'       => self::$order_total,
+				'amount'       => WC_Amazon_Payments_Advanced::format_amount( self::$order_total ),
 				'currencyCode' => get_woocommerce_currency(),
 			)
 		);
