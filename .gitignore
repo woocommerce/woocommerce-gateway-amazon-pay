@@ -9,6 +9,7 @@ Thumbs.db
 .settings*
 .vscode
 .phpunit.result.cache
+woorelease.phar
 sftp-config.json
 /deploy/
 /wc-apidocs/
