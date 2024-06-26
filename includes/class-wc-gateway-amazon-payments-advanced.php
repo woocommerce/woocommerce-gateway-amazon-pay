@@ -608,7 +608,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button() {
-		if ( $this->is_available() && $this->possible_subscription_cart_supported() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
+		if ( $this->is_available() && $this->possible_subscription_cart_supported() && $this->is_mini_cart_button_enabled() && ! $this->is_hide_button_mode_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
 			?>
 			<div class="woocommerce-mini-cart__buttons buttons">
 				<?php
@@ -2420,10 +2420,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @since 1.6.0
 	 */
 	public function maybe_hide_amazon_buttons() {
-		$hide_button_mode_enabled = 'yes' === $this->settings['hide_button_mode'];
-		$hide_button_mode_enabled = apply_filters( 'woocommerce_amazon_payments_hide_amazon_buttons', $hide_button_mode_enabled );
-
-		if ( ! $hide_button_mode_enabled ) {
+		if ( ! $this->is_hide_button_mode_enabled() ) {
 			return;
 		}
 
