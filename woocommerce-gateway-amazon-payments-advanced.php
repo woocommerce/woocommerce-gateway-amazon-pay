@@ -492,10 +492,7 @@ class WC_Amazon_Payments_Advanced {
 		if ( ! function_exists( 'WC' ) ) {
 			return;
 		}
-		if ( ! isset( WC()->api ) ) {
-			return;
-		}
-		if ( ! is_a( WC()->api, 'WC_API' ) ) {
+		if ( ( ! isset( WC()->api ) || ! is_a( WC()->api, 'WC_API' ) ) && ! class_exists( 'Automattic\WooCommerce\StoreApi\StoreApi' ) ) {
 			return;
 		}
 
