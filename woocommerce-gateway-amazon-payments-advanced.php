@@ -8,8 +8,8 @@
  * Author URI: https://woocommerce.com
  * Text Domain: woocommerce-gateway-amazon-payments-advanced
  * Domain Path: /languages/
- * Tested up to: 6.2
- * WC tested up to: 7.8
+ * Tested up to: 6.6
+ * WC tested up to: 9.0.2
  * WC requires at least: 4.0
  *
  * Copyright: © 2023 WooCommerce
