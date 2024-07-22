@@ -80,7 +80,15 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.5.1 - 2023-10-30 =
+= 2.5.2 - 2024-xx-xx =
+
+* Fix - Error when using a non Standard decimal amount for a currency.
+* Fix - chargeAmount.Amount is invalid when changing currency after selecting other shipping address.
+* Fix - Hide the -OR- on Minicart when selecting "Enable hide button mode".
+* Fix - Change Payment Method for a Subscription Paid with another Payment Method.
+* Fix - Express Checkout on Product page not getting the values of the variations created by WooCommerce Product Add-Ons and Gravity Forms Product Add-ons
+
+= 2.5.1 - 2023-10-30 =s
 
 * Add - New Amazon Pay Platform related Headers.
 * Add - Extendable Multi-currency compatibility.
