@@ -72,10 +72,12 @@ class WC_Amazon_Payments_Advanced_Register_Blocks {
 
 			$script_helper_data = include $script_data_file;
 			wp_register_script( 'amazon-payments-advanced-blocks-' . $block . '-editor', wc_apa()->plugin_url . '/build/js/blocks/' . $block . '/index' . $min . '.js', $script_helper_data['dependencies'], $script_helper_data['version'], true );
+			wp_set_script_translations( 'amazon-payments-advanced-blocks-' . $block . '-editor', 'woocommerce-gateway-amazon-payments-advanced' );
 
 			if ( ! empty( $args['frontend_script'] ) ) {
 				$script_helper_data = include $plugin_root . '/build/js/blocks/' . $block . '/frontend.asset.php';
 				wp_register_script( 'amazon-payments-advanced-blocks-' . $block, wc_apa()->plugin_url . '/build/js/blocks/' . $block . '/frontend' . $min . '.js', $script_helper_data['dependencies'], $script_helper_data['version'], true );
+				wp_set_script_translations( 'amazon-payments-advanced-blocks-' . $block, 'woocommerce-gateway-amazon-payments-advanced' );
 			}
 
 			if ( ! empty( $args['frontend_style'] ) ) {

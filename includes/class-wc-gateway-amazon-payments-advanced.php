@@ -39,6 +39,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		'order_awaiting_payment',
 	);
 
+
+	/**
+	 * Cached object for the redirect host.
+	 *
+	 * @var string
+	 */
+	protected $redirect_host;
+
 	/**
 	 * Constructor
 	 */
@@ -65,6 +73,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// Sets the payload's addressDetails property if checking out using Amazon "Classic" and there is a physical product.
 		add_filter( 'woocommerce_amazon_pa_update_checkout_session_payload', array( $this, 'update_address_details_for_classic' ), 10, 4 );
+
+		// Add cart action to each variation.
+		add_filter( 'woocommerce_available_variation', array( $this, 'add_variation_product_action' ), 10, 3 );
 	}
 
 	/**
@@ -195,6 +206,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			add_action( 'woocommerce_before_cart_totals', array( $this, 'update_js' ) );
 		}
 
+		// Change Payment Method.
+		add_action( 'woocommerce_subscriptions_change_payment_after_submit', array( $this, 'classic_integration_button' ) );
+
 		// Cart.
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_amazon_pay_button_separator_html' ), 20 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'checkout_button' ), 25 );
@@ -203,10 +217,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		// Maybe Hide Cart Buttons.
-		add_action( 'wp_footer', array( $this, 'maybe_hide_standard_checkout_button' ) );
 		add_action( 'wp_footer', array( $this, 'maybe_hide_amazon_buttons' ) );
 
 		add_filter( 'woocommerce_amazon_pa_checkout_session_key', array( $this, 'maybe_change_session_key' ) );
+
+		add_filter( 'allowed_redirect_hosts', array( $this, 'allow_amazon_redirect' ) );
 	}
 
 	/**
@@ -265,7 +280,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		return array_merge(
 			array(
-				'ajax_url'                       => admin_url( 'admin-ajax.php' ),
+				'ajax_url'                       => add_query_arg( $this->get_ajax_url_args(), admin_url( 'admin-ajax.php' ) ),
 				'create_checkout_session_config' => $checkout_session_config,
 				'create_checkout_session_hash'   => wp_hash( $checkout_session_config['payloadJSON'] . self::get_estimated_order_amount() ),
 				'button_color'                   => $this->settings['button_color'],
@@ -608,7 +623,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @return void
 	 */
 	public function maybe_separator_and_checkout_button() {
-		if ( $this->is_available() && $this->possible_subscription_cart_supported() && $this->is_mini_cart_button_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
+		if ( $this->is_available() && $this->possible_subscription_cart_supported() && $this->is_mini_cart_button_enabled() && ! $this->is_hide_button_mode_enabled() && WC()->cart->get_cart_contents_count() > 0 ) {
 			?>
 			<div class="woocommerce-mini-cart__buttons buttons">
 				<?php
@@ -1422,16 +1437,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$can_do_async = true;
 			}
 
+			$charge_amount = array(
+				'amount'       => $order_total,
+				'currencyCode' => $currency,
+			);
+
 			$payload['paymentDetails'] = array_merge(
 				isset( $payload['paymentDetails'] ) && is_array( $payload['paymentDetails'] ) ? $payload['paymentDetails'] : array(),
 				array(
 					'paymentIntent'                 => $payment_intent,
 					'canHandlePendingAuthorization' => $can_do_async,
 					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
-					'chargeAmount'                  => array(
-						'amount'       => $order_total,
-						'currencyCode' => $currency,
-					),
+					'chargeAmount'                  => WC_Amazon_Payments_Advanced_API::format_charge_amount( $charge_amount ),
 				)
 			);
 
@@ -1461,15 +1478,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				$redirect = $response->webCheckoutDetails->amazonPayRedirectUrl; // phpcs:ignore WordPress.NamingConventions
 			} else {
 				$create_checkout_config = $this->get_create_checkout_classic_session_config( $payload );
-				$order->update_status( 'pending', __( 'Awaiting payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 				wc_apa()->log( "Creating checkout config for order #{$order_id}.", $create_checkout_config );
-				$redirect = '#amazon-pay-classic-id-that-should-not-exist';
+
+				if ( ! empty( wc_apa()->get_subscriptions() ) && wc_apa()->get_subscriptions()->is_subs_change_payment() ) {
+					$redirect = ! empty( $payload['webCheckoutDetails']['checkoutResultReturnUrl'] ) ? $payload['webCheckoutDetails']['checkoutResultReturnUrl'] : $order->get_change_payment_method_url();
+				} else {
+					$order->update_status( 'pending', __( 'Awaiting payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+					$redirect = '#amazon-pay-classic-id-that-should-not-exist';
+				}
 			}
+
+			$this->redirect_host = wp_parse_url( $redirect, PHP_URL_HOST );
 
 			$order->save();
 
 			// Return thank you page redirect.
-			return array_merge(
+			$result = array_merge(
 				array(
 					'result'   => 'success',
 					'redirect' => $redirect,
@@ -1480,6 +1504,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				) : array() )
 			);
 
+			if ( $doing_classic_payment && ! empty( wc_apa()->get_subscriptions() ) && wc_apa()->get_subscriptions()->is_subs_change_payment() ) {
+				wp_send_json_success( $result );
+			}
+
+			return $result;
 		} catch ( Exception $e ) {
 			wc_add_notice( __( 'Error:', 'woocommerce-gateway-amazon-payments-advanced' ) . ' ' . $e->getMessage(), 'error' );
 		}
@@ -1553,15 +1582,17 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$this->get_lock_for_order( $order_id, true );
 
+		$charge_amount = array(
+			'amount'       => $order_total,
+			'currencyCode' => $currency,
+		);
+
 		$response = WC_Amazon_Payments_Advanced_API::complete_checkout_session(
 			$checkout_session_id,
 			apply_filters(
 				'woocommerce_amazon_pa_update_complete_checkout_session_payload',
 				array(
-					'chargeAmount' => array(
-						'amount'       => $order_total,
-						'currencyCode' => $currency,
-					),
+					'chargeAmount' => WC_Amazon_Payments_Advanced_API::format_charge_amount( $charge_amount ),
 				),
 				$checkout_session_id,
 				$order
@@ -1890,14 +1921,41 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Product Type used on the Amazon Pay button. Depends to whether the product needs shipping or not.
 	 *
+	 * @param WC_Product $product Product object.
+	 *
 	 * @return string Either PayAndShip or PayOnly.
 	 */
-	public function get_current_product_action() {
+	public function get_current_product_action( $product = null ) {
+		if ( ! is_null( $product ) ) {
+			$product = wc_get_product( $product );
+			return $product && $product->is_virtual() ? 'PayOnly' : 'PayAndShip';
+		}
+
 		if ( is_product() ) {
 			$product = wc_get_product( get_the_ID() );
 			return $product->is_virtual() ? 'PayOnly' : 'PayAndShip';
 		}
 		return 'PayOnly';
+	}
+
+	/**
+	 * Get Product Type used on the Amazon button for a variation.
+	 *
+	 * @param array               $data      Variation data.
+	 * @param WC_Product_Variable $product   Parent product object.
+	 * @param WC_Product          $variation Product variation object.
+	 *
+	 * @return array
+	 */
+	public function add_variation_product_action( $data, $product, $variation ) {
+
+		if ( ! $variation ) {
+			return $data;
+		}
+
+		$data['wc_amazon_product_type'] = $this->get_current_product_action( $variation );
+
+		return $data;
 	}
 
 	/**
@@ -2420,10 +2478,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @since 1.6.0
 	 */
 	public function maybe_hide_amazon_buttons() {
-		$hide_button_mode_enabled = 'yes' === $this->settings['hide_button_mode'];
-		$hide_button_mode_enabled = apply_filters( 'woocommerce_amazon_payments_hide_amazon_buttons', $hide_button_mode_enabled );
-
-		if ( ! $hide_button_mode_enabled ) {
+		if ( ! $this->is_hide_button_mode_enabled() ) {
 			return;
 		}
 
@@ -2465,16 +2520,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$currency = wc_apa_get_order_prop( $order, 'order_currency' );
 
+		$charge_amount = array(
+			'amount'       => WC_Amazon_Payments_Advanced::format_amount( $order->get_total() ),
+			'currencyCode' => $currency,
+		);
+
 		$charge = WC_Amazon_Payments_Advanced_API::create_charge(
 			$id,
 			array(
 				'merchantMetadata'              => WC_Amazon_Payments_Advanced_API::get_merchant_metadata( $order_id ),
 				'captureNow'                    => $capture_now,
 				'canHandlePendingAuthorization' => $can_do_async,
-				'chargeAmount'                  => array(
-					'amount'       => WC_Amazon_Payments_Advanced::format_amount( $order->get_total() ),
-					'currencyCode' => $currency,
-				),
+				'chargeAmount'                  => WC_Amazon_Payments_Advanced_API::format_charge_amount( $charge_amount ),
 			)
 		);
 
@@ -2648,32 +2705,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return $value;
 		}
 		return $wc_data[ $current_field ];
-	}
-
-	/**
-	 * Maybe hide standard WC checkout button on the cart, if enabled
-	 */
-	public function maybe_hide_standard_checkout_button() {
-		if ( ! $this->is_available() || $this->has_other_gateways_enabled() ) {
-			return;
-		}
-
-		if ( 'yes' !== $this->settings['hide_standard_checkout_button'] ) {
-			return;
-		}
-
-		?>
-			<style type="text/css">
-				.woocommerce a.checkout-button,
-				.woocommerce input.checkout-button,
-				.cart input.checkout-button,
-				.cart a.checkout-button,
-				.widget_shopping_cart a.checkout,
-				.wc-apa-button-separator {
-					display: none !important;
-				}
-			</style>
-		<?php
 	}
 
 	/**
@@ -2894,16 +2925,23 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	public function ajax_amazon_change_wc_carts() {
 		check_ajax_referer( 'amazon_change_wc_carts', '_change_carts_nonce' );
-		if ( ! empty( $_GET['product_id'] ) && ! empty( $_GET['quantity'] ) ) {
-			$selected_product = absint( $_GET['product_id'] );
-			$quantity         = absint( $_GET['quantity'] );
-			$variation_id     = ! empty( $_GET['variation_id'] ) ? absint( $_GET['variation_id'] ) : 0;
+		if ( ! empty( $_POST['product_id'] ) && ! empty( $_POST['quantity'] ) ) {
+			$selected_product_id = absint( $_POST['product_id'] );
+			$quantity            = absint( $_POST['quantity'] );
+
+			$variation_id = ! empty( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
 			if ( $variation_id ) {
 				$variation = new WC_Product_Variation( $variation_id );
 				$attrs     = $variation->get_variation_attributes();
 			} else {
 				$attrs = array();
 			}
+
+			$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $selected_product_id, $quantity, $variation_id );
+			if ( ! $passed_validation ) {
+				wp_send_json_error();
+			}
+
 			if ( WC()->cart->get_cart_contents_count() > 0 ) {
 				WC()->session->set( 'amazon_pay_cart', WC()->cart->get_cart_for_session() );
 				foreach ( self::$session_keys as $session_key ) {
@@ -2915,12 +2953,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				WC()->session->save_data();
 				WC()->cart->empty_cart();
 			}
-			WC()->cart->add_to_cart( $selected_product, $quantity, $variation_id, $attrs );
+
+			WC()->cart->add_to_cart( $selected_product_id, $quantity, $variation_id, $attrs );
 			$checkout_session_config = WC_Amazon_Payments_Advanced_API::get_create_checkout_session_config();
 
 			$data = array(
 				'create_checkout_session_config' => $checkout_session_config,
 				'estimated_order_amount'         => self::get_estimated_order_amount(),
+				'needs_shipping'                 => WC()->cart->needs_shipping() ? 'PayAndShip' : 'PayOnly',
 			);
 			wp_send_json_success( $data, 200 );
 		}
@@ -3032,9 +3072,44 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		return wp_json_encode(
 			array(
-				'amount'       => WC()->cart->get_total( 'amount' ),
+				'amount'       => WC_Amazon_Payments_Advanced::format_amount( WC()->cart->get_total( 'amount' ) ),
 				'currencyCode' => get_woocommerce_currency(),
 			)
 		);
+	}
+
+	/**
+	 * Add amazon host to allowed hosts for `wp_safe_redirect`.
+	 *
+	 * @param array $hosts The list of allowed hosts.
+	 *
+	 * @return array
+	 */
+	public function allow_amazon_redirect( $hosts ) {
+
+		if ( empty( $this->redirect_host ) ) {
+			return $hosts;
+		}
+
+		$hosts[] = $this->redirect_host;
+
+		return $hosts;
+	}
+
+	/**
+	 * Get the arguments for the AJAX URL.
+	 *
+	 * @return string
+	 */
+	private function get_ajax_url_args() {
+		$args = array();
+
+		if ( isset( $_GET['switch-subscription'] ) && isset( $_GET['item'] ) && isset( $_GET['_wcsnonce'] ) ) {
+			$args['switch-subscription'] = wc_clean( wp_unslash( $_GET['switch-subscription'] ) );
+			$args['item']                = wc_clean( wp_unslash( $_GET['item'] ) );
+			$args['_wcsnonce']           = wc_clean( wp_unslash( $_GET['_wcsnonce'] ) );
+		}
+
+		return $args;
 	}
 }

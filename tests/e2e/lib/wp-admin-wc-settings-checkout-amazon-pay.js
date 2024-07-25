@@ -20,7 +20,6 @@ const BUTTON_TYPE_SELECTOR = By.css( '#woocommerce_amazon_payments_advanced_butt
 const BUTTON_SIZE_SELECTOR = By.css( '#woocommerce_amazon_payments_advanced_button_size' );
 const BUTTON_COLOR_SELECTOR = By.css( '#woocommerce_amazon_payments_advanced_button_color' );
 const BUTTON_LANGUAGE_SELECTOR = By.css( '#woocommerce_amazon_payments_advanced_button_language' );
-const HIDE_STANDARD_CHECKOUT_BUTTON = By.css( '#woocommerce_amazon_payments_advanced_hide_standard_checkout_button' );
 
 export default class WPAdminWCSettingsCheckoutAmazonPay extends WPAdminWCSettings {
 	constructor( driver, args = {} ) {
@@ -143,15 +142,5 @@ export default class WPAdminWCSettingsCheckoutAmazonPay extends WPAdminWCSetting
 
 	selectButtonLanguage( language ) {
 		return helper.selectOption( this.driver, BUTTON_LANGUAGE_SELECTOR, language );
-	}
-
-	checkHideStandardCheckoutButton() {
-		helper.unsetCheckbox( this.driver, HIDE_STANDARD_CHECKOUT_BUTTON );
-		return helper.setCheckbox( this.driver, HIDE_STANDARD_CHECKOUT_BUTTON );
-	}
-
-	uncheckHideStandardCheckoutButton() {
-		helper.setCheckbox( this.driver, HIDE_STANDARD_CHECKOUT_BUTTON );
-		return helper.unsetCheckbox( this.driver, HIDE_STANDARD_CHECKOUT_BUTTON );
 	}
 }
