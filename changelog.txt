@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.5.2 - 2024-xx-xx =
+= 2.5.2 - 2024-07-25 =
 
 * Fix - Error when using a non Standard decimal amount for a currency.
 * Fix - chargeAmount.Amount is invalid when changing currency after selecting other shipping address.
