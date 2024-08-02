@@ -483,7 +483,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		$formatted['city'] = isset( $address->City ) ? (string) $address->City : null;
 		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
 			if ( empty( $formatted['city'] ) ) {
-				$formatted['city'] = ''; // Force empty city
+				$formatted['city'] = '–'; // Force empty city
 			}
 		}
 		$formatted['postcode'] = isset( $address->PostalCode ) ? (string) $address->PostalCode : null;
