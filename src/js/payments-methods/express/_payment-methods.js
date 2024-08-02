@@ -9,7 +9,7 @@ import React from 'react';
 /**
  * Internal dependencies
  */
-import { getCheckOutFieldsLabel, overrideRequiredFieldValidation, restoreRequiredFieldValidation } from '../../_utils';
+import { getCheckOutFieldsLabel } from '../../_utils';
 import { activateChange } from '../../_renderAmazonButton';
 import { settings } from './_settings';
  
@@ -44,13 +44,9 @@ const AmazonPayInfo = ( props ) => {
 
     const { amazonBilling, amazonShipping } = settings.amazonAddress;
 
-    const [ overridenFields, setOverridenFields ] = useState( [] );
-
     useEffect( () => {
         const unsubscribe = props.eventRegistration.onCheckoutValidation(
             async () => {
-                restoreRequiredFieldValidation( overridenFields );
-                setOverridenFields( overrideRequiredFieldValidation( shippingAddress?.country || '' ) );
                 for ( const shippingField in amazonShipping ) {
                      // Values are the same as expected. Bail.
                     if (amazonShipping[ shippingField ] === shippingAddress[ shippingField ]) {
