@@ -264,6 +264,6 @@ module.exports = {
 			patterns: [
 				{ from: 'src/images', to: './images/' }
 			]
-		})
+		}),
 	],
 };

@@ -140,7 +140,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'button_size'                     => 'small',
 			'button_color'                    => 'Gold',
 			'button_language'                 => '',
-			'hide_standard_checkout_button'   => 'no',
 			'debug'                           => 'no',
 			'hide_button_mode'                => 'no',
 			'amazon_keys_setup_and_validated' => '0',
@@ -524,6 +523,25 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 		return $formatted;
 
+	}
+
+	/**
+	 * Format the charge amount, make sure that decimals with JPY is 0.
+	 *
+	 * @param array $charge_amount The charge amount.
+	 */
+	public static function format_charge_amount( $charge_amount ) {
+
+		if ( empty( $charge_amount['currencyCode'] ) || empty( $charge_amount['amount'] ) ) {
+			return $charge_amount;
+		}
+
+		switch ( $charge_amount['currencyCode'] ) {
+			case 'JPY':
+				$charge_amount['amount'] = WC_Amazon_Payments_Advanced::format_amount( $charge_amount['amount'], 0 );
+		}
+
+		return $charge_amount;
 	}
 
 	/**

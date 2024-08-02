@@ -41,7 +41,6 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 				'button_size'                     => 'small',
 				'button_color'                    => 'Gold',
 				'button_language'                 => '',
-				'hide_standard_checkout_button'   => 'no',
 				'debug'                           => 'no',
 				'hide_button_mode'                => 'no',
 				'amazon_keys_setup_and_validated' => '0',

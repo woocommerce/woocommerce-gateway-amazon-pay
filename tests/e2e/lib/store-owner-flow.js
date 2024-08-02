@@ -77,12 +77,6 @@ export default class StoreOwnerFlow extends Base {
 		if ( args.buttonLanguage ) {
 			settings.selectButtonLanguage( args.buttonLanguage );
 		}
-		if ( args.hasOwnProperty( 'hideStandardCheckoutButton' ) && args.hideStandardCheckoutButton ) {
-			settings.checkHideStandardCheckoutButton();
-		}
-		if ( args.hasOwnProperty( 'hideStandardCheckoutButton' ) && ! args.hideStandardCheckoutButton ) {
-			settings.uncheckHideStandardCheckoutButton();
-		}
 
 		return settings.saveChanges();
 	}

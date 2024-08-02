@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, saucal, woothemes, akeda, jeffstieler, mi
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 2.5.1
+Stable tag: 2.5.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -80,7 +80,15 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.5.1 - 2023-10-30 =
+= 2.5.2 - 2024-07-25 =
+
+* Fix - Error when using a non Standard decimal amount for a currency.
+* Fix - chargeAmount.Amount is invalid when changing currency after selecting other shipping address.
+* Fix - Hide the -OR- on Minicart when selecting "Enable hide button mode".
+* Fix - Change Payment Method for a Subscription Paid with another Payment Method.
+* Fix - Express Checkout on Product page not getting the values of the variations created by WooCommerce Product Add-Ons and Gravity Forms Product Add-ons
+
+= 2.5.1 - 2023-10-30 =s
 
 * Add - New Amazon Pay Platform related Headers.
 * Add - Extendable Multi-currency compatibility.

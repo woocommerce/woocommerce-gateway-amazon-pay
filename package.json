@@ -1,7 +1,7 @@
 {
   "name": "woocommerce-gateway-amazon-payments-advanced",
   "description": "Amazon Pay Gateway for WooCommerce",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "title": "WooCommerce Gateway Amazon Pay",
   "repository": {
     "type": "git",
@@ -36,12 +36,14 @@
     "fix:js": "cross-var wp-scripts format $npm_package_config_webpack_js",
     "lint:css": "cross-var wp-scripts lint-style $npm_package_config_webpack_css",
     "fix:css": "cross-var wp-scripts lint-style $npm_package_config_webpack_css --fix",
-    "makepot": "wpi18n makepot --domain-path=\"languages\" --pot-file=\"woocommerce-gateway-amazon-payments-advanced.pot\" --type=\"plugin\" --main-file=\"woocommerce-gateway-amazon-payments-advanced.php\" --exclude=\"node_modules,tests,docs,docker,vendor\"",
+    "i18n": "npm run i18n:makepot && npm run i18n:merge",
+    "i18n:makepot": "./vendor/bin/wp i18n make-pot . languages/woocommerce-gateway-amazon-payments-advanced.pot --exclude=node_modules,bin,tests,docs,docker",
+    "i18n:merge": "php bin/update-pot-file-references.php languages/woocommerce-gateway-amazon-payments-advanced.pot",
     "watch": "wp-scripts start",
-    "archive": "cross-var rimraf $npm_package_config_wp_org_slug.zip vendor/ node_modules/ && composer install --no-dev --optimize-autoloader && npm install --only=prod --ignore-scripts && composer archive --file=$npm_package_config_wp_org_slug --dir=$npm_package_config_wp_org_slug --format=zip",
+    "archive": "cross-var rimraf $npm_package_config_wp_org_slug.zip vendor/ node_modules/ build/**/*.js.map && composer install --no-dev --optimize-autoloader && npm install --only=prod --ignore-scripts && composer archive --file=$npm_package_config_wp_org_slug --dir=$npm_package_config_wp_org_slug --format=zip",
     "postarchive": "rimraf vendor/ node_modules/ && npm install",
     "build:assets": "wp-scripts build",
-    "build": "npm run makepot && npm run build:assets && npm run archive && npm run postpackage",
+    "build": "npm run build:assets && npm run i18n && npm run archive && npm run postpackage",
     "package": "npm run build && npm run archive",
     "postpackage": "cross-var unzip -q $npm_package_config_wp_org_slug/$npm_package_config_wp_org_slug.zip -d $npm_package_config_wp_org_slug && rimraf $npm_package_config_wp_org_slug/$npm_package_config_wp_org_slug.zip && zip -q -r $npm_package_config_wp_org_slug.zip $npm_package_config_wp_org_slug -qq && rimraf -rf $npm_package_config_wp_org_slug"
   },
@@ -55,7 +57,6 @@
     "copy-webpack-plugin": "^11.0.0",
     "cross-var": "^1.1.0",
     "glob": "^10.2.5",
-    "node-wp-i18n": "^1.2.7",
     "rimraf": "^5.0.1",
     "webpack-remove-empty-scripts": "^1.0.3"
   },
