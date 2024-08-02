@@ -111,6 +111,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return false;
 		}
 
+		if ( ! $this->possible_subscription_cart_supported() ) {
+			return false;
+		}
+
 		return true;
 	}
 

@@ -939,7 +939,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
 		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
 
-		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub && ! is_product() ) {
 			return;
 		}
 
