@@ -391,7 +391,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		}
 		// Use fallback value for the last name to avoid field required errors.
 		$last_name_fallback = '–';
-		$names              = explode( ' ', $name );
+		$names              = preg_split( '/ |　/', $name );
 		return array(
 			'first_name' => array_shift( $names ),
 			'last_name'  => empty( $names ) ? $last_name_fallback : implode( ' ', $names ),
