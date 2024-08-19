@@ -351,6 +351,7 @@
 		toggle_visibility: function( e ) {
 			e.preventDefault();
 			var target = $( $( this ).data( 'toggle' ) );
+			$(this).find( 'span' ).toggleClass( 'woocommerce-input-toggle--disabled', 'woocommerce-input-toggle--enabled' );
 			target.toggleClass( 'hidden' );
 			if ( ! $( this ).hasClass( 'wcapa-toggle-scroll' ) ) {
 				return;

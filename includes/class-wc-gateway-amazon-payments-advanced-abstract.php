@@ -389,7 +389,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			),
 			'manual_notice'               => array(
 				'type' => 'custom',
-				'html' => '<p>Problems with automatic setup? <a href="#" class="wcapa-toggle-section" data-toggle="#manual-settings-container, #automatic-settings-container">Click here</a> to manually enter your keys.</p>',
+				'html' => '<p>Problems with automatic setup? Toggle here <a href="#" class="wcapa-toggle-section" data-toggle="#manual-settings-container, #automatic-settings-container"><span class="woocommerce-input-toggle woocommerce-input-toggle--disabled" aria-label="' . esc_attr( __( 'Manually enter your keys', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '">' . esc_attr__( 'Yes', 'woocommerce' ) . '</span></a> to manually enter your keys.</p>',
 			),
 			'manual_container_start'      => array(
 				'type' => 'custom',
