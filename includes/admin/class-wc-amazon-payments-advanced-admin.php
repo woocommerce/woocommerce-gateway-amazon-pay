@@ -332,7 +332,12 @@ class WC_Amazon_Payments_Advanced_Admin {
 	public function review_prompt() {
 		global $current_section;
 
-		$anniversary_date  = get_option( 'amazon_payments_advanced_anniversary_date' );
+		// Bail early and always if we don't have the keys set.
+		if ( ! WC_Amazon_Payments_Advanced_API::get_amazon_keys_set() ) {
+			return;
+		}
+
+		$anniversary_date  = get_option( 'amazon_payments_advanced_enabled_anniversary_date' );
 		$hidden_until_date = get_option( 'amazon_payments_advanced_hidden_until_date' );
 
 		// Set up the dates.
@@ -340,7 +345,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 		if ( ! $anniversary_date || ! $hidden_until_date ) {
 			$anniversary_date  = time();
 			$hidden_until_date = strtotime( '+1 month' );
-			update_option( 'amazon_payments_advanced_anniversary_date', $anniversary_date );
+			update_option( 'amazon_payments_advanced_enabled_anniversary_date', $anniversary_date );
 			update_option( 'amazon_payments_advanced_hidden_until_date', $hidden_until_date );
 		}
 
@@ -407,7 +412,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 	public function ajax_dismiss_review_prompt() {
 		check_ajax_referer( 'amazon_pay_dismiss_review_prompt', 'nonce' );
 
-		$anniversary_date = get_option( 'amazon_payments_advanced_anniversary_date' );
+		$anniversary_date = get_option( 'amazon_payments_advanced_enabled_anniversary_date' );
 
 		// Start from the stored anniversary date.
 		// Add a year in each loop until the result is in the future.
