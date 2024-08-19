@@ -177,7 +177,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 */
 	public function __construct() {
 		$this->method_title         = __( 'Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' );
-		$this->method_description   = __( 'Amazon Pay is embedded directly into your existing web site, and all the buyer interactions with Amazon Pay and Login with Amazon take place in embedded widgets so that the buyer never leaves your site. Buyers can log in using their Amazon account, select a shipping address and payment method, and then confirm their order. Requires an Amazon Pay seller account and supports USA, UK, Germany, France, Italy, Spain, Luxembourg, the Netherlands, Sweden, Portugal, Hungary, Denmark, and Japan.', 'woocommerce-gateway-amazon-payments-advanced' );
+		$this->method_description   = __( 'Amazon Pay allows 300M+ active buyers to checkout using their Amazon account and is embedded directly into your existing website.', 'woocommerce-gateway-amazon-payments-advanced' );
 		$this->id                   = 'amazon_payments_advanced';
 		$this->icon                 = apply_filters( 'woocommerce_amazon_pa_logo', wc_apa()->plugin_url . '/build/images/amazon-payments.png' );
 		$this->view_transaction_url = $this->get_transaction_url_format();
