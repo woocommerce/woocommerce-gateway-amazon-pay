@@ -344,6 +344,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		}
 
 		$this->form_fields = array(
+			'plugin_onboarding'           => array(
+				'type' => 'custom',
+				'html' => '<p>' . __( 'Need help? Check out our <a href="https://woocommerce.com/document/amazon-payments-advanced/" target="_blank">User Documentation</a> for detailed guidance.', 'woocommerce-gateway-amazon-payments-advanced' ) . '</p>',
+			),
 			'important_note'              => array(
 				'title'       => __( 'Important note, before you sign up:', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
