@@ -1,5 +1,16 @@
 *** Amazon Pay Changelog ***
 
+= 2.5.3 - 2024-xx-xx =
+
+* Fix - Add onboarding text and link
+* Fix - Update the plugin Author on wp.org
+* Fix - Set Merchant account details selector as toggle
+* Fix - Adjust the feedback prompt trigger moment
+* Fix - Adjust the plugin description on the WC settings page
+* Fix - Check the configuration link removed from actual page
+* Dev - Bumped tested up to WordPress v6.6.2.
+* Dev - Bumped tested up to WooCommerce v9.3.2.
+
 = 2.5.2 - 2024-07-25 =
 
 * Fix - Error when using a non Standard decimal amount for a currency.
