@@ -390,8 +390,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			);
 		}
 		// Use fallback value for the last name to avoid field required errors.
-		$last_name_fallback = '.';
-		$names              = explode( ' ', $name );
+		$last_name_fallback = '–';
+		$names              = preg_split( '/ |　/', $name );
 		return array(
 			'first_name' => array_shift( $names ),
 			'last_name'  => empty( $names ) ? $last_name_fallback : implode( ' ', $names ),
@@ -477,11 +477,13 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 
 		}
 
-		$formatted['phone'] = isset( $address->Phone ) ? (string) $address->Phone : null;
+		// Prevent invalid characters in phone number.
+		$formatted['phone'] = isset( $address->Phone ) ? (string) filter_var($address->Phone, FILTER_DEFAULT, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH) : null;
+
 		$formatted['city'] = isset( $address->City ) ? (string) $address->City : null;
 		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ) ) ) {
 			if ( empty( $formatted['city'] ) ) {
-				$formatted['city'] = ''; // Force empty city
+				$formatted['city'] = '–'; // Force empty city
 			}
 		}
 		$formatted['postcode'] = isset( $address->PostalCode ) ? (string) $address->PostalCode : null;
@@ -495,6 +497,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			if ( ! empty( $valid_states ) && is_array( $valid_states ) ) {
 				$valid_state_values = array_map( 'wc_strtoupper', array_flip( array_map( 'wc_strtoupper', $valid_states ) ) );
 				$uc_state       = wc_strtoupper( $formatted['state'] );
+
+				$uc_state = WC_Gateway_Amazon_Payments_Advanced::maybe_get_jp_region_code( $uc_state );
 
 				if ( isset( $valid_state_values[ $uc_state ] ) ) {
 					// With this part we consider state value to be valid as well, convert it to the state key for the valid_states check below.

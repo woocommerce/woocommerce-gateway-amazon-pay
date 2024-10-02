@@ -18,53 +18,53 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * Specifically requested by Amazon's JP Team.
 	 */
 	const JP_REGION_CODE_MAP = array(
-		'JP01' => '北海道',
-		'JP02' => '青森県',
-		'JP03' => '岩手県',
-		'JP04' => '宮城県',
-		'JP05' => '秋田県',
-		'JP06' => '山形県',
-		'JP07' => '福島県',
-		'JP08' => '茨城県',
-		'JP09' => '栃木県',
-		'JP10' => '群馬県',
-		'JP11' => '埼玉県',
-		'JP12' => '千葉県',
-		'JP13' => '東京都',
-		'JP14' => '神奈川県',
-		'JP15' => '新潟県',
-		'JP16' => '富山県',
-		'JP17' => '石川県',
-		'JP18' => '福井県',
-		'JP19' => '山梨県',
-		'JP20' => '長野県',
-		'JP21' => '岐阜県',
-		'JP22' => '静岡県',
-		'JP23' => '愛知県',
-		'JP24' => '三重県',
-		'JP25' => '滋賀県',
-		'JP26' => '京都府',
-		'JP27' => '大阪府',
-		'JP28' => '兵庫県',
-		'JP29' => '奈良県',
-		'JP30' => '和歌山県',
-		'JP31' => '鳥取県',
-		'JP32' => '島根県',
-		'JP33' => '岡山県',
-		'JP34' => '広島県',
-		'JP35' => '山口県',
-		'JP36' => '徳島県',
-		'JP37' => '香川県',
-		'JP38' => '愛媛県',
-		'JP39' => '高知県',
-		'JP40' => '福岡県',
-		'JP41' => '佐賀県',
-		'JP42' => '長崎県',
-		'JP43' => '熊本県',
-		'JP44' => '大分県',
-		'JP45' => '宮崎県',
-		'JP46' => '鹿児島県',
-		'JP47' => '沖縄県',
+		'JP01' => array( 'Hokkaido', 'Hokkaidō', '北海道' ),
+		'JP02' => array( 'Aomori', 'Aomori-ken', '青森県' ),
+		'JP03' => array( 'Iwate', 'Iwate-ken', '岩手県' ),
+		'JP04' => array( 'Miyagi', 'Miyagi-ken', '宮城県' ),
+		'JP05' => array( 'Akita', 'Akita-ken', '秋田県' ),
+		'JP06' => array( 'Yamagata', 'Yamagata-ken', '山形県' ),
+		'JP07' => array( 'Fukushima', 'Fukushima-ken', '福島県' ),
+		'JP08' => array( 'Ibaraki', 'Ibaraki-ken', '茨城県' ),
+		'JP09' => array( 'Tochigi', 'Tochigi-ken', '栃木県' ),
+		'JP10' => array( 'Gunma', 'Gunma-ken', '群馬県' ),
+		'JP11' => array( 'Saitama', 'Saitama-ken', '埼玉県' ),
+		'JP12' => array( 'Chiba', 'Chiba-ken', '千葉県' ),
+		'JP13' => array( 'Tokyo', 'Tōkyō-to', '東京都' ),
+		'JP14' => array( 'Kanagawa', 'Kanagawa-ken', '神奈川県' ),
+		'JP15' => array( 'Niigata', 'Niigata-ken', '新潟県' ),
+		'JP16' => array( 'Toyama', 'Toyama-ken', '富山県' ),
+		'JP17' => array( 'Ishikawa', 'Ishikawa-ken', '石川県' ),
+		'JP18' => array( 'Fukui', 'Fukui-ken', '福井県' ),
+		'JP19' => array( 'Yamanashi', 'Yamanashi-ken', '山梨県' ),
+		'JP20' => array( 'Nagano', 'Nagano-ken', '長野県' ),
+		'JP21' => array( 'Gifu', 'Gifu-ken', '岐阜県' ),
+		'JP22' => array( 'Shizuoka', 'Shizuoka-ken', '静岡県' ),
+		'JP23' => array( 'Aichi', 'Aichi-ken', '愛知県' ),
+		'JP24' => array( 'Mie', 'Mie-ken', '三重県' ),
+		'JP25' => array( 'Shiga', 'Shiga-ken', '滋賀県' ),
+		'JP26' => array( 'Kyoto', 'Kyōto-fu', '京都府' ),
+		'JP27' => array( 'Osaka', 'Ōsaka-fu', '大阪府' ),
+		'JP28' => array( 'Hyogo', 'Hyōgo-ken', '兵庫県' ),
+		'JP29' => array( 'Nara', 'Nara-ken', '奈良県' ),
+		'JP30' => array( 'Wakayama', 'Wakayama-ken', '和歌山県' ),
+		'JP31' => array( 'Tottori', 'Tottori-ken', '鳥取県' ),
+		'JP32' => array( 'Shimane', 'Shimane-ken', '島根県' ),
+		'JP33' => array( 'Okayama', 'Okayama-ken', '岡山県' ),
+		'JP34' => array( 'Hiroshima', 'Hiroshima-ken', '広島県' ),
+		'JP35' => array( 'Yamaguchi', 'Yamaguchi-ken', '山口県' ),
+		'JP36' => array( 'Tokushima', 'Tokushima-ken', '徳島県' ),
+		'JP37' => array( 'Kagawa', 'Kagawa-ken', '香川県' ),
+		'JP38' => array( 'Ehime', 'Ehime-ken', '愛媛県' ),
+		'JP39' => array( 'Kochi', 'Kōchi-ken', '高知県' ),
+		'JP40' => array( 'Fukuoka', 'Fukuoka-ken', '福岡県' ),
+		'JP41' => array( 'Saga', 'Saga-ken', '佐賀県' ),
+		'JP42' => array( 'Nagasaki', 'Nagasaki-ken', '長崎県' ),
+		'JP43' => array( 'Kumamoto', 'Kumamoto-ken', '熊本県' ),
+		'JP44' => array( 'Oita', 'Ōita-ken', '大分県' ),
+		'JP45' => array( 'Miyazaki', 'Miyazaki-ken', '宮崎県' ),
+		'JP46' => array( 'Kagoshima', 'Kagoshima-ken', '鹿児島県' ),
+		'JP47' => array( 'Okinawa', 'Okinawa-ken', '沖縄県' ),
 	);
 
 	/**
@@ -943,7 +943,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$subscriptions_enabled   = empty( $this->settings['subscriptions_enabled'] ) || 'yes' === $this->settings['subscriptions_enabled'];
 		$cart_contains_sub       = class_exists( 'WC_Subscriptions_Cart' ) ? WC_Subscriptions_Cart::cart_contains_subscription() : false;
 
-		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub ) {
+		if ( $subscriptions_installed && ! $subscriptions_enabled && $cart_contains_sub && ! is_product() ) {
 			return;
 		}
 
@@ -1020,30 +1020,21 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		return $gateways;
 	}
 
-	/**
-	 * Override billing fields when checking out with Amazon.
-	 *
-	 * @param array $fields billing fields.
-	 */
-	public function override_billing_fields( $fields ) {
-		// Last name and State are not required on Amazon billing addrress forms.
-		$fields['billing_last_name']['required'] = false;
-		$fields['billing_state']['required']     = false;
-		// Phone field is missing on some sandbox accounts.
-		$fields['billing_phone']['required'] = false;
-
-		return $fields;
-	}
 
 	/**
-	 * Override address fields when checking out with Amazon.
+	 * Override checkout fields when checking out with Amazon.
 	 *
 	 * @param array $fields default address fields.
 	 */
-	public function override_shipping_fields( $fields ) {
-		// Last name and State are not required on Amazon shipping address forms.
-		$fields['shipping_last_name']['required'] = false;
-		$fields['shipping_state']['required']     = false;
+	public function override_checkout_fields( $fields ) {
+
+		$non_required_fields = WC_Amazon_Payments_Advanced_Utils::get_non_required_fields();
+
+		foreach ( $fields as $key => $field ) {
+			if ( ! in_array( $key, $non_required_fields, true ) ) {
+				$fields[ $key ]['required'] = false;
+			}
+		}
 
 		return $fields;
 	}
@@ -1055,8 +1046,8 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		// Remove other gateways after being logged in.
 		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'remove_gateways' ) );
 		// Some fields are not enforced on Amazon's side. Marking them as optional avoids issues with checkout.
-		add_filter( 'woocommerce_billing_fields', array( $this, 'override_billing_fields' ) );
-		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_shipping_fields' ) );
+		add_filter( 'woocommerce_billing_fields', array( $this, 'override_checkout_fields' ) );
+		add_filter( 'woocommerce_shipping_fields', array( $this, 'override_checkout_fields' ) );
 		// Always ship to different address.
 		add_action( 'woocommerce_ship_to_different_address_checked', '__return_true' );
 	}
