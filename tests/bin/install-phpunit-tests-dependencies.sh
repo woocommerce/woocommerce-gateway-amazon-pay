@@ -11,6 +11,7 @@ DB_USER=$2
 DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
+PHP_VERSION=$6
 
 TMPDIR=${TMPDIR-/tmp}
 TMPDIR=$(echo $TMPDIR | sed -e "s/\/$//")
@@ -62,9 +63,14 @@ install_wp() {
 }
 
 install_woocommerce() {
-	WC_VERSION=$(curl https://api.wordpress.org/plugins/info/1.0/woocommerce.json | jq -r '.version')
+	if [ $PHP_VERSION = "7.3" ]; then
+		WC_VERSION="8.4.0"
+		echo "Warning: WooCommerce $WC_VERSION is the latest version compatible with PHP7.3"
+	else	
+		WC_VERSION=$(curl https://api.wordpress.org/plugins/info/1.0/woocommerce.json | jq -r '.version')
+	fi
 
-	echo "Installing WooCommerce $WC_VERSION"
+	echo "Installing WooCommerce $WC_VERSION on PHP $PHP_VERSION"
 	cd -
 	download https://downloads.wordpress.org/plugin/woocommerce.$WC_VERSION.zip ../woocommerce.zip
 	unzip -o -qq ../woocommerce.zip -d ../
