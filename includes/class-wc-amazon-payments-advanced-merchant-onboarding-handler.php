@@ -57,9 +57,9 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 			$payload = (object) filter_var_array(
 				$payload,
 				array(
-					'merchantId'  => FILTER_SANITIZE_STRING,
-					'storeId'     => FILTER_SANITIZE_STRING,
-					'publicKeyId' => FILTER_SANITIZE_STRING,
+					'merchantId'  => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+					'storeId'     => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+					'publicKeyId' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
 				),
 				true
 			);
