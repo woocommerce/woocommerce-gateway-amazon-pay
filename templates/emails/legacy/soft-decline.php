@@ -31,19 +31,19 @@ $url      = sprintf( 'https://payments.amazon.%1$s/jr/your-account/orders%2$s', 
 $url_link = "<a href='$url' target='_blank'>$url</a>";
 ?>
 
-<p><?php _e( 'Valued customer', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>
+<p><?php esc_html_e( 'Valued customer', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>
 <p>
 <?php
 /* translators: 1) Site Name */
-printf( __( 'Thank you very much for your order at %s.', 'woocommerce-gateway-amazon-payments-advanced' ), get_bloginfo( 'name' ) );
+printf( esc_html__( 'Thank you very much for your order at %s.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( get_bloginfo( 'name' ) ) );
 ?>
 </p>
-<p><?php _e( 'Amazon Pay was not able to process your payment.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
+<p><?php esc_html_e( 'Amazon Pay was not able to process your payment.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 <p>
 <?php
 /* translators: 1) Amazon Pay URL. */
-printf( __( 'Please go to %s and update the payment information for your order. Afterwards we will automatically request payment again from Amazon Pay and you will receive a confirmation email.', 'woocommerce-gateway-amazon-payments-advanced' ), $url_link );
+printf( esc_html__( 'Please go to %s and update the payment information for your order. Afterwards we will automatically request payment again from Amazon Pay and you will receive a confirmation email.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_url( $url_link ) );
 ?>
 </p>
-<p><?php _e( 'Kind regards', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>
+<p><?php esc_html_e( 'Kind regards', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>
 
