@@ -279,7 +279,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription();
 		$cart_contains_renewal           = wcs_cart_contains_renewal();
-		$change_payment_for_subscription = isset( $_GET['change_payment_method'] ) && wcs_is_subscription( absint( $_GET['change_payment_method'] ) );
+		$change_payment_for_subscription = isset( $_GET['change_payment_method'] ) && wcs_is_subscription( absint( $_GET['change_payment_method'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 
 		if ( ! $cart_contains_renewal && ! $cart_contains_subscription && ! $change_payment_for_subscription ) {
 			return $payload;
@@ -319,10 +319,11 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 				$subscription = wcs_get_subscription( $cart_contains_renewal['subscription_renewal']['subscription_id'] );
 			} elseif ( $change_payment_for_subscription ) {
+				// phpcs:ignore WordPress.Security.NonceVerification
 				if ( ! isset( $_GET['change_payment_method'] ) ) {
 					return $payload;
 				}
-
+				// phpcs:ignore WordPress.Security.NonceVerification
 				$subscription = wcs_get_subscription( absint( $_GET['change_payment_method'] ) );
 
 				if ( $subscription && ! empty( $payload['webCheckoutDetails']['checkoutResultReturnUrl'] ) ) {
@@ -363,6 +364,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return array
 	 */
 	public function recurring_checkout_session_update( $payload, $checkout_session_id, $order, $doing_classic_payment ) {
+		// phpcs:ignore WordPress.Security.NonceVerification
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) && $order->get_id() === absint( $_POST['woocommerce_change_payment'] ) ) {
 
 			$payload['paymentDetails']['paymentIntent'] = 'Confirm';
@@ -390,8 +392,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 			return $payload;
 		}
-
-		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( (int) $_GET['order_id'] ) ) ) {
 			return $payload;
 		}
 
@@ -441,7 +443,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return array
 	 */
 	public function recurring_complete_checkout_session_update( $payload ) {
-		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( $_GET['order_id'] ) ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! WC_Subscriptions_Cart::cart_contains_subscription() && ( ! isset( $_GET['order_id'] ) || ! wcs_order_contains_subscription( (int) $_GET['order_id'] ) ) ) {
 			return $payload;
 		}
 		WC()->cart->calculate_totals();
@@ -741,10 +744,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return string
 	 */
 	public function maybe_change_session_key( $session_key ) {
+		// phpcs:disable WordPress.Security.NonceVerification
 		if ( isset( $_POST['_wcsnonce'] ) && isset( $_POST['woocommerce_change_payment'] ) ) {
 			$order_id = absint( $_POST['woocommerce_change_payment'] );
 			return 'amazon_checkout_session_id_order_pay_' . $order_id;
 		}
+		// phpcs:enable WordPress.Security.NonceVerification
 		return $session_key;
 	}
 
@@ -770,6 +775,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @param  object   $response Charge Completion response from the Amazon API.
 	 */
 	public function maybe_change_payment_method( $order, $response ) {
+		// phpcs:ignore WordPress.Security.NonceVerification
 		if ( ! isset( $_GET['change_payment_method'] ) ) {
 			return;
 		}
@@ -794,6 +800,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return string
 	 */
 	public function maybe_redirect_to_subscription( $redirect, $order ) {
+		// phpcs:ignore WordPress.Security.NonceVerification
 		if ( ! isset( $_GET['change_payment_method'] ) ) {
 			return $redirect;
 		}
@@ -873,6 +880,6 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 * @return bool
 	 */
 	public function is_subs_change_payment() {
-		return isset( $_GET['pay_for_order'] ) && isset( $_GET['change_payment_method'] ) && is_numeric( $_GET['change_payment_method'] ); // WPCS: CSRF ok.
+		return isset( $_GET['pay_for_order'] ) && isset( $_GET['change_payment_method'] ) && is_numeric( $_GET['change_payment_method'] ); // phpcs:ignore WordPress.Security.NonceVerification
 	}
 }
