@@ -193,7 +193,7 @@ abstract class WC_Amazon_Payments_Advanced_Multi_Currency_Abstract {
 	 */
 	public function ajax_get_currency() {
 		check_ajax_referer( 'multi_currency_nonce', 'nonce' );
-		echo static::get_active_currency();
+		echo esc_html( static::get_active_currency() );
 		wp_die();
 	}
 

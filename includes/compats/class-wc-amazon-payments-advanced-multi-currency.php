@@ -50,7 +50,8 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 
 		// Load multicurrency fields if compatibility. (Only on settings admin).
 		if ( is_admin() ) {
-			$compatible_region = isset( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) ? self::compatible_region( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) : self::compatible_region();
+			// phpcs:ignore WordPress.Security.NonceVerification
+			$compatible_region = isset( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) ? self::compatible_region( sanitize_text_field( $_POST['woocommerce_amazon_payments_advanced_payment_region'] ) ) : self::compatible_region();
 			if ( $compatible_region ) {
 				add_filter( 'woocommerce_amazon_pa_form_fields_before_legacy', array( __CLASS__, 'add_currency_fields' ) );
 			}
@@ -180,8 +181,10 @@ class WC_Amazon_Payments_Advanced_Multi_Currency {
 	 */
 	public function is_amazon_settings_page() {
 		if ( is_admin() &&
+			// phpcs:disable WordPress.Security.NonceVerification
 			( isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) &&
 			( isset( $_GET['section'] ) && 'amazon_payments_advanced' === $_GET['section'] ) ) {
+			// phpcs:enable WordPress.Security.NonceVerification
 			return true;
 		}
 		return false;

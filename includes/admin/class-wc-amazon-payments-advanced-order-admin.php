@@ -55,10 +55,10 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		check_admin_referer( 'amazon_order_action', 'security' );
 
 		// Find order id with HPOS disabled.
-		$order_id = ! empty( $_GET['post'] ) ? $_GET['post'] : false;
+		$order_id = ! empty( $_GET['post'] ) ? (int) $_GET['post'] : false;
 		if ( ! $order_id ) {
 			// Find order id with HPOS enabled.
-			$order_id = ! empty( $_GET['id'] ) ? $_GET['id'] : false;
+			$order_id = ! empty( $_GET['id'] ) ? (int) $_GET['id'] : false;
 		}
 
 		$order_id = absint( $order_id );
@@ -208,7 +208,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 
 		$charge_permission_status_label = $charge_permission_status_label ? $charge_permission_status_label : __( 'Invalid', 'woocommerce-gateway-amazon-payments-advanced' );
 		/* translators: 1) Charge Permission ID 2) Status. */
-		echo wpautop( sprintf( __( 'Charge Permission %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_permission_id ), esc_html( $charge_permission_status_label ) ) );
+		echo wp_kses_post( wpautop( sprintf( __( 'Charge Permission %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_permission_id ), esc_html( $charge_permission_status_label ) ) ) );
 
 		$charge_permission_status = ! is_wp_error( $charge_permission_cached_status ) ? $charge_permission_cached_status->status : '';
 
@@ -243,7 +243,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			$charge_status_label = $this->status_details_label( $charge_cached_status );
 			$charge_status_label = $charge_status_label ? $charge_status_label : __( 'Invalid', 'woocommerce-gateway-amazon-payments-advanced' );
 			/* translators: 1) Charge ID 2) Status. */
-			echo wpautop( sprintf( __( 'Charge %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_id ), esc_html( $charge_status_label ) ) );
+			echo wp_kses_post( wpautop( sprintf( __( 'Charge %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $charge_id ), esc_html( $charge_status_label ) ) ) );
 
 			$charge_status = $charge_cached_status->status;
 

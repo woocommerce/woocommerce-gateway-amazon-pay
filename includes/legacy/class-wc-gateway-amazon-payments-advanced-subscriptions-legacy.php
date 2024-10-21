@@ -62,8 +62,8 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 			return $process;
 		}
 
-		$amazon_reference_id              = isset( $_POST['amazon_reference_id'] ) ? wc_clean( $_POST['amazon_reference_id'] ) : '';
-		$amazon_billing_agreement_id      = isset( $_POST['amazon_billing_agreement_id'] ) ? wc_clean( $_POST['amazon_billing_agreement_id'] ) : '';
+		$amazon_reference_id              = isset( $_POST['amazon_reference_id'] ) ? wc_clean( $_POST['amazon_reference_id'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$amazon_billing_agreement_id      = isset( $_POST['amazon_billing_agreement_id'] ) ? wc_clean( $_POST['amazon_billing_agreement_id'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$amazon_billing_agreement_details = WC()->session->get( 'amazon_billing_agreement_details' ) ? wc_clean( WC()->session->get( 'amazon_billing_agreement_details' ) ) : false;
 
 		if ( ! $amazon_billing_agreement_id && 'yes' === get_option( 'woocommerce_subscriptions_turn_off_automatic_payments' ) ) {
@@ -751,7 +751,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 		$amazon_billing_agreement_state = $this->get_billing_agreement_state( $order_id, $amazon_billing_agreement_id ); // phpcs:ignore WordPress.NamingConventions
 
 		/* translators: 1) Billing Agreement ID 2) Billing Agreement Status. */
-		echo wpautop( sprintf( __( 'Billing Agreement %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_billing_agreement_id ), esc_html( $amazon_billing_agreement_state ) ) );
+		echo sprintf( esc_html__( 'Billing Agreement %1$s is <strong>%2$s</strong>.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( $amazon_billing_agreement_id ), esc_html( $amazon_billing_agreement_state ) );
 
 		switch ( $amazon_billing_agreement_state ) {
 			case 'Open':
@@ -769,12 +769,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions_Legacy {
 
 				break;
 			case 'Suspended':
-				echo wpautop( __( 'The agreement has been suspended. Another form of payment is required.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+				echo esc_html__( 'The agreement has been suspended. Another form of payment is required.', 'woocommerce-gateway-amazon-payments-advanced' );
 
 				break;
 			case 'Canceled':
 			case 'Suspended':
-				echo wpautop( __( 'The agreement has been cancelled/closed. No authorizations can be made.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+				echo esc_html__( 'The agreement has been cancelled/closed. No authorizations can be made.', 'woocommerce-gateway-amazon-payments-advanced' );
 
 				break;
 		}

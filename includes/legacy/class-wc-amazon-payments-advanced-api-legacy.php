@@ -138,7 +138,8 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		if ( '<' !== substr( $source, 0, 1 ) ) {
 			return false;
 		}
-
+		// Disable the phpcs warning about the function is not available in PHP 8, since it is under conditional to backward compatibility. We can safely ignore it.
+		// phpcs:disable
 		if ( \PHP_VERSION_ID < 80000 && function_exists( 'libxml_disable_entity_loader' ) ) {
 			$old = libxml_disable_entity_loader( true );
 		}
@@ -149,7 +150,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		if ( ! is_null( $old ) ) {
 			libxml_disable_entity_loader( $old );
 		}
-
+		// phpcs:enable
 		if ( ! $return ) {
 			return false;
 		}
@@ -275,7 +276,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 
 		// Don't encode here - http_build_query already did it.
 		foreach ( $params as $key => $val ) {
-			$canonical .= $key . '=' . rawurlencode( utf8_decode( urldecode( $val ) ) ) . '&';
+			$canonical .= $key . '=' . rawurlencode( mb_convert_encoding( urldecode( $val ), 'UTF-8' ) ) . '&';
 		}
 
 		// Remove the trailing ampersand.
@@ -381,15 +382,18 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @return string
 	 */
 	public static function get_reference_id() {
-		$reference_id = ! empty( $_REQUEST['amazon_reference_id'] ) ? $_REQUEST['amazon_reference_id'] : '';
+		//phpcs:disable WordPress.Security.NonceVerification
+		$reference_id = ! empty( $_REQUEST['amazon_reference_id'] ) ? sanitize_text_field( $_REQUEST['amazon_reference_id'] ) : '';
 
 		if ( isset( $_POST['post_data'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			parse_str( $_POST['post_data'], $post_data );
 
 			if ( isset( $post_data['amazon_reference_id'] ) ) {
 				$reference_id = $post_data['amazon_reference_id'];
 			}
 		}
+		//phpcs:enable WordPress.Security.NonceVerification
 
 		return self::check_session( 'amazon_reference_id', $reference_id );
 	}
@@ -400,7 +404,8 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 	 * @return string
 	 */
 	public static function get_access_token() {
-		$access_token = ! empty( $_REQUEST['access_token'] ) ? $_REQUEST['access_token'] : ( isset( $_COOKIE['amazon_Login_accessToken'] ) && ! empty( $_COOKIE['amazon_Login_accessToken'] ) ? $_COOKIE['amazon_Login_accessToken'] : '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$access_token = ! empty( $_REQUEST['access_token'] ) ? sanitize_text_field( $_REQUEST['access_token'] ) : ( isset( $_COOKIE['amazon_Login_accessToken'] ) && ! empty( $_COOKIE['amazon_Login_accessToken'] ) ? sanitize_text_field( $_COOKIE['amazon_Login_accessToken'] ) : '' );
 
 		return self::check_session( 'access_token', $access_token );
 	}
@@ -437,6 +442,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 		if ( ! empty( $value ) ) {
 			// Set access token or reference ID in session after redirected
 			// from Amazon Pay window.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			if ( ! empty( $_GET['amazon_payments_advanced'] ) ) {
 				WC()->session->{ $key } = $value;
 			}
@@ -961,6 +967,7 @@ class WC_Amazon_Payments_Advanced_API_Legacy extends WC_Amazon_Payments_Advanced
 				'TransactionTimeout'                  => ( isset( $args['transaction_timeout'] ) ) ? $args['transaction_timeout'] : 0,
 				'SellerOrderAttributes.SellerOrderId' => $order->get_order_number(),
 				'SellerOrderAttributes.StoreName'     => WC_Amazon_Payments_Advanced::get_site_name(),
+				// phpcs:ignore
 				// 'SellerAuthorizationNote'          => '{"SandboxSimulation": {"State":"Declined", "ReasonCode":"AmazonRejected"}}'
 			)
 		);
