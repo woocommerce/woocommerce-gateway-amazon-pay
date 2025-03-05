@@ -13,7 +13,7 @@ import { settings } from './_settings';
 import { renderAndInitAmazonCheckout } from '../../_renderAmazonButton';
 
 /**
- * Returns a react component and also sets an observer for the onCheckoutAfterProcessingWithSuccess event.
+ * Returns a react component and also sets an observer for the onCheckoutSuccess event.
  * @param {object} props
  * @returns React component
  */
@@ -21,7 +21,7 @@ const AmazonPayBtn = ( props ) => {
 	const { action } = settings;
 
 	useEffect( () => {
-		const unsubscribe = props.eventRegistration.onCheckoutAfterProcessingWithSuccess(
+		const unsubscribe = props.eventRegistration.onCheckoutSuccess(
 			async ( { processingResponse } ) => {
 				const paymentDetails = processingResponse.paymentDetails || {};
 				renderAndInitAmazonCheckout(
@@ -34,14 +34,14 @@ const AmazonPayBtn = ( props ) => {
 		);
 		return () => unsubscribe();
 	}, [
-		props.eventRegistration.onCheckoutAfterProcessingWithSuccess,
+		props.eventRegistration.onCheckoutSuccess,
 		props.emitResponse.noticeContexts.PAYMENTS,
 		props.emitResponse.responseTypes.ERROR,
 		props.emitResponse.responseTypes.SUCCESS,
 	] );
 
 	useEffect( () => {
-		const unsubscribe = props.eventRegistration.onPaymentProcessing(
+		const unsubscribe = props.eventRegistration.onPaymentSetup(
 			async () => {
 				if ( 'PayOnly' === action ) {
 					return true;
@@ -60,7 +60,7 @@ const AmazonPayBtn = ( props ) => {
 		);
 		return () => unsubscribe();
 	}, [
-		props.eventRegistration.onPaymentProcessing,
+		props.eventRegistration.onPaymentSetup,
 		props.emitResponse.noticeContexts.PAYMENTS,
 		props.emitResponse.responseTypes.ERROR,
 		props.emitResponse.responseTypes.SUCCESS,
