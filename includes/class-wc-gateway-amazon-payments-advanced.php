@@ -670,7 +670,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 		$class = implode( ' ', $class );
 		?>
-		<div class="<?php echo esc_attr( $class ); ?>" >;
+		<div class="<?php echo esc_attr( $class ); ?>" >
 		<?php
 		if ( $this->is_available() ) {
 			if ( ! $this->is_logged_in() ) {
