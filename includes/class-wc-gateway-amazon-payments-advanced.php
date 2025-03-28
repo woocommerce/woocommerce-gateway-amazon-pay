@@ -877,60 +877,52 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		// The following fields cannot be optional for WC compatibility reasons.
 		$required_fields = array( 'billing_first_name', 'billing_last_name', 'billing_email' );
+
 		// If the order does not require shipping, these fields can be optional.
-		$optional_fields = array(
-			'billing_company',
-			'billing_country',
-			'billing_address_1',
-			'billing_address_2',
-			'billing_city',
-			'billing_state',
-			'billing_postcode',
-			'billing_phone',
-		);
-		$all_fields      = array_merge( $required_fields, $optional_fields );
+		$optional_fields = WC_Amazon_Payments_Advanced_Utils::get_optional_fields();
+
 		$checkout_fields = version_compare( WC_VERSION, '3.0', '>=' )
 			? $checkout->get_checkout_fields()
 			: $checkout->checkout_fields;
 
-		$session_wc_format = $this->get_woocommerce_data();
-
-		$missing  = array();
-		$present  = array();
-		$optional = array();
-		foreach ( $all_fields as $key ) {
-			if ( ! empty( $checkout_fields['billing'][ $key ]['required'] ) ) {
-				if ( ! isset( $session_wc_format[ $key ] ) ) {
-					$missing[] = $key;
-				} else {
-					$present[] = $key;
-				}
-			} else {
-				$optional[] = $key;
-			}
-		}
-
-		if ( ! empty( $present ) ) {
-			$this->add_hidden_class_to_fields( $checkout_fields['billing'], array_merge( $present, $optional ) );
-		}
-
-		$field_list = array(
-			'shipping_first_name',
-			'shipping_last_name',
-			'shipping_company',
-			'shipping_country',
-			'shipping_address_1',
-			'shipping_address_2',
-			'shipping_city',
-			'shipping_state',
-			'shipping_postcode',
+		$this->maybe_add_hidden_class_to_fields(
+			$checkout_fields,
+			array_merge( $required_fields, ! empty( $optional_fields['billing'] ) ? $optional_fields['billing'] : array() )
 		);
 
+		$this->maybe_add_hidden_class_to_fields(
+			$checkout_fields,
+			array_merge( $required_fields, ! empty( $optional_fields['shipping'] ) ? $optional_fields['shipping'] : array() ),
+			'shipping'
+		);
+
+		$checkout->checkout_fields = $checkout_fields;
+	}
+
+	/**
+	 * Maybe add hidden class to checkout fields.
+	 *
+	 * @param array  $checkout_fields Reference to checkout fields.
+	 * @param array  $fields_list     List of fields to be hidden.
+	 * @param string $address_type    Address type (billing or shipping).
+	 */
+	protected function maybe_add_hidden_class_to_fields( &$checkout_fields, $fields_list, $address_type = 'billing' ) {
+
+		static $session_wc_format = null;
+
+		if ( null === $session_wc_format ) {
+			$session_wc_format = $this->get_woocommerce_data();
+		}
+
+		if ( ! isset( $checkout_fields[ $address_type ] ) ) {
+			return;
+		}
+
 		$missing  = array();
 		$present  = array();
 		$optional = array();
-		foreach ( $field_list as $key ) {
-			if ( ! empty( $checkout_fields['shipping'][ $key ]['required'] ) ) {
+		foreach ( $fields_list as $key ) {
+			if ( ! empty( $checkout_fields[ $address_type ][ $key ]['required'] ) ) {
 				if ( ! isset( $session_wc_format[ $key ] ) ) {
 					$missing[] = $key;
 				} else {
@@ -942,10 +934,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		if ( ! empty( $present ) ) {
-			$this->add_hidden_class_to_fields( $checkout_fields['shipping'], array_merge( $present, $optional ) );
+			$this->add_hidden_class_to_fields( $checkout_fields[ $address_type ], array_merge( $present, $optional ) );
 		}
-
-		$checkout->checkout_fields = $checkout_fields;
 	}
 
 	/**
@@ -2136,70 +2126,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return true;
-	}
-
-	/**
-	 * Filter billing fields
-	 *
-	 * @param  array $fields Billing fields from WooCommerce.
-	 * @return array
-	 */
-	public function override_billing_fields( $fields ) {
-		$old = ! empty( $fields['billing_state']['required'] );
-
-		$fields = parent::override_billing_fields( $fields );
-
-		$fields['billing_state']['required'] = $old;
-
-		$checkout_session = $this->get_checkout_session();
-
-		$address = null;
-		if ( ! empty( $checkout_session->billingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
-			$address = $checkout_session->billingAddress; // phpcs:ignore WordPress.NamingConventions
-		} elseif ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
-			$address = $checkout_session->shippingAddress; // phpcs:ignore WordPress.NamingConventions
-		}
-
-		if ( is_null( $address ) ) {
-			return $fields;
-		}
-
-		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ), true ) ) { // phpcs:ignore WordPress.NamingConventions
-			$fields['billing_city']['required'] = false;
-		}
-
-		return $fields;
-	}
-
-	/**
-	 * Filter shipping fields
-	 *
-	 * @param  array $fields Shipping fields from WooCommerce.
-	 * @return array
-	 */
-	public function override_shipping_fields( $fields ) {
-		$old = ! empty( $fields['shipping_state']['required'] );
-
-		$fields = parent::override_shipping_fields( $fields );
-
-		$fields['shipping_state']['required'] = $old;
-
-		$checkout_session = $this->get_checkout_session();
-
-		$address = null;
-		if ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
-			$address = $checkout_session->shippingAddress; // phpcs:ignore WordPress.NamingConventions
-		}
-
-		if ( is_null( $address ) ) {
-			return $fields;
-		}
-
-		if ( ! empty( $address->CountryCode ) && in_array( $address->CountryCode, array( 'JP' ), true ) ) { // phpcs:ignore WordPress.NamingConventions
-			$fields['shipping_city']['required'] = false;
-		}
-
-		return $fields;
 	}
 
 	/**
