@@ -180,7 +180,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 			);
 		}
 
-		if ( ! WC_Amazon_Payments_Advanced_API::get_amazon_keys_set() && 'yes' === $this->settings['enabled'] && $current_section !== 'amazon_payments_advanced' ) {
+		if ( ! WC_Amazon_Payments_Advanced_API::get_amazon_keys_set() && 'yes' === $this->settings['enabled'] && 'amazon_payments_advanced' !== $current_section ) {
 			$notices[] = array(
 				'dismiss_action' => 'amazon_pay_dismiss_enable_notice',
 				'class'          => 'amazon-pay-enable-notice',
@@ -311,7 +311,7 @@ class WC_Amazon_Payments_Advanced_Admin {
 				<script type="application/javascript">
 				( function( $ ) {
 					$( '.<?php echo esc_js( $notice['class'] ); ?>' ).on( 'click', '.notice-dismiss', function() {
-						jQuery.post( "<?php echo admin_url( 'admin-ajax.php' ); ?>", {
+						jQuery.post( "<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>", {
 							action: "amazon_pay_dismiss_notice",
 							dismiss_action: "<?php echo esc_js( $notice['dismiss_action'] ); ?>",
 							nonce: "<?php echo esc_js( wp_create_nonce( 'amazon_pay_dismiss_notice' ) ); ?>"

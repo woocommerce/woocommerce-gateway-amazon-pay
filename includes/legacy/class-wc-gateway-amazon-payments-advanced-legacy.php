@@ -37,7 +37,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		// Handling for the review page of the German Market Plugin.
 		if ( empty( $this->reference_id ) ) {
 			if ( isset( $_SESSION['first_checkout_post_array']['amazon_reference_id'] ) ) {
-				$this->reference_id = $_SESSION['first_checkout_post_array']['amazon_reference_id'];
+				$this->reference_id = sanitize_text_field( $_SESSION['first_checkout_post_array']['amazon_reference_id'] );
 			}
 		}
 
@@ -287,7 +287,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		}
 
 		$order               = wc_get_order( $order_id );
-		$amazon_reference_id = isset( $_POST['amazon_reference_id'] ) ? wc_clean( $_POST['amazon_reference_id'] ) : '';
+		$amazon_reference_id = isset( $_POST['amazon_reference_id'] ) ? wc_clean( $_POST['amazon_reference_id'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 		try {
 			if ( ! $order ) {
@@ -911,6 +911,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * If AuthenticationStatus is hit, we need to finish payment process that has been stopped previously.
 	 */
 	public function handle_sca_url_processing() {
+		// phpcs:ignore WordPress.Security.NonceVerification
 		if ( ! isset( $_GET['AuthenticationStatus'] ) ) {
 			return;
 		}
@@ -925,7 +926,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		WC()->session->set( 'amazon_reference_id', $amazon_reference_id );
 
 		wc_apa()->log( sprintf( 'Info: Continuing payment processing for order %s. Reference ID %s', $order_id, $amazon_reference_id ) );
-
+		// phpcs:ignore WordPress.Security.NonceVerification
 		$authorization_status = wc_clean( $_GET['AuthenticationStatus'] );
 		switch ( $authorization_status ) {
 			case 'Success':
@@ -1086,6 +1087,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @since 1.6.0
 	 */
 	public function maybe_attempt_to_logout() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( ! empty( $_GET['amazon_payments_advanced'] ) && ! empty( $_GET['amazon_logout'] ) ) {
 			$this->logout_from_amazon();
 		}
@@ -1208,11 +1210,15 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		echo '<div class="wc-amazon-checkout-message wc-amazon-payments-advanced-populated">';
 
 		if ( empty( $this->reference_id ) && empty( $this->access_token ) ) {
-			echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info"><div id="pay_with_amazon"></div> ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
+			?>
+			<div class="woocommerce-info info wc-amazon-payments-advanced-info"><div id="pay_with_amazon"></div>
+				<?php echo esc_html( apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) ); ?>
+			</div>
+			<?php
 		} else {
 			$logout_url      = $this->get_amazon_logout_url();
 			$logout_msg_html = '<div class="woocommerce-info info">' . apply_filters( 'woocommerce_amazon_pa_checkout_logout_message', __( 'You\'re logged in with your Amazon Account.', 'woocommerce-gateway-amazon-payments-advanced' ) ) . ' <a href="' . esc_url( $logout_url ) . '" id="amazon-logout">' . __( 'Log out &raquo;', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a></div>';
-			echo apply_filters( 'woocommerce_amazon_payments_logout_checkout_message_html', $logout_msg_html );
+			echo wp_kses_post( apply_filters( 'woocommerce_amazon_payments_logout_checkout_message_html', $logout_msg_html ) );
 		}
 
 		echo '</div>';
@@ -1622,6 +1628,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	public function ajax_sca_processing() {
 		check_ajax_referer( 'sca_nonce', 'nonce' );
 		// Get $_POST and $_REQUEST compatible with process_checkout.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		parse_str( $_POST['data'], $_POST );
 		$_REQUEST = $_POST;
 
@@ -1679,14 +1686,14 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		if ( 'checkout' !== $request ) {
 			return $url;
 		}
-
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		if ( ! empty( $_GET['amazon_payments_advanced'] ) ) {
-			$url = add_query_arg( 'amazon_payments_advanced', $_GET['amazon_payments_advanced'], $url );
+			$url = add_query_arg( 'amazon_payments_advanced', sanitize_text_field( $_GET['amazon_payments_advanced'] ), $url );
 		}
 		if ( ! empty( $_GET['access_token'] ) ) {
-			$url = add_query_arg( 'access_token', $_GET['access_token'], $url );
+			$url = add_query_arg( 'access_token',  sanitize_text_field( $_GET['access_token'] ), $url );
 		}
-
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		return $url;
 	}
 
@@ -1731,6 +1738,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 	 * @version 1.7.1
 	 */
 	public function maybe_display_declined_notice() {
+		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( ! empty( $_GET['amazon_declined'] ) ) {
 			wc_add_notice( __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 		}
@@ -1811,7 +1819,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Legacy extends WC_Gateway_Amazon_Payme
 		if ( class_exists( 'WC_Subscriptions_Cart' ) ) {
 
 			$cart_contains_subscription      = WC_Subscriptions_Cart::cart_contains_subscription() || wcs_cart_contains_renewal();
-			$change_payment_for_subscription = isset( $_GET['change_payment_method'] ) && wcs_is_subscription( absint( $_GET['change_payment_method'] ) );
+			$change_payment_for_subscription = isset( $_GET['change_payment_method'] ) && wcs_is_subscription( absint( $_GET['change_payment_method'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$params['is_recurring']          = $cart_contains_subscription || $change_payment_for_subscription;
 
 			// No need to make billing agreement if automatic payments is turned off.

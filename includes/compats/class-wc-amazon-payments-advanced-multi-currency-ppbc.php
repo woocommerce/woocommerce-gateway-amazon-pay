@@ -48,12 +48,14 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 	 */
 	public static function get_active_currency() {
 		// This is for sandbox mode, changing countries manually.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_REQUEST['wcpbc-manual-country'] ) ) {
 			$manual_country = wc_clean( wp_unslash( $_REQUEST['wcpbc-manual-country'] ) );
 			$selected_zone  = WCPBC_Pricing_Zones::get_zone_by_country( $manual_country );
 		} else {
 			$selected_zone = wcpbc_get_zone_by_country();
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		return ( $selected_zone ) ? $selected_zone->get_currency() : get_woocommerce_currency();
 	}
 
@@ -71,7 +73,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 		} else {
 			$currency = wcpbc_get_base_currency();
 		}
-		echo $currency;
+		echo esc_html( $currency );
 		wp_die();
 	}
 
@@ -93,10 +95,12 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 	public function hook_before_ppbc_update_order_review() {
 		if ( defined( 'WC_DOING_AJAX' ) &&
 			WC_DOING_AJAX &&
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended
 			isset( $_GET['wc-ajax'] ) &&
 			'update_order_review' === $_GET['wc-ajax'] &&
 			isset( $_REQUEST['payment_method'] ) &&
 			'amazon_payments_advanced' === $_REQUEST['payment_method']
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		) {
 			$order_details = $this->get_amazon_order_details();
 			// @codingStandardsIgnoreStart
@@ -105,7 +109,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 			}
 
 			$address = WC_Amazon_Payments_Advanced_API::format_address( $order_details->Destination->PhysicalDestination );
-
+			// @codingStandardsIgnoreEnd
 			if ( isset( $address['country'] ) ) {
 
 				$ppbc_zone = WCPBC_Pricing_Zones::get_zone_by_country( $address['country'] );
@@ -127,7 +131,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 					$base_country = $this->get_base_country();
 
 					$this->set_shipping_billing_customer( $base_country );
-					WC()->session->set(self::FORCE_NEW_ZONE_SESSION, $base_country);
+					WC()->session->set( self::FORCE_NEW_ZONE_SESSION, $base_country );
 				}
 			}
 		}
@@ -139,9 +143,11 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 	 */
 	public function hook_before_ppbc_get_refreshed_fragments() {
 		if ( defined( 'WC_DOING_AJAX' ) &&
-		     WC_DOING_AJAX &&
-		     isset( $_GET['wc-ajax'] ) &&
-		     'get_refreshed_fragments' === $_GET['wc-ajax']
+			WC_DOING_AJAX &&
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended
+			isset( $_GET['wc-ajax'] ) &&
+			'get_refreshed_fragments' === $_GET['wc-ajax']
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		) {
 			$base_country = WC()->session->get( self::FORCE_NEW_ZONE_SESSION );
 			if ( $base_country ) {
@@ -190,7 +196,7 @@ class WC_Amazon_Payments_Advanced_Multi_Currency_PPBC extends WC_Amazon_Payments
 		 * @see the "Getting the Shipping Address" section here: https://payments.amazon.com/documentation/lpwa/201749990
 		 */
 		$settings = WC_Amazon_Payments_Advanced_API::get_settings();
-		if ( 'yes' == $settings['enable_login_app'] ) {
+		if ( 'yes' === $settings['enable_login_app'] ) {
 			$request_args['AddressConsentToken'] = WC_Amazon_Payments_Advanced_API_Legacy::get_access_token();
 		}
 

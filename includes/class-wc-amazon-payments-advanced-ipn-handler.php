@@ -378,7 +378,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		} catch ( Exception $e ) {
 			wc_apa()->log( 'Failed to handle IPN request: ' . $e->getMessage() );
 			wp_die(
-				$e->getMessage(),
+				esc_html( $e->getMessage() ),
 				'Bad request',
 				array(
 					'response' => 400, // Send 40x to tell 'no retriees'.
@@ -613,7 +613,8 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		if ( '<' !== substr( $source, 0, 1 ) ) {
 			return false;
 		}
-
+		// Disable the phpcs warning about the function is not available in PHP 8, since it is under conditional to backward compatibility. We can safely ignore it.
+		// phpcs:disable
 		if ( \PHP_VERSION_ID < 80000 && function_exists( 'libxml_disable_entity_loader' ) ) {
 			$old = libxml_disable_entity_loader( true );
 		}
@@ -624,7 +625,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		if ( ! is_null( $old ) ) {
 			libxml_disable_entity_loader( $old );
 		}
-
+		// phpcs:enable
 		if ( ! $return ) {
 			return false;
 		}
