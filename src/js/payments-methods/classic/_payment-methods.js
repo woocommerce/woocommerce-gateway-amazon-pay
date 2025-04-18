@@ -47,7 +47,8 @@ const AmazonPayBtn = ( props ) => {
 					return true;
 				}
 				const shippingPhone = document.getElementById( 'shipping-phone' );
-				const billingPhone = document.getElementById( 'phone' );
+				const billingPhone = document.getElementById( 'billing-phone' );
+				
 				if ( ! shippingPhone?.value && ! billingPhone?.value ) {
 					return {
 						type: 'error',

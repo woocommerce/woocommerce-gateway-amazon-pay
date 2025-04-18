@@ -472,16 +472,27 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * @return array
 	 */
 	public static function get_create_checkout_session_config( $redirect_url = null ) {
+		static $config = array();
+
+		$cached_config = empty( $redirect_url ) ? $redirect_url : 'default';
+
+		if ( ! empty( $config[ $cached_config ] ) && ! is_wp_error( $config[ $cached_config ] ) ) {
+			return $config[ $cached_config ];
+		}
+
 		$settings = self::get_settings();
 		$client   = self::get_client();
 		$payload  = self::create_checkout_session_params( $redirect_url );
 
 		$signature = $client->generateButtonSignature( $payload );
-		return array(
+
+		$config[ $cached_config ] = array(
 			'publicKeyId' => $settings['public_key_id'],
 			'payloadJSON' => $payload,
 			'signature'   => $signature,
 		);
+
+		return $config[ $cached_config ];
 	}
 
 	/**

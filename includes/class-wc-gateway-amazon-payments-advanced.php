@@ -111,6 +111,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return false;
 		}
 
+		if ( ! $this->possible_subscription_cart_supported() ) {
+			return false;
+		}
+
 		return true;
 	}
 
@@ -293,6 +297,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'button_language'                => $this->settings['button_language'],
 				'ledger_currency'                => $this->get_ledger_currency(),
 				'estimated_order_amount'         => self::get_estimated_order_amount(),
+				'overriden_fields_per_country'   => WC_Amazon_Payments_Advanced_Utils::get_non_required_fields_per_country(),
 			),
 			$params
 		);
@@ -1051,10 +1056,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * session object.
 	 *
 	 * @param  object $checkout_session The active checkout session.
+	 * @param  bool   $allow_null       Whether to bypass creating a new session if it's not available.
+	 *
 	 * @return boolean
 	 */
-	public function has_payment_preferences( $checkout_session = null ) {
-		if ( null === $checkout_session ) {
+	public function has_payment_preferences( $checkout_session = null, $allow_null = false ) {
+		if ( ! $allow_null && null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 
@@ -1069,10 +1076,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Returns the selected payment method from Amazon.
 	 *
 	 * @param object $checkout_session The active checkout session.
+	 * @param bool   $allow_null       Whether to bypass creating a new session if it's not available.
 	 * @return string
 	 */
-	public function get_selected_payment_label( $checkout_session = null ) {
-		if ( null === $checkout_session ) {
+	public function get_selected_payment_label( $checkout_session = null, $allow_null = false ) {
+		if ( ! $allow_null && null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 
@@ -3031,8 +3039,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$shipping_state   = $order->get_shipping_state();
 		$shipping_country = $order->get_shipping_country( 'edit' );
 
-		if ( 'JP' === strtoupper( $shipping_country ) && 'JP' === strtoupper( WC_Amazon_Payments_Advanced_API::get_region() ) && isset( self::JP_REGION_CODE_MAP[ $shipping_state ] ) ) {
-			$shipping_state = self::JP_REGION_CODE_MAP[ $shipping_state ];
+		if ( 'JP' === strtoupper( $shipping_country ) && 'JP' === strtoupper( WC_Amazon_Payments_Advanced_API::get_region() ) ) {
+			$shipping_state = $this->maybe_get_jp_region_code( $shipping_state );
 		}
 
 		$payload['addressDetails'] = array(
@@ -3058,6 +3066,32 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * Maybe get JP region code.
+	 *
+	 * @param string $shipping_state The shipping state.
+	 *
+	 * @return string
+	 */
+	public static function maybe_get_jp_region_code( $shipping_state ) {
+
+		static $formatted_states;
+
+		if ( isset( $formatted_states[ $shipping_state ] ) ) {
+			return $formatted_states[ $shipping_state ];
+		}
+
+		$formatted_states[ $shipping_state ] = $shipping_state;
+
+		foreach ( self::JP_REGION_CODE_MAP as $region_code => $region ) {
+			if ( is_array( $region ) && in_array( $shipping_state, $region, true ) ) {
+				$formatted_states[ $shipping_state ] = $region_code;
+			}
+		}
+
+		return $formatted_states[ $shipping_state ];
 	}
 
 	/**
