@@ -2,7 +2,7 @@
 Contributors: woocommerce, automattic, saucal, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
-Tested up to: 6.2.2
+Tested up to: 6.7
 Stable tag: 2.5.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -79,6 +79,16 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.5.4 - 2025-xx-xx =
+
+* Fix - Error when using a non Standard decimal amount for a currency.
+* Fix - Error when phone number was required in Checkout Blocks.
+* Fix - Deprecated PHP constants and functions.
+* Fix - Pull the Privacy Policy URL from WordPress settings.
+* Update - Amazon Pay SDK to v2.6.7.
+* Dev - Bumped tested up to WordPress v6.8.
+* Dev - Bumped tested up to WooCommerce v9.7.1.
 
 = 2.5.3 - 2024-09-24 =
 
