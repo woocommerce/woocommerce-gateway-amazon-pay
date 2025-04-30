@@ -3,7 +3,7 @@ Contributors: woocommerce, automattic, saucal, woothemes, akeda, jeffstieler, mi
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
 Tested up to: 6.7
-Stable tag: 2.5.4
+Stable tag: 2.5.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -80,7 +80,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.5.4 - 2025-04-30 =
+= 2.5.4 - 2025-xx-xx =
 
 * Fix - Error when using a non Standard decimal amount for a currency.
 * Fix - Error when phone number was required in Checkout Blocks.
