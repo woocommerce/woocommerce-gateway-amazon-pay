@@ -1,9 +1,9 @@
-=== WooCommerce Amazon Pay ===
+=== Amazon Pay for WooCommerce ===
 Contributors: woocommerce, automattic, saucal, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
-Tested up to: 6.2.2
-Stable tag: 2.5.3
+Tested up to: 6.7
+Stable tag: 2.5.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -67,7 +67,7 @@ https://www.youtube.com/watch?v=rYoiEjl5Ek8
 
 Automatic installation is the easiest option as WordPress handles the file transfers itself and you don’t need to leave your web browser. To do an automatic install of, log in to your WordPress dashboard, navigate to the Plugins menu and click Add New.
 
-In the search field type "WooCommerce Amazon Pay" and click Search Plugins. Once you’ve found our plugin you can view details about it such as the point release, rating and description. Most importantly of course, you can install it by simply clicking “Install Now”.
+In the search field type "Amazon Pay for WooCommerce" and click Search Plugins. Once you’ve found our plugin you can view details about it such as the point release, rating and description. Most importantly of course, you can install it by simply clicking “Install Now”.
 
 = Manual installation =
 
@@ -79,6 +79,16 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.5.4 - 2025-04-30 =
+
+* Fix - Error when using a non Standard decimal amount for a currency.
+* Fix - Error when phone number was required in Checkout Blocks.
+* Fix - Deprecated PHP constants and functions.
+* Fix - Pull the Privacy Policy URL from WordPress settings.
+* Update - Amazon Pay SDK to v2.6.7.
+* Dev - Bumped tested up to WordPress v6.8.
+* Dev - Bumped tested up to WooCommerce v9.7.1.
 
 = 2.5.3 - 2024-09-24 =
 
