@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.5.4 - 2025-xx-xx =
+= 2.5.4 - 2025-04-30 =
 
 * Fix - Error when using a non Standard decimal amount for a currency.
 * Fix - Error when phone number was required in Checkout Blocks.
