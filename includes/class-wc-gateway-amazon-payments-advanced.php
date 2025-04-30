@@ -111,6 +111,10 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return false;
 		}
 
+		if ( ! $this->possible_subscription_cart_supported() ) {
+			return false;
+		}
+
 		return true;
 	}
 
@@ -293,6 +297,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'button_language'                => $this->settings['button_language'],
 				'ledger_currency'                => $this->get_ledger_currency(),
 				'estimated_order_amount'         => self::get_estimated_order_amount(),
+				'overriden_fields_per_country'   => WC_Amazon_Payments_Advanced_Utils::get_non_required_fields_per_country(),
 			),
 			$params
 		);
@@ -664,17 +669,22 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$class[] = 'wc-amazon-payments-advanced-populated';
 		}
 		$class = implode( ' ', $class );
-		echo '<div class="' . esc_attr( $class ) . '">';
-
+		?>
+		<div class="<?php echo esc_attr( $class ); ?>" >
+		<?php
 		if ( $this->is_available() ) {
 			if ( ! $this->is_logged_in() ) {
-				echo '<div class="woocommerce-info info wc-amazon-payments-advanced-info">' . $this->checkout_button( false ) . ' ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) . '</div>';
+				?>
+				<div class="woocommerce-info info wc-amazon-payments-advanced-info"><?php echo wp_kses_post( $this->checkout_button( false ) . ' ' . apply_filters( 'woocommerce_amazon_pa_checkout_message', __( 'Have an Amazon account?', 'woocommerce-gateway-amazon-payments-advanced' ) ) ); ?></div>
+				<?php
 			} else {
 				$this->logout_checkout_message();
 			}
 		}
 
-		echo '</div>';
+		?>
+		</div>
+		<?php
 
 	}
 
@@ -684,7 +694,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function logout_checkout_message() {
 		$logout_url      = $this->get_amazon_logout_url();
 		$logout_msg_html = '<div class="woocommerce-info info">' . apply_filters( 'woocommerce_amazon_pa_checkout_logout_message', __( 'You\'re logged in with your Amazon Account.', 'woocommerce-gateway-amazon-payments-advanced' ) ) . ' <a href="' . esc_url( $logout_url ) . '" id="amazon-logout">' . __( 'Log out &raquo;', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a></div>';
-		echo apply_filters( 'woocommerce_amazon_payments_logout_checkout_message_html', $logout_msg_html );
+		echo wp_kses_post( apply_filters( 'woocommerce_amazon_payments_logout_checkout_message_html', $logout_msg_html ) );
 	}
 
 	/**
@@ -744,7 +754,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Handle the Amazon Payments actions (login, logout, return)
 	 */
 	public function maybe_handle_apa_action() {
-
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		if ( empty( $_GET['amazon_payments_advanced'] ) ) {
 			return;
 		}
@@ -755,7 +765,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		if ( ! empty( $_GET['amazon_return_classic'] ) && ! empty( $_GET['amazonCheckoutSessionId'] ) ) {
 			$redirect_url = remove_query_arg( array( 'amazon_return_classic', 'amazonCheckoutSessionId' ), $redirect_url );
-			$this->handle_return( $_GET['amazonCheckoutSessionId'] );
+
+			$this->handle_return( sanitize_text_field( $_GET['amazonCheckoutSessionId'] ) );
 			// If we didn't redirect and quit yet, lets force redirect to checkout.
 			wp_safe_redirect( $redirect_url );
 			exit;
@@ -775,7 +786,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( isset( $_GET['amazon_login'] ) && isset( $_GET['amazonCheckoutSessionId'] ) ) {
 			$redirect_url = remove_query_arg( array( 'amazon_login', 'amazonCheckoutSessionId' ), $redirect_url );
 			$session_key  = $this->get_checkout_session_key();
-			WC()->session->set( $session_key, $_GET['amazonCheckoutSessionId'] );
+			WC()->session->set( $session_key, sanitize_text_field( $_GET['amazonCheckoutSessionId'] ) );
 			$this->unset_force_refresh();
 			WC()->session->save_data();
 
@@ -802,7 +813,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				wp_safe_redirect( $redirect_url );
 				exit;
 			}
-
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 			$this->handle_return();
 			// If we didn't redirect and quit yet, lets force redirect to checkout.
 			wp_safe_redirect( $redirect_url );
@@ -1029,14 +1040,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		?>
 		<div id="payment_method_widget">
 			<?php
-			$change_label = esc_html__( 'Change', 'woocommerce-gateway-amazon-payments-advanced' );
+			$change_label = __( 'Change', 'woocommerce-gateway-amazon-payments-advanced' );
 			if ( ! $this->has_payment_preferences( $checkout_session ) ) {
-				$change_label = esc_html__( 'Select', 'woocommerce-gateway-amazon-payments-advanced' );
+				$change_label = __( 'Select', 'woocommerce-gateway-amazon-payments-advanced' );
 			}
 
 			?>
 			<h3>
-				<a href="#" class="wc-apa-widget-change" id="payment_method_widget_change"><?php echo $change_label; ?></a>
+				<a href="#" class="wc-apa-widget-change" id="payment_method_widget_change"><?php echo esc_html( $change_label ); ?></a>
 				<?php esc_html_e( 'Payment Method', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 			</h3>
 			<div class="payment_method_display">
@@ -1051,10 +1062,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * session object.
 	 *
 	 * @param  object $checkout_session The active checkout session.
+	 * @param  bool   $allow_null       Whether to bypass creating a new session if it's not available.
+	 *
 	 * @return boolean
 	 */
-	public function has_payment_preferences( $checkout_session = null ) {
-		if ( null === $checkout_session ) {
+	public function has_payment_preferences( $checkout_session = null, $allow_null = false ) {
+		if ( ! $allow_null && null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 
@@ -1069,10 +1082,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * Returns the selected payment method from Amazon.
 	 *
 	 * @param object $checkout_session The active checkout session.
+	 * @param bool   $allow_null       Whether to bypass creating a new session if it's not available.
 	 * @return string
 	 */
-	public function get_selected_payment_label( $checkout_session = null ) {
-		if ( null === $checkout_session ) {
+	public function get_selected_payment_label( $checkout_session = null, $allow_null = false ) {
+		if ( ! $allow_null && null === $checkout_session ) {
 			$checkout_session = $this->get_checkout_session();
 		}
 
@@ -1114,7 +1128,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					<?php esc_html_e( 'Billing Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 				</h3>
 				<div class="billing_address_display">
-					<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) ); // phpcs:ignore WordPress.NamingConventions ?>
+					<?php echo wp_kses_post( WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) ) ); // phpcs:ignore WordPress.NamingConventions ?>
 				</div>
 			</div>
 			<?php
@@ -1140,7 +1154,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					<?php esc_html_e( 'Shipping Address', 'woocommerce-gateway-amazon-payments-advanced' ); ?>
 				</h3>
 				<div class="shipping_address_display">
-					<?php echo WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ); // phpcs:ignore WordPress.NamingConventions ?>
+					<?php echo wp_kses_post( WC()->countries->get_formatted_address( WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) ) ); // phpcs:ignore WordPress.NamingConventions ?>
 				</div>
 			</div>
 			<?php
@@ -1208,7 +1222,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 									$value
 								);
 								?>
-								<p><?php _e( 'By checking this box, every time you will log in with the same Amazon account, you will also be logged in with your existing shop account.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
+								<p><?php esc_html_e( 'By checking this box, every time you will log in with the same Amazon account, you will also be logged in with your existing shop account.', 'woocommerce-gateway-amazon-payments-advanced' ); ?></p>
 								<div class="clear"></div>
 							</div>
 						</div>
@@ -1284,9 +1298,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$formatted_session_data = $this->get_woocommerce_data();
 
 		$data = array_merge( $data, array_intersect_key( $formatted_session_data, $data ) ); // only set data that exists in data.
-
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_REQUEST['amazon_link'] ) ) {
-			$data['amazon_link'] = $_REQUEST['amazon_link'];
+			$data['amazon_link'] = esc_url_raw( $_REQUEST['amazon_link'] );
 		}
 
 		return $data;
@@ -1322,7 +1336,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		switch ( $input ) {
 			case 'amazon_link':
 				if ( isset( $_REQUEST[ $input ] ) ) {
-					return $_REQUEST[ $input ];
+					return sanitize_text_field( $_REQUEST[ $input ] );
 				}
 				break;
 			default:
@@ -1447,6 +1461,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				array(
 					'paymentIntent'                 => $payment_intent,
 					'canHandlePendingAuthorization' => $can_do_async,
+					// phpcs:ignore
 					// "softDescriptor" => "Descriptor", // TODO: Implement setting, if empty, don't set this. ONLY FOR AuthorizeWithCapture
 					'chargeAmount'                  => WC_Amazon_Payments_Advanced_API::format_charge_amount( $charge_amount ),
 				)
@@ -1732,12 +1747,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order->save(); // Save early for less race conditions.
 
 		// @codingStandardsIgnoreStart
-		$order->add_order_note( sprintf(
-			/* translators: 1) Amazon Charge ID 2) Charge status */
-			__( 'Charge %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
-			(string) $charge_id,
-			(string) $charge_status
-		) );
+		$order->add_order_note(
+			sprintf(
+				/* translators: 1) Amazon Charge ID 2) Charge status */
+				__( 'Charge %1$s with status %2$s.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				(string) $charge_id,
+				(string) $charge_status
+			)
+		);
 		// @codingStandardsIgnoreEnd
 
 		switch ( $charge_status ) {
@@ -2191,8 +2208,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function process_admin_options() {
 		if ( check_admin_referer( 'woocommerce-settings' ) ) {
 			if ( ! empty( $_POST['woocommerce_amazon_payments_advanced_button_language'] ) ) {
-				$region   = $_POST['woocommerce_amazon_payments_advanced_payment_region'];
-				$language = $_POST['woocommerce_amazon_payments_advanced_button_language'];
+				$region   = sanitize_text_field( $_POST['woocommerce_amazon_payments_advanced_payment_region'] );
+				$language = sanitize_text_field( $_POST['woocommerce_amazon_payments_advanced_button_language'] );
 				$regions  = WC_Amazon_Payments_Advanced_API::get_languages_per_region();
 				if ( ! isset( $regions[ $region ] ) || ! in_array( $language, $regions[ $region ], true ) ) {
 					/* translators: 1) Language 2) Region */
@@ -2654,7 +2671,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		if ( $doing ) {
 			return $doing;
 		}
-
+		// phpcs:ignore WordPress.Security.NonceVerification
 		if ( isset( $_REQUEST['woocommerce-shipping-calculator-nonce'] ) && isset( $_REQUEST['calc_shipping'] ) ) {
 			return true;
 		}
@@ -3031,8 +3048,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$shipping_state   = $order->get_shipping_state();
 		$shipping_country = $order->get_shipping_country( 'edit' );
 
-		if ( 'JP' === strtoupper( $shipping_country ) && 'JP' === strtoupper( WC_Amazon_Payments_Advanced_API::get_region() ) && isset( self::JP_REGION_CODE_MAP[ $shipping_state ] ) ) {
-			$shipping_state = self::JP_REGION_CODE_MAP[ $shipping_state ];
+		if ( 'JP' === strtoupper( $shipping_country ) && 'JP' === strtoupper( WC_Amazon_Payments_Advanced_API::get_region() ) ) {
+			$shipping_state = $this->maybe_get_jp_region_code( $shipping_state );
 		}
 
 		$payload['addressDetails'] = array(
@@ -3058,6 +3075,32 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * Maybe get JP region code.
+	 *
+	 * @param string $shipping_state The shipping state.
+	 *
+	 * @return string
+	 */
+	public static function maybe_get_jp_region_code( $shipping_state ) {
+
+		static $formatted_states;
+
+		if ( isset( $formatted_states[ $shipping_state ] ) ) {
+			return $formatted_states[ $shipping_state ];
+		}
+
+		$formatted_states[ $shipping_state ] = $shipping_state;
+
+		foreach ( self::JP_REGION_CODE_MAP as $region_code => $region ) {
+			if ( is_array( $region ) && in_array( $shipping_state, $region, true ) ) {
+				$formatted_states[ $shipping_state ] = $region_code;
+			}
+		}
+
+		return $formatted_states[ $shipping_state ];
 	}
 
 	/**
@@ -3103,13 +3146,13 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 */
 	private function get_ajax_url_args() {
 		$args = array();
-
+		// phpcs:disable WordPress.Security.NonceVerification
 		if ( isset( $_GET['switch-subscription'] ) && isset( $_GET['item'] ) && isset( $_GET['_wcsnonce'] ) ) {
 			$args['switch-subscription'] = wc_clean( wp_unslash( $_GET['switch-subscription'] ) );
 			$args['item']                = wc_clean( wp_unslash( $_GET['item'] ) );
 			$args['_wcsnonce']           = wc_clean( wp_unslash( $_GET['_wcsnonce'] ) );
 		}
-
+		// phpcs:enable WordPress.Security.NonceVerification
 		return $args;
 	}
 }

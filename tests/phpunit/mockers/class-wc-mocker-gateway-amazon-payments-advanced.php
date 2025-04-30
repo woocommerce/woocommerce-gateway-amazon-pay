@@ -23,7 +23,7 @@ class WC_Mocker_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payme
 	 *
 	 * @param int|string $order_total The order total to be set.
 	 */
-	public function __construct( int|string $order_total = 50 ) {
+	public function __construct( $order_total = 50 ) {
 		$this->settings = WC_Amazon_Payments_Advanced_API::get_settings();
 
 		self::$order_total = $order_total;

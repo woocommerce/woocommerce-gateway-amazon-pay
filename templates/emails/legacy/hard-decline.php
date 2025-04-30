@@ -10,12 +10,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 
-<p><?php _e( 'Valued customer', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>
+<p><?php esc_html_e( 'Valued customer', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>
 <p>
 <?php
 /* translators: 1) Site Name. */
-printf( __( 'Unfortunately Amazon Pay declined the payment for your order in our online shop %s. Please contact us.', 'woocommerce-gateway-amazon-payments-advanced' ), get_bloginfo( 'name' ) );
+printf( esc_html__( 'Unfortunately Amazon Pay declined the payment for your order in our online shop %s. Please contact us.', 'woocommerce-gateway-amazon-payments-advanced' ), esc_html( get_bloginfo( 'name' ) ) );
 ?>
 </p>
-<p><?php _e( 'Kind regards', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>
+<p><?php esc_html_e( 'Kind regards', 'woocommerce-gateway-amazon-payments-advanced' ); ?>,</p>
 
