@@ -1489,7 +1489,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 					$redirect = ! empty( $payload['webCheckoutDetails']['checkoutResultReturnUrl'] ) ? $payload['webCheckoutDetails']['checkoutResultReturnUrl'] : $order->get_change_payment_method_url();
 				} else {
 					$order->update_status( 'pending', __( 'Awaiting payment.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-					$redirect = '#amazon-pay-classic-id-that-should-not-exist';
+					$redirect = '#';
 				}
 			}
 
