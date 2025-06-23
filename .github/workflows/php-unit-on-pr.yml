@@ -24,7 +24,7 @@ jobs:
 
       # PHP setup
       - name: Setup PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@0f7f1d08e3e32076e51cae65eb0b0c871405b16e # v2.34.1
         with:
           php-version: ${{ matrix.php }}
           tools: composer
@@ -44,7 +44,7 @@ jobs:
       # Cache composer dependencies
       - name: Cache composer dependencies
         id: composer-cache
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: ./vendor
           key: ${{ runner.os }}-vendor-${{ hashFiles('composer.lock') }}
@@ -68,10 +68,6 @@ jobs:
         if: ${{ steps.node-cache.outputs.cache-hit == false }}
         shell: bash
         run: npm ci
-
-      # Setup jq
-      - name: 'Setup jq'
-        uses: dcarbone/install-jq-action@v1.0.1
 
       # Prepare test environment
       - name: Prepare test environment
