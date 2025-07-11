@@ -13,7 +13,7 @@ const { registerCheckoutBlock } = wc.blocksCheckout;
  */
 import { PAYMENT_METHOD_NAME as PAYMENT_METHOD_NAME_EXPRESS } from './_constants';
 import { PAYMENT_METHOD_NAME } from '../classic/_constants';
-import { AmazonComponent, AmazonPayPreview, Label, amazonPayCanMakePayment } from '../../_utils';
+import { AmazonComponent, AmazonPayPreview, Label, amazonPayCanMakePayment, maybeRemoveEditButton } from '../../_utils';
 import { AmazonExpressContent } from './_payment-methods-express';
 import { AmazonContent } from './_payment-methods';
 import { settings } from './_settings';
