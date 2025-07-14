@@ -264,7 +264,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		}
 
 		$this->enqueue_scripts();
-
 	}
 
 	/**
@@ -685,7 +684,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		?>
 		</div>
 		<?php
-
 	}
 
 	/**
@@ -819,7 +817,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			wp_safe_redirect( $redirect_url );
 			exit;
 		}
-
 	}
 
 	/**
@@ -1246,12 +1243,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$wc_billing_address = array();
 			if ( ! empty( $checkout_session->billingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
 				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ); // phpcs:ignore WordPress.NamingConventions
-			} else {
-				if ( ! empty( $checkout_session->shippingAddress ) ) { // phpcs:ignore WordPress.NamingConventions
+			} elseif ( ! empty( $checkout_session->shippingAddress ) ) {
+				// phpcs:ignore WordPress.NamingConventions
 					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ); // phpcs:ignore WordPress.NamingConventions
-				} else {
-					$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_name( $checkout_session->buyer->name );
-				}
+			} else {
+				$wc_billing_address = WC_Amazon_Payments_Advanced_API::format_name( $checkout_session->buyer->name );
 			}
 			if ( ! empty( $checkout_session->buyer->email ) ) {
 				$wc_billing_address['email'] = $checkout_session->buyer->email;
@@ -1560,6 +1556,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$order_id = absint( get_query_var( 'order-pay' ) );
 		}
 
+		$checkout_session = null;
+
 		/* Fallback in case WC()->session->order_awaiting_payment was unset by 3rd party. */
 		if ( empty( $order_id ) ) {
 			$checkout_session = $this->get_checkout_session( true );
@@ -1582,6 +1580,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order_total = WC_Amazon_Payments_Advanced::format_amount( $order->get_total() );
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
+
+		if ( ! $this->maybe_update_order_addresses( $order, $checkout_session, $checkout_session_id ) ) {
+			wc_apa()->log( "Error: Order address mismatch and could not be updated. Checkout Session ID: {$checkout_session_id}." );
+			wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+			return;
+		}
 
 		wc_apa()->log( "Completing checkout session data for #{$order_id}." );
 
@@ -1658,11 +1662,9 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			$order->update_meta_data( 'amazon_charge_id', $charge_id );
 			$order->save();
 			$this->log_charge_status_change( $order );
-		} else {
-			if ( apply_filters( 'woocommerce_amazon_pa_no_charge_order_on_hold', true, $order ) ) {
-				$order->update_status( 'on-hold' );
-				wc_maybe_reduce_stock_levels( $order->get_id() );
-			}
+		} elseif ( apply_filters( 'woocommerce_amazon_pa_no_charge_order_on_hold', true, $order ) ) {
+			$order->update_status( 'on-hold' );
+			wc_maybe_reduce_stock_levels( $order->get_id() );
 		}
 		$this->log_charge_permission_status_change( $order );
 		$order->save();
@@ -1681,6 +1683,56 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		wp_safe_redirect( $redirect_url );
 		exit;
 	}
+
+
+	/**
+	 * Maybe update the order addresses with the data from the checkout session.
+	 *
+	 * @param WC_Order $order               The order to update.
+	 * @param object   $checkout_session    The checkout session data.
+	 * @param string   $checkout_session_id The checkout session id.
+	 *
+	 * @return bool
+	 */
+	protected function maybe_update_order_addresses( $order, $checkout_session = null, $checkout_session_id = '' ) {
+		try {
+			if ( ! $order ) {
+				return false;
+			}
+
+			if ( ! $order->needs_payment() ) {
+				return true; // No need to update addresses if the order was already paid.
+			}
+
+			if ( is_null( $checkout_session ) ) {
+				$checkout_session = $this->get_checkout_session( true, $checkout_session_id );
+			}
+
+			if ( ! $checkout_session || is_wp_error( $checkout_session ) ) {
+				return false;
+			}
+
+			$billing_address  = ! empty( $checkout_session->billingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) : array();
+			$shipping_address = ! empty( $checkout_session->shippingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) : array();
+
+			if ( empty( $billing_address ) && empty( $shipping_address ) ) {
+				return false;
+			}
+
+			if ( empty( $billing_address ) && ! empty( $shipping_address ) ) {
+				// If no billing address, use shipping address.
+				$billing_address = $shipping_address;
+			}
+
+			$order->set_billing_address( $billing_address );
+			$order->set_shipping_address( $shipping_address );
+			return (bool) $order->save();
+		} catch ( Exception $e ) {
+			return false;
+		}
+	}
+
+
 
 	/**
 	 * Log a change to the charge status stored in an order.
