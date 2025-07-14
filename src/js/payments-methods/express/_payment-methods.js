@@ -1,15 +1,17 @@
 /**
  * External dependencies
  */
-import { useEffect, useState } from '@wordpress/element';
+import { useEffect } from '@wordpress/element';
 import { sprintf, __ } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
 import React from 'react';
+import { useDispatch } from '@wordpress/data';
+const { checkoutStore } = window.wc.wcBlocksData || false;
 
 /**
  * Internal dependencies
  */
-import { getCheckOutFieldsLabel } from '../../_utils';
+import { getCheckOutFieldsLabel, maybeRemoveEditButton } from '../../_utils';
 import { activateChange } from '../../_renderAmazonButton';
 import { settings } from './_settings';
  
@@ -38,11 +40,25 @@ const ChangePayment = () => {
  * @returns React component
  */
 const AmazonPayInfo = ( props ) => {
-    const { shippingAddress, setShippingAddress } = props.shippingData;
+    const { shippingAddress } = props.shippingData;
 
     const { billingData } = props.billing;
 
     const { amazonBilling, amazonShipping } = settings.amazonAddress;
+
+    const store = checkoutStore ? useDispatch( checkoutStore ) : null;
+
+    useEffect( () => {
+        const maybeDisableEditAddress = async () => {
+            maybeRemoveEditButton();
+            await store.setEditingBillingAddress( false );
+            await store.setEditingShippingAddress( false );
+        };
+
+        if ( store && settings.loggedIn ) {
+            maybeDisableEditAddress();
+        }
+    } );
 
     useEffect( () => {
         const unsubscribe = props.eventRegistration.onCheckoutValidation(

@@ -65,7 +65,6 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Express extends WC_Amazon_Payment
 				'amazonShipping' => $checkout_session && ! is_wp_error( $checkout_session ) && ! empty( $checkout_session->shippingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->shippingAddress ) : null, // phpcs:ignore WordPress.NamingConventions
 			),
 		);
-
 	}
 
 	/**
