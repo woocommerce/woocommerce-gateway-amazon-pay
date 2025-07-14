@@ -522,7 +522,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		);
 
 		return $formatted;
-
 	}
 
 	/**
