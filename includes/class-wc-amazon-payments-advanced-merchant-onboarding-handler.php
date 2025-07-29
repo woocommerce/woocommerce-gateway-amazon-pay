@@ -199,6 +199,9 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 				'private_key_type' => self::PRIVATE_KEY_TYPE,
 			)
 		);
+		if ( false === $keys ) {
+			throw new Exception( esc_html__( 'Failed to generate OpenSSL key pair.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+		}
 
 		$public_key = openssl_pkey_get_details( $keys );
 		openssl_pkey_export( $keys, $private_key );
