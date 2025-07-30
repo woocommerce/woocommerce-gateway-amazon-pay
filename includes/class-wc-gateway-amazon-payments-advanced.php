@@ -2020,6 +2020,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		foreach ( $desired as $prop => $value ) {
 			array_push( $path, $prop );
+
+			if ( ! isset( $current[ $prop ] ) ) {
+				continue;
+			}
+
 			if ( is_object( $value ) ) {
 				$valid = $this->validate_session_properties( $current[ $prop ], $value, $path );
 			} elseif ( is_array( $value ) ) {
