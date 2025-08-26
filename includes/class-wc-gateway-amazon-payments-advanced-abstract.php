@@ -581,6 +581,14 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'type'        => 'checkbox',
 				'default'     => 'no',
 			),
+			'enable_subscriptions_poll'   => array(
+				'title'       => __( 'Enable Subscriptions Polling', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable charge permissions polling for subscription orders.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will poll Amazon to check any change to the charge permissions on subscription orders.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'no',
+			),
 		);
 
 		/**
