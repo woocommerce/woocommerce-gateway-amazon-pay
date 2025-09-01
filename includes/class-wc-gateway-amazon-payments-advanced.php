@@ -1876,7 +1876,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			switch ( $charge_permission_status ) {
 				case 'Chargeable':
 				case 'NonChargeable':
-					wc_apa()->ipn_handler->schedule_hook( $charge_permission_id, 'CHARGE_PERMISSION' );
+					wc_apa()->ipn_handler->schedule_hook( $charge_permission_id, 'CHARGE_PERMISSION', $order );
 					break;
 			}
 			return $old_status;
@@ -1891,7 +1891,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		switch ( $charge_permission_status ) {
 			case 'Chargeable':
 			case 'NonChargeable':
-				wc_apa()->ipn_handler->schedule_hook( $charge_permission_id, 'CHARGE_PERMISSION' );
+				wc_apa()->ipn_handler->schedule_hook( $charge_permission_id, 'CHARGE_PERMISSION', $order );
 				break;
 			case 'Closed':
 				$order_has_charge = is_null( $this->get_cached_charge_status( $order, true )->status );
