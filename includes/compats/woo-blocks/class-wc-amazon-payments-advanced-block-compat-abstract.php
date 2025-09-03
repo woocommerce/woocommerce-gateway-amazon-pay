@@ -23,24 +23,6 @@ abstract class WC_Amazon_Payments_Advanced_Block_Compat_Abstract extends Abstrac
 		if ( ! isset( $this->name ) || ! isset( $this->settings_name ) ) {
 			throw new Exception( 'You have to set both the properties name and settings_name when extending the class ' . __CLASS__ . ' !' );
 		}
-
-		add_action( 'woocommerce_amazon_checkout_init', array( $this, 'initialize_express_session' ) );
-	}
-
-
-	/**
-	 * Actions to run when the Amazon Checkout session is initialized.
-	 *
-	 * @return void
-	 */
-	public function initialize_express_session() {
-		// Always ship to billing address.
-		add_filter(
-			'option_woocommerce_ship_to_destination',
-			function () {
-				return 'billing_only';
-			}
-		);
 	}
 
 
