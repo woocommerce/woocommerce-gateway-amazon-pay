@@ -73,4 +73,38 @@ class WC_Amazon_Payments_Advanced_Utils {
 
 		return apply_filters( 'woocommerce_amazon_pa_non_required_fields_per_country', $non_required_fields, $mapped_fields_per_country );
 	}
+
+
+	/**
+	 * Get optional fields.
+	 *
+	 * @return array
+	 */
+	public static function get_optional_fields() {
+		$optional_fields = array(
+			'billing'  => array(
+				'billing_company',
+				'billing_country',
+				'billing_address_1',
+				'billing_address_2',
+				'billing_city',
+				'billing_state',
+				'billing_postcode',
+				'billing_phone',
+			),
+			'shipping' => array(
+				'shipping_first_name',
+				'shipping_last_name',
+				'shipping_company',
+				'shipping_country',
+				'shipping_address_1',
+				'shipping_address_2',
+				'shipping_city',
+				'shipping_state',
+				'shipping_postcode',
+			),
+		);
+
+		return $optional_fields;
+	}
 }

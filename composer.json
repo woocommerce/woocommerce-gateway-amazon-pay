@@ -41,7 +41,7 @@
         "wp-cli/wp-cli-bundle": "*"
     },
     "require": {
-        "amzn/amazon-pay-api-sdk-php": "2.6.7",
+        "amzn/amazon-pay-api-sdk-php": "2.7.0",
         "php": "7.*"
     }
 }

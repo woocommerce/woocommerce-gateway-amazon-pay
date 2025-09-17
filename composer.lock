@@ -4,29 +4,29 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4019e0c1ca24ae306a591a9d133a423f",
+    "content-hash": "c3425b3f410b88f017593142db4782ee",
     "packages": [
         {
             "name": "amzn/amazon-pay-api-sdk-php",
-            "version": "2.6.7",
+            "version": "2.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amzn/amazon-pay-api-sdk-php.git",
-                "reference": "bc4b8460a2a33fb83916ae7a0c6e5e577e95c43c"
+                "reference": "ed3416f5ae7132bdd9007f6f83f36cb541b83793"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amzn/amazon-pay-api-sdk-php/zipball/bc4b8460a2a33fb83916ae7a0c6e5e577e95c43c",
-                "reference": "bc4b8460a2a33fb83916ae7a0c6e5e577e95c43c",
+                "url": "https://api.github.com/repos/amzn/amazon-pay-api-sdk-php/zipball/ed3416f5ae7132bdd9007f6f83f36cb541b83793",
+                "reference": "ed3416f5ae7132bdd9007f6f83f36cb541b83793",
                 "shasum": ""
             },
             "require": {
                 "ext-curl": "*",
                 "php": ">=5.6.1",
-                "phpseclib/phpseclib": "~3.0"
+                "phpseclib/phpseclib": ">=3.0.34"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4"
+                "phpunit/phpunit": "^8"
             },
             "type": "library",
             "autoload": {
@@ -57,9 +57,9 @@
             ],
             "support": {
                 "issues": "https://github.com/amzn/amazon-pay-api-sdk-php/issues",
-                "source": "https://github.com/amzn/amazon-pay-api-sdk-php/tree/2.6.7"
+                "source": "https://github.com/amzn/amazon-pay-api-sdk-php/tree/2.7.0"
             },
-            "time": "2024-09-11T06:57:16+00:00"
+            "time": "2025-05-29T10:21:22+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -7788,15 +7788,15 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": "7.*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "platform-overrides": {
         "php": "7.3"
     },
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }

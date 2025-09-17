@@ -147,6 +147,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			'mini_cart_button'                => 'no',
 			'product_button'                  => 'no',
 			'alexa_notifications_support'     => 'no',
+			'enable_subscriptions_poll'       => 'no',
 		);
 
 		$settings = apply_filters( 'woocommerce_amazon_pa_settings', array_merge( $default, $settings ) );
@@ -322,6 +323,15 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	public static function get_authorization_mode() {
 		$settings = self::get_settings();
 		return $settings['authorization_mode'];
+	}
+
+	/**
+	 * Should enable polling for subscriptions.
+	 *
+	 * @return bool
+	 */
+	public static function should_enable_subscriptions_poll() {
+		return 'yes' === self::get_settings( 'enable_subscriptions_poll' );
 	}
 
 	/**
@@ -522,7 +532,6 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 		);
 
 		return $formatted;
-
 	}
 
 	/**

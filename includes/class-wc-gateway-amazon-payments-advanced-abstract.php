@@ -193,6 +193,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 		add_action( 'woocommerce_amazon_checkout_init', array( $this, 'checkout_init_common' ) );
 
+		add_filter( 'option_woocommerce_checkout_phone_field', array( $this, 'maybe_flag_phone_number_as_required' ) );
 	}
 
 	/**
@@ -577,6 +578,14 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 				'title'       => __( 'Support Alexa Delivery Notifications', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'label'       => __( 'Enable support for Alexa Delivery Notifications', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'description' => __( 'This will enable support for Alexa Delivery notifications.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'desc_tip'    => true,
+				'type'        => 'checkbox',
+				'default'     => 'no',
+			),
+			'enable_subscriptions_poll'   => array(
+				'title'       => __( 'Enable Subscriptions Polling', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'label'       => __( 'Enable charge permissions polling for subscription orders.', 'woocommerce-gateway-amazon-payments-advanced' ),
+				'description' => __( 'This will poll Amazon to check any change to the charge permissions on subscription orders.', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'desc_tip'    => true,
 				'type'        => 'checkbox',
 				'default'     => 'no',
@@ -1037,6 +1046,30 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * Flag the phone number field as required if the cart needs shipping.
+	 *
+	 * @param string $option_value The current value of the field.
+	 *
+	 * @return string
+	 */
+	public function maybe_flag_phone_number_as_required( $option_value ) {
+
+		if ( ! $this->is_available() ) {
+			return $option_value;
+		}
+
+		if ( empty( WC()->cart ) ) {
+			return $option_value;
+		}
+
+		if ( ! method_exists( WC()->cart, 'needs_shipping' ) || ! WC()->cart->needs_shipping() ) {
+			return $option_value;
+		}
+
+		return 'required';
 	}
 
 	/**

@@ -25,6 +25,7 @@ abstract class WC_Amazon_Payments_Advanced_Block_Compat_Abstract extends Abstrac
 		}
 	}
 
+
 	/**
 	 * Gets called during the server side initialization and sets our settings.
 	 *

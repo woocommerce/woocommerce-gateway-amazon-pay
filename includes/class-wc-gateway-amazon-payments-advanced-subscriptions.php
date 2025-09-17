@@ -29,6 +29,12 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 		// WC Subscription Hook.
 		add_filter( 'woocommerce_subscriptions_process_payment_for_change_method_via_pay_shortcode', array( $this, 'filter_payment_method_changed_result' ), 10, 2 );
+
+		// Maybe skip scheduled poll.
+		add_filter( 'woocommerce_amazon_pa_schedule_hook', array( $this, 'maybe_skip_scheduled_poll' ), 10, 4 );
+
+		// Increase polling interval for subscription orders.
+		add_filter( 'woocommerce_amazon_pa_polling_interval', array( $this, 'increase_polling_interval' ), 10, 4 );
 	}
 
 	/**
@@ -881,5 +887,63 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 	 */
 	public function is_subs_change_payment() {
 		return isset( $_GET['pay_for_order'] ) && isset( $_GET['change_payment_method'] ) && is_numeric( $_GET['change_payment_method'] ); // phpcs:ignore WordPress.Security.NonceVerification
+	}
+
+
+	/**
+	 * Maybe skip scheduled poll.
+	 *
+	 * @param bool      $schedule Whether to schedule the hook.
+	 * @param  string    $id    Object ID to check for.
+	 * @param  string    $type  Object Type.
+	 * @param  \WC_Order $order Order object.
+	 *
+	 * @return bool
+	 */
+	public function maybe_skip_scheduled_poll( $schedule, $id, $type, $order ) {
+		if ( WC_Amazon_Payments_Advanced_API::should_enable_subscriptions_poll() ) {
+			return $schedule;
+		}
+
+		if ( empty( $order ) ) {
+			return $schedule;
+		}
+
+		$subs = wcs_get_subscriptions_for_order( $order );
+
+		if ( empty( $subs ) ) {
+			return $schedule;
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * Increase polling interval for subscription orders.
+	 *
+	 * @param int       $timestamp Timestamp of the next action.
+	 * @param string    $id        Object ID to check for.
+	 * @param string    $type      Object Type.
+	 * @param \WC_Order $order     Order object.
+	 *
+	 * @return int
+	 */
+	public function increase_polling_interval( $timestamp, $id, $type, $order ) {
+		if ( ! WC_Amazon_Payments_Advanced_API::should_enable_subscriptions_poll() ) {
+			return $timestamp;
+		}
+
+		if ( empty( $order ) ) {
+			return $timestamp;
+		}
+
+		$subs = wcs_get_subscriptions_for_order( $order );
+
+		if ( empty( $subs ) ) {
+			return $timestamp;
+		}
+
+		return strtotime( '+1 day' );
 	}
 }
