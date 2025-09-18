@@ -111,7 +111,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		$this->assertEquals(
 			array(
 				'result'                     => 'success',
-				'redirect'                   => '#amazon-pay-classic-id-that-should-not-exist',
+				'redirect'                   => '#',
 				'amazonCreateCheckoutParams' => wp_json_encode( WC_Mocker_Amazon_Payments_Advanced_API::get_create_checkout_classic_session_config( array( 'test' ) ) ),
 				'amazonEstimatedOrderAmount' => wp_json_encode(
 					array(

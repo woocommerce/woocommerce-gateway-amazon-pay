@@ -121,3 +121,16 @@ export const getCheckOutFieldsLabel = ( field, billingOrShipping ) => {
 export const amazonPayCanMakePayment = ( { cartTotals }, { allowedCurrencies } ) => {
 	return allowedCurrencies && allowedCurrencies.length > 0 ? allowedCurrencies.includes( cartTotals.currency_code ) : true;
 };
+
+
+/**
+ * Maybe removes the edit button from the address card.
+ */
+export const maybeRemoveEditButton = () => {
+	const editAddressButton = document.querySelectorAll('.wc-block-components-address-card__edit');
+    if ( editAddressButton && editAddressButton.length > 0 ) {
+        editAddressButton.forEach( ( button ) => {
+            button.remove();
+        } );
+    }
+}

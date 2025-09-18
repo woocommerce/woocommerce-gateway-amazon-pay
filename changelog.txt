@@ -1,5 +1,15 @@
 *** Amazon Pay Changelog ***
 
+= 2.6.0 - 2025-xx-xx =
+
+* Add - New setting to forcefully enable async polling for subscriptions.
+* Fix - Disable async polling for subscriptions by default.
+* Fix - Enforce matching of address between the checkout session and the order.
+* Fix - Ask for the phone number if missing on Amazon's account.
+* Fix - Remove unnecessary redirect parameter from URL.
+* Update - Amazon Pay SDK to v2.7.0.
+* Dev - Bumped tested up to WooCommerce v10.1.2.
+
 = 2.5.4 - 2025-04-30 =
 
 * Fix - Error when using a non Standard decimal amount for a currency.

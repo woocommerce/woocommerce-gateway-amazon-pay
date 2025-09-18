@@ -1,8 +1,8 @@
 === Amazon Pay for WooCommerce ===
-Contributors: woocommerce, automattic, saucal, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
+Contributors: amazonpay, woocommerce, automattic, saucal, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
-Tested up to: 6.7
+Tested up to: 6.8
 Stable tag: 2.5.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -79,6 +79,15 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.6.0 - 2025-xx-xx =
+* Add - New setting to forcefully enable async polling for subscriptions.
+* Fix - Disable async polling for subscriptions by default.
+* Fix - Enforce matching of address between the checkout session and the order.
+* Fix - Ask for the phone number if missing on Amazon's account.
+* Fix - Remove unnecessary redirect parameter from URL.
+* Update - Amazon Pay SDK to v2.7.0.
+* Dev - Bumped tested up to WooCommerce v10.1.2.
 
 = 2.5.4 - 2025-04-30 =
 

@@ -48,6 +48,7 @@ class WC_Amazon_Payments_Advanced_API_Test extends WP_UnitTestCase {
 				'mini_cart_button'                => 'no',
 				'product_button'                  => 'no',
 				'alexa_notifications_support'     => 'no',
+				'enable_subscriptions_poll'       => 'no',
 			),
 			WC_Amazon_Payments_Advanced_API::get_settings(),
 		);

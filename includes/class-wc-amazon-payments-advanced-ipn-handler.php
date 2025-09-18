@@ -536,15 +536,23 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	/**
 	 * Schedule the hook for polling.
 	 *
-	 * @param  string $id Object ID to check for.
-	 * @param  string $type Object Type.
+	 * @param  string    $id    Object ID to check for.
+	 * @param  string    $type  Object Type.
+	 * @param  \WC_Order $order Order object.
 	 */
-	public function schedule_hook( $id, $type ) {
+	public function schedule_hook( $id, $type, $order = null ) {
 		$args = array( $id, $type );
+
+		if ( ! apply_filters( 'woocommerce_amazon_pa_schedule_hook', true, $id, $type, $order ) ) {
+			wc_apa()->log( sprintf( 'Skipping scheduling check for %s %s', $type, $id ) );
+			return;
+		}
+
 		// Schedule action to check pending order next hour.
 		if ( false === $this->is_next_scheduled( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
 			wc_apa()->log( sprintf( 'Scheduling check for %s %s', $type, $id ) );
-			as_schedule_single_action( strtotime( '+10 minutes' ), 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
+			$polling_interval = apply_filters( 'woocommerce_amazon_pa_polling_interval', strtotime( '+10 minutes' ), $id, $type, $order );
+			as_schedule_single_action( $polling_interval, 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 		}
 	}
 
