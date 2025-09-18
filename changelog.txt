@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.6.0 - 2025-xx-xx =
+= 2.6.0 - 2025-09-18 =
 
 * Add - New setting to forcefully enable async polling for subscriptions.
 * Fix - Disable async polling for subscriptions by default.

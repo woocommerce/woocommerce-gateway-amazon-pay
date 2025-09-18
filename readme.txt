@@ -3,7 +3,7 @@ Contributors: amazonpay, woocommerce, automattic, saucal, woothemes, akeda, jeff
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 2.5.4
+Stable tag: 2.6.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -80,7 +80,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.6.0 - 2025-xx-xx =
+= 2.6.0 - 2025-09-18 =
 * Add - New setting to forcefully enable async polling for subscriptions.
 * Fix - Disable async polling for subscriptions by default.
 * Fix - Enforce matching of address between the checkout session and the order.
