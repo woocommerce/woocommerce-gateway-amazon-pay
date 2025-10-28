@@ -1540,7 +1540,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return WC_Amazon_Payments_Advanced_API::get_create_checkout_classic_session_config( $payload );
 	}
 
-
 	/**
 	 * Handle the return from amazon after a confirmed checkout.
 	 *
