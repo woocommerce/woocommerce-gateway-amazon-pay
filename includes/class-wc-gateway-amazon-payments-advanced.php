@@ -1540,25 +1540,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		return WC_Amazon_Payments_Advanced_API::get_create_checkout_classic_session_config( $payload );
 	}
 
-	/**
-	 * Turn Amazon Pay status reasons into a readable string.
-	 *
-	 * @param array $reasons Array of reason objects from Amazon (reasonCode, reasonDescription).
-	 * @return string
-	 */
-	private function stringify_status_reasons( $reasons ) {
-		$reasons = is_array( $reasons ) ? $reasons : array();
-		$parts   = array();
-
-		foreach ( $reasons as $reason ) {
-			$code = isset( $reason->reasonCode ) ? (string) $reason->reasonCode : '';
-			$desc = isset( $reason->reasonDescription ) ? (string) $reason->reasonDescription : '';
-			$parts[] = trim( $code . ( $desc ? ' - ' . $desc : '' ) );
-		}
-
-		$parts = array_filter( $parts );
-		return implode( '; ', $parts );
-	}
 
 	/**
 	 * Handle the return from amazon after a confirmed checkout.
@@ -1633,24 +1614,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			if ( 'CheckoutSessionCanceled' === $error_code ) {
 				$checkout_session = $this->get_checkout_session( true, $checkout_session_id );
 
-				$reason_code   = isset( $checkout_session->statusDetails->reasonCode ) ? (string) $checkout_session->statusDetails->reasonCode : '';
-				$reasons_array = isset( $checkout_session->statusDetails->reasons ) && is_array( $checkout_session->statusDetails->reasons ) ? $checkout_session->statusDetails->reasons : array();
-				if ( $reason_code && empty( $reasons_array ) ) {
-					$reasons_array[] = (object) array(
-						'reasonCode'        => $reason_code,
-						'reasonDescription' => '',
-					);
-				}
-				$reasons_str = $this->stringify_status_reasons( $reasons_array );
-
+				$reason_code = $checkout_session->statusDetails->reasonCode; // phpcs:ignore WordPress.NamingConventions
 				$order->add_order_note(
 					sprintf(
 						__( 'Amazon Pay checkout was canceled. Reason(s): %s', 'woocommerce-gateway-amazon-payments-advanced' ),
-						$reasons_str ? $reasons_str : __( 'Unknown', 'woocommerce-gateway-amazon-payments-advanced' )
+						$reason_code ? $reason_code : __( 'Unknown', 'woocommerce-gateway-amazon-payments-advanced' )
 					)
 				);
 
-				switch ( $checkout_session->statusDetails->reasonCode ) { // phpcs:ignore WordPress.NamingConventions
+				switch ( $reason_code ) {
 					case 'Declined':
 						wc_add_notice( __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
