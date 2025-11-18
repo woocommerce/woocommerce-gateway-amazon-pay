@@ -72,6 +72,11 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			$payload->publicKeyId = $decrypted_key;
 
+			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			if ( false === $payload->publicKeyId ) {
+				throw new Exception( esc_html__( 'Unable to import Amazon keys. There was an error decrypting the key.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			}
+
 			$this->save_payload( $payload );
 			header( 'Access-Control-Allow-Origin: ' . $this->get_origin_header( $headers ) );
 			header( 'Access-Control-Allow-Methods: GET, POST' );
