@@ -286,7 +286,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 				if ( 'US' !== $country ) {
 
 					$zones[ $country ]->statesOrRegions[] = $all_states[ $country ][ $state ];
-					$variation_state                      = parent::remove_signs( $all_states[ $country ][ $state ] );
+					$variation_state                      = self::remove_signs( $all_states[ $country ][ $state ] );
 					if ( $variation_state !== $all_states[ $country ][ $state ] ) {
 						$zones[ $country ]->statesOrRegions[] = $variation_state;
 					}
