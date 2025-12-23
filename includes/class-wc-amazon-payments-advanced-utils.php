@@ -27,6 +27,24 @@ class WC_Amazon_Payments_Advanced_Utils {
 		: 'shop_order';
 	}
 
+	/**
+	 * Returns the edit subscription's screen id.
+	 *
+	 * Takes into consideration if HPOS is enabled or not.
+	 *
+	 * @return string
+	 */
+	public static function get_edit_subscription_screen_id() {
+		// Fall back to classic post type screen id.
+		if ( ! function_exists( 'wc_get_container' ) || ! class_exists( 'Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' ) ) {
+			return 'shop_subscription';
+		}
+
+		// HPOS screen id uses wc-orders page with order type suffix.
+		return wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+			? wc_get_page_screen_id( 'shop-subscription' )
+			: 'shop_subscription';
+	}
 
 	/**
 	 * Get non required fields.
