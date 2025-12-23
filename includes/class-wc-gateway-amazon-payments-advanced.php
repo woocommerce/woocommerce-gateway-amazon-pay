@@ -1613,7 +1613,15 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			if ( 'CheckoutSessionCanceled' === $error_code ) {
 				$checkout_session = $this->get_checkout_session( true, $checkout_session_id );
 
-				switch ( $checkout_session->statusDetails->reasonCode ) { // phpcs:ignore WordPress.NamingConventions
+				$reason_code = $checkout_session->statusDetails->reasonCode; // phpcs:ignore WordPress.NamingConventions
+				$order->add_order_note(
+					sprintf(
+						__( 'Amazon Pay checkout was canceled. Reason(s): %s', 'woocommerce-gateway-amazon-payments-advanced' ),
+						$reason_code ? $reason_code : __( 'Unknown', 'woocommerce-gateway-amazon-payments-advanced' )
+					)
+				);
+
+				switch ( $reason_code ) {
 					case 'Declined':
 						wc_add_notice( __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
 						break;
