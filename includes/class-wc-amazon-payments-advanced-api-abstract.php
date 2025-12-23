@@ -409,6 +409,31 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 	}
 
 	/**
+	 * Remove string from string letters.
+	 *
+	 * @param  string $string String to clean.
+	 * @return string
+	 */
+	protected static function remove_signs( $string ) {
+		$string = remove_accents( $string );
+
+		// Keep backward compatibility with old hook behavior.
+		$default_map = array(
+			'ß' => 'Ss',
+			'Æ' => 'A',
+			'æ' => 'a',
+			'Ø' => 'O',
+			'ø' => 'o',
+			'Þ' => 'B',
+			'þ' => 'b',
+		);
+
+		$map = apply_filters( 'woocommerce_amazon_pa_signs_to_remove', $default_map );
+
+		return strtr( $string, (array) $map );
+	}
+
+	/**
 	 * Format an Amazon Pay Address DataType for WooCommerce.
 	 *
 	 * @see https://payments.amazon.com/documentation/apireference/201752430
@@ -505,8 +530,8 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 			$valid_states = WC()->countries->get_states( $formatted['country'] );
 
 			if ( ! empty( $valid_states ) && is_array( $valid_states ) ) {
-				$valid_state_values = array_map( 'wc_strtoupper', array_flip( array_map( 'wc_strtoupper', $valid_states ) ) );
-				$uc_state       = wc_strtoupper( $formatted['state'] );
+				$valid_state_values = array_map( 'wc_strtoupper', array_flip( array_map( 'wc_strtoupper', array_map( array( __CLASS__, 'remove_signs' ), $valid_states ) ) ) );
+				$uc_state       = wc_strtoupper( self::remove_signs( $formatted['state'] ) );
 
 				$uc_state = WC_Gateway_Amazon_Payments_Advanced::maybe_get_jp_region_code( $uc_state );
 
@@ -515,7 +540,7 @@ abstract class WC_Amazon_Payments_Advanced_API_Abstract {
 					$uc_state = $valid_state_values[ $uc_state ];
 				}
 
-				if ( ! in_array( $uc_state, $valid_state_values, true ) ) {
+				if ( ! in_array( $uc_state, array_keys( $valid_states ), true ) ) {
 					$formatted['state'] = null;
 				} else {
 					$formatted['state'] = $uc_state;
