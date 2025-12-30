@@ -43,9 +43,8 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	public function check_onboarding_request() {
 		wc_apa()->log( 'Received Onboarding Key Exchage request.' );
 
-		$headers              = $this->get_all_headers();
-		$registration_country = $this->get_country_origin_from_header( $headers );
-		$raw_post_data        = $this->get_raw_post_data();
+		$headers       = $this->get_all_headers();
+		$raw_post_data = $this->get_raw_post_data();
 		parse_str( $raw_post_data, $body );
 
 		try {
@@ -72,6 +71,11 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 			$decrypted_key = $this->decrypt_encrypted_public_key_id( $public_key_id );
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			$payload->publicKeyId = $decrypted_key;
+
+			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			if ( false === $payload->publicKeyId ) {
+				throw new Exception( esc_html__( 'Unable to import Amazon keys. There was an error decrypting the key.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			}
 
 			$this->save_payload( $payload );
 			header( 'Access-Control-Allow-Origin: ' . $this->get_origin_header( $headers ) );
@@ -291,23 +295,6 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 		return $private_key;
 	}
 
-	/**
-	 * From Incoming Exchange message we need to know which country belong the registration.
-	 *
-	 * @param array $headers Headers received.
-	 *
-	 * @return string
-	 */
-	protected function get_country_origin_from_header( $headers ) {
-		switch ( $this->get_origin_header( $headers ) ) {
-			case 'https://payments.amazon.com':
-				return 'us';
-			case 'https://payments-eu.amazon.com':
-				return 'eu';
-			default:
-				return 'us';
-		}
-	}
 
 	/**
 	 * Check because getallheaders is only available for apache, we need a fallback in case of nginx or others,
@@ -363,5 +350,4 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	public static function delete_migration_status() {
 		delete_option( 'amazon_api_version' );
 	}
-
 }
