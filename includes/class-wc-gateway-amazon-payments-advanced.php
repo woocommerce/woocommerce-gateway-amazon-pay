@@ -1581,9 +1581,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 		$order_total = WC_Amazon_Payments_Advanced::format_amount( $order->get_total() );
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
-		if ( ! $this->maybe_update_order_addresses( $order, $checkout_session, $checkout_session_id ) ) {
+		$order_address_updated = $this->maybe_update_order_addresses( $order, $checkout_session, $checkout_session_id );
+		if ( false === $order_address_updated ) {
 			wc_apa()->log( "Error: Order address mismatch and could not be updated. Checkout Session ID: {$checkout_session_id}." );
 			wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+			return;
+		} elseif ( is_wp_error( $order_address_updated ) ) {
+			wc_apa()->log( "Error: " . $order_address_updated->get_error_message() . " Checkout Session ID: {$checkout_session_id}." );
+			wc_add_notice( $order_address_updated->get_error_message(), 'error' );
 			return;
 		}
 
@@ -1700,7 +1705,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 * @param object   $checkout_session    The checkout session data.
 	 * @param string   $checkout_session_id The checkout session id.
 	 *
-	 * @return bool
+	 * @return bool|WP_Error True if updated, false or WP_Error on failure.
 	 */
 	protected function maybe_update_order_addresses( $order, $checkout_session = null, $checkout_session_id = '' ) {
 		try {
@@ -1718,6 +1723,25 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			if ( ! $checkout_session || is_wp_error( $checkout_session ) ) {
 				return false;
+			}
+
+			if ( ! empty( $checkout_session->statusDetails->state ) && 'Canceled' === $checkout_session->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions
+				$reason_code = $checkout_session->statusDetails->reasonCode; // phpcs:ignore WordPress.NamingConventions
+				$order->add_order_note(
+					sprintf(
+						__( 'Amazon Pay checkout was canceled. Reason(s): %s', 'woocommerce-gateway-amazon-payments-advanced' ),
+						$reason_code ? $reason_code : __( 'Unknown', 'woocommerce-gateway-amazon-payments-advanced' )
+					)
+				);
+
+				switch ( $reason_code ) {
+					case 'Declined':
+						return new WP_Error( 'checkoutSessionCancelled', __( 'There was a problem with previously declined transaction. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+					case 'BuyerCanceled':
+						return new WP_Error( 'checkoutSessionCancelled', __( 'The transaction was canceled by you. Please try placing the order again.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+					default:
+						return false;
+				}
 			}
 
 			$billing_address  = ! empty( $checkout_session->billingAddress ) ? WC_Amazon_Payments_Advanced_API::format_address( $checkout_session->billingAddress ) : array();
