@@ -86,6 +86,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 * Fix - Amazon Pay meta box missing from Subscriptions if HPOS is enabled.
 * Fix - Regression with accents in the State field.
 * Fix - Prevent error if there is an error with the OpenSSL extension.
+* Fix - Security update to the onboarding endpoint.
 * Fix - PHP warnings.
 * Dev - Bumped tested up to WordPress v6.9.
 * Dev - Bumped tested up to WooCommerce v10.4.3.
