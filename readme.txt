@@ -3,7 +3,7 @@ Contributors: amazonpay, woocommerce, automattic, saucal, woothemes, akeda, jeff
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 2.6.0
+Stable tag: 2.6.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -80,7 +80,7 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 2.6.1 - 2026-xx-xx =
+= 2.6.1 - 2026-01-21 =
 
 * Add - Admin Order note for cancellations and payment failures.
 * Fix - Amazon Pay meta box missing from Subscriptions if HPOS is enabled.

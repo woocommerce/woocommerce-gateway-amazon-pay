@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.6.1 - 2026-xx-xx =
+= 2.6.1 - 2026-01-21 =
 
 * Add - Admin Order note for cancellations and payment failures.
 * Fix - Amazon Pay meta box missing from Subscriptions if HPOS is enabled.
