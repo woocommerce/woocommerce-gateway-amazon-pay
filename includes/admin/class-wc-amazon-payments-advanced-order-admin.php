@@ -42,9 +42,13 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 * Non AJAX handler that performs order actions.
 	 */
 	public function order_actions_non_ajax() {
-		$screen_to_check = WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id();
+		$allowed_screens = array(
+			WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id(),
+			WC_Amazon_Payments_Advanced_Utils::get_edit_subscription_screen_id(),
+		);
 
-		if ( get_current_screen()->id !== $screen_to_check ) {
+		$current_screen = get_current_screen();
+		if ( ! $current_screen || ! in_array( $current_screen->id, $allowed_screens, true ) ) {
 			return;
 		}
 
@@ -136,9 +140,12 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			return;
 		}
 
-		$screen = WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id();
+		$default_screens = array(
+			WC_Amazon_Payments_Advanced_Utils::get_edit_order_screen_id(),
+			WC_Amazon_Payments_Advanced_Utils::get_edit_subscription_screen_id(),
+		);
 
-		$post_types = apply_filters( 'woocommerce_amazon_pa_admin_meta_box_post_types', array( $screen ) );
+		$post_types = apply_filters( 'woocommerce_amazon_pa_admin_meta_box_post_types', $default_screens );
 
 		foreach ( $post_types as $post_type ) {
 			add_meta_box(

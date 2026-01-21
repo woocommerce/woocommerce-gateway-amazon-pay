@@ -2,7 +2,7 @@
 Contributors: amazonpay, woocommerce, automattic, saucal, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
-Tested up to: 6.8
+Tested up to: 6.9
 Stable tag: 2.6.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -80,7 +80,19 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.6.1 - 2026-xx-xx =
+
+* Add - Admin Order note for cancellations and payment failures.
+* Fix - Amazon Pay meta box missing from Subscriptions if HPOS is enabled.
+* Fix - Regression with accents in the State field.
+* Fix - Prevent error if there is an error with the OpenSSL extension.
+* Fix - Security update to the onboarding endpoint.
+* Fix - PHP warnings.
+* Dev - Bumped tested up to WordPress v6.9.
+* Dev - Bumped tested up to WooCommerce v10.4.3.
+
 = 2.6.0 - 2025-09-18 =
+
 * Add - New setting to forcefully enable async polling for subscriptions.
 * Fix - Disable async polling for subscriptions by default.
 * Fix - Enforce matching of address between the checkout session and the order.
