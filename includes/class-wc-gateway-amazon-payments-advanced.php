@@ -1578,6 +1578,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order = wc_get_order( $order_id );
 
+        if ( ! is_a( $order, WC_Order::class ) ) {
+            wc_apa()->log( "Error: Order with ID {$order_id} could not be loaded. Checkout Session ID: {$checkout_session_id}." );
+            wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+            return;
+        }
+
 		$order_total = WC_Amazon_Payments_Advanced::format_amount( $order->get_total() );
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
