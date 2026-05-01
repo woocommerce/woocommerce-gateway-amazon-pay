@@ -1584,6 +1584,12 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
             return;
         }
 
+        if ( ! $order->needs_payment() ) {
+            wc_apa()->log( sprintf( 'Order #%d does not need payment. Skipping checkout session completion for %s.', $order_id, $checkout_session_id ) );
+            wp_safe_redirect( $order->get_checkout_order_received_url() );
+            exit;
+        }
+
 		$order_total = WC_Amazon_Payments_Advanced::format_amount( $order->get_total() );
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
