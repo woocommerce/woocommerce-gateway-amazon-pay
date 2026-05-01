@@ -1606,7 +1606,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		wc_apa()->log( "Completing checkout session data for #{$order_id}." );
 
-		$this->get_lock_for_order( $order_id, true );
+		if ( ! $this->get_lock_for_order( $order_id ) ) {
+            wc_apa()->log( sprintf( 'Order #%d is already being processed. Aborting duplicate handle_return for %s.', $order_id, $checkout_session_id ) );
+            wp_safe_redirect( $order->get_checkout_order_received_url() );
+			exit;
+		}
 
 		$charge_amount = array(
 			'amount'       => $order_total,
