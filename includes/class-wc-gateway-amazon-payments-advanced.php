@@ -1586,7 +1586,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
         if ( ! $order->needs_payment() ) {
             wc_apa()->log( sprintf( 'Order #%d does not need payment. Skipping checkout session completion for %s.', $order_id, $checkout_session_id ) );
-            wp_safe_redirect( wc_get_checkout_url() );
+            wp_safe_redirect( wc_apa()->get_gateway()->get_return_url( $order ) );
             exit;
         }
 
