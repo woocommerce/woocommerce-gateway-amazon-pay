@@ -1578,6 +1578,18 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		$order = wc_get_order( $order_id );
 
+        if ( ! is_a( $order, WC_Order::class ) ) {
+            wc_apa()->log( "Error: Order with ID {$order_id} could not be loaded. Checkout Session ID: {$checkout_session_id}." );
+            wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+            return;
+        }
+
+        if ( ! $order->needs_payment() ) {
+            wc_apa()->log( sprintf( 'Order #%d does not need payment. Skipping checkout session completion for %s.', $order_id, $checkout_session_id ) );
+            wp_safe_redirect( wc_apa()->get_gateway()->get_return_url( $order ) );
+            exit;
+        }
+
 		$order_total = WC_Amazon_Payments_Advanced::format_amount( $order->get_total() );
 		$currency    = wc_apa_get_order_prop( $order, 'order_currency' );
 
@@ -1594,7 +1606,11 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 		wc_apa()->log( "Completing checkout session data for #{$order_id}." );
 
-		$this->get_lock_for_order( $order_id, true );
+		if ( ! $this->get_lock_for_order( $order_id ) ) {
+            wc_apa()->log( sprintf( 'Order #%d is already being processed. Aborting duplicate handle_return for %s.', $order_id, $checkout_session_id ) );
+            wp_safe_redirect( wc_get_checkout_url() );
+			exit;
+		}
 
 		$charge_amount = array(
 			'amount'       => $order_total,
