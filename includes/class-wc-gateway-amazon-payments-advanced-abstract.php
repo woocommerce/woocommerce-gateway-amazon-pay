@@ -1061,6 +1061,15 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			return $option_value;
 		}
 
+		$chosen_payment = ( WC()->session instanceof WC_Session ) ? WC()->session->get( 'chosen_payment_method' ) : null;
+		if ( empty( $chosen_payment ) && isset( $_POST['payment_method'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$chosen_payment = sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+
+		if ( $this->id !== $chosen_payment ) {
+			return $option_value;
+		}
+
 		if ( empty( WC()->cart ) ) {
 			return $option_value;
 		}
