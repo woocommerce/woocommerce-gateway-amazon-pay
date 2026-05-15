@@ -41,6 +41,27 @@ const AmazonPayBtn = ( props ) => {
 	] );
 
 	useEffect( () => {
+		if ( 'PayOnly' === action ) {
+			return;
+		}
+		const phoneIds = [ 'billing-phone', 'shipping-phone' ];
+		phoneIds.forEach( ( id ) => {
+			const field = document.getElementById( id );
+			if ( field ) {
+				field.setAttribute( 'required', '' );
+			}
+		} );
+		return () => {
+			phoneIds.forEach( ( id ) => {
+				const field = document.getElementById( id );
+				if ( field ) {
+					field.removeAttribute( 'required' );
+				}
+			} );
+		};
+	}, [ action ] );
+
+	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onPaymentSetup(
 			async () => {
 				if ( 'PayOnly' === action ) {
