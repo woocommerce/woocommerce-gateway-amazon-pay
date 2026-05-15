@@ -49,6 +49,10 @@ const AmazonPayBtn = ( props ) => {
 			const field = document.getElementById( id );
 			if ( field ) {
 				field.setAttribute( 'required', '' );
+				const label = document.querySelector( `label[for="${ id }"]` );
+				if ( field ) {
+					label.innerHTML = __( 'Phone', 'woocommerce-gateway-amazon-payments-advanced' );
+				}
 			}
 		} );
 		return () => {
@@ -56,6 +60,10 @@ const AmazonPayBtn = ( props ) => {
 				const field = document.getElementById( id );
 				if ( field ) {
 					field.removeAttribute( 'required' );
+					const label = document.querySelector( `label[for="${ id }"]` );
+					if ( field ) {
+						label.innerHTML = __( 'Phone (optional)', 'woocommerce-gateway-amazon-payments-advanced' );
+					}
 				}
 			} );
 		};
