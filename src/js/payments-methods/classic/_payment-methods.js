@@ -18,7 +18,7 @@ import { renderAndInitAmazonCheckout } from '../../_renderAmazonButton';
  * @returns React component
  */
 const AmazonPayBtn = ( props ) => {
-	const { action } = settings;
+	const { action, phoneRequired } = settings;
 
 	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onCheckoutSuccess(
@@ -42,6 +42,9 @@ const AmazonPayBtn = ( props ) => {
 
 	useEffect( () => {
 		if ( 'PayOnly' === action ) {
+			return;
+		}
+		if ( ! phoneRequired ) {
 			return;
 		}
 		const phoneIds = [ 'billing-phone', 'shipping-phone' ];
