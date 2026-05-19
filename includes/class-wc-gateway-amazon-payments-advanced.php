@@ -833,7 +833,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param  mixed       $force Wether to force read from amazon, or use the cached data if available.
 	 * @param  null|string $checkout_session_id The checkout session id if it exists.
-	 * @return object the Checkout Session Object from Amazon API
+	 * @return object|WP_Error the Checkout Session Object from Amazon API
 	 */
 	public function get_checkout_session( $force = false, $checkout_session_id = null ) {
 		if ( ! $force && null !== $this->checkout_session ) {
