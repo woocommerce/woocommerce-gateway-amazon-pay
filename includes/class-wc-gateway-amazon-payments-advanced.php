@@ -791,7 +791,6 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			if ( ! is_user_logged_in() ) {
 				$checkout_session = $this->get_checkout_session();
 				$buyer_id         = $checkout_session->buyer->buyerId;
-				$buyer_email      = $checkout_session->buyer->email;
 
 				$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 
