@@ -439,7 +439,7 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 	 * Get Checkout Session Data.
 	 *
 	 * @param  string $checkout_session_id Checkout Session Id.
-	 * @return object Checkout Session from the API
+	 * @return object|WP_Error Checkout Session from the API
 	 */
 	public static function get_checkout_session_data( $checkout_session_id ) {
 		$client = self::get_client();

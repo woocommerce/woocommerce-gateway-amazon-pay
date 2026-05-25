@@ -790,13 +790,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 
 			if ( ! is_user_logged_in() ) {
 				$checkout_session = $this->get_checkout_session();
-				$buyer_id         = $checkout_session->buyer->buyerId;
-				$buyer_email      = $checkout_session->buyer->email;
+				if ( ! is_wp_error( $checkout_session ) && isset( $checkout_session->buyer ) && ! empty( $checkout_session->buyer->buyerId ) ) {
+					$buyer_id = $checkout_session->buyer->buyerId;
 
-				$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
+					$buyer_user_id = $this->get_customer_id_from_buyer( $buyer_id );
 
-				if ( ! empty( $buyer_user_id ) ) {
-					wc_set_customer_auth_cookie( $buyer_user_id );
+					if ( ! empty( $buyer_user_id ) ) {
+						wc_set_customer_auth_cookie( $buyer_user_id );
+					}
 				}
 			}
 
@@ -834,7 +835,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	 *
 	 * @param  mixed       $force Wether to force read from amazon, or use the cached data if available.
 	 * @param  null|string $checkout_session_id The checkout session id if it exists.
-	 * @return object the Checkout Session Object from Amazon API
+	 * @return object|WP_Error the Checkout Session Object from Amazon API
 	 */
 	public function get_checkout_session( $force = false, $checkout_session_id = null ) {
 		if ( ! $force && null !== $this->checkout_session ) {
@@ -2193,7 +2194,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	/**
 	 * Check wether the checkout session is still valid.
 	 *
-	 * @param  object $checkout_session Checkout Session Object from the Amazon API.
+	 * @param  object|WP_Error $checkout_session Checkout Session Object from the Amazon API.
 	 * @return bool|WP_Error True if valid, WP_Error in case of error.
 	 */
 	public function is_checkout_session_still_valid( $checkout_session ) {
@@ -2206,7 +2207,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return new WP_Error( 'session_changed', __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ), $props_validation->get_error_data() );
 		}
 
-		if ( 'Open' !== $checkout_session->statusDetails->state ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		if ( is_wp_error( $checkout_session ) || ! isset($checkout_session->statusDetails) || 'Open' !== ( $checkout_session->statusDetails->state ?? null ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			return new WP_Error( 'not_open', __( 'Something went wrong with your session. Please log in again.', 'woocommerce-gateway-amazon-payments-advanced' ), $checkout_session->statusDetails->state ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		}
 
