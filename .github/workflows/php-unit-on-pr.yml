@@ -30,6 +30,11 @@ jobs:
           tools: composer
           coverage: none
 
+      # Check Composer Version
+      - name: Check Composer Version
+        shell: bash
+        run: composer --version
+
       # Use node version from .nvmrc
       - name: Setup NodeJS
         uses: actions/setup-node@v4
