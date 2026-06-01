@@ -43,7 +43,6 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 	 * @return array
 	 */
 	public function get_payment_method_data() {
-		$phone_required = ! empty( WC()->cart ) && method_exists( WC()->cart, 'needs_shipping' ) && WC()->cart->needs_shipping(); // TODO: use reusable service
 		return array(
 			'title'               => $this->settings['title'],
 			'description'         => $this->settings['description'],
@@ -51,7 +50,8 @@ class WC_Amazon_Payments_Advanced_Block_Compat_Classic extends WC_Amazon_Payment
 			'amazonPayPreviewUrl' => esc_url( wc_apa()->plugin_url . '/build/images/amazon-pay-preview.png' ),
 			'action'              => wc_apa()->get_gateway()->get_current_cart_action(),
 			'allowedCurrencies'   => $this->get_allowed_currencies(),
-			'phoneRequired'       => $phone_required,
+			'phoneRequired'       => wc_apa()->get_gateway()->phone_number_is_required(),
+			'phoneRequiredBase'   => wc_apa()->get_gateway()->phone_number_is_required_base(),
 		);
 	}
 
