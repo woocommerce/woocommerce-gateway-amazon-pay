@@ -1075,11 +1075,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			return $option_value;
 		}
 
-		if ( ! method_exists( WC()->cart, 'needs_shipping' ) || ! WC()->cart->needs_shipping() ) {
-			return $option_value;
-		}
-
-		return 'required';
+        return $this->phone_number_is_required() ? 'required' : $option_value;
 	}
 
     /**
