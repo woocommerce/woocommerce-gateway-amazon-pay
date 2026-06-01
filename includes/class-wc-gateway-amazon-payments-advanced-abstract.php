@@ -1081,6 +1081,14 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		return 'required';
 	}
 
+    /**
+     * The phone number field is required for Amazon Pay
+     * @return bool
+     */
+    public function phone_number_is_required() {
+        return ( ! empty( WC()->cart ) ) && method_exists( WC()->cart, 'needs_shipping' ) && WC()->cart->needs_shipping();
+    }
+
 	/**
 	 * Init common hooks on checkout_init hook
 	 */
