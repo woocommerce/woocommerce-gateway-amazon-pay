@@ -4,6 +4,7 @@
  *
  * @package WC_Gateway_Amazon_Pay
  */
+use Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils;
 
 /**
  * WC_Gateway_Amazon_Payments_Advanced_Abstract
@@ -1087,6 +1088,25 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
      */
     public function phone_number_is_required() {
         return ( ! empty( WC()->cart ) ) && method_exists( WC()->cart, 'needs_shipping' ) && WC()->cart->needs_shipping();
+    }
+
+    /**
+     * Indicates whether the phone was required without taking Amazon Pay into account
+     * @return bool
+     */
+    public function phone_number_is_required_base() {
+		$filter_callback  = array( $this, 'maybe_flag_phone_number_as_required' );
+		$has_filter = has_filter( 'option_woocommerce_checkout_phone_field', $filter_callback );
+		if ( $has_filter ) {
+			remove_filter( 'option_woocommerce_checkout_phone_field', $filter_callback );
+		}
+		/** @see \Automattic\WooCommerce\Blocks\Domain\Services\CheckoutFields::get_core_fields */
+		$base_phone_required = 'required' === CartCheckoutUtils::get_phone_field_visibility();
+		if ( $has_filter ) {
+			add_filter('option_woocommerce_checkout_phone_field', $filter_callback);
+		}
+
+        return $base_phone_required;
     }
 
 	/**
