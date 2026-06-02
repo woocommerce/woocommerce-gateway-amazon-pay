@@ -44,45 +44,16 @@ const AmazonPayBtn = ( props ) => {
 		if ( 'PayOnly' === action || ! phoneRequired || phoneRequiredBase ) {
 			return;
 		}
-		const defaultFieldsSettings = window.wc?.wcSettings?.getSetting?.( 'defaultFields', {} );
-		const phoneLabel = defaultFieldsSettings?.phone?.label || __( 'Phone', 'woocommerce-gateway-amazon-payments-advanced' );
-		const phoneOptionalLabel = defaultFieldsSettings?.phone?.optionalLabel || __( 'Phone (optional)', 'woocommerce-gateway-amazon-payments-advanced' );
 
-		const phoneIds = [ 'billing-phone', 'shipping-phone' ];
 		const wcDefaultPhone = window.wc?.wcSettings?.defaultFields?.phone;
-
 		if ( wcDefaultPhone ) {
 			wcDefaultPhone.required = true;
 		}
-		phoneIds.forEach( ( id ) => {
-			const field = document.getElementById( id );
-			if ( ! field ) {
-				return;
-			}
-			field.setAttribute( 'required', '' );
-			const label = document.querySelector( `label[for="${ id }"]` );
-			if ( label ) {
-				label.textContent = phoneLabel;
-			}
-		} );
 
 		return () => {
-			// Restore defaultFields to the base WC option value so fields that appear after
-			// Amazon Pay is deselected (e.g. billing-phone after same-address toggle) render correctly.
 			if ( wcDefaultPhone ) {
 				wcDefaultPhone.required = false;
 			}
-			phoneIds.forEach( ( id ) => {
-				const field = document.getElementById( id );
-				if ( ! field ) {
-					return;
-				}
-				field.removeAttribute( 'required' );
-				const label = document.querySelector( `label[for="${ id }"]` );
-				if ( label ) {
-					label.textContent = phoneOptionalLabel;
-				}
-			} );
 		};
 	}, [ action ] );
 
