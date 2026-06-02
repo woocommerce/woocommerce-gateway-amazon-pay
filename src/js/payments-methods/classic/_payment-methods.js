@@ -18,7 +18,7 @@ import { renderAndInitAmazonCheckout } from '../../_renderAmazonButton';
  * @returns React component
  */
 const AmazonPayBtn = ( props ) => {
-	const { action, phoneRequired } = settings;
+	const { action, phoneRequired, phoneRequiredBase } = settings;
 
 	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onCheckoutSuccess(
@@ -41,32 +41,46 @@ const AmazonPayBtn = ( props ) => {
 	] );
 
 	useEffect( () => {
-		if ( 'PayOnly' === action ) {
+		if ( 'PayOnly' === action || ! phoneRequired || phoneRequiredBase ) {
 			return;
 		}
-		if ( ! phoneRequired ) {
-			return;
-		}
+		const defaultFieldsSettings = window.wc?.wcSettings?.getSetting?.( 'defaultFields', {} );
+		const phoneLabel = defaultFieldsSettings?.phone?.label || __( 'Phone', 'woocommerce-gateway-amazon-payments-advanced' );
+		const phoneOptionalLabel = defaultFieldsSettings?.phone?.optionalLabel || __( 'Phone (optional)', 'woocommerce-gateway-amazon-payments-advanced' );
+
 		const phoneIds = [ 'billing-phone', 'shipping-phone' ];
+		const wcDefaultPhone = window.wc?.wcSettings?.defaultFields?.phone;
+
+		if ( wcDefaultPhone ) {
+			wcDefaultPhone.required = true;
+		}
 		phoneIds.forEach( ( id ) => {
 			const field = document.getElementById( id );
-			if ( field ) {
-				field.setAttribute( 'required', '' );
-				const label = document.querySelector( `label[for="${ id }"]` );
-				if ( field ) {
-					label.innerHTML = __( 'Phone', 'woocommerce-gateway-amazon-payments-advanced' );
-				}
+			if ( ! field ) {
+				return;
+			}
+			field.setAttribute( 'required', '' );
+			const label = document.querySelector( `label[for="${ id }"]` );
+			if ( label ) {
+				label.textContent = phoneLabel;
 			}
 		} );
+
 		return () => {
+			// Restore defaultFields to the base WC option value so fields that appear after
+			// Amazon Pay is deselected (e.g. billing-phone after same-address toggle) render correctly.
+			if ( wcDefaultPhone ) {
+				wcDefaultPhone.required = false;
+			}
 			phoneIds.forEach( ( id ) => {
 				const field = document.getElementById( id );
-				if ( field ) {
-					field.removeAttribute( 'required' );
-					const label = document.querySelector( `label[for="${ id }"]` );
-					if ( field ) {
-						label.innerHTML = __( 'Phone (optional)', 'woocommerce-gateway-amazon-payments-advanced' );
-					}
+				if ( ! field ) {
+					return;
+				}
+				field.removeAttribute( 'required' );
+				const label = document.querySelector( `label[for="${ id }"]` );
+				if ( label ) {
+					label.textContent = phoneOptionalLabel;
 				}
 			} );
 		};
@@ -80,7 +94,7 @@ const AmazonPayBtn = ( props ) => {
 				}
 				const shippingPhone = document.getElementById( 'shipping-phone' );
 				const billingPhone = document.getElementById( 'billing-phone' );
-				
+
 				if ( ! shippingPhone?.value && ! billingPhone?.value ) {
 					return {
 						type: 'error',
