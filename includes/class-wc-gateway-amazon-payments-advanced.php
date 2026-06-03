@@ -299,6 +299,7 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'overriden_fields_per_country'   => WC_Amazon_Payments_Advanced_Utils::get_non_required_fields_per_country(),
 				'phone_required'                 => $this->phone_number_is_required(),
 				'phone_required_base'            => $this->phone_number_is_required_base(),
+				'i18n_optional'                  => esc_html__( 'optional', 'woocommerce-gateway-amazon-payments-advanced' ),
 			),
 			$params
 		);

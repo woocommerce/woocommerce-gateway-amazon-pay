@@ -424,7 +424,7 @@
 				$label.append( '<span class="required" aria-hidden="true">*</span>' );
 			} else {
 				$field.removeAttr( 'required' );
-				$label.append( '<span class="optional">(optional)</span>' );
+				$label.append( '<span class="optional">(' + amazon_payments_advanced.i18n_optional + ')</span>' );
 			}
 		}
 
