@@ -297,6 +297,8 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 				'ledger_currency'                => $this->get_ledger_currency(),
 				'estimated_order_amount'         => self::get_estimated_order_amount(),
 				'overriden_fields_per_country'   => WC_Amazon_Payments_Advanced_Utils::get_non_required_fields_per_country(),
+				'phone_required'                 => $this->phone_number_is_required(),
+				'phone_required_base'            => $this->phone_number_is_required_base(),
 			),
 			$params
 		);
