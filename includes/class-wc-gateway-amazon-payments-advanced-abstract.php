@@ -174,6 +174,13 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	protected $enable_login_app;
 
 	/**
+	 * Flag to suppress the phone required filter during base value lookup.
+	 *
+	 * @var bool
+	 */
+	private static $suppress_phone_filter = false;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -1058,6 +1065,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 */
 	public function maybe_flag_phone_number_as_required( $option_value ) {
 
+		if ( self::$suppress_phone_filter ) {
+			return $option_value;
+		}
+
 		if ( ! $this->is_available() ) {
 			return $option_value;
 		}
@@ -1091,16 +1102,10 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
      * @return bool
      */
     public function phone_number_is_required_base() {
-		$filter_callback  = array( $this, 'maybe_flag_phone_number_as_required' );
-		$has_filter = has_filter( 'option_woocommerce_checkout_phone_field', $filter_callback );
-		if ( $has_filter ) {
-			remove_filter( 'option_woocommerce_checkout_phone_field', $filter_callback );
-		}
+		self::$suppress_phone_filter = true;
 		/** @see \Automattic\WooCommerce\Blocks\Domain\Services\CheckoutFields::get_core_fields */
 		$base_phone_required = 'required' === CartCheckoutUtils::get_phone_field_visibility();
-		if ( $has_filter ) {
-			add_filter('option_woocommerce_checkout_phone_field', $filter_callback);
-		}
+		self::$suppress_phone_filter = false;
 
         return $base_phone_required;
     }
