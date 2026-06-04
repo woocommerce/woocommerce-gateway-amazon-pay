@@ -4,6 +4,7 @@
  *
  * @package WC_Gateway_Amazon_Pay
  */
+use Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils;
 
 /**
  * WC_Gateway_Amazon_Payments_Advanced_Abstract
@@ -171,6 +172,13 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 * @var string
 	 */
 	protected $enable_login_app;
+
+	/**
+	 * Flag to suppress the phone required filter during base value lookup.
+	 *
+	 * @var bool
+	 */
+	private static $suppress_phone_filter = false;
 
 	/**
 	 * Constructor
@@ -1057,7 +1065,20 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 	 */
 	public function maybe_flag_phone_number_as_required( $option_value ) {
 
+		if ( self::$suppress_phone_filter ) {
+			return $option_value;
+		}
+
 		if ( ! $this->is_available() ) {
+			return $option_value;
+		}
+
+		$chosen_payment = ( WC()->session instanceof WC_Session ) ? WC()->session->get( 'chosen_payment_method' ) : null;
+		if ( empty( $chosen_payment ) && isset( $_POST['payment_method'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$chosen_payment = sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+
+		if ( $this->id !== $chosen_payment ) {
 			return $option_value;
 		}
 
@@ -1065,12 +1086,29 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			return $option_value;
 		}
 
-		if ( ! method_exists( WC()->cart, 'needs_shipping' ) || ! WC()->cart->needs_shipping() ) {
-			return $option_value;
-		}
-
-		return 'required';
+        return $this->phone_number_is_required() ? 'required' : $option_value;
 	}
+
+    /**
+     * The phone number field is required for Amazon Pay
+     * @return bool
+     */
+    public function phone_number_is_required() {
+        return ( ! empty( WC()->cart ) ) && method_exists( WC()->cart, 'needs_shipping' ) && WC()->cart->needs_shipping();
+    }
+
+    /**
+     * Indicates whether the phone was required without taking Amazon Pay into account
+     * @return bool
+     */
+    public function phone_number_is_required_base() {
+		self::$suppress_phone_filter = true;
+		/** @see \Automattic\WooCommerce\Blocks\Domain\Services\CheckoutFields::get_core_fields */
+		$base_phone_required = 'required' === CartCheckoutUtils::get_phone_field_visibility();
+		self::$suppress_phone_filter = false;
+
+        return $base_phone_required;
+    }
 
 	/**
 	 * Init common hooks on checkout_init hook
