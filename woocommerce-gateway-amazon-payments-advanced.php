@@ -19,7 +19,7 @@
  * @package WC_Gateway_Amazon_Pay
  */
 
-define( 'WC_AMAZON_PAY_VERSION', '2.6.1' ); // WRCS: DEFINED_VERSION.
+define( 'WC_AMAZON_PAY_VERSION', '2.6.2' ); // WRCS: DEFINED_VERSION.
 define( 'WC_AMAZON_PAY_VERSION_CV1', '1.13.1' );
 
 // Declare HPOS compatibility.
