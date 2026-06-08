@@ -862,7 +862,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 
 				$finfo = new finfo( FILEINFO_MIME_TYPE );
 				$ext   = $finfo->file( $pem_file['tmp_name'] );
-				if ( 'text/plain' === $ext && isset( $pem_file['tmp_name'] ) ) {
+				if ( in_array( $ext, array( 'text/plain', 'text/x-ssh-private-key' ), true ) && isset( $pem_file['tmp_name'] ) ) {
 					// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 					$private_key = file_get_contents( $pem_file['tmp_name'] );
 					$this->save_private_key( $private_key );
