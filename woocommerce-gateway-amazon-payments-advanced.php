@@ -9,8 +9,8 @@
  * Text Domain: woocommerce-gateway-amazon-payments-advanced
  * Domain Path: /languages/
  * Tested up to: 6.9
- * WC tested up to: 10.4.3
- * WC requires at least: 4.0
+ * WC tested up to: 10.8.1
+ * WC requires at least: 8.5
  *
  * Copyright: © 2026 WooCommerce
  * License: GNU General Public License v3.0
