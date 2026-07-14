@@ -88,6 +88,8 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 * Fix - PHP warnings and errors.
 * Dev - Removed pinned Composer version to address a potential security vulnerability.
 * Dev - Bumped required PHP version to 7.4.
+* Dev - Bumped tested up to WordPress v7.0.1.
+* Dev - Bumped tested up to WooCommerce v10.8.1.
 
 = 2.6.1 - 2026-01-21 =
 
