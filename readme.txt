@@ -2,7 +2,7 @@
 Contributors: amazonpay, woocommerce, automattic, saucal, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
-Tested up to: 6.9
+Tested up to: 7.0.1
 Stable tag: 2.6.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -79,6 +79,15 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.6.2 - 2026-xx-xx =
+
+* Fix - Fatal error in the IPN handler (v2) when the related order could not be retrieved.
+* Fix - Amazon Pay incorrectly requiring the phone number for all payment methods.
+* Fix - Prevent duplicate charges when paying with Amazon Pay on Classic Checkout.
+* Fix - PHP warnings and errors.
+* Dev - Removed pinned Composer version to address a potential security vulnerability.
+* Dev - Bumped required PHP version to 7.4.
 
 = 2.6.1 - 2026-01-21 =
 

@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.6.2 - 2026-07-14 =
+= 2.6.2 - 2026-xx-xx =
 
 * Fix - Fatal error in the IPN handler (v2) when the related order could not be retrieved.
 * Fix - Amazon Pay incorrectly requiring the phone number for all payment methods.
