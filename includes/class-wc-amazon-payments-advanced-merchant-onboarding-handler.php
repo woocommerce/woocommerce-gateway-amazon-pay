@@ -191,31 +191,40 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 * @return mixed
 	 * @throws Exception On Errors.
 	 */
-	protected function generate_keys( $public = false ) {
+	protected function generate_keys( $public = false, $reset = false ) {
 
 		if ( ! function_exists( 'openssl_pkey_new' ) || ! function_exists( 'openssl_verify' ) ) {
 			throw new Exception( esc_html__( 'OpenSSL extension is not available in your server.', 'woocommerce-gateway-amazon-payments-advanced' ) );
 		}
-		$keys = openssl_pkey_new(
-			array(
-				'digest_alg'       => self::DIGEST_ALG,
-				'private_key_bits' => self::PRIVATE_KEY_BITS,
-				'private_key_type' => self::PRIVATE_KEY_TYPE,
-			)
-		);
-		if ( false === $keys ) {
-			throw new Exception( esc_html__( 'Failed to generate OpenSSL key pair.', 'woocommerce-gateway-amazon-payments-advanced' ) );
-		}
-
-		$public_key = openssl_pkey_get_details( $keys );
-		openssl_pkey_export( $keys, $private_key );
 
 		$temps = $this->get_temp_private_keys();
 
-		$temps[] = $private_key;
-		update_option( self::KEYS_OPTION_TEMP_PRIVATE_KEYS, $temps );
+		if ( ! $reset && ! empty( $temps ) ) {
+			$private_key = end( $temps );
+		} else {
+			$keys = openssl_pkey_new(
+				array(
+					'digest_alg'       => self::DIGEST_ALG,
+					'private_key_bits' => self::PRIVATE_KEY_BITS,
+					'private_key_type' => self::PRIVATE_KEY_TYPE,
+				)
+			);
+			if ( false === $keys ) {
+				throw new Exception( esc_html__( 'Failed to generate OpenSSL key pair.', 'woocommerce-gateway-amazon-payments-advanced' ) );
+			}
 
-		return ( $public ) ? $public_key['key'] : $private_key;
+			openssl_pkey_export( $keys, $private_key );
+
+			$temps[] = $private_key;
+			update_option( self::KEYS_OPTION_TEMP_PRIVATE_KEYS, $temps, 'no' );
+		}
+
+		if ( ! $public ) {
+			return $private_key;
+		}
+
+		$details = openssl_pkey_get_details( openssl_pkey_get_private( $private_key ) );
+		return $details['key'];
 	}
 
 	/**
@@ -223,6 +232,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 */
 	public static function destroy_keys() {
 		delete_option( self::KEYS_OPTION_PRIVATE_KEY );
+		delete_option( self::KEYS_OPTION_TEMP_PRIVATE_KEYS );
 	}
 
 	/**
@@ -289,7 +299,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 		$private_key = get_option( self::KEYS_OPTION_PRIVATE_KEY, false );
 
 		if ( ( ! $private_key ) || $reset ) {
-			$private_key = $this->generate_keys( false );
+			$private_key = $this->generate_keys( false, $reset );
 		}
 
 		return $private_key;
@@ -334,7 +344,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	public static function get_migration_status() {
 		$status      = get_option( 'amazon_api_version' );
 		$old_install = version_compare( get_option( 'woocommerce_amazon_payments_new_install' ), '2.0.0', '>=' );
-		return 'V2' === $status || $old_install ? true : false;
+		return 'V2' === $status || (bool) $old_install;
 	}
 
 	/**
@@ -342,6 +352,7 @@ class WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler {
 	 */
 	public static function update_migration_status() {
 		update_option( 'amazon_api_version', 'V2' );
+		delete_option( self::KEYS_OPTION_TEMP_PRIVATE_KEYS );
 	}
 
 	/**

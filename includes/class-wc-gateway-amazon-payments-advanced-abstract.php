@@ -341,10 +341,16 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 		$redirect_url           = $this->get_amazon_payments_checkout_url();
 		$valid                  = isset( $this->settings['amazon_keys_setup_and_validated'] ) ? $this->settings['amazon_keys_setup_and_validated'] : false;
 
-		$button_desc = __( 'Register for a new Amazon Pay merchant account, or sign in with your existing Amazon Pay Seller Central credentials to complete the plugin upgrade and configuration', 'woocommerce-gateway-amazon-payments-advanced' );
-		$button_btn  = '<a class="register_now button-primary">' . __( 'Connect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
+		$button_desc = __( 'Register for a new Amazon Pay merchant account, or sign in with your existing Amazon Pay Seller Central credentials to complete the plugin upgrade and configuration.', 'woocommerce-gateway-amazon-payments-advanced' );
+		$button_note = '<strong>' . __( 'Note for existing Amazon Pay accounts:', 'woocommerce-gateway-amazon-payments-advanced' ) . '</strong> ' . sprintf(
+			/* translators: %s: manual key retrieval documentation URL. */
+			__( 'Due to a recent change in Amazon\'s onboarding flow, the automated connection process may not complete successfully for existing accounts. If the process appears to hang, <a href="%s" target="_blank">manually retrieve your keys from Seller Central</a> and paste them using the manual credentials entry below.', 'woocommerce-gateway-amazon-payments-advanced' ),
+			'https://woocommerce.com/document/amazon-payments-advanced/#section-5.1'
+		);
+		$button_btn = '<a class="register_now button-primary">' . __( 'Connect to Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
 		if ( $this->private_key ) {
-			$button_desc = __( 'In order to connect to a different account you need to disconect first, this will delete current Account Settings, you will need to go throught all the configuration process again', 'woocommerce-gateway-amazon-payments-advanced' );
+			$button_desc = __( 'In order to connect to a different account you need to disconnect first, this will delete current Account Settings, you will need to go through all the configuration process again', 'woocommerce-gateway-amazon-payments-advanced' );
+			$button_note = '';
 			$button_btn  = '<a class="delete-settings button-primary">' . __( 'Disconnect Amazon Pay', 'woocommerce-gateway-amazon-payments-advanced' ) . '</a>';
 		}
 		if ( ! WC_Amazon_Payments_Advanced_Merchant_Onboarding_Handler::get_migration_status() ) {
@@ -372,7 +378,7 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			'register_now'                => array(
 				'title'       => __( 'Connect your Amazon Pay merchant account', 'woocommerce-gateway-amazon-payments-advanced' ),
 				'type'        => 'title',
-				'description' => $button_desc . '<br/><br/>' . $button_btn,
+				'description' => $button_desc . ( $button_note ? '<br/><br/>' . $button_note : '' ) . '<br/><br/>' . $button_btn,
 			),
 			'enabled'                     => array(
 				'title'       => __( 'Enable/Disable', 'woocommerce-gateway-amazon-payments-advanced' ),
@@ -1086,29 +1092,31 @@ abstract class WC_Gateway_Amazon_Payments_Advanced_Abstract extends WC_Payment_G
 			return $option_value;
 		}
 
-        return $this->phone_number_is_required() ? 'required' : $option_value;
+		return $this->phone_number_is_required() ? 'required' : $option_value;
 	}
 
-    /**
-     * The phone number field is required for Amazon Pay
-     * @return bool
-     */
-    public function phone_number_is_required() {
-        return ( ! empty( WC()->cart ) ) && method_exists( WC()->cart, 'needs_shipping' ) && WC()->cart->needs_shipping();
-    }
+	/**
+	 * The phone number field is required for Amazon Pay
+	 *
+	 * @return bool
+	 */
+	public function phone_number_is_required() {
+		return ( ! empty( WC()->cart ) ) && method_exists( WC()->cart, 'needs_shipping' ) && WC()->cart->needs_shipping();
+	}
 
-    /**
-     * Indicates whether the phone was required without taking Amazon Pay into account
-     * @return bool
-     */
-    public function phone_number_is_required_base() {
+	/**
+	 * Indicates whether the phone was required without taking Amazon Pay into account
+	 *
+	 * @return bool
+	 */
+	public function phone_number_is_required_base() {
 		self::$suppress_phone_filter = true;
 		/** @see \Automattic\WooCommerce\Blocks\Domain\Services\CheckoutFields::get_core_fields */
-		$base_phone_required = 'required' === CartCheckoutUtils::get_phone_field_visibility();
+		$base_phone_required         = 'required' === CartCheckoutUtils::get_phone_field_visibility();
 		self::$suppress_phone_filter = false;
 
-        return $base_phone_required;
-    }
+		return $base_phone_required;
+	}
 
 	/**
 	 * Init common hooks on checkout_init hook
