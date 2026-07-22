@@ -416,9 +416,37 @@
 			$( '.wc-apa-send-confirm-ownership-code' ).on( 'click', sendConfirmationCode );
 		}
 
+		function updatePhoneFieldRequired( $field, isRequired ) {
+			var $label = $( 'label[for="' + $field.attr( 'id' ) + '"]' );
+			$label.find( 'span.required, span.optional' ).remove();
+			if ( isRequired ) {
+				$field.attr( 'required', '' );
+				$label.append( '<span class="required" aria-hidden="true">*</span>' );
+			} else {
+				$field.removeAttr( 'required' );
+				$label.append( '<span class="optional">(' + amazon_payments_advanced.i18n_optional + ')</span>' );
+			}
+		}
+
+		function updatePhoneRequired() {
+			var phoneRequired = amazon_payments_advanced.phone_required;
+			var phoneRequiredBase = amazon_payments_advanced.phone_required_base;
+
+			if ( ! phoneRequired || phoneRequiredBase ) {
+				return;
+			}
+
+			var isAmazon = 'amazon_payments_advanced' === $( 'input[name=payment_method]:checked' ).val();
+			updatePhoneFieldRequired( $( '#billing_phone' ), isAmazon );
+			updatePhoneFieldRequired( $( '#shipping_phone' ), isAmazon );
+		}
+
 		initAmazonPaymentFields();
 
 		$( 'body' ).on( 'updated_checkout', initAmazonPaymentFields );
-		$( 'body' ).on( 'payment_method_selected', initAmazonPaymentFields );
+		$( 'body' ).on( 'payment_method_selected', function() {
+			initAmazonPaymentFields();
+			updatePhoneRequired();
+		} );
 	} );
 } )( jQuery );

@@ -1,5 +1,16 @@
 *** Amazon Pay Changelog ***
 
+= 2.6.2 - 2026-xx-xx =
+
+* Fix - Fatal error in the IPN handler (v2) when the related order could not be retrieved.
+* Fix - Amazon Pay incorrectly requiring the phone number for all payment methods.
+* Fix - Prevent duplicate charges when paying with Amazon Pay on Classic Checkout.
+* Fix - PHP warnings and errors.
+* Dev - Removed pinned Composer version to address a potential security vulnerability.
+* Dev - Bumped required PHP version to 7.4.
+* Dev - Bumped tested up to WordPress v7.0.1.
+* Dev - Bumped tested up to WooCommerce v10.8.1.
+
 = 2.6.1 - 2026-01-21 =
 
 * Add - Admin Order note for cancellations and payment failures.

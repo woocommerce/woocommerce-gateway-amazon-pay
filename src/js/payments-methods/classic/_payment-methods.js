@@ -18,7 +18,7 @@ import { renderAndInitAmazonCheckout } from '../../_renderAmazonButton';
  * @returns React component
  */
 const AmazonPayBtn = ( props ) => {
-	const { action } = settings;
+	const { action, phoneRequired, phoneRequiredBase } = settings;
 
 	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onCheckoutSuccess(
@@ -41,6 +41,23 @@ const AmazonPayBtn = ( props ) => {
 	] );
 
 	useEffect( () => {
+		if ( 'PayOnly' === action || ! phoneRequired || phoneRequiredBase ) {
+			return;
+		}
+
+		const wcDefaultPhone = window.wc?.wcSettings?.defaultFields?.phone;
+		if ( wcDefaultPhone ) {
+			wcDefaultPhone.required = true;
+		}
+
+		return () => {
+			if ( wcDefaultPhone ) {
+				wcDefaultPhone.required = false;
+			}
+		};
+	}, [ action ] );
+
+	useEffect( () => {
 		const unsubscribe = props.eventRegistration.onPaymentSetup(
 			async () => {
 				if ( 'PayOnly' === action ) {
@@ -48,7 +65,7 @@ const AmazonPayBtn = ( props ) => {
 				}
 				const shippingPhone = document.getElementById( 'shipping-phone' );
 				const billingPhone = document.getElementById( 'billing-phone' );
-				
+
 				if ( ! shippingPhone?.value && ! billingPhone?.value ) {
 					return {
 						type: 'error',
