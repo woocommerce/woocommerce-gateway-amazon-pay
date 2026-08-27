@@ -6,6 +6,7 @@ jobs:
   test:
     name: PHP Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     strategy:
       matrix:
         php: [ 7.4, 8.0, 8.1 ]
