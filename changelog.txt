@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.6.3 - 2026-xx-xx =
+= 2.6.3 - 2026-10-26 =
 
 * Fix - Improve the async poll schedule logic.
 * Fix - Prevent Amazon Pay button from being rendered if the import is zero.
