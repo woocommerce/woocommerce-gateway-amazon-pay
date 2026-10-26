@@ -9,6 +9,7 @@ Thumbs.db
 .settings*
 .vscode
 .phpunit.result.cache
+.playwright-cli
 woorelease.phar
 sftp-config.json
 /deploy/

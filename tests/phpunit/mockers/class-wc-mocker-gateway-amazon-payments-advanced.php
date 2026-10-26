@@ -19,6 +19,20 @@ class WC_Mocker_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payme
 	protected static $order_total;
 
 	/**
+	 * Extra properties to add to the mocked checkout session.
+	 *
+	 * @var array
+	 */
+	public static $session_props = array();
+
+	/**
+	 * Error to return instead of the mocked checkout session.
+	 *
+	 * @var WP_Error|null
+	 */
+	public static $session_error = null;
+
+	/**
 	 * Overwrite actual constructor so we avoid hooking twice.
 	 *
 	 * @param int|string $order_total The order total to be set.
@@ -37,13 +51,21 @@ class WC_Mocker_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payme
 	 * @return false|stdClass the mocked Checkout Session Object from Amazon API
 	 */
 	public function get_checkout_session( $force = false, $checkout_session_id = null ) {
-		if ( ! $this->get_checkout_session_id() ) {
+		if ( ! $checkout_session_id && ! $this->get_checkout_session_id() ) {
 			return false;
+		}
+
+		if ( self::$session_error ) {
+			return self::$session_error;
 		}
 
 		$obj = new stdClass();
 
 		$obj->paymentPreferences = true; //phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+		foreach ( self::$session_props as $prop => $value ) {
+			$obj->$prop = $value;
+		}
 
 		return $obj;
 	}

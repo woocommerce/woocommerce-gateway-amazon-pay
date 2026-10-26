@@ -37,4 +37,5 @@ node_modules export-ignore
 *.zip export-ignore
 .nvmrc export-ignore
 .phpunit.result.cache export-ignore
+.playwright-cli export-ignore
 woocommerce-gateway-amazon-payments-advanced export-ignore

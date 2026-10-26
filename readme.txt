@@ -2,7 +2,7 @@
 Contributors: amazonpay, woocommerce, automattic, saucal, woothemes, akeda, jeffstieler, mikejolley, bor0, claudiosanches, royho, jamesrrodger, laurendavissmith001, dwainm, danreylop
 Tags: woocommerce, amazon, checkout, payments, e-commerce, ecommerce
 Requires at least: 5.5
-Tested up to: 7.0.1
+Tested up to: 7.1.3
 Stable tag: 2.6.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -79,6 +79,15 @@ WordPress codex contains [instructions on how to do this here](http://codex.word
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 2.6.3 - 2026-xx-xx =
+
+* Fix - Improve the async poll schedule logic.
+* Fix - Prevent Amazon Pay button from being rendered if the import is zero.
+* Fix - Harden the link account mechanism and the Legacy IPN handler.
+* Update - Amazon Pay SDK to v2.8.0.
+* Dev - Bumped tested up to WordPress v7.1.3.
+* Dev - Bumped tested up to WooCommerce v11.2.1.
 
 = 2.6.2 - 2026-07-22 =
 

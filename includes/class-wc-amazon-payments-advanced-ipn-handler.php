@@ -482,15 +482,9 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 		}
 
 		if ( ! wc_apa()->get_gateway()->get_lock_for_order( $order_id ) ) {
-			if ( ! isset( $notification['MockedIPN'] ) ) {
-				wc_apa()->log( sprintf( 'Refusing IPN due to concurrency on order #%d', $order_id ) );
-				status_header( 100 );
-				header( 'Retry-After: 120' );
-				exit;
-			} else {
-				wc_apa()->log( sprintf( 'Delaying for concurrency on order #%d', $order_id ) );
-				$this->schedule_hook( $notification['ObjectId'], $notification['ObjectType'] );
-			}
+			wc_apa()->log( sprintf( 'Deferring IPN due to concurrency on order #%d', $order_id ) );
+			$this->schedule_check( $notification['ObjectId'], strtoupper( $notification['ObjectType'] ), strtotime( '+1 minute' ) );
+			return;
 		}
 
 		if ( ! isset( $notification['MockedIPN'] ) ) {
@@ -516,47 +510,66 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 	}
 
 	/**
-	 * Check if the next hook is scheduled.
+	 * Get the time of the earliest pending check, or 0 for none.
 	 *
-	 * @param  string $hook Hook to check.
-	 * @param  array  $args Args to check.
-	 * @param  string $group Group to check for.
-	 * @return bool
+	 * @param  array $args Action arguments.
+	 * @return int
 	 */
-	private function is_next_scheduled( $hook, $args = null, $group = '' ) {
+	private function get_next_scheduled_time( $args ) {
 		$actions = as_get_scheduled_actions(
 			array(
-				'hook'   => $hook,
-				'args'   => $args,
-				'group'  => $group,
-				'status' => ActionScheduler_Store::STATUS_PENDING,
-			),
-			'ids'
+				'hook'     => 'wc_amazon_async_polling',
+				'args'     => $args,
+				'group'    => 'wc_amazon_async_polling',
+				'status'   => ActionScheduler_Store::STATUS_PENDING,
+				'per_page' => 1,
+				'orderby'  => 'date',
+				'order'    => 'ASC',
+			)
 		);
-		return count( $actions ) > 0;
+		$date    = $actions ? reset( $actions )->get_schedule()->get_date() : null;
+		return $date ? $date->getTimestamp() : 0;
 	}
 
 	/**
 	 * Schedule the hook for polling.
 	 *
-	 * @param  string    $id    Object ID to check for.
-	 * @param  string    $type  Object Type.
-	 * @param  \WC_Order $order Order object.
+	 * @param  string    $id        Object ID to check for.
+	 * @param  string    $type      Object Type.
+	 * @param  \WC_Order $order     Order object.
+	 * @param  int|null  $timestamp Optional. Time of the check, ten minutes from now by default.
 	 */
-	public function schedule_hook( $id, $type, $order = null ) {
-		$args = array( $id, $type );
-
+	public function schedule_hook( $id, $type, $order = null, $timestamp = null ) {
 		if ( ! apply_filters( 'woocommerce_amazon_pa_schedule_hook', true, $id, $type, $order ) ) {
 			wc_apa()->log( sprintf( 'Skipping scheduling check for %s %s', $type, $id ) );
 			return;
 		}
 
-		// Schedule action to check pending order next hour.
-		if ( false === $this->is_next_scheduled( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' ) ) {
-			wc_apa()->log( sprintf( 'Scheduling check for %s %s', $type, $id ) );
-			$polling_interval = apply_filters( 'woocommerce_amazon_pa_polling_interval', strtotime( '+10 minutes' ), $id, $type, $order );
-			as_schedule_single_action( $polling_interval, 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
+		$timestamp = apply_filters( 'woocommerce_amazon_pa_polling_interval', $timestamp ? $timestamp : strtotime( '+10 minutes' ), $id, $type, $order );
+		$this->schedule_check( $id, $type, $timestamp );
+	}
+
+	/**
+	 * Schedule a check unless an earlier one is already pending.
+	 *
+	 * @param  string $id        Object ID to check for.
+	 * @param  string $type      Object Type.
+	 * @param  int    $timestamp Time of the check.
+	 */
+	protected function schedule_check( $id, $type, $timestamp ) {
+		$args = array( $id, $type );
+		$next = $this->get_next_scheduled_time( $args );
+
+		if ( $next && $next <= $timestamp ) {
+			return;
 		}
+
+		if ( $next ) {
+			as_unschedule_all_actions( 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
+		}
+
+		wc_apa()->log( sprintf( 'Scheduling check for %s %s', $type, $id ) );
+		as_schedule_single_action( $timestamp, 'wc_amazon_async_polling', $args, 'wc_amazon_async_polling' );
 	}
 
 	/**
@@ -585,11 +598,18 @@ class WC_Amazon_Payments_Advanced_IPN_Handler extends WC_Amazon_Payments_Advance
 					// TIP: Suggested by Federico, use the charge_permission amounts change to infer a charge being made.
 					return;
 				}
-				$object               = WC_Amazon_Payments_Advanced_API::get_charge( $amazon_id );
+				$object = WC_Amazon_Payments_Advanced_API::get_charge( $amazon_id );
+				if ( is_wp_error( $object ) ) {
+					wc_apa()->log( sprintf( 'Could not read charge %1$s for a scheduled check: %2$s', $amazon_id, $object->get_error_message() ) );
+					return;
+				}
 				$charge_permission_id = $object->chargePermissionId; // phpcs:ignore WordPress.NamingConventions
 				break;
 			case 'CHARGE_PERMISSION':
 				$charge_permission_id = $amazon_id;
+				break;
+			case 'REFUND':
+				$charge_permission_id = null;
 				break;
 			default:
 				return;

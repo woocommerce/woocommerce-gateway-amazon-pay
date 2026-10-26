@@ -106,6 +106,7 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 
 		$notification      = $message['Message'];
 		$notification_data = $this->get_parsed_notification_data( $notification );
+		$notification_data = $this->get_verified_notification_data( $notification['NotificationType'], $notification_data );
 		$order             = $this->get_order_from_notification_data( $notification['NotificationType'], $notification_data );
 
 		do_action( 'woocommerce_amazon_payments_advanced_handle_ipn_order', $order );
@@ -299,6 +300,66 @@ class WC_Amazon_Payments_Advanced_IPN_Handler_Legacy extends WC_Amazon_Payments_
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Fetch the notification data from Amazon.
+	 *
+	 * @param string           $notification_type Notification type.
+	 * @param SimpleXMLElement $notification_data Notification data parsed from the message.
+	 *
+	 * @return SimpleXMLElement Authoritative data.
+	 * @throws Exception When object cannot be confirmed with Amazon.
+	 */
+	protected function get_verified_notification_data( $notification_type, $notification_data ) {
+		// @codingStandardsIgnoreStart
+		switch ( $notification_type ) {
+			case 'OrderReferenceNotification':
+				$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
+					array(
+						'Action'                 => 'GetOrderReferenceDetails',
+						'AmazonOrderReferenceId' => (string) $notification_data->OrderReference->AmazonOrderReferenceId,
+					)
+				);
+				$this->assert_amazon_response( $response );
+				$details = $response->GetOrderReferenceDetailsResult->OrderReferenceDetails;
+
+				$verified  = new SimpleXMLElement( '<OrderReferenceNotification/>' );
+				$reference = $verified->addChild( 'OrderReference' );
+				$reference->addChild( 'AmazonOrderReferenceId', (string) $details->AmazonOrderReferenceId );
+				$reference->addChild( 'SellerOrderAttributes' )->addChild( 'SellerOrderId', (string) $details->SellerOrderAttributes->SellerOrderId );
+				$reference->addChild( 'OrderReferenceStatus' )->addChild( 'State', (string) $details->OrderReferenceStatus->State );
+
+				return $verified;
+			case 'PaymentAuthorize':
+				$response = WC_Amazon_Payments_Advanced_API_Legacy::request(
+					array(
+						'Action'                => 'GetAuthorizationDetails',
+						'AmazonAuthorizationId' => (string) $notification_data->AuthorizationDetails->AmazonAuthorizationId,
+					)
+				);
+				$this->assert_amazon_response( $response );
+
+				return $response->GetAuthorizationDetailsResult;
+		}
+		// @codingStandardsIgnoreEnd
+
+		return $notification_data;
+	}
+
+	/**
+	 * Assert if the response is valid.
+	 *
+	 * @param SimpleXMLElement|WP_Error $response Response from Amazon.
+	 *
+	 * @throws Exception If the response is not valid.
+	 */
+	protected function assert_amazon_response( $response ) {
+		// @codingStandardsIgnoreStart
+		if ( is_wp_error( $response ) || isset( $response->Error->Message ) ) {
+			throw new Exception( 'Could not confirm the Amazon object referenced by the notification.' );
+		}
+		// @codingStandardsIgnoreEnd
 	}
 
 	/**

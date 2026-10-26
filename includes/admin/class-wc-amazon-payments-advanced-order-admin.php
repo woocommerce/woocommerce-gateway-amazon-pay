@@ -100,6 +100,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 		}
 		$order_id = $order->get_id();
 		wc_apa()->log( sprintf( 'Info: Trying to perform "%s" for order #%s', $action, $order_id ) );
+		$result = null;
 		switch ( $action ) {
 			case 'refresh':
 				wc_apa()->get_gateway()->log_charge_permission_status_change( $order );
@@ -108,17 +109,29 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 			case 'authorize':
 			case 'authorize_capture':
 				$capture_now = ( 'authorize_capture' === $action );
-				wc_apa()->get_gateway()->perform_authorization( $order, $capture_now, $id );
+				$result      = wc_apa()->get_gateway()->perform_authorization( $order, $capture_now, $id );
 				break;
 			case 'close_authorization':
-				wc_apa()->get_gateway()->perform_cancel_auth( $order, $id );
+				$result = wc_apa()->get_gateway()->perform_cancel_auth( $order, $id );
 				break;
 			case 'capture':
-				wc_apa()->get_gateway()->perform_capture( $order, $id );
+				$result = wc_apa()->get_gateway()->perform_capture( $order, $id );
 				break;
 			case 'refund':
-				wc_apa()->get_gateway()->perform_refund( $order, null, $id );
+				$result = wc_apa()->get_gateway()->perform_refund( $order, null, $id );
 				break;
+		}
+
+		if ( is_wp_error( $result ) ) {
+			wc_apa()->log( sprintf( 'Error: "%1$s" failed for order #%2$d: %3$s', $action, $order_id, $result->get_error_message() ) );
+			$order->add_order_note(
+				sprintf(
+					/* translators: 1) Action attempted 2) Error message from Amazon */
+					__( 'Amazon Pay action "%1$s" failed: %2$s', 'woocommerce-gateway-amazon-payments-advanced' ),
+					(string) $action,
+					$result->get_error_message()
+				)
+			);
 		}
 	}
 
@@ -194,7 +207,7 @@ class WC_Amazon_Payments_Advanced_Order_Admin {
 	 * @param  string   $version Version of the order.
 	 */
 	public function auth_box_render( $order, $version ) {
-		if ( 'v2' !== strtolower( $version ) ) {
+		if ( 'v2' !== strtolower( $version ) || ! method_exists( wc_apa()->get_gateway(), 'get_cached_charge_permission_status' ) ) {
 			return;
 		}
 
