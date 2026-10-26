@@ -322,7 +322,13 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 			'storeId'            => $settings['store_id'],
 			'platformId'         => self::AMAZON_PAY_FOR_WOOCOMMERCE_SP_ID,
 			'webCheckoutDetails' => array(
-				'checkoutReviewReturnUrl' => add_query_arg( 'amazon_login', '1', $redirect_url ),
+				'checkoutReviewReturnUrl' => add_query_arg(
+					array(
+						'amazon_login' => '1',
+						'amazon_nonce' => self::get_login_nonce(),
+					),
+					$redirect_url
+				),
 				'checkoutResultReturnUrl' => add_query_arg( 'amazon_return', '1', $redirect_url ),
 			),
 		);
@@ -343,6 +349,25 @@ class WC_Amazon_Payments_Advanced_API extends WC_Amazon_Payments_Advanced_API_Ab
 
 		return $payload;
 
+	}
+
+	/**
+	 * Get the visitor's login nonce, creating it if missing.
+	 *
+	 * @return string
+	 */
+	public static function get_login_nonce() {
+		if ( ! isset( WC()->session ) ) {
+			return '';
+		}
+
+		$nonce = WC()->session->get( 'amazon_nonce' );
+		if ( empty( $nonce ) ) {
+			$nonce = wp_generate_password( 32, false );
+			WC()->session->set( 'amazon_nonce', $nonce );
+		}
+
+		return $nonce;
 	}
 
 	/**
