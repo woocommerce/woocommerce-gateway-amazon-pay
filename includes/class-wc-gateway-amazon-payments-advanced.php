@@ -841,6 +841,20 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	}
 
 	/**
+	 * Validate the classic return's checkout session was created for the order.
+	 *
+	 * @param WC_Order $order            Order being paid.
+	 * @param mixed    $checkout_session Checkout session returned by Amazon.
+	 *
+	 * @return bool
+	 */
+	protected function is_valid_classic_return( $order, $checkout_session ) {
+		$query = wp_parse_args( (string) wp_parse_url( $checkout_session->webCheckoutDetails->checkoutResultReturnUrl ?? '', PHP_URL_QUERY ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+		return hash_equals( $order->get_order_key(), (string) ( $query['key'] ?? '' ) );
+	}
+
+	/**
 	 * Handle the Amazon Payments actions (login, logout, return)
 	 */
 	public function maybe_handle_apa_action() {
@@ -1654,11 +1668,14 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 	public function handle_return( $checkout_session_id = '' ) {
 
 		/* If checkout_session_id has been supplied, the classic payment method is being used. */
+		$is_classic_return   = ! empty( $checkout_session_id );
 		$checkout_session_id = $checkout_session_id ? $checkout_session_id : $this->get_checkout_session_id();
 
-		$order_id = isset( WC()->session->order_awaiting_payment ) ? absint( WC()->session->order_awaiting_payment ) : 0;
+		$order_id  = isset( WC()->session->order_awaiting_payment ) ? absint( WC()->session->order_awaiting_payment ) : 0;
+		$order_key = null;
 		if ( is_wc_endpoint_url( 'order-pay' ) ) {
-			$order_id = absint( get_query_var( 'order-pay' ) );
+			$order_id  = absint( get_query_var( 'order-pay' ) );
+			$order_key = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		}
 
 		$checkout_session = null;
@@ -1689,10 +1706,25 @@ class WC_Gateway_Amazon_Payments_Advanced extends WC_Gateway_Amazon_Payments_Adv
 			return;
 		}
 
+		if ( null !== $order_key && ( ! hash_equals( $order->get_order_key(), $order_key ) || ! current_user_can( 'pay_for_order', $order->get_id() ) ) ) {
+			wc_apa()->log( "Error: Order #{$order_id} return could not be verified. Checkout Session ID: {$checkout_session_id}." );
+			wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+			return;
+		}
+
 		if ( ! $order->needs_payment() ) {
 			wc_apa()->log( sprintf( 'Order #%d does not need payment. Skipping checkout session completion for %s.', $order_id, $checkout_session_id ) );
 			wp_safe_redirect( wc_apa()->get_gateway()->get_return_url( $order ) );
 			exit;
+		}
+
+		if ( $is_classic_return ) {
+			$checkout_session = $this->get_checkout_session( true, $checkout_session_id );
+			if ( ! $this->is_valid_classic_return( $order, $checkout_session ) ) {
+				wc_apa()->log( "Error: Checkout session does not belong to order #{$order_id}. Checkout Session ID: {$checkout_session_id}." );
+				wc_add_notice( __( 'There was an error while processing your payment. Please try again. If the error persist, please contact us about your order.', 'woocommerce-gateway-amazon-payments-advanced' ), 'error' );
+				return;
+			}
 		}
 
 		$order_total = WC_Amazon_Payments_Advanced::format_amount( $order->get_total() );
