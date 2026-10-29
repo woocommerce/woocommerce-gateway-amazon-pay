@@ -1,6 +1,6 @@
 *** Amazon Pay Changelog ***
 
-= 2.6.4 - 2026-xx-xx =
+= 2.6.4 - 2026-10-29 =
 
 * Fix - Harden return callback for Classic Checkout.
 
