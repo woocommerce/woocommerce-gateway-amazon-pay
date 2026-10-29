@@ -80,6 +80,10 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
+= 2.6.4 - 2026-xx-xx =
+
+* Fix - Harden return callback for Classic Checkout.
+
 = 2.6.3 - 2026-10-26 =
 
 * Fix - Improve the async poll schedule logic.
