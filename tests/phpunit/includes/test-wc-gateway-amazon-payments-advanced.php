@@ -532,6 +532,111 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test an order-pay return needs the order key before it redirects to the order.
+	 *
+	 * @return void
+	 */
+	public function test_order_pay_return_requires_order_key() : void {
+		$order = WC_Helper_Order::create_order( self::$gateway->id, 0 );
+		$order->update_status( 'completed' );
+
+		$this->assertSame( '', $this->get_order_pay_return_redirect( $order, null ) );
+		$this->assertSame( '', $this->get_order_pay_return_redirect( $order, 'wc_order_wrong' ) );
+		$this->assertSame( '', $this->get_order_pay_return_redirect( $order, null, '' ) );
+		$this->assertStringContainsString( $order->get_order_key(), $this->get_order_pay_return_redirect( $order, $order->get_order_key() ) );
+	}
+
+	/**
+	 * Test an order-pay return for a registered customer's order needs that customer logged in.
+	 *
+	 * @return void
+	 */
+	public function test_order_pay_return_requires_order_owner() : void {
+		$user_id = self::factory()->user->create();
+		$order   = WC_Helper_Order::create_order( self::$gateway->id, $user_id );
+		$order->update_status( 'completed' );
+
+		wp_set_current_user( 0 );
+		$this->assertSame( '', $this->get_order_pay_return_redirect( $order, $order->get_order_key() ) );
+
+		wp_set_current_user( $user_id );
+		try {
+			$this->assertStringContainsString( $order->get_order_key(), $this->get_order_pay_return_redirect( $order, $order->get_order_key() ) );
+		} finally {
+			wp_set_current_user( 0 );
+		}
+	}
+
+	/**
+	 * Test a rejected order-pay return leaves an unpaid order's addresses untouched.
+	 *
+	 * @return void
+	 */
+	public function test_order_pay_return_keeps_unpaid_order_addresses() : void {
+		$order = WC_Helper_Order::create_order( self::$gateway->id, 0 );
+
+		WC_Mocker_Gateway_Amazon_Payments_Advanced::$session_props = array(
+			'billingAddress' => $this->get_other_buyer_address(),
+		);
+
+		try {
+			$this->assertSame( '', $this->get_order_pay_return_redirect( $order, 'wc_order_wrong' ) );
+		} finally {
+			WC_Mocker_Gateway_Amazon_Payments_Advanced::$session_props = array();
+		}
+
+		$this->assertSame( 'Jeroen', wc_get_order( $order->get_id() )->get_billing_first_name() );
+	}
+
+	/**
+	 * Test a classic return only accepts a checkout session created for the order.
+	 *
+	 * @return void
+	 */
+	public function test_classic_return_session_must_belong_to_order() : void {
+		$order = WC_Helper_Order::create_order( self::$gateway->id, 0 );
+		$other = WC_Helper_Order::create_order( self::$gateway->id, 0 );
+
+		try {
+			$this->set_classic_return_order( $order );
+			$this->assertTrue( $this->is_valid_classic_return( $order ) );
+
+			$this->set_classic_return_order( $other );
+			$this->assertFalse( $this->is_valid_classic_return( $order ) );
+
+			WC_Mocker_Gateway_Amazon_Payments_Advanced::$session_props = array();
+			$this->assertFalse( $this->is_valid_classic_return( $order ) );
+
+			WC_Mocker_Gateway_Amazon_Payments_Advanced::$session_error = new WP_Error( 'ResourceNotFound', 'Checkout session not found.' );
+			$this->assertFalse( $this->is_valid_classic_return( $order ) );
+		} finally {
+			WC_Mocker_Gateway_Amazon_Payments_Advanced::$session_props = array();
+			WC_Mocker_Gateway_Amazon_Payments_Advanced::$session_error = null;
+		}
+	}
+
+	/**
+	 * Test a classic return with another order's checkout session leaves the order's addresses untouched.
+	 *
+	 * @return void
+	 */
+	public function test_classic_return_rejects_other_orders_session() : void {
+		$order = WC_Helper_Order::create_order( self::$gateway->id, 0 );
+		$other = WC_Helper_Order::create_order( self::$gateway->id, 0 );
+
+		$this->set_classic_return_order( $other );
+		WC_Mocker_Gateway_Amazon_Payments_Advanced::$session_props['billingAddress'] = $this->get_other_buyer_address();
+
+		try {
+			$this->assertSame( '', $this->get_order_pay_return_redirect( $order, $order->get_order_key() ) );
+		} finally {
+			WC_Mocker_Gateway_Amazon_Payments_Advanced::$session_props = array();
+		}
+
+		$this->assertSame( 'Jeroen', wc_get_order( $order->get_id() )->get_billing_first_name() );
+	}
+
+	/**
 	 * Point the mocked checkout session's review return URL at the given login nonce.
 	 *
 	 * @param string $nonce Login nonce.
@@ -556,6 +661,99 @@ class WC_Gateway_Amazon_Payments_Advanced_Test extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		return $method->invoke( $mock_gateway, 'PRESENTED_SESSION_ID' );
+	}
+
+	/**
+	 * Run handle_return() on an order's order-pay URL and return where it redirected to.
+	 *
+	 * @param WC_Order $order               Order whose order-pay URL is visited.
+	 * @param ?string  $key                 Order key in the URL, null to omit it.
+	 * @param string   $checkout_session_id Session id the classic return passes, empty for the express return.
+	 * @return string
+	 */
+	protected function get_order_pay_return_redirect( WC_Order $order, ?string $key, string $checkout_session_id = 'PRESENTED_SESSION_ID' ) : string {
+		global $wp;
+
+		$wp->query_vars['order-pay'] = $order->get_id();
+		set_query_var( 'order-pay', $order->get_id() );
+		if ( null !== $key ) {
+			$_GET['key'] = $key;
+		}
+		add_filter( 'wp_redirect', array( self::class, 'throw_redirect' ) );
+
+		try {
+			( new WC_Mocker_Gateway_Amazon_Payments_Advanced() )->handle_return( $checkout_session_id );
+			return '';
+		} catch ( Exception $e ) {
+			return $e->getMessage();
+		} finally {
+			remove_filter( 'wp_redirect', array( self::class, 'throw_redirect' ) );
+			unset( $wp->query_vars['order-pay'], $_GET['key'] );
+			set_query_var( 'order-pay', '' );
+			wc_clear_notices();
+		}
+	}
+
+	/**
+	 * Abort a redirect by throwing its location.
+	 *
+	 * @param string $location Redirect location.
+	 * @return void
+	 * @throws Exception Always.
+	 */
+	public static function throw_redirect( $location ) {
+		throw new Exception( $location );
+	}
+
+	/**
+	 * Build an Amazon address for a buyer other than the order's customer.
+	 *
+	 * @return stdClass
+	 */
+	protected function get_other_buyer_address() : stdClass {
+		return (object) array(
+			'Name'         => 'Other Buyer',
+			'AddressLine1' => 'Other Street 1',
+			'AddressLine2' => '',
+			'AddressLine3' => '',
+			'City'         => 'Other City',
+			'PostalCode'   => '28001',
+			'CountryCode'  => 'ES',
+		);
+	}
+
+	/**
+	 * Point the mocked checkout session's classic return URL at an order.
+	 *
+	 * @param WC_Order $order Order the session was created for.
+	 * @return void
+	 */
+	protected function set_classic_return_order( WC_Order $order ) : void {
+		WC_Mocker_Gateway_Amazon_Payments_Advanced::$session_props = array(
+			'webCheckoutDetails' => (object) array(
+				'checkoutResultReturnUrl' => add_query_arg(
+					array(
+						'amazon_payments_advanced' => 'true',
+						'amazon_return_classic'    => '1',
+					),
+					$order->get_checkout_payment_url()
+				),
+			),
+		);
+	}
+
+	/**
+	 * Run the gateway's classic return check for an order against the mocked checkout session.
+	 *
+	 * @param WC_Order $order Order being paid.
+	 * @return bool
+	 */
+	protected function is_valid_classic_return( WC_Order $order ) : bool {
+		$mock_gateway = new WC_Mocker_Gateway_Amazon_Payments_Advanced();
+		$method       = new ReflectionMethod( $mock_gateway, 'is_valid_classic_return' );
+		$method->setAccessible( true );
+
+		return $method->invoke( $mock_gateway, $order, $mock_gateway->get_checkout_session( true, 'PRESENTED_SESSION_ID' ) );
 	}
 
 	/**
