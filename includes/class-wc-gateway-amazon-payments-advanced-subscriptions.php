@@ -517,6 +517,7 @@ class WC_Gateway_Amazon_Payments_Advanced_Subscriptions {
 
 				$subscription->update_meta_data( $key, $value );
 			}
+			$subscription->set_payment_method( wc_apa()->get_gateway()->id );
 			$subscription->save();
 		}
 	}
